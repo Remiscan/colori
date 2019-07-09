@@ -1,4 +1,3 @@
-// Construit les objets de type Couleur
 class Couleur {
   constructor(couleur) {
     const format = Couleur.matchSyntax(couleur.trim());
