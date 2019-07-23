@@ -181,51 +181,19 @@ export class Couleur {
   }
 
   get rgba() {
-    const valeur = 'rgba('
-                 + this.r
-                 + ', '
-                 + this.g
-                 + ', '
-                 + this.b
-                 + ', '
-                 + this.a
-                 + ')';
-    return valeur;
+    return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
   }
 
   get rgb() {
-    const valeur = 'rgb('
-                 + this.r
-                 + ', '
-                 + this.g
-                 + ', '
-                 + this.b
-                 + ')';
-    return valeur;
+    return `rgb(${this.r}, ${this.g}, ${this.b})`;
   }
 
   get hsla() {
-    const valeur = 'hsla('
-                 + this.h
-                 + ', '
-                 + this.s
-                 + '%, '
-                 + this.l
-                 + '%, '
-                 + this.a
-                 + ')';
-    return valeur;
+    return `hsla(${this.h}, ${this.s}%, ${this.l}%, ${this.a})`;
   }
 
   get hsl() {
-    const valeur = 'hsl('
-                 + this.h
-                 + ', '
-                 + this.s
-                 + '%, '
-                 + this.l
-                 + '%)';
-    return valeur;
+    return `hsl(${this.h}, ${this.s}%, ${this.l}%)`;
   }
 
   rgba2hsla() {
@@ -321,7 +289,7 @@ export class Couleur {
     const r = Math.round(this.a * this.r + (1 - this.a) * background.r);
     const g = Math.round(this.a * this.g + (1 - this.a) * background.g);
     const b = Math.round(this.a * this.b + (1 - this.a) * background.b);
-    return new Couleur('rgb(' + r + ', ' + g + ', ' + b + ')');
+    return new Couleur(`rgb(${r}, ${g}, ${b})`);
   }
 
   // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
@@ -356,7 +324,7 @@ export class Couleur {
 
   // Change une propriété d'une couleur
   change(propriete, valeur, remplace = false) {
-    let nouvelleCouleur = new Couleur('rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + this.a + ')');
+    let nouvelleCouleur = new Couleur(`rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`);
     if (['r', 'g', 'b'].includes(propriete))
     {
       nouvelleCouleur[propriete] = Math.max(0, Math.min(255, (remplace ? 0 : nouvelleCouleur[propriete]) + valeur));
