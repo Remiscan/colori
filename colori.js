@@ -275,7 +275,7 @@ export default class Couleur {
   }
 
   // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
-  meilleurContraste() {
+  contrastedText() {
     let couleur = this;
     if (this.a < 1)
       couleur = this.blend(new Couleur('white'));
@@ -299,9 +299,9 @@ export default class Couleur {
       (LB + 0.05) / (L + 0.05)  // contraste entre le blanc et la couleur entrée
     ];
     if (contrastes[0] > contrastes[1]) // contraste plus fort avec le noir
-      return 0; // le texte noir ira mieux sur le fond de couleur
+      return new Couleur('black'); // le texte noir ira mieux sur le fond de couleur
     else
-      return 1; // le texte blanc ira mieux sur le fond de couleur
+      return new Couleur('white'); // le texte blanc ira mieux sur le fond de couleur
   }
 
   // Change une propriété d'une couleur
