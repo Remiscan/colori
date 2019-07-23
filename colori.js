@@ -200,7 +200,6 @@ export class Couleur {
     let r = this.r;
     let g = this.g;
     let b = this.b;
-    let a = this.a;
     r = r / 255;
     g = g / 255;
     b = b / 255;
@@ -258,7 +257,6 @@ export class Couleur {
     let h = this.h;
     let s = this.s;
     let l = this.l;
-    let a = this.a;
     let r, g, b, t1, t2;
 
     h = h / 60;
