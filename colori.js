@@ -1,4 +1,4 @@
-export class Couleur {
+export default class Couleur {
   constructor(couleur) {
     const format = Couleur.matchSyntax(couleur.trim());
     if (['HEX', 'HEXA'].includes(format.id))
