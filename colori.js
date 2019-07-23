@@ -261,8 +261,7 @@ export default class Couleur {
   }
 
   // Fusionne la couleur et une couleur de fond "background"
-  blend(background = new Couleur('white'))
-  {
+  blend(background = new Couleur('white')) {
     if (background.a < 1)
       throw 'The background color can\'t be transparent';
     const r = Math.round(this.a * this.r + (1 - this.a) * background.r);
@@ -275,7 +274,7 @@ export default class Couleur {
   contrastedText() {
     let couleur = this;
     if (this.a < 1)
-      couleur = this.blend(new Couleur('white'));
+      throw 'Can\'t calculate text contrast with transparent color';
     let arr = [couleur.r, couleur.g, couleur.b];
     for (let i = 0; i <= 2; i++) {
       let e = arr[i];

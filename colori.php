@@ -600,7 +600,7 @@ class Couleur
   public function contrastedText() {
     $couleur = new Couleur($this->get_rgba());
     if ($this->a < 1)
-      $couleur = $this->blend(new Couleur('white'));
+      throw new Exception('Can\'t calculate text contrast with transparent color');
     $arr = array($couleur->r, $couleur->g, $couleur->b);
     for ($i = 0; $i <= 2; $i++) {
       $e = $arr[$i];
