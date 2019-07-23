@@ -397,7 +397,7 @@ class Couleur
       if ($resultat !== false)
         return $resultat;
       else
-        throw new Exception('Format invalide');
+        throw new Exception('Invalid format');
     } catch (Exception $e) {
       echo $e->getMessage();
     }
@@ -589,7 +589,7 @@ class Couleur
     if ($background === null)
       $background = new Couleur('white');
     if ($background->a < 1)
-      throw new Exception('La couleur de fond ne doit pas être transparente');
+      throw new Exception('The background color can\'t be transparent');
     $r = round($this->a * $this->r + (1 - $this->a) * $background->r);
     $g = round($this->a * $this->g + (1 - $this->a) * $background->g);
     $b = round($this->a * $this->b + (1 - $this->a) * $background->b);

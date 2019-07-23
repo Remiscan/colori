@@ -34,7 +34,6 @@ export default class Couleur {
         a = format.data[4];
       else
         a = 1;
-      // Si les couleurs sont en pourcentage, on les met sur 255
       const percentTo255 = n => Math.round(parseFloat(n) / 100 * 255);
       if (String(r).slice(-1) == '%')
       {
@@ -42,7 +41,6 @@ export default class Couleur {
         g = percentTo255(g);
         b = percentTo255(b);
       }
-      // Si alpha est en pourcentage, on le met sur 1
       if (String(a).slice(-1) == '%')
         a = parseFloat(a) / 100;
       this.r = Number(r);
@@ -74,7 +72,6 @@ export default class Couleur {
         a = format.data[4];
       else
         a = 1;
-      // Si alpha est en pourcentage, on le met sur 1
       if (String(a).slice(-1) == '%')
         a = parseFloat(a) / 100;
       this.h = Number(h);
@@ -121,7 +118,7 @@ export default class Couleur {
       if (resultat)
         return resultat;
       else
-        throw 'Format invalide';
+        throw 'Invalid format';
     } catch (e) {
       console.error(e);
     }
@@ -267,7 +264,7 @@ export default class Couleur {
   blend(background = new Couleur('white'))
   {
     if (background.a < 1)
-      throw 'La couleur de fond ne doit pas être transparente';
+      throw 'The background color can\'t be transparent';
     const r = Math.round(this.a * this.r + (1 - this.a) * background.r);
     const g = Math.round(this.a * this.g + (1 - this.a) * background.g);
     const b = Math.round(this.a * this.b + (1 - this.a) * background.b);
