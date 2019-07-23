@@ -1,19 +1,20 @@
 export default class Couleur {
   constructor(couleur) {
     const format = Couleur.matchSyntax(couleur.trim());
+
     if (['HEX', 'HEXA'].includes(format.id))
     {
       let r, g, b, a;
       r = format.data[1];
-      r = (r.length == 1) ? r + '' + r : r;
+      r = (r.length == 1) ? r.repeat(2) : r;
       g = format.data[2];
-      g = (g.length == 1) ? g + '' + g : g;
+      g = (g.length == 1) ? g.repeat(2) : g;
       b = format.data[3];
-      b = (b.length == 1) ? b + '' + b : b;
+      b = (b.length == 1) ? b.repeat(2) : b;
       if (format.id === 'HEXA')
       {
         a = format.data[4];
-        a = (a.length == 1) ? a + '' + a : a;
+        a = (a.length == 1) ? a.repeat(2) : a;
       }
       else
         a = 'ff';
@@ -29,26 +30,21 @@ export default class Couleur {
       r = format.data[1];
       g = format.data[2];
       b = format.data[3];
+      if (format.id === 'RGBA')
+        a = format.data[4];
+      else
+        a = 1;
       // Si les couleurs sont en pourcentage, on les met sur 255
-      const percentTo255 = n => {
-        let _n = n;
-        _n = Number(_n.replace('%', ''));
-        _n = Math.round(_n / 100 * 255);
-        return _n;
-      };
+      const percentTo255 = n => Math.round(parseFloat(n) / 100 * 255);
       if (String(r).slice(-1) == '%')
       {
         r = percentTo255(r);
         g = percentTo255(g);
         b = percentTo255(b);
       }
-      if (format.id === 'RGBA')
-        a = format.data[4];
-      else
-        a = 1;
       // Si alpha est en pourcentage, on le met sur 1
       if (String(a).slice(-1) == '%')
-        a = Number(a.replace('%', '')) / 100;
+        a = parseFloat(a) / 100;
       this.r = Number(r);
       this.g = Number(g);
       this.b = Number(b);
@@ -59,44 +55,35 @@ export default class Couleur {
     {
       let h, s, l, a;
       h = format.data[1];
+      h = parseFloat(h);
       if (String(h).slice(-3) == 'rad')
-      {
-        h = Number(h.replace('rad', ''));
         h = Math.round(h * 180 / Math.PI);
-      }
       else if (String(h).slice(-4) == 'turn')
-      {
-        h = Number(h.replace('turn', ''));
         h = Math.round(h * 360);
-      }
       while (h > 360) {
         h -= 360;
       }
       while (h < 0) {
         h += 360;
       }
-      const dePercent = n => {
-        let _n = n;
-        _n = Number(_n.replace('%', ''));
-        return _n;
-      };
       s = format.data[2];
-      s = dePercent(s);
+      s = parseFloat(s);
       l = format.data[3];
-      l = dePercent(l);
+      l = parseFloat(l);
       if (format.id === 'HSLA')
         a = format.data[4];
       else
         a = 1;
       // Si alpha est en pourcentage, on le met sur 1
       if (String(a).slice(-1) == '%')
-        a = Number(a.replace('%', '')) / 100;
+        a = parseFloat(a) / 100;
       this.h = Number(h);
       this.s = Number(s);
       this.l = Number(l);
       this.a = Number(a);
       this.hsla2rgba();
     }
+
     if (this.a == 1)
     {
       let _nom = Object.keys(Couleur.couleursNommees).find(k => Couleur.couleursNommees[k] == this.hex.replace('#', ''));
@@ -159,25 +146,22 @@ export default class Couleur {
 
   // Ajoute un zéro avant une chaîne d'un seul caractère
   static pad(s) {
-    return (s.length < 2) ? '0' + String(s) : s;
+    return (s.length < 2) ? `0${s}` : s;
   }
 
   get hexa() {
-    const a = Math.round(this.a * 255);
-    const valeur = '#'
-                 + Couleur.pad(this.r.toString(16))
-                 + Couleur.pad(this.g.toString(16))
-                 + Couleur.pad(this.b.toString(16))
-                 + Couleur.pad(a.toString(16));
-    return valeur;
+    const r = Couleur.pad(this.r.toString(16));
+    const g = Couleur.pad(this.g.toString(16));
+    const b = Couleur.pad(this.b.toString(16));
+    const a = Couleur.pad(Math.round(this.a * 255).toString(16));
+    return `#${r}${g}${b}${a}`;
   }
 
   get hex() {
-    const valeur = '#'
-                 + Couleur.pad(this.r.toString(16))
-                 + Couleur.pad(this.g.toString(16))
-                 + Couleur.pad(this.b.toString(16));
-    return valeur;
+    const r = Couleur.pad(this.r.toString(16));
+    const g = Couleur.pad(this.g.toString(16));
+    const b = Couleur.pad(this.b.toString(16));
+    return `#${r}${g}${b}`;
   }
 
   get rgba() {
