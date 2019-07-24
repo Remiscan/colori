@@ -240,15 +240,30 @@ export default class Couleur {
     this.b = Number(b);
   }
 
-  // Fusionne la couleur et une couleur de fond "background"
-  blend(background = new Couleur('white')) {
+  // Fusionne une couleur transparente et une couleur opaque
+  static blend(couleur1, couleur2) {
+    if (!(couleur1 instanceof Couleur) || !(couleur2 instanceof Couleur))
+      throw 'Arguments should be two instances of the Couleur class';
+    let background, overlay;
+    if (couleur1.a < 1 && couleur2.a < 1)
+      throw 'At least one of the arguments needs to be an opaque Couleur';
+    else if (couleur1.a < 1 && couleur2.a == 1)
+    {
+      background = couleur2;
+      overlay = couleur1;
+    }
+    else
+    {
+      background = couleur1;
+      overlay = couleur2;
+    }
     if (background.nom == 'white')
       console.log('Color was blended on white background by default');
     if (background.a < 1)
       throw 'The background color can\'t be transparent';
-    const r = Math.round(this.a * this.r + (1 - this.a) * background.r);
-    const g = Math.round(this.a * this.g + (1 - this.a) * background.g);
-    const b = Math.round(this.a * this.b + (1 - this.a) * background.b);
+    const r = Math.round(overlay.a * overlay.r + (1 - overlay.a) * background.r);
+    const g = Math.round(overlay.a * overlay.g + (1 - overlay.a) * background.g);
+    const b = Math.round(overlay.a * overlay.b + (1 - overlay.a) * background.b);
     return new Couleur(`rgb(${r}, ${g}, ${b})`);
   }
 
@@ -275,11 +290,9 @@ export default class Couleur {
 
   // Calcule le contraste entre deux couleurs
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
-  contrastWith(couleur) {
-    if (!(couleur instanceof Couleur))
-      throw 'Argument should be an instance of the Couleur class';
-    let couleur1 = this;
-    let couleur2 = couleur;
+  static contrast(couleur1, couleur2) {
+    if (!(couleur1 instanceof Couleur) || !(couleur2 instanceof Couleur))
+      throw 'Arguments should be two instances of the Couleur class';
     const L1 = couleur1.luminance();
     const L2 = couleur2.luminance();
     const Lmax = Math.max(L1, L2);

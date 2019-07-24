@@ -566,15 +566,23 @@ class Couleur
   }
 
   // Fusionne la couleur et une couleur de fond "background"
-  public function blend(Couleur $background = null)
+  public static function blend(Couleur $couleur1, Couleur $couleur2)
   {
-    if ($background === null)
-      $background = new Couleur('white');
-    if ($background->a < 1)
-      throw new Exception('The background color can\'t be transparent');
-    $r = round($this->a * $this->r + (1 - $this->a) * $background->r);
-    $g = round($this->a * $this->g + (1 - $this->a) * $background->g);
-    $b = round($this->a * $this->b + (1 - $this->a) * $background->b);
+    if ($couleur1->a < 1 && $couleur2->a < 1)
+      throw new Exception('At least one of the arguments needs to be an opaque Couleur');
+    else if ($couleur1->a < 1 && $couleur2->a == 1)
+    {
+      $background = $couleur2;
+      $overlay = $couleur1;
+    }
+    else
+    {
+      $background = $couleur1;
+      $overlay = $couleur2;
+    }
+    $r = round($overlay->a * $overlay->r + (1 - $overlay->a) * $background->r);
+    $g = round($overlay->a * $overlay->g + (1 - $overlay->a) * $background->g);
+    $b = round($overlay->a * $overlay->b + (1 - $overlay->a) * $background->b);
     return new Couleur('rgb(' . $r . ', ' . $g . ', ' . $b . ')');
   }
 
@@ -601,11 +609,9 @@ class Couleur
 
   // Calcule le contraste entre deux couleurs
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
-  public function contrastWith($couleur) {
-    if (!($couleur instanceof Couleur))
-      throw new Exception('Argument should be an instance of the Couleur class');
-    $couleur1 = $this;
-    $couleur2 = $couleur;
+  public static function contrast($couleur1, $couleur2) {
+    if (!($couleur1 instanceof Couleur) || !($couleur2 instanceof Couleur))
+      throw new Exception('Arguments should be two instances of the Couleur class');
     $L1 = $couleur1->luminance();
     $L2 = $couleur2->luminance();
     $Lmax = max($L1, $L2);
