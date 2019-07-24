@@ -403,22 +403,6 @@ class Couleur
     }
   }
 
-  // Utilisé dans hsla2rgba
-  private function hueToRgb($t1, $t2, $h) {
-    if ($h < 0)
-      $h += 6;
-    if ($h >= 6)
-      $h -= 6;
-    if ($h < 1)
-      return ($t2 - $t1) * $h + $t1;
-    elseif ($h < 3)
-      return $t2;
-    elseif ($h < 4)
-      return ($t2 - $t1) * (4 - $h) + $t1;
-    else
-      return $t1;
-  }
-
   // Ajoute un zéro avant une chaîne d'un seul caractère
   private function pad($s) {
     return (strlen($s) < 2) ? '0' . $s : $s;
@@ -501,7 +485,6 @@ class Couleur
     $r = $this->r;
     $g = $this->g;
     $b = $this->b;
-    $a = $this->a;
     $r = $r / 255;
     $g = $g / 255;
     $b = $b / 255;
@@ -513,13 +496,13 @@ class Couleur
     // Luminosité (l)
     $l = ($max + $min) / 2;
     
-    // Si chroma == 0, la couleur est grise, donc n'a aucune teinte (h) ni saturation (s)
+    // Si chroma == 0, la couleur est grise
     if ($chroma == 0)
     {
         $h = 0;
-        $s = 0;
     }
-    // Sinon, on calcule h et s - cf https://www.w3schools.com/lib/w3color.js
+    // Sinon, on calcule la teinte h
+    // (source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
     else
     {
       switch($max) {
@@ -536,12 +519,14 @@ class Couleur
       $h = 60 * $h;
       if ($h < 0)
         $h += 360;
-      
-      if ($l < 0.5)
-        $s = $chroma / (2 * $l);
-      else
-        $s = $chroma / (2 - 2 * $l);
     }
+
+    if ($l == 0 || $l == 1)
+      $s = 0;
+    elseif ($l <= 0.5)
+      $s = $chroma / (2 * $l);
+    else
+      $s = $chroma / (2 - 2 * $l);
     
     $h = round($h);
       
@@ -558,25 +543,22 @@ class Couleur
 
   private function hsla2rgba()
   {
+    // source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     $h = $this->h;
-    $s = $this->s;
-    $l = $this->l;
-    $a = $this->a;
+    $s = $this->s / 100;
+    $l = $this->l / 100;
+
+    $m = $s * min($l, 1 - $l);
+
+    $arr = [0, 8, 4];
+    for ($i = 0; $i <= 2; $i++) {
+      $k = fmod($arr[$i] + $h / 30, 12);
+      $arr[$i] = $l - $m * max(min($k - 3, 9 - $k, 1), -1);
+    }
     
-    $h = $h / 60;
-    $s = $s / 100;
-    $l = $l / 100;
-    
-    if ($l <= 0.5)
-      $t2 = $l * ($s + 1);
-    else
-      $t2 = $l + $s - ($l * $s);
-    
-    $t1 = 2 * $l - $t2;
-    
-    $r = round(255 * $this->huetorgb($t1, $t2, $h + 2));
-    $g = round(255 * $this->huetorgb($t1, $t2, $h));
-    $b = round(255 * $this->huetorgb($t1, $t2, $h - 2));
+    $r = round($arr[0] * 255);
+    $g = round($arr[1] * 255);
+    $b = round($arr[2] * 255);
     
     $this->r = intval($r);
     $this->g = intval($g);
@@ -595,12 +577,14 @@ class Couleur
     $b = round($this->a * $this->b + (1 - $this->a) * $background->b);
     return new Couleur('rgb(' . $r . ', ' . $g . ', ' . $b . ')');
   }
-  
-  // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
-  public function contrastedText() {
+
+  // Calcule la luminance d'une couleur
+  // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
+  public function luminance() {
     $couleur = new Couleur($this->get_rgba());
     if ($this->a < 1)
-      $couleur = $this->blend(new Couleur('white'));
+      throw new Exception('Can\'t calculate luminance of transparent color');
+
     $arr = array($couleur->r, $couleur->g, $couleur->b);
     for ($i = 0; $i <= 2; $i++) {
       $e = $arr[$i];
@@ -611,13 +595,30 @@ class Couleur
         $e = pow(($e + 0.055) / 1.055, 2.4);
       $arr[$i] = $e;
     }
-    $r = $arr[0];
-    $g = $arr[1];
-    $b = $arr[2];
-    $L = 0.2126 * $r + 0.7152 * $g + 0.0722 * $b; // luminance de la couleur entrée
+    
+    return 0.2126 * $arr[0] + 0.7152 * $arr[1] + 0.0722 * $arr[2];
+  }
+
+  // Calcule le contraste entre deux couleurs
+  // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
+  public function contrastWith($couleur) {
+    if (!($couleur instanceof Couleur))
+      throw new Exception('Argument should be an instance of the Couleur class');
+    $couleur1 = $this;
+    $couleur2 = $couleur;
+    $L1 = $couleur1->luminance();
+    $L2 = $couleur2->luminance();
+    $Lmax = max($L1, $L2);
+    $Lmin = min($L1, $L2);
+    return ($Lmax + 0.05) / ($Lmin + 0.05);
+  }
+  
+  // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
+  // (source des maths : https://www.w3.org/TR/WCAG20-TECHS/G18.html)
+  public function contrastedText() {
+    $L = $this->luminance(); // luminance de la couleur entrée
     $LB = 1; // luminance du blanc
     $LN = 0; // luminance du noir
-    // On calcule le contraste entre couleur claire / couleur sombre :
     $contrastes = array(
       ($L + 0.05) / ($LN + 0.05), // contraste entre la couleur entrée et le noir
       ($LB + 0.05) / ($L + 0.05)  // contraste entre le blanc et la couleur entrée

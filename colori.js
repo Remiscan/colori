@@ -124,23 +124,6 @@ export default class Couleur {
     }
   }
 
-  // Utile dans hsla2rgba
-  static hueToRgb(t1, t2, h) {
-    let _h = h;
-    if (_h < 0)
-      _h += 6;
-    if (_h >= 6)
-      _h -= 6;
-    if (_h < 1)
-      return (t2 - t1) * _h + t1;
-    else if (_h < 3)
-      return t2;
-    else if (_h < 4)
-      return (t2 - t1) * (4 - _h) + t1;
-    else
-      return t1;
-  }
-
   // Ajoute un zéro avant une chaîne d'un seul caractère
   static pad(s) {
     return (s.length < 2) ? `0${s}` : s;
@@ -194,10 +177,11 @@ export default class Couleur {
     // Luminosité (l)
     l = (max + min) / 2;
 
-    // Si chrome == 0, la couleur est grise, donc n'a aucune teinte (h) ni saturation (s)
+    // Si chrome == 0, la couleur est grise
     if (chroma == 0)
-      h = 0, s = 0;
-    // Sinon, on calcule h et s - cf https://www.w3schools.com/lib/w3color.js
+      h = 0;
+    // Sinon, on calcule la teinte h
+    // (source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
     else
     {
       switch (max) {
@@ -214,12 +198,14 @@ export default class Couleur {
       h = 60 * h;
       if (h < 0)
         h += 360;
-
-      if (l < 0.5)
-        s = chroma / (2 * l);
-      else
-        s = chroma / (2 - 2 * l);
     }
+
+    if (l == 0 || l == 1)
+      s = 0;
+    else if (l <= 0.5)
+      s = chroma / (2 * l);
+    else
+      s = chroma / (2 - 2 * l);
 
     h = Math.round(h);
 
@@ -235,25 +221,19 @@ export default class Couleur {
   }
 
   hsla2rgba() {
+    // source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     let h = this.h;
-    let s = this.s;
-    let l = this.l;
-    let r, g, b, t1, t2;
+    let s = this.s / 100;
+    let l = this.l / 100;
+    let r, g, b;
 
-    h = h / 60;
-    s = s / 100;
-    l = l / 100;
+    const m = s * Math.min(l, 1 - l);
+    const k = n => (n + h / 30) % 12;
+    const f = n => l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
 
-    if (l <= 0.5)
-      t2 = l * (s + 1);
-    else
-      t2 = l + s - (l * s);
-
-    t1 = 2 * l - t2;
-
-    r = Math.round(255 * Couleur.hueToRgb(t1, t2, h + 2));
-    g = Math.round(255 * Couleur.hueToRgb(t1, t2, h));
-    b = Math.round(255 * Couleur.hueToRgb(t1, t2, h - 2));
+    r = Math.round(f(0) * 255);
+    g = Math.round(f(8) * 255);
+    b = Math.round(f(4) * 255);
 
     this.r = Number(r);
     this.g = Number(g);
@@ -261,8 +241,9 @@ export default class Couleur {
   }
 
   // Fusionne la couleur et une couleur de fond "background"
-  blend(background = new Couleur('white'))
-  {
+  blend(background = new Couleur('white')) {
+    if (background.nom == 'white')
+      console.log('Color was blended on white background by default');
     if (background.a < 1)
       throw 'The background color can\'t be transparent';
     const r = Math.round(this.a * this.r + (1 - this.a) * background.r);
@@ -271,11 +252,13 @@ export default class Couleur {
     return new Couleur(`rgb(${r}, ${g}, ${b})`);
   }
 
-  // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
-  contrastedText() {
+  // Calcule la luminance d'une couleur
+  // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
+  luminance() {
     let couleur = this;
     if (this.a < 1)
-      couleur = this.blend(new Couleur('white'));
+      throw 'Can\'t calculate luminance of transparent color';
+
     let arr = [couleur.r, couleur.g, couleur.b];
     for (let i = 0; i <= 2; i++) {
       let e = arr[i];
@@ -286,11 +269,29 @@ export default class Couleur {
         e = Math.pow((e + 0.055) / 1.055, 2.4);
       arr[i] = e;
     }
-    const [r, g, b] = arr;
-    const L = 0.2126 * r + 0.7152 * g + 0.0722 * b; // luminance de la couleur entrée
+    
+    return 0.2126 * arr[0] + 0.7152 * arr[1] + 0.0722 * arr[2];
+  }
+
+  // Calcule le contraste entre deux couleurs
+  // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
+  contrastWith(couleur) {
+    if (!(couleur instanceof Couleur))
+      throw 'Argument should be an instance of the Couleur class';
+    let couleur1 = this;
+    let couleur2 = couleur;
+    const L1 = couleur1.luminance();
+    const L2 = couleur2.luminance();
+    const Lmax = Math.max(L1, L2);
+    const Lmin = Math.min(L1, L2);
+    return (Lmax + 0.05) / (Lmin + 0.05);
+  }
+
+  // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
+  contrastedText() {
+    const L = this.luminance(); // luminance de la couleur entrée
     const LB = 1; // luminance du blanc
     const LN = 0; // luminance du noir
-    // On calcule le contraste entre couleur claire / couleur sombre :
     const contrastes = [
       (L + 0.05) / (LN + 0.05), // contraste entre la couleur entrée et le noir
       (LB + 0.05) / (L + 0.05)  // contraste entre le blanc et la couleur entrée
