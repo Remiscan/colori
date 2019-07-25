@@ -27,7 +27,8 @@ export default class Couleur {
       this.g = parseInt(g, 16) / 255;
       this.b = parseInt(b, 16) / 255;
       this.a = parseInt(a, 16) / 255;
-      this.rgba2hsla();
+      this.rgb2hsl();
+      this.hsl2hwb();
     }
     else if (['RGB', 'RGBA'].includes(format.id))
     {
@@ -43,7 +44,8 @@ export default class Couleur {
       this.g = g;
       this.b = b;
       this.a = a;
-      this.rgba2hsla();
+      this.rgb2hsl();
+      this.hsl2hwb();
     }
     else if (['HSL', 'HSLA'].includes(format.id))
     {
@@ -59,7 +61,25 @@ export default class Couleur {
       this.s = s;
       this.l = l;
       this.a = a;
-      this.hsla2rgba();
+      this.hsl2rgb();
+      this.hsl2hwb();
+    }
+    else if (['HWB', 'HWBA'].includes(format.id))
+    {
+      let h, w, bk, a;
+      h = Couleur.parse(format.data[1], 'angle');
+      w = Couleur.parse(format.data[2]);
+      bk = Couleur.parse(format.data[3]);
+      if (format.id === 'HWBA')
+        a = Couleur.parse(format.data[4], 'alpha');
+      else
+        a = 1;
+      this.h = h;
+      this.w = w;
+      this.bk = bk;
+      this.a = a;
+      this.hwb2hsl();
+      this.hsl2rgb();
     }
 
     if (this.a == 1)
@@ -260,7 +280,26 @@ export default class Couleur {
       return `hsl(${h}, ${s}%, ${l}%)`;
   }
 
-  rgba2hsla() {
+  get hwba() {
+    const h = Math.round(this.h * 360);
+    const w = Math.round(this.w * 100);
+    const bk = Math.round(this.bk * 100);
+    const a = Math.round(this.a * 100) / 100;
+    return `hwb(${h} ${w}% ${bk}% / ${a})`;
+  }
+
+  get hwb() {
+    const h = Math.round(this.h * 360);
+    const w = Math.round(this.w * 100);
+    const bk = Math.round(this.bk * 100);
+    const a = Math.round(this.a * 100) / 100;
+    if (this.a < 1)
+      return `hwb(${h} ${w}% ${bk}% / ${a})`;
+    else
+      return `hwb(${h} ${w}% ${bk}%)`;
+  }
+
+  rgb2hsl() {
     let r = this.r;
     let g = this.g;
     let b = this.b;
@@ -309,7 +348,7 @@ export default class Couleur {
     this.l = l;
   }
 
-  hsla2rgba() {
+  hsl2rgb() {
     // source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     let h = this.h * 360;
     let s = this.s;
@@ -327,6 +366,48 @@ export default class Couleur {
     this.r = r;
     this.g = g;
     this.b = b;
+  }
+
+  hsl2hwb() {
+    let s = this.s;
+    let l = this.l;
+    let _s, v, w, b;
+
+    v = l + s * Math.min(l, 1 - l);
+    if (v == 0)
+      _s = 0;
+    else
+      _s = 2 - 2 * l / v;
+
+    w = (1 - _s) * v;
+    b = 1 - v;
+
+    this.w = w;
+    this.bk = b;
+  }
+
+  hwb2hsl() {
+    let w = this.w;
+    let bk = this.bk;
+    let _s, v, s, l;
+
+    if (w + bk > 1)
+    {
+      w = w / (w + bk);
+      b = b / (w + bk);
+    }
+
+    v = 1 - bk;
+    _s = 1 - w / v;
+
+    l = v - v * _s / 2;
+    if (l == 0 || l == 1)
+      s = 0;
+    else
+      s = (v - l) / Math.min(l, 1 - l);
+
+    this.s = s;
+    this.l = l;
   }
 
   // Fusionne une couleur transparente et une couleur opaque
@@ -529,6 +610,28 @@ export default class Couleur {
           new RegExp(`^hsla?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)?$`)
         ]
       }, {
+        id: 'HWB',
+        prefix: 'hwb(',
+        separator: ', ',
+        suffix: ')',
+        syntaxes: [
+          // hwb(<angle>, 100%, 100%)
+          new RegExp(`^hwba?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)?$`),
+          // hwb(<angle> 100% 100%)
+          new RegExp(`^hwba?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer})\\)?$`)
+        ]
+      }, {
+        id: 'HWBA',
+        prefix: 'hwba(',
+        separator: ', ',
+        suffix: ')',
+        syntaxes: [
+          // hwba(<angle>, 100%, 100%, .5) ou hsla(<angle>, 100%, 100%, 50%)
+          new RegExp(`^hwba?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)?$`),
+          // hwba(<angle> 100% 100% / .5) ou hsl(<angle> 100% 100% / 50%)
+          new RegExp(`^hwba?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)?$`)
+        ]
+      }, {
         id: 'NAME',
         prefix: '',
         separator: '',
@@ -541,11 +644,11 @@ export default class Couleur {
     ];
   }
 
-  // Valid CSS number or percent RegExp string
-  static get vNum() { return '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?'; }
-  static get vPer() { return Couleur.vNum + '%'; }
-  static get vNP() { return Couleur.vNum + '%?'; }
-  static get vAng() { return Couleur.vNum + '(?:deg|grad|rad|turn)?'; }
+  // Valid CSS values RegExp string
+  static get vNum() { return '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?'; } // number (r, g, b)
+  static get vPer() { return Couleur.vNum + '%'; } // percent (r, g, b, s, l)
+  static get vNP() { return Couleur.vNum + '%?'; } // number or percent (a)
+  static get vAng() { return Couleur.vNum + '(?:deg|grad|rad|turn)?'; } // angle (h)
 
   static get couleursNommees() {
     return {
