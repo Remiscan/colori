@@ -371,7 +371,7 @@ export default class Couleur {
   hsl2hwb() {
     let s = this.s;
     let l = this.l;
-    let _s, v, w, b;
+    let _s, v, w, bk;
 
     v = l + s * Math.min(l, 1 - l);
     if (v == 0)
@@ -380,10 +380,10 @@ export default class Couleur {
       _s = 2 - 2 * l / v;
 
     w = (1 - _s) * v;
-    b = 1 - v;
+    bk = 1 - v;
 
     this.w = w;
-    this.bk = b;
+    this.bk = bk;
   }
 
   hwb2hsl() {
@@ -570,7 +570,7 @@ export default class Couleur {
           // rgb(255 255 255)
           new RegExp(`^rgba?\\((${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum})\\)?$`),
           // rgb(100% 100% 100%)
-          new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer})\\)?$`),
+          new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer})\\)?$`)
         ]
       }, {
         id: 'RGBA',
@@ -646,7 +646,7 @@ export default class Couleur {
 
   // Valid CSS values RegExp string
   static get vNum() { return '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?'; } // number (r, g, b)
-  static get vPer() { return Couleur.vNum + '%'; } // percent (r, g, b, s, l)
+  static get vPer() { return Couleur.vNum + '%'; } // percent (r, g, b, s, l, w, bk)
   static get vNP() { return Couleur.vNum + '%?'; } // number or percent (a)
   static get vAng() { return Couleur.vNum + '(?:deg|grad|rad|turn)?'; } // angle (h)
 
