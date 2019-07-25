@@ -1,5 +1,10 @@
 export default class Couleur {
   constructor(couleur) {
+    if (couleur instanceof Couleur)
+      throw 'Already an instance of Couleur';
+    else if (typeof couleur != 'string')
+      throw 'Couleur objects can only be created from a String';
+
     const format = Couleur.matchSyntax(couleur.trim());
 
     if (['HEX', 'HEXA'].includes(format.id))
@@ -18,72 +23,48 @@ export default class Couleur {
       }
       else
         a = 'ff';
-      this.r = parseInt(r, 16);
-      this.g = parseInt(g, 16);
-      this.b = parseInt(b, 16);
+      this.r = parseInt(r, 16) / 255;
+      this.g = parseInt(g, 16) / 255;
+      this.b = parseInt(b, 16) / 255;
       this.a = parseInt(a, 16) / 255;
       this.rgba2hsla();
     }
     else if (['RGB', 'RGBA'].includes(format.id))
     {
       let r, g, b, a;
-      r = format.data[1];
-      g = format.data[2];
-      b = format.data[3];
+      r = Couleur.parse(format.data[1]);
+      g = Couleur.parse(format.data[2]);
+      b = Couleur.parse(format.data[3]);
       if (format.id === 'RGBA')
-        a = format.data[4];
+        a = Couleur.parse(format.data[4], 'alpha');
       else
         a = 1;
-      const percentTo255 = n => Math.round(parseFloat(n) / 100 * 255);
-      if (String(r).slice(-1) == '%')
-      {
-        r = percentTo255(r);
-        g = percentTo255(g);
-        b = percentTo255(b);
-      }
-      if (String(a).slice(-1) == '%')
-        a = parseFloat(a) / 100;
-      this.r = Number(r);
-      this.g = Number(g);
-      this.b = Number(b);
-      this.a = Number(a);
+      this.r = r;
+      this.g = g;
+      this.b = b;
+      this.a = a;
       this.rgba2hsla();
     }
     else if (['HSL', 'HSLA'].includes(format.id))
     {
       let h, s, l, a;
-      h = format.data[1];
-      h = parseFloat(h);
-      if (String(h).slice(-3) == 'rad')
-        h = Math.round(h * 180 / Math.PI);
-      else if (String(h).slice(-4) == 'turn')
-        h = Math.round(h * 360);
-      while (h > 360) {
-        h -= 360;
-      }
-      while (h < 0) {
-        h += 360;
-      }
-      s = format.data[2];
-      s = parseFloat(s);
-      l = format.data[3];
-      l = parseFloat(l);
+      h = Couleur.parse(format.data[1], 'angle');
+      s = Couleur.parse(format.data[2]);
+      l = Couleur.parse(format.data[3]);
       if (format.id === 'HSLA')
-        a = format.data[4];
+        a = Couleur.parse(format.data[4], 'alpha');
       else
         a = 1;
-      if (String(a).slice(-1) == '%')
-        a = parseFloat(a) / 100;
-      this.h = Number(h);
-      this.s = Number(s);
-      this.l = Number(l);
-      this.a = Number(a);
+      this.h = h;
+      this.s = s;
+      this.l = l;
+      this.a = a;
       this.hsla2rgba();
     }
 
     if (this.a == 1)
     {
-      let _name = Object.keys(Couleur.couleursNommees).find(k => Couleur.couleursNommees[k] == this.hex.replace('#', ''));
+      let _name = Object.keys(Couleur.couleursNommees).find(k => (Couleur.couleursNommees[k] == this.hex.replace('#', '') || Couleur.couleursNommees[k] == this.hexa.replace('#', '')));
       if (typeof _name === 'undefined')
         this.name = null;
       else
@@ -95,33 +76,128 @@ export default class Couleur {
 
   static matchSyntax(couleur) {
     let resultat = false;
-    try {
-      boucle:
-      for (const format of Couleur.formats) {
-        for (const [k, syntaxe] of format.syntaxes.entries()) {
-          const result = couleur.match(syntaxe);
-          if (result != null && result[0] === couleur)
-          {
-            if (format.id != 'NAME')
-              resultat = {
-                id: format.id,
-                syntaxe: k,
-                data: result
-              };
-            else if (format.id == 'NAME' && couleur.toLowerCase() in Couleur.couleursNommees)
-              resultat = Couleur.matchSyntax('#' + Couleur.couleursNommees[couleur.toLowerCase()]);
-            break boucle;
-          }
+    boucle:
+    for (const format of Couleur.formats) {
+      for (const [k, syntaxe] of format.syntaxes.entries()) {
+        const result = couleur.match(syntaxe);
+        if (result != null && result[0] === couleur)
+        {
+          if (format.id != 'NAME')
+            resultat = {
+              id: format.id,
+              syntaxe: k,
+              data: result
+            };
+          else if (format.id == 'NAME' && couleur.toLowerCase() in Couleur.couleursNommees)
+            resultat = Couleur.matchSyntax('#' + Couleur.couleursNommees[couleur.toLowerCase()]);
+          break boucle;
         }
       }
-
-      if (resultat)
-        return resultat;
-      else
-        throw 'Invalid format';
-    } catch (e) {
-      console.error(e);
     }
+
+    if (resultat)
+      return resultat;
+    else
+      throw 'Invalid format';
+  }
+
+  // Parses a number / percentage / angle into correct format to store it
+  static parse(n, type = null, log = false) {
+    let _n = parseFloat(n);
+    let logged;
+    let error;
+
+    // Si n est un pourcentage
+    if (new RegExp('^' + Couleur.vPer + '$').test(n))
+    {
+      _n = _n / 100;
+      if (_n < 0)
+        _n = 0;
+      else if (_n > 1)
+        _n = 1;
+      logged = '%';
+    }
+    // Si n est un nombre (entre 0 et 255)
+    else if (new RegExp('^' + Couleur.vNum + '$').test(n) && type != 'angle' && type != 'alpha')
+    {
+      _n = _n / 255;
+      if (_n < 0)
+        _n = 0;
+      else if (_n > 1)
+        _n = 1;
+      logged = '255';
+    }
+    // Si n est un nombre (entre 0 et 1)
+    else if (new RegExp('^' + Couleur.vNum + '$').test(n) && type == 'alpha')
+    {
+      if (_n < 0)
+        _n = 0;
+      else if (_n > 1)
+        _n = 1;
+      logged = 'alpha';
+    }
+    // Si n est un angle (donc un nombre ou un nombre avec unité d'angle)
+    else if (new RegExp('^' + Couleur.vAng + '$').test(n) && type == 'angle')
+    {
+      // en deg
+      if (n.slice(-3) == 'deg' || new RegExp('^' + Couleur.vNum + '$').test(n))
+      {
+        while (_n < 0)
+          _n += 360;
+        while(_n > 360)
+          _n -= 360;
+        _n = _n / 360;
+        logged = 'deg';
+      }
+      // en grad
+      else if (n.slice(-4) == 'grad')
+      {
+        while (_n < 0)
+          _n += 400;
+        while(_n > 400)
+          _n -= 400;
+        _n = _n / 400;
+        logged = 'grad'
+      }
+      // en rad
+      else if (n.slice(-3) == 'rad')
+      {
+        _n = _n * 180 / Math.PI;
+        while (_n < 0)
+          _n += 360;
+        while(_n > 360)
+          _n -= 360;
+        _n = _n / 360;
+        logged = 'rad';
+      }
+      // en turn
+      else if (n.slice(-4) == 'turn')
+      {
+        while (_n < 0)
+          _n += 1;
+        while (_n > 1)
+          _n -= 1;
+        logged = 'turn';
+      }
+      else
+      {
+        _n = null;
+        error = 'Invalid angle format';
+      }
+    }
+    else
+    {
+      _n = null;
+      error = 'Invalid value format';
+    }
+
+    if (_n == null)
+      throw error;
+    
+    if (log)
+      return [_n, logged];
+    else
+      return _n;
   }
 
   // Ajoute un zéro avant une chaîne d'un seul caractère
@@ -130,43 +206,64 @@ export default class Couleur {
   }
 
   get hexa() {
-    const r = Couleur.pad(this.r.toString(16));
-    const g = Couleur.pad(this.g.toString(16));
-    const b = Couleur.pad(this.b.toString(16));
+    const r = Couleur.pad(Math.round(this.r * 255).toString(16));
+    const g = Couleur.pad(Math.round(this.g * 255).toString(16));
+    const b = Couleur.pad(Math.round(this.b * 255).toString(16));
     const a = Couleur.pad(Math.round(this.a * 255).toString(16));
     return `#${r}${g}${b}${a}`;
   }
 
   get hex() {
-    const r = Couleur.pad(this.r.toString(16));
-    const g = Couleur.pad(this.g.toString(16));
-    const b = Couleur.pad(this.b.toString(16));
+    if (this.a < 1)
+      return this.hexa;
+    const r = Couleur.pad(Math.round(this.r * 255).toString(16));
+    const g = Couleur.pad(Math.round(this.g * 255).toString(16));
+    const b = Couleur.pad(Math.round(this.b * 255).toString(16));
     return `#${r}${g}${b}`;
   }
 
   get rgba() {
-    return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
+    const r = Math.round(this.r * 255);
+    const g = Math.round(this.g * 255);
+    const b = Math.round(this.b * 255);
+    const a = Math.round(this.a * 100) / 100;
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
   }
 
   get rgb() {
-    return `rgb(${this.r}, ${this.g}, ${this.b})`;
+    const r = Math.round(this.r * 255);
+    const g = Math.round(this.g * 255);
+    const b = Math.round(this.b * 255);
+    const a = Math.round(this.a * 100) / 100;
+    if (this.a < 1)
+      return `rgb(${r}, ${g}, ${b}, ${a})`;
+    else
+      return `rgb(${r}, ${g}, ${b})`;
   }
 
   get hsla() {
-    return `hsla(${this.h}, ${this.s}%, ${this.l}%, ${this.a})`;
+    const h = Math.round(this.h * 360);
+    const s = Math.round(this.s * 100);
+    const l = Math.round(this.l * 100);
+    const a = Math.round(this.a * 100) / 100;
+    return `hsla(${h}, ${s}%, ${l}%, ${a})`;
   }
 
   get hsl() {
-    return `hsl(${this.h}, ${this.s}%, ${this.l}%)`;
+    const h = Math.round(this.h * 360);
+    const s = Math.round(this.s * 100);
+    const l = Math.round(this.l * 100);
+    const a = Math.round(this.a * 100) / 100;
+    if (this.a < 1)
+      return `hsl(${h}, ${s}%, ${l}%, ${a})`;
+    else
+      return `hsl(${h}, ${s}%, ${l}%)`;
   }
 
   rgba2hsla() {
     let r = this.r;
     let g = this.g;
     let b = this.b;
-    r = r / 255;
-    g = g / 255;
-    b = b / 255;
 
     let h, s, l;
 
@@ -207,37 +304,29 @@ export default class Couleur {
     else
       s = chroma / (2 - 2 * l);
 
-    h = Math.round(h);
-
-    s = s * 100;
-    s = Math.round(s);
-
-    l = l * 100;
-    l = Math.round(l);
-
-    this.h = Number(h);
-    this.s = Number(s);
-    this.l = Number(l);
+    this.h = h / 360;
+    this.s = s;
+    this.l = l;
   }
 
   hsla2rgba() {
     // source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
-    let h = this.h;
-    let s = this.s / 100;
-    let l = this.l / 100;
+    let h = this.h * 360;
+    let s = this.s;
+    let l = this.l;
     let r, g, b;
 
     const m = s * Math.min(l, 1 - l);
     const k = n => (n + h / 30) % 12;
     const f = n => l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
 
-    r = Math.round(f(0) * 255);
-    g = Math.round(f(8) * 255);
-    b = Math.round(f(4) * 255);
+    r = f(0);
+    g = f(8);
+    b = f(4);
 
-    this.r = Number(r);
-    this.g = Number(g);
-    this.b = Number(b);
+    this.r = r;
+    this.g = g;
+    this.b = b;
   }
 
   // Fusionne une couleur transparente et une couleur opaque
@@ -257,9 +346,9 @@ export default class Couleur {
       background = couleur1;
       overlay = couleur2;
     }
-    const r = Math.round(overlay.a * overlay.r + (1 - overlay.a) * background.r);
-    const g = Math.round(overlay.a * overlay.g + (1 - overlay.a) * background.g);
-    const b = Math.round(overlay.a * overlay.b + (1 - overlay.a) * background.b);
+    const r = Math.round(255 * (overlay.a * overlay.r + (1 - overlay.a) * background.r));
+    const g = Math.round(255 * (overlay.a * overlay.g + (1 - overlay.a) * background.g));
+    const b = Math.round(255 * (overlay.a * overlay.b + (1 - overlay.a) * background.b));
     return new Couleur(`rgb(${r}, ${g}, ${b})`);
   }
 
@@ -273,7 +362,6 @@ export default class Couleur {
     let arr = [couleur.r, couleur.g, couleur.b];
     for (let i = 0; i <= 2; i++) {
       let e = arr[i];
-      e = e / 255;
       if (e <= 0.03928)
         e = e / 12.92;
       else
@@ -306,32 +394,58 @@ export default class Couleur {
       (LB + 0.05) / (L + 0.05)  // contraste entre le blanc et la couleur entrée
     ];
     if (contrastes[0] > contrastes[1]) // contraste plus fort avec le noir
-      return new Couleur('black'); // le texte noir ira mieux sur le fond de couleur
+      return 'black'; // le texte noir ira mieux sur le fond de couleur
     else
-      return new Couleur('white'); // le texte blanc ira mieux sur le fond de couleur
+      return 'white'; // le texte blanc ira mieux sur le fond de couleur
   }
 
   // Change une propriété d'une couleur
   change(propriete, valeur, remplace = false) {
     let nouvelleCouleur = new Couleur(`rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`);
+    const error = 'Incorrect value format for ' + propriete;
+
     if (['r', 'g', 'b'].includes(propriete))
     {
-      nouvelleCouleur[propriete] = Math.max(0, Math.min(255, (remplace ? 0 : nouvelleCouleur[propriete]) + valeur));
+      let [_valeur, log] = Couleur.parse(valeur, null, true);
+      if (log == '%')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 100 + '%');
+      else if (log == '255')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 255);
+      else
+        throw error;
       return new Couleur(nouvelleCouleur.rgba);
     }
     else if (['h'].includes(propriete))
     {
-      nouvelleCouleur[propriete] = (remplace ? 0 : nouvelleCouleur[propriete]) + valeur;
+      let [_valeur, log] = Couleur.parse(valeur, 'angle', true);
+      if (log == 'deg')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 360 + 'deg', 'angle');
+      else if (log == 'grad')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 400 + 'grad', 'angle');
+      else if (log == 'rad')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 360 * (Math.PI / 180) + 'rad', 'angle');
+      else if (log == 'turn')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) + 'turn', 'angle');
+      else
+        throw error;
       return new Couleur(nouvelleCouleur.hsla);
     }
     else if (['s', 'l'].includes(propriete))
     {
-      nouvelleCouleur[propriete] = Math.max(0, Math.min(100, (remplace ? 0 : nouvelleCouleur[propriete]) + valeur));
+      let [_valeur, log] = Couleur.parse(valeur, null, true);
+      if (log == '%')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 100 + '%');
+      else
+        throw error;
       return new Couleur(nouvelleCouleur.hsla);
     }
     else if (['a'].includes(propriete))
     {
-      nouvelleCouleur[propriete] = Math.max(0, Math.min(1, (remplace ? 0 : nouvelleCouleur[propriete]) + valeur));
+      let [_valeur, log] = Couleur.parse(valeur, 'alpha', true);
+      if (log == 'alpha')
+        nouvelleCouleur[propriete] = Couleur.parse((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur, 'alpha');
+      else
+        throw error;
       return new Couleur(nouvelleCouleur.hsla);
     }
     else
@@ -369,13 +483,13 @@ export default class Couleur {
         suffix: ')',
         syntaxes: [
           // rgb(255, 255, 255) ou rgb(255,255,255)
-          /^rgba?\(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]), ?([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]), ?([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\)?$/,
+          new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum})\\)?$`),
           // rgb(100%, 100%, 100%) ou rgb(100%,100%,100%)
-          /^rgba?\(([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%)\)?$/,
-          //rgb(255 255 255)
-          /^rgba?\(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]) ([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]) ([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\)?$/,
+          new RegExp(`^rgba?\\((${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)?$`),
+          // rgb(255 255 255)
+          new RegExp(`^rgba?\\((${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum})\\)?$`),
           // rgb(100% 100% 100%)
-          /^rgba?\(([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%)\)?$/
+          new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer})\\)?$`),
         ]
       }, {
         id: 'RGBA',
@@ -383,22 +497,14 @@ export default class Couleur {
         separator: ', ',
         suffix: ')',
         syntaxes: [
-          // rgba(255, 255, 255, .5) (espaces optionnels)
-          /^rgba?\(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]), ?([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]), ?([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]), ?([01]|0?\.[0-9]+)\)?$/,
-          // rgba(255, 255, 255, 50%) (espaces optionnels)
-          /^rgba?\(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]), ?([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]), ?([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]), ?([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // rgba(255 255 255 / 50%)
-          /^rgba?\(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]) ([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]) ([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]) \/ ([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // rgba(255 255 255 / .5)
-          /^rgba?\(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]) ([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]) ([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]) \/ ([01]|0?\.[0-9]+)\)?$/,
-          // rgba(100%, 100%, 100%, .5) (espaces optionnels)
-          /^rgba?\(([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([01]|0?\.[0-9]+)\)?$/,
-          // rgba(100%, 100%, 100%, 50%) (espaces optionnels)
-          /^rgba?\(([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // rgba(100% 100% 100% / 50%)
-          /^rgba?\(([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) \/ ([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // rgba(100% 100% 100% / .5)
-          /^rgba?\(([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) \/ ([01]|0?\.[0-9]+)\)?$/
+          // rgba(255, 255, 255, .5) ou rgba(255, 255, 255, 50%) (espaces optionnels)
+          new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNP})\\)?$`),
+          // rgba(100%, 100%, 100%, .5) ou rgba(100%, 100%, 100%, 50%) (espaces optionnels)
+          new RegExp(`^rgba?\\((${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)?$`),
+          // rgba(255 255 255 / 50%) ou rgba(255 255 255 / .5)
+          new RegExp(`^rgba?\\((${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum}) ?\\/ ?(${Couleur.vNP})\\)?$`),
+          // rgba(100% 100% 100% / 50%) ou rgba(100% 100% 100% / .5)
+          new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)?$`)
         ]
       }, {
         id: 'HSL',
@@ -406,18 +512,10 @@ export default class Couleur {
         separator: ', ',
         suffix: ')',
         syntaxes: [
-          // hsl(360, 100%, 100%) ou  hsl(360deg, 100%, 100%) (espaces optionnels)
-          /^hsla?\(([0-2]?[0-9]?[0-9]|3[0-5][0-9]|360)(?:deg)?, ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // hsl(360 100% 100%) ou hsl(360deg 100% 100%)
-          /^hsla?\(([0-2]?[0-9]?[0-9]|3[0-5][0-9]|360)(?:deg)? ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // hsl(1.25rad, 100%, 100%) (espaces optionnels)
-          /^hsla?\(((?:(?:[0-9]+)(?:\.[0-9]+)?|(?:[0-9]+)?(?:\.[0-9]+))(?:rad)), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // hsl(1.25rad 100% 100%)
-          /^hsla?\(((?:(?:[0-9]+)(?:\.[0-9]+)?|(?:[0-9]+)?(?:\.[0-9]+))(?:rad)) ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // hsl(.25turn, 100%, 100%) (espaces optionnels)
-          /^hsla?\(((?:[01]|0?\.[0-9]+)turn), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // hsl(.25turn 100% 100%)
-          /^hsla?\(((?:[01]|0?\.[0-9]+)turn) ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%)\)?$/
+          // hsl(<angle>, 100%, 100%)
+          new RegExp(`^hsla?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)?$`),
+          // hsl(<angle> 100% 100%)
+          new RegExp(`^hsla?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer})\\)?$`)
         ]
       }, {
         id: 'HSLA',
@@ -425,30 +523,10 @@ export default class Couleur {
         separator: ', ',
         suffix: ')',
         syntaxes: [
-          // hsla(360, 100%, 100%, .5) ou  hsl(360deg, 100%, 100%, .5) (espaces optionnels)
-          /^hsla?\(([0-2]?[0-9]?[0-9]|3[0-5][0-9]|360)(?:deg)?, ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([01]|0?\.[0-9]+)\)?$/,
-          // hsla(360 100% 100% / .5) ou hsl(360deg 100% 100% / .5)
-          /^hsla?\(([0-2]?[0-9]?[0-9]|3[0-5][0-9]|360)(?:deg)? ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) \/ ([01]|0?\.[0-9]+)\)?$/,
-          // hsla(1.25rad, 100%, 100%, .5) (espaces optionnels)
-          /^hsla?\(((?:(?:[0-9]+)(?:\.[0-9]+)?|(?:[0-9]+)?(?:\.[0-9]+))(?:rad)), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([01]|0?\.[0-9]+)\)?$/,
-          // hsla(1.25rad 100% 100% / .5)
-          /^hsla?\(((?:(?:[0-9]+)(?:\.[0-9]+)?|(?:[0-9]+)?(?:\.[0-9]+))(?:rad)) ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) \/ ([01]|0?\.[0-9]+)\)?$/,
-          // hsla(.25turn, 100%, 100%, .5) (espaces optionnels)
-          /^hsla?\(((?:[01]|0?\.[0-9]+)turn), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([01]|0?\.[0-9]+)\)?$/,
-          // hsla(.25turn 100% 100% / .5)
-          /^hsla?\(((?:[01]|0?\.[0-9]+)turn) ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) \/ ([01]|0?\.[0-9]+)\)?$/,
-          // hsla(360, 100%, 100%, 50%) ou  hsl(360deg, 100%, 100%, 50%) (espaces optionnels)
-          /^hsla?\(([0-2]?[0-9]?[0-9]|3[0-5][0-9]|360)(?:deg)?, ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // hsla(360 100% 100% / 50%) ou hsl(360deg 100% 100% / 50%)
-          /^hsla?\(([0-2]?[0-9]?[0-9]|3[0-5][0-9]|360)(?:deg)? ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) \/ ([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // hsla(1.25rad, 100%, 100%, 50%) (espaces optionnels)
-          /^hsla?\(((?:(?:[0-9]+)(?:\.[0-9]+)?|(?:[0-9]+)?(?:\.[0-9]+))(?:rad)), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // hsla(1.25rad 100% 100% / 50%)
-          /^hsla?\(((?:(?:[0-9]+)(?:\.[0-9]+)?|(?:[0-9]+)?(?:\.[0-9]+))(?:rad)) ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) \/ ([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // hsla(.25turn, 100%, 100%, 50%) (espaces optionnels)
-          /^hsla?\(((?:[01]|0?\.[0-9]+)turn), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%), ?([0]?[0-9]?[0-9]%|100%)\)?$/,
-          // hsla(.25turn 100% 100% / 50%)
-          /^hsla?\(((?:[01]|0?\.[0-9]+)turn) ([0]?[0-9]?[0-9]%|100%) ([0]?[0-9]?[0-9]%|100%) \/ ([0]?[0-9]?[0-9]%|100%)\)?$/
+          // hsla(<angle>, 100%, 100%, .5) ou hsla(<angle>, 100%, 100%, 50%)
+          new RegExp(`^hsla?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)?$`),
+          // hsla(<angle> 100% 100% / .5) ou hsl(<angle> 100% 100% / 50%)
+          new RegExp(`^hsla?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)?$`)
         ]
       }, {
         id: 'NAME',
@@ -463,8 +541,15 @@ export default class Couleur {
     ];
   }
 
+  // Valid CSS number or percent RegExp string
+  static get vNum() { return '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?'; }
+  static get vPer() { return Couleur.vNum + '%'; }
+  static get vNP() { return Couleur.vNum + '%?'; }
+  static get vAng() { return Couleur.vNum + '(?:deg|grad|rad|turn)?'; }
+
   static get couleursNommees() {
     return {
+      transparent: '00000000',
       aliceblue: 'f0f8ff',
       antiquewhite: 'faebd7',
       aqua: '00ffff',
