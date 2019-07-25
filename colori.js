@@ -83,14 +83,14 @@ export default class Couleur {
 
     if (this.a == 1)
     {
-      let _nom = Object.keys(Couleur.couleursNommees).find(k => Couleur.couleursNommees[k] == this.hex.replace('#', ''));
-      if (typeof _nom === 'undefined')
-        this.nom = null;
+      let _name = Object.keys(Couleur.couleursNommees).find(k => Couleur.couleursNommees[k] == this.hex.replace('#', ''));
+      if (typeof _name === 'undefined')
+        this.name = null;
       else
-        this.nom = _nom;
+        this.name = _name;
     }
     else
-      this.nom = null;
+      this.name = null;
   }
 
   static matchSyntax(couleur) {
@@ -257,10 +257,6 @@ export default class Couleur {
       background = couleur1;
       overlay = couleur2;
     }
-    if (background.nom == 'white')
-      console.log('Color was blended on white background by default');
-    if (background.a < 1)
-      throw 'The background color can\'t be transparent';
     const r = Math.round(overlay.a * overlay.r + (1 - overlay.a) * background.r);
     const g = Math.round(overlay.a * overlay.g + (1 - overlay.a) * background.g);
     const b = Math.round(overlay.a * overlay.b + (1 - overlay.a) * background.b);

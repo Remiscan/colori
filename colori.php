@@ -282,7 +282,7 @@ class Couleur
   public $s;
   public $l;
   public $a;
-  public $nom;
+  public $name;
   
   function __construct($couleur)
   {
@@ -363,14 +363,14 @@ class Couleur
     }
     if ($this->a == 1)
     {
-      $_nom = array_search(str_replace('#', '', $this->get_hex()), self::COULEURS_NOMMEES);
-      if (!$_nom)
-        $this->nom = null;
+      $_name = array_search(str_replace('#', '', $this->get_hex()), self::COULEURS_NOMMEES);
+      if (!$_name)
+        $this->name = null;
       else
-        $this->nom = $_nom;
+        $this->name = $_name;
     }
     else
-      $this->nom = null;
+      $this->name = null;
   }
 
   private function matchSyntax($couleur) {
