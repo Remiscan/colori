@@ -779,7 +779,7 @@ class Couleur
         throw new Exception($error);
       return new Couleur($nouvelleCouleur->rgb());
     }
-    else if (in_array($propriete, ['h']))
+    elseif (in_array($propriete, ['h']))
     {
       [$_valeur, $log] = self::parse($valeur, null, true);
       if ($log == 'deg')
@@ -794,7 +794,7 @@ class Couleur
         throw new Exception($error);
       return new Couleur($nouvelleCouleur->hsl());
     }
-    else if (in_array($propriete, ['s', 'l']))
+    elseif (in_array($propriete, ['s', 'l']))
     {
       [$_valeur, $log] = self::parse($valeur, null, true);
       if ($log == '%')
@@ -805,7 +805,18 @@ class Couleur
         throw new Exception($error);
       return new Couleur($nouvelleCouleur->hsl());
     }
-    else if (in_array($propriete, ['a']))
+    elseif (in_array($propriete, ['w', 'bk']))
+    {
+      [$_valeur, $log] = self::parse($valeur, null, true);
+      if ($log == '%')
+      {
+        $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + $_valeur) * 100 . '%');
+      }
+      else
+        throw new Exception($error);
+      return new Couleur($nouvelleCouleur->hwb());
+    }
+    elseif (in_array($propriete, ['a']))
     {
       if ($log == 'alpha')
         $nouvelleCouleur->$propriete = self::parse(($remplace ? 0 : $nouvelleCouleur->$propriete) + $_valeur, 'alpha');

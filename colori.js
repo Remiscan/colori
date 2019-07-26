@@ -482,7 +482,7 @@ export default class Couleur {
 
   // Change une propriété d'une couleur
   change(propriete, valeur, remplace = false) {
-    let nouvelleCouleur = new Couleur(`rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`);
+    let nouvelleCouleur = new Couleur(`${this.rgb}`);
     const error = 'Incorrect value format for ' + propriete;
 
     if (['r', 'g', 'b'].includes(propriete))
@@ -494,7 +494,7 @@ export default class Couleur {
         nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 255);
       else
         throw error;
-      return new Couleur(nouvelleCouleur.rgba);
+      return new Couleur(nouvelleCouleur.rgb);
     }
     else if (['h'].includes(propriete))
     {
@@ -509,7 +509,7 @@ export default class Couleur {
         nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) + 'turn', 'angle');
       else
         throw error;
-      return new Couleur(nouvelleCouleur.hsla);
+      return new Couleur(nouvelleCouleur.hsl);
     }
     else if (['s', 'l'].includes(propriete))
     {
@@ -518,7 +518,16 @@ export default class Couleur {
         nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 100 + '%');
       else
         throw error;
-      return new Couleur(nouvelleCouleur.hsla);
+      return new Couleur(nouvelleCouleur.hsl);
+    }
+    else if (['w', 'bk'].includes(propriete))
+    {
+      let [_valeur, log] = Couleur.parse(valeur, null, true);
+      if (log == '%')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 100 + '%');
+      else
+        throw error;
+      return new Couleur(nouvelleCouleur.hwb);
     }
     else if (['a'].includes(propriete))
     {
@@ -527,10 +536,10 @@ export default class Couleur {
         nouvelleCouleur[propriete] = Couleur.parse((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur, 'alpha');
       else
         throw error;
-      return new Couleur(nouvelleCouleur.hsla);
+      return new Couleur(nouvelleCouleur.hsl);
     }
     else
-      return new Couleur(nouvelleCouleur.rgba);
+      return new Couleur(nouvelleCouleur.rgb);
   }
 
   static get formats() {
