@@ -644,7 +644,7 @@ export default class Couleur {
     ];
   }
 
-  // Valid CSS values RegExp string
+  // Valid CSS values RegExp string (according to https://www.w3.org/TR/css-syntax/#typedef-number-token)
   static get vNum() { return '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?'; } // number (r, g, b)
   static get vPer() { return Couleur.vNum + '%'; } // percent (r, g, b, s, l, w, bk)
   static get vNP() { return Couleur.vNum + '%?'; } // number or percent (a)

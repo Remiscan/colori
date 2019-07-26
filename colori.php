@@ -153,7 +153,7 @@ class Couleur
     'yellowgreen' => '9acd32'
   );
 
-  // Valid CSS values RegExp string
+  // Valid CSS values RegExp string (according to https://www.w3.org/TR/css-syntax/#typedef-number-token)
   private const vNum = '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?'; // number (r, g, b)
   private const vPer = self::vNum . '%'; // percent (r, g, b, s, l, w, bk)
   private const vNP = self::vNum . '%?'; // number or percent (a)
