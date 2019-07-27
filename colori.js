@@ -489,9 +489,9 @@ export default class Couleur {
     {
       let [_valeur, log] = Couleur.parse(valeur, null, true);
       if (log == '%')
-        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 100 + '%');
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / 100) * 100 + '%');
       else if (log == '255')
-        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 255);
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / 255) * 255);
       else
         throw error;
       return new Couleur(nouvelleCouleur.rgb);
@@ -500,11 +500,11 @@ export default class Couleur {
     {
       let [_valeur, log] = Couleur.parse(valeur, 'angle', true);
       if (log == 'deg')
-        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 360 + 'deg', 'angle');
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / 360) * 360 + 'deg', 'angle');
       else if (log == 'grad')
-        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 400 + 'grad', 'angle');
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / 400) * 400 + 'grad', 'angle');
       else if (log == 'rad')
-        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 360 * (Math.PI / 180) + 'rad', 'angle');
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / (360 * (Math.PI / 180))) * 360 * (Math.PI / 180) + 'rad', 'angle');
       else if (log == 'turn')
         nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) + 'turn', 'angle');
       else
@@ -515,7 +515,7 @@ export default class Couleur {
     {
       let [_valeur, log] = Couleur.parse(valeur, null, true);
       if (log == '%')
-        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 100 + '%');
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / 100) * 100 + '%');
       else
         throw error;
       return new Couleur(nouvelleCouleur.hsl);
@@ -524,7 +524,7 @@ export default class Couleur {
     {
       let [_valeur, log] = Couleur.parse(valeur, null, true);
       if (log == '%')
-        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) * 100 + '%');
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / 100) * 100 + '%');
       else
         throw error;
       return new Couleur(nouvelleCouleur.hwb);
@@ -533,7 +533,9 @@ export default class Couleur {
     {
       let [_valeur, log] = Couleur.parse(valeur, 'alpha', true);
       if (log == 'alpha')
-        nouvelleCouleur[propriete] = Couleur.parse((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur, 'alpha');
+        nouvelleCouleur[propriete] = Couleur.parse((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur), 'alpha');
+      else if (log == '%')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / 100) * 100 + '%', 'alpha');
       else
         throw error;
       return new Couleur(nouvelleCouleur.hsl);
