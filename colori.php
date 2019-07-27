@@ -570,7 +570,7 @@ class Couleur
     $w = round($this->w * 100);
     $bk = round($this->bk * 100);
     $a = round($this->a * 100) / 100;
-    return 'hwb('.$h.' '.$s.'% '.$l.'% / '.$a.')';
+    return 'hwb('.$h.' '.$w.'% '.$bk.'% / '.$a.')';
   }
 
   public function hwb() {
@@ -579,9 +579,9 @@ class Couleur
     $bk = round($this->bk * 100);
     $a = round($this->a * 100) / 100;
     if ($this->a < 1)
-      return 'hwb('.$h.' '.$s.'% '.$l.'% / '.$a.')';
+      return 'hwb('.$h.' '.$w.'% '.$bk.'% / '.$a.')';
     else
-      return 'hwb('.$h.' '.$s.'% '.$l.'%)';
+      return 'hwb('.$h.' '.$w.'% '.$bk.'%)';
   }
 
   private function rgb2hsl() {
