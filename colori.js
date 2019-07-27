@@ -394,7 +394,7 @@ export default class Couleur {
     if (w + bk > 1)
     {
       w = w / (w + bk);
-      b = b / (w + bk);
+      bk = bk / (w + bk);
     }
 
     v = 1 - bk;
