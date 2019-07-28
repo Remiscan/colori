@@ -1,7 +1,7 @@
 # colori
-Javascript / PHP library to convert (between CSS-supported formats) and manipulate colors
+JavaScript / PHP library to convert (between CSS-supported formats) and manipulate colors
 
-# Documentation
+# Documentation (js)
 
 **colori.js** is a JavaScript module to convert a color into its different CSS-supported formats (RGB, HSL, HWB), and to manipulate colors with some useful functions (blend two colors, calculate their contrast, etc.).
 
