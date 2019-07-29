@@ -93,16 +93,18 @@ To calculate the contrast between two colors, for example to check if it passes 
 
     const bianco = new Colore('white');
     const nero = new Colore('black');
-    const contrasto = Colore.contrast(nero, bianco);
 
-    contrasto == 21
+    Colore.contrast(nero, bianco) == 21
 
 The `contrastedText` method tells you if black or white text would have better contast on a colored background:
 
     const sfondo = new Colore('darkred');
-    const biancoNero = bgColor.contrastedText();
 
-    biancoNero == 'white'
+    sfondo.contrastedText() == 'white'
+
+The `luminance` method gives the relative luminance of the color, [as defined by W3C](https://www.w3.org/TR/WCAG20-TECHS/G18.html#G18-procedure) and used in the calculation of contrast:
+
+    sfondo.luminance() == 0.05488967453113127
 
 ### Modify a color
 
