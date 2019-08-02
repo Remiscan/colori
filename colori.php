@@ -781,7 +781,7 @@ class Couleur
     }
     elseif (in_array($propriete, ['h']))
     {
-      [$_valeur, $log] = self::parse($valeur, null, true);
+      [$_valeur, $log] = self::parse($valeur, 'angle', true);
       if ($log == 'deg')
         $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur) / 360) * 360 . 'deg', 'angle');
       elseif ($log == 'grad')
@@ -791,7 +791,7 @@ class Couleur
       elseif ($log == 'turn')
         $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur)) . 'turn', 'angle');
       else
-        throw new Exception($error);
+        throw new Exception($error . ' - ' . $log);
       return new Couleur($nouvelleCouleur->hsl());
     }
     elseif (in_array($propriete, ['s', 'l']))
@@ -818,6 +818,7 @@ class Couleur
     }
     elseif (in_array($propriete, ['a']))
     {
+      [$_valeur, $log] = self::parse($valeur, 'alpha', true);
       if ($log == 'alpha')
         $nouvelleCouleur->$propriete = self::parse(($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur), 'alpha');
       elseif ($log == '%')
