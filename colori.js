@@ -84,9 +84,9 @@ export default class Couleur {
 
     if (this.a == 1)
     {
-      let allNames = Couleur.couleursNommees;
-      let hex6 = this.hex.slice(1);
-      let _name = Object.keys(allNames).find(k => (allNames[k] == hex6));
+      const allNames = Couleur.couleursNommees;
+      const hex6 = this.hex.slice(1);
+      const _name = Object.keys(allNames).find(k => (allNames[k] == hex6));
       if (typeof _name === 'undefined')
         this.name = null;
       else
@@ -101,7 +101,7 @@ export default class Couleur {
 
   static matchSyntax(couleur) {
     const tri = couleur.slice(0, 3);
-    let allFormats = Couleur.formats;
+    const allFormats = Couleur.formats;
     let formats;
     if (tri.slice(0, 1) == '#')
       formats = [allFormats[0], allFormats[1]];
