@@ -121,14 +121,15 @@ export default class Couleur {
         const result = couleur.match(syntaxe);
         if (result != null && result[0] === couleur)
         {
+          const allNames = Couleur.couleursNommees;
           if (format.id != 'NAME')
             resultat = {
               id: format.id,
               syntaxe: k,
               data: result
             };
-          else if (format.id == 'NAME' && couleur.toLowerCase() in Couleur.couleursNommees)
-            resultat = Couleur.matchSyntax('#' + Couleur.couleursNommees[couleur.toLowerCase()]);
+          else if (format.id == 'NAME' && couleur.toLowerCase() in allNames)
+            resultat = Couleur.matchSyntax('#' + allNames[couleur.toLowerCase()]);
           break boucle;
         }
       }
