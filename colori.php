@@ -361,19 +361,35 @@ class Couleur
 
     if ($this->a == 1)
     {
-      $_name = array_search(str_replace('#', '', $this->hex()), self::COULEURS_NOMMEES) ?: array_search(str_replace('#', '', $this->hexa()), self::COULEURS_NOMMEES);
+      $hex6 = substr($this->hex(), 1);
+      $_name = array_search($hex6, self::COULEURS_NOMMEES);
       if (!$_name)
         $this->name = null;
       else
         $this->name = $_name;
     }
     else
-      $this->name = null;
+    {
+      if ($this->a == 0) $this->name = 'transparent';
+      else $this->name = null;
+    }
   }
 
   private static function matchSyntax($couleur) {
+    $tri = substr($couleur, 0, 3);
+    if (substr($tri, 0, 1) == '#')
+      $formats = [self::FORMATS[0], self::FORMATS[1]];
+    elseif ($tri == 'rgb')
+      $formats = [self::FORMATS[2], self::FORMATS[3]];
+    elseif ($tri == 'hsl')
+      $formats = [self::FORMATS[4], self::FORMATS[5]];
+    elseif ($tri == 'hwb')
+      $formats = [self::FORMATS[6], self::FORMATS[7]];
+    else
+      $formats = [self::FORMATS[8]];
+
     $resultat = false;
-    foreach(self::FORMATS as $format) {
+    foreach($formats as $format) {
       foreach($format['syntaxes'] as $k => $syntaxe) {
         $matches = array();
         $_resultat = preg_match($syntaxe, $couleur, $matches);

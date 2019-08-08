@@ -84,20 +84,39 @@ export default class Couleur {
 
     if (this.a == 1)
     {
-      let _name = Object.keys(Couleur.couleursNommees).find(k => (Couleur.couleursNommees[k] == this.hex.replace('#', '') || Couleur.couleursNommees[k] == this.hexa.replace('#', '')));
+      let allNames = Couleur.couleursNommees;
+      let hex6 = this.hex.slice(1);
+      let _name = Object.keys(allNames).find(k => (allNames[k] == hex6));
       if (typeof _name === 'undefined')
         this.name = null;
       else
         this.name = _name;
     }
     else
-      this.name = null;
+    {
+      if (this.a == 0) this.name = 'transparent';
+      else this.name = null;
+    }
   }
 
   static matchSyntax(couleur) {
+    const tri = couleur.slice(0, 3);
+    let allFormats = Couleur.formats;
+    let formats;
+    if (tri.slice(0, 1) == '#')
+      formats = [allFormats[0], allFormats[1]];
+    else if (tri == 'rgb')
+      formats = [allFormats[2], allFormats[3]];
+    else if (tri == 'hsl')
+      formats = [allFormats[4], allFormats[5]];
+    else if (tri == 'hwb')
+      formats = [allFormats[6], allFormats[7]];
+    else
+      formats = [allFormats[8]];
+    
     let resultat = false;
     boucle:
-    for (const format of Couleur.formats) {
+    for (const format of formats) {
       for (const [k, syntaxe] of format.syntaxes.entries()) {
         const result = couleur.match(syntaxe);
         if (result != null && result[0] === couleur)
