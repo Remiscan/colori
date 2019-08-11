@@ -189,13 +189,13 @@ class Couleur
       'suffix' => ')',
       'syntaxes' => array(
         // rgb(255, 255, 255) ou rgb(255,255,255)
-        '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.')\\)?$/',
+        '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.')\\)$/',
         // rgb(100%, 100%, 100%) ou rgb(100%,100%,100%)
-        '/^rgba?\\(('.self::vPer.'), ?('.self::vPer.'), ?('.self::vPer.')\\)?$/',
+        '/^rgba?\\(('.self::vPer.'), ?('.self::vPer.'), ?('.self::vPer.')\\)$/',
         // rgb(255 255 255)
-        '/^rgba?\\(('.self::vNum.') ('.self::vNum.') ('.self::vNum.')\\)?$/',
+        '/^rgba?\\(('.self::vNum.') ('.self::vNum.') ('.self::vNum.')\\)$/',
         // rgb(100% 100% 100%)
-        '/^rgba?\\(('.self::vPer.') ('.self::vPer.') ('.self::vPer.')\\)?$/'
+        '/^rgba?\\(('.self::vPer.') ('.self::vPer.') ('.self::vPer.')\\)$/'
       )
     ), array(
       'id' => 'RGBA',
@@ -204,13 +204,13 @@ class Couleur
       'suffix' => ')',
       'syntaxes' => array(
         // rgba(255, 255, 255, .5) ou rgba(255, 255, 255, 50%) (espaces optionnels)
-        '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNP.')\\)?$/',
+        '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNP.')\\)$/',
         // rgba(100%, 100%, 100%, .5) ou rgba(100%, 100%, 100%, 50%) (espaces optionnels)
-        '/^rgba?\\(('.self::vPer.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)?$/',
+        '/^rgba?\\(('.self::vPer.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
         // rgba(255 255 255 / 50%) ou rgba(255 255 255 / .5)
-        '/^rgba?\\(('.self::vNum.') ('.self::vNum.') ('.self::vNum.') ?\\/ ?('.self::vNP.')\\)?$/',
+        '/^rgba?\\(('.self::vNum.') ('.self::vNum.') ('.self::vNum.') ?\\/ ?('.self::vNP.')\\)$/',
         // rgba(100% 100% 100% / 50%) ou rgba(100% 100% 100% / .5)
-        '/^rgba?\\(('.self::vPer.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)?$/'
+        '/^rgba?\\(('.self::vPer.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
       'id' => 'HSL',
@@ -219,9 +219,9 @@ class Couleur
       'suffix' => ')',
       'syntaxes' => array(
         // hsl(<angle>, 100%, 100%)
-        '/^hsla?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.')\\)?$/',
+        '/^hsla?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.')\\)$/',
         // hsl(<angle> 100% 100%)
-        '/^hsla?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.')\\)?$/'
+        '/^hsla?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.')\\)$/'
       )
     ), array(
       'id' => 'HSLA',
@@ -230,9 +230,9 @@ class Couleur
       'suffix' => ')',
       'syntaxes' => array(
         // hsla(<angle>, 100%, 100%, .5) ou hsla(<angle>, 100%, 100%, 50%)
-        '/^hsla?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)?$/',
+        '/^hsla?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
         // hsla(<angle> 100% 100% / .5) ou hsl(<angle> 100% 100% / 50%)
-        '/^hsla?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)?$/'
+        '/^hsla?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
       'id' => 'HWB',
@@ -241,9 +241,9 @@ class Couleur
       'suffix' => ')',
       'syntaxes' => array(
         // hwb(<angle>, 100%, 100%)
-        '/^hwba?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.')\\)?$/',
+        '/^hwba?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.')\\)$/',
         // hwb(<angle> 100% 100%)
-        '/^hwba?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.')\\)?$/'
+        '/^hwba?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.')\\)$/'
       )
     ), array(
       'id' => 'HWBA',
@@ -252,9 +252,9 @@ class Couleur
       'suffix' => ')',
       'syntaxes' => array(
         // hwba(<angle>, 100%, 100%, .5) ou hsla(<angle>, 100%, 100%, 50%)
-        '/^hwba?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)?$/',
+        '/^hwba?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
         // hwba(<angle> 100% 100% / .5) ou hsl(<angle> 100% 100% / 50%)
-        '/^hwba?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)?$/'
+        '/^hwba?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
       'id' => 'NAME',
