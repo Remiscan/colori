@@ -1,5 +1,5 @@
 # colori
-JavaScript / PHP library to convert (between CSS-supported formats) and manipulate colors
+JavaScript module to convert (between CSS-supported formats) and manipulate colors // also available in PHP
 
 # Documentation (js)
 
