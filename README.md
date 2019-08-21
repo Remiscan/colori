@@ -108,6 +108,8 @@ The `luminance` method gives the relative luminance of the color, [as defined by
 
 ### Modify a color
 
+#### `change`
+
 The `change` method can modify any property from a color, and then gives you a new `Colore`-type object whose properties have all been recalculated taking the change into account. For example, to reduce luminosity `l` by 10%:
 
     const nuovoColore = rosso.change('l', '-10%');
@@ -123,7 +125,7 @@ To replace the chosen value instead of adding it (for example, to set luminosity
     nuovoColore.hsl == 'hsl(0, 100%, 35%)'
 
 
-`darken`, `lighten`, `desaturate`, `saturate`
+#### `darken`, `lighten`, `desaturate`, `saturate`
 
 Multiple functions are available to simplify the use of `change`. For example, to lower luminosity, you can use `darken`:
 
