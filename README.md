@@ -115,9 +115,45 @@ The `change` method can modify any property from a color, and then gives you a n
     rosso.hsl == 'hsl(0, 100%, 50%)'
     nuovoColore.hsl == 'hsl(0, 100%, 40%)'
 
-A third – optional – boolean parameter (`false` by default) will replace the changed value instead of adding it:
+To replace the chosen value instead of adding it (for example, to set luminosity to 35% instead of increasing it by 35%), you can add `{replace: true} as the third parameter:
 
-    const nuovoColore = rosso.change('l', '35%', true);
+    const nuovoColore = rosso.change('l', '35%', {replace: true});
 
     rosso.hsl == 'hsl(0, 100%, 50%)'
     nuovoColore.hsl == 'hsl(0, 100%, 35%)'
+
+
+`darken`, `lighten`, `desaturate`, `saturate`
+
+Multiple functions are available to simplify the use of `change`. For example, to lower luminosity, you can use `darken`:
+
+    const nuovoColore = rosso.darken('10%');
+
+    rosso.hsl == 'hsl(0, 100%, 50%)'
+    nuovoColore.hsl == 'hsl(0, 100%, 40%)'
+
+If you want to lower luminosity by 10% of its current value instead, you can add the option `{scale: true}`:
+
+    const nuovoColore = rosso.darken('10%', {scale: true});
+
+    rosso.hsl == 'hsl(0, 100%, 50%)'
+    nuovoColore.hsl == 'hsl(0, 100%, 45%)'
+
+Here is a list of other functions that work exactly like `darken`:
+
+*   `darken`, to decrease luminosity
+*   `lighten`, to increase luminosity
+*   `desaturate`, to decrease saturation
+*   `saturate`, to increase saturation
+
+### Complementary and inverse colors
+
+The `complement` method computes the complementary color of a color, and the `negative` method computes the inverse color of a color:
+
+    const rosa = new Colore('pink');
+    const complementare = rosa.complement();
+    const negativo = rosa.negative();
+
+    rosa.rgb == 'rgb(255, 192, 203)'
+    complementare.rgb == 'rgb(194, 255, 245)'
+    negativo.rgb == 'rgb(0, 63, 52)'
