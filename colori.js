@@ -564,6 +564,17 @@ export default class Couleur {
       return new Couleur(nouvelleCouleur.rgb);
   }
 
+  // change() aliases
+  complement() {
+    return this.change('h', 180);
+  }
+
+  negative() {
+    return this.change('r', 255 * (1 - this.r), true)
+               .change('g', 255 * (1 - this.g), true)
+               .change('b', 255 * (1 - this.b), true);
+  }
+
   static get formats() {
     return [
       {
