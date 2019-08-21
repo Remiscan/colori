@@ -180,7 +180,7 @@ export default class Couleur {
     else if (new RegExp('^' + Couleur.vAng + '$').test(n) && type == 'angle')
     {
       // en deg
-      if (n.slice(-3) == 'deg' || new RegExp('^' + Couleur.vNum + '$').test(n))
+      if (String(n).slice(-3) == 'deg' || new RegExp('^' + Couleur.vNum + '$').test(n))
       {
         while (_n < 0)
           _n += 360;
@@ -190,7 +190,7 @@ export default class Couleur {
         logged = 'deg';
       }
       // en grad
-      else if (n.slice(-4) == 'grad')
+      else if (String(n).slice(-4) == 'grad')
       {
         while (_n < 0)
           _n += 400;
@@ -200,7 +200,7 @@ export default class Couleur {
         logged = 'grad'
       }
       // en rad
-      else if (n.slice(-3) == 'rad')
+      else if (String(n).slice(-3) == 'rad')
       {
         _n = _n * 180 / Math.PI;
         while (_n < 0)
@@ -211,7 +211,7 @@ export default class Couleur {
         logged = 'rad';
       }
       // en turn
-      else if (n.slice(-4) == 'turn')
+      else if (String(n).slice(-4) == 'turn')
       {
         while (_n < 0)
           _n += 1;
