@@ -501,9 +501,10 @@ export default class Couleur {
   }
 
   // Change une propriété d'une couleur
-  change(propriete, valeur, remplace = false) {
+  change(propriete, valeur, options = {}) {
     let nouvelleCouleur = new Couleur(`${this.rgb}`);
     const error = 'Incorrect value format for ' + propriete;
+    const remplace = (options === true) || ((typeof options.replace != 'undefined') ? options.replace : false);
 
     if (['r', 'g', 'b'].includes(propriete))
     {
@@ -575,25 +576,30 @@ export default class Couleur {
                .change('b', 255 * (1 - this.b), true);
   }
 
-  darken(value, scale = false) {
+  // options : {scale: true/false}
+  darken(value, options = {}) {
+    const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
     const newValue = (scale == true) ? (this.l * (100 - parseFloat(value))) + '%'
                                      : -1 * parseFloat(value) + '%';
     return this.change('l', newValue, scale);
   }
 
-  lighten(value, scale = false) {
+  lighten(value, options = {}) {
+    const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
     const newValue = (scale == true) ? (this.l * (100 + parseFloat(value))) + '%'
                                      : parseFloat(value) + '%';
     return this.change('l', newValue, scale);
   }
 
-  desaturate(value, scale = false) {
+  desaturate(value, options = {}) {
+    const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
     const newValue = (scale == true) ? (this.s * (100 - parseFloat(value))) + '%'
                                      : -1 * parseFloat(value) + '%';
     return this.change('s', newValue, scale);
   }
 
-  saturate(value, scale = false) {
+  saturate(value, options = {}) {
+    const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
     const newValue = (scale == true) ? (this.s * (100 + parseFloat(value))) + '%'
                                      : parseFloat(value) + '%';
     return this.change('s', newValue, scale);
