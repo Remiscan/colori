@@ -575,6 +575,30 @@ export default class Couleur {
                .change('b', 255 * (1 - this.b), true);
   }
 
+  darken(value, scale = false) {
+    const newValue = (scale == true) ? (this.l * (100 - parseFloat(value))) + '%'
+                                     : -1 * parseFloat(value) + '%';
+    return this.change('l', newValue, scale);
+  }
+
+  lighten(value, scale = false) {
+    const newValue = (scale == true) ? (this.l * (100 + parseFloat(value))) + '%'
+                                     : parseFloat(value) + '%';
+    return this.change('l', newValue, scale);
+  }
+
+  desaturate(value, scale = false) {
+    const newValue = (scale == true) ? (this.s * (100 - parseFloat(value))) + '%'
+                                     : -1 * parseFloat(value) + '%';
+    return this.change('s', newValue, scale);
+  }
+
+  saturate(value, scale = false) {
+    const newValue = (scale == true) ? (this.s * (100 + parseFloat(value))) + '%'
+                                     : parseFloat(value) + '%';
+    return this.change('s', newValue, scale);
+  }
+
   static get formats() {
     return [
       {
