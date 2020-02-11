@@ -846,4 +846,48 @@ class Couleur
     else
       return new Couleur($nouvelleCouleur->rgb());
   }
+
+  // change() aliases
+  public function complement() {
+    return $this->change('h', 180);
+  }
+
+  public function negative() {
+    return $this->change('r', 255 * (1 - $this->r), true)
+                ->change('g', 255 * (1 - $this->g), true)
+                ->change('b', 255 * (1 - $this->b), true);
+  }
+
+  // options : {scale: true/false}
+  public function darken($value, $options = null) {
+    if ($options === null) $options = new stdClass();
+    $scale = ($options === true) || (property_exists($options, 'scale') ? $options['scale'] : false);
+    $newValue = ($scale == true) ? ($this->l * (100 - floatval($value))) . '%'
+                                 : -1 * floatval($value) . '%';
+    return $this->change('l', $newValue, $scale);
+  }
+
+  public function lighten($value, $options = null) {
+    if ($options === null) $options = new stdClass();
+    $scale = ($options === true) || (property_exists($options, 'scale') ? $options['scale'] : false);
+    $newValue = ($scale == true) ? ($this->l * (100 + floatval($value))) . '%'
+                                 : floatval($value) . '%';
+    return $this->change('l', $newValue, $scale);
+  }
+
+  public function desaturate($value, $options = null) {
+    if ($options === null) $options = new stdClass();
+    $scale = ($options === true) || (property_exists($options, 'scale') ? $options['scale'] : false);
+    $newValue = ($scale == true) ? ($this->s * (100 - floatval($value))) . '%'
+                                 : -1 * floatval($value) . '%';
+    return $this->change('s', $newValue, $scale);
+  }
+
+  public function saturate($value, $options = null) {
+    if ($options === null) $options = new stdClass();
+    $scale = ($options === true) || (property_exists($options, 'scale') ? $options['scale'] : false);
+    $newValue = ($scale == true) ? ($this->s * (100 + floatval($value))) . '%'
+                                 : floatval($value) . '%';
+    return $this->change('s', $newValue, $scale);
+  }
 }
