@@ -204,12 +204,12 @@ foreach($steps as $k => $e) {
 
       <!-- DOCUMENTATION JavaScript -->
       <article id="documentation-js">
-        <?php include 'docs/documentation-js.php'; ?>
+        <?php include 'documentation-js.php'; ?>
       </article>
 
       <!-- DOCUMENTATION PHP -->
       <article id="documentation-php" class="off">
-        <?php include 'docs/documentation-php.php'; ?>
+        <?php include 'documentation-php.php'; ?>
       </article>
 
       <script>
