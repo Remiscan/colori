@@ -1,8 +1,8 @@
-<?php include './index.php'; ?>
+<?php include '../index.php'; ?>
 
-<script src="turndown.js"></script>
+<script src="/colori/libs/turndown.js"></script>
 <script type="module">
-  import { traduire, getString, switchLangage, getLangage } from '../_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js';
+  import { traduire, getString, switchLangage, getLangage } from '../../_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js';
   function wait(time) { return new Promise(resolve => setTimeout(resolve, time)); }
 
   const currentLanguage = localStorage.getItem('colori/langage');

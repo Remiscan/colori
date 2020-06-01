@@ -1,7 +1,7 @@
 <?php
 require_once 'colori.php';
 
-$commonDir = '../_common';
+$commonDir = dirname(__DIR__, 1).'/_common';
 require_once $commonDir.'/php/httpLanguage.php';
 require_once $commonDir.'/php/version.php';
 require_once $commonDir.'/php/getStrings.php';
@@ -75,10 +75,10 @@ foreach($steps as $k => $e) {
     <link rel="preload" as="script" href="/colori/colori--<?=version(__DIR__, 'colori.js')?>.js" crossorigin>
     <link rel="preload" as="fetch" href="/colori/strings--<?=version(__DIR__, 'strings.json')?>.json" crossorigin
           id="strings" data-version="<?=version(__DIR__, 'strings.json')?>">
-    <link rel="modulepreload" href="../_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js">
+    <link rel="modulepreload" href="/_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js">
 
-    <link rel="stylesheet" href="prism--<?=version(__DIR__, 'prism.js')?>.css">
-    <link rel="stylesheet" href="page--<?=version(__DIR__, 'page.css')?>.css">
+    <link rel="stylesheet" href="/colori/libs/prism--<?=version(__DIR__.'/libs', 'prism.css')?>.css">
+    <link rel="stylesheet" href="/colori/page--<?=version(__DIR__, 'page.css')?>.css">
 
     <style>
       .loading {
@@ -204,12 +204,12 @@ foreach($steps as $k => $e) {
 
       <!-- DOCUMENTATION JavaScript -->
       <article id="documentation-js">
-        <?php include 'documentation-js.php'; ?>
+        <?php include 'docs/documentation-js.php'; ?>
       </article>
 
       <!-- DOCUMENTATION PHP -->
       <article id="documentation-php" class="off">
-        <?php include 'documentation-php.php'; ?>
+        <?php include 'docs/documentation-php.php'; ?>
       </article>
 
       <script>
@@ -224,7 +224,7 @@ foreach($steps as $k => $e) {
     <footer><span><span data-string="syntax-highlighting-source"><?=$Textes->getString('syntax-highlighting-source')?></span> <a href="https://prismjs.com/" target="_blank" rel="noopener">prism.js</a></span></footer>
 
     <!-- SCRIPTS -->
-    <script src="prism.js"></script>
+    <script src="/colori/libs/prism.js"></script>
     <script src="/_common/js/test-support--<?=version($commonDir.'/js', 'test-support.js')?>.js" id="test-support-script"></script>
     <script id="test-support-script-exe">
       TestSupport.getSupportResults([
@@ -237,7 +237,7 @@ foreach($steps as $k => $e) {
     </script>
     <script type="module">
       import Couleur from '/colori/colori--<?=version(__DIR__, 'colori.js')?>.js';
-      import { traduire, getString, switchLangage, getLangage } from '../_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js';
+      import { traduire, getString, switchLangage, getLangage } from '/_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js';
 
       console.log(new Couleur('pink').complement().rgb);
       console.log(new Couleur('pink').negative().rgb);
