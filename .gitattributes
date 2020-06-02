@@ -1,1 +1,3 @@
 docs/* linguist-documentation
+test.php linguist-documentation
+index.php linguist-documentation
