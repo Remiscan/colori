@@ -77,7 +77,7 @@ foreach($steps as $k => $e) {
           id="strings" data-version="<?=version(__DIR__, 'strings.json')?>">
     <link rel="modulepreload" href="/_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js">
 
-    <link rel="stylesheet" href="/colori/libs/prism--<?=version(__DIR__.'/libs', 'prism.css')?>.css">
+    <link rel="stylesheet" href="/colori/ext/prism--<?=version(__DIR__.'/ext', 'prism.css')?>.css">
     <link rel="stylesheet" href="/colori/page--<?=version(__DIR__, 'page.css')?>.css">
 
     <style>
@@ -224,7 +224,7 @@ foreach($steps as $k => $e) {
     <footer><span><span data-string="syntax-highlighting-source"><?=$Textes->getString('syntax-highlighting-source')?></span> <a href="https://prismjs.com/" target="_blank" rel="noopener">prism.js</a></span></footer>
 
     <!-- SCRIPTS -->
-    <script src="/colori/libs/prism.js"></script>
+    <script src="/colori/ext/prism.js"></script>
     <script src="/_common/js/test-support--<?=version($commonDir.'/js', 'test-support.js')?>.js" id="test-support-script"></script>
     <script id="test-support-script-exe">
       TestSupport.getSupportResults([
