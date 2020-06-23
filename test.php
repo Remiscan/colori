@@ -69,7 +69,15 @@ $testChangeHue = new Couleur('hsl(350, 25%, 52%)');
         'var_dump($testChangeHue->desaturate("10%")->hsl());',
         'var_dump($testChangeHue->desaturate("10%", true)->hsl());',
         'var_dump($testChangeHue->saturate("10%")->hsl());',
-        'var_dump($testChangeHue->saturate("10%", true)->hsl());'
+        'var_dump($testChangeHue->saturate("10%", true)->hsl());',
+        'var_dump($themecolor->greyscale()->hsl());',
+        'var_dump($themecolor->grayscale()->hsl());',
+        'var_dump($themecolor->replace("l", "20%")->hsl());',
+        'var_dump($themecolor->scale("l", "20%")->hsl());',
+        'var_dump($themecolor->scale("r", "20%")->rgb());',
+        'var_dump($themecolor->scale("h", "20%")->hsl());',
+        'var_dump($themecolor->scale("bk", "20%")->hwb());',
+        'var_dump($themecolor->scale("a", "20%")->hsla());'
       ];
 
       foreach($tests as $t) {
@@ -128,6 +136,14 @@ $testChangeHue = new Couleur('hsl(350, 25%, 52%)');
         `JSON.stringify(testChangeHue.desaturate('10%', true).hsl, null, 2)`,
         `JSON.stringify(testChangeHue.saturate('10%').hsl, null, 2)`,
         `JSON.stringify(testChangeHue.saturate('10%', {scale: true}).hsl, null, 2)`,
+        `JSON.stringify(couleur.greyscale().hsl, null, 2)`,
+        `JSON.stringify(couleur.grayscale().hsl, null, 2)`,
+        `JSON.stringify(couleur.replace('l', '20%').hsl, null, 2)`,
+        `JSON.stringify(couleur.scale('l', '20%').hsl, null, 2)`,
+        `JSON.stringify(couleur.scale('r', '20%').rgb, null, 2)`,
+        `JSON.stringify(couleur.scale('h', '20%').hsl, null, 2)`,
+        `JSON.stringify(couleur.scale('bk', '20%').hwb, null, 2)`,
+        `JSON.stringify(couleur.scale('a', '20%').hsla, null, 2)`,
       ];
       const section = document.getElementById('js');
 

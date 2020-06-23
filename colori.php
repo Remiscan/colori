@@ -847,6 +847,39 @@ class Couleur
       return new Couleur($nouvelleCouleur->rgb());
   }
 
+  // Remplace une propriété d'une couleur
+  public function replace($propriete, $valeur, $options = null) {
+    if ($options === null) $options = new stdClass();
+    $options->replace = true;
+    return $this->change($propriete, $valeur, $options);
+  }
+
+  // Remplace une propriété d'une couleur par un pourcentage de sa valeur initiale
+  public function scale($propriete, $valeur, $options = null) {
+    if ($options === null) $options = new stdClass();
+    $options->replace = true;
+
+    [$_valeur, $log] = self::parse($valeur, 'alpha', true);
+    if (!in_array($log, ['%', 'alpha']))
+      throw new Exception('Second parameter should be a percentage or a number between 0 and 1');
+
+    $nouvelleCouleur = new Couleur($this->rgb());
+    $nouvelleCouleur->{$propriete} = $_valeur * $nouvelleCouleur->{$propriete};
+
+    if (in_array($propriete, ['r', 'g', 'b']))
+      return new Couleur($nouvelleCouleur->rgb());
+    elseif (in_array($propriete, ['h']))
+      return new Couleur($nouvelleCouleur->hsl());
+    elseif (in_array($propriete, ['s', 'l']))
+      return new Couleur($nouvelleCouleur->hsl());
+    elseif (in_array($propriete, ['w', 'bk']))
+      return new Couleur($nouvelleCouleur->hwb());
+    elseif (in_array($propriete, ['a']))
+      return new Couleur($nouvelleCouleur->hsl());
+    else
+      return new Couleur($nouvelleCouleur->rgb());
+  }
+
   // change() aliases
   public function complement() {
     return $this->change('h', 180);
@@ -889,5 +922,13 @@ class Couleur
     $newValue = ($scale == true) ? ($this->s * (100 + floatval($value))) . '%'
                                  : floatval($value) . '%';
     return $this->change('s', $newValue, $scale);
+  }
+
+  public function greyscale() {
+    return $this->desaturate('100%');
+  }
+
+  public function grayscale() {
+    return $this->greyscale();
   }
 }

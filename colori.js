@@ -565,6 +565,39 @@ export default class Couleur {
       return new Couleur(nouvelleCouleur.rgb);
   }
 
+  // Remplace une propriété d'une couleur
+  replace(propriete, valeur, options = {}) {
+    const _options = options;
+    options.replace = true;
+    return this.change(propriete, valeur, options);
+  }
+
+  // Remplace une propriété d'une couleur par un pourcentage de sa valeur initiale
+  scale(propriete, valeur, options = {}) {
+    const _options = options;
+    options.replace = true;
+
+    const [_valeur, log] = Couleur.parse(valeur, 'alpha', true);
+    if (!['%', 'alpha'].includes(log))
+      throw 'Second parameter should be a percentage or a number between 0 and 1';
+
+    let nouvelleCouleur = new Couleur(`${this.rgb}`);
+    nouvelleCouleur[propriete] = _valeur * nouvelleCouleur[propriete];
+
+    if (['r', 'g', 'b'].includes(propriete))
+      return new Couleur(nouvelleCouleur.rgb);
+    else if (['h'].includes(propriete))
+      return new Couleur(nouvelleCouleur.hsl);
+    else if (['s', 'l'].includes(propriete))
+      return new Couleur(nouvelleCouleur.hsl);
+    else if (['w', 'bk'].includes(propriete))
+      return new Couleur(nouvelleCouleur.hwb);
+    else if (['a'].includes(propriete))
+      return new Couleur(nouvelleCouleur.hsl);
+    else
+      return new Couleur(nouvelleCouleur.rgb);
+  }
+
   // change() aliases
   complement() {
     return this.change('h', 180);
@@ -603,6 +636,14 @@ export default class Couleur {
     const newValue = (scale == true) ? (this.s * (100 + parseFloat(value))) + '%'
                                      : parseFloat(value) + '%';
     return this.change('s', newValue, scale);
+  }
+
+  greyscale() {
+    return this.desaturate('100%');
+  }
+
+  grayscale() {
+    return this.greyscale();
   }
 
   static get formats() {

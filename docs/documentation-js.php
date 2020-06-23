@@ -135,6 +135,26 @@ nuovoColore.hsl == 'hsl(0, 100%, 40%)'</code></pre>
 nuovoColore.hsl == 'hsl(0, 100%, 35%)'</code></pre>
 </div>
 
+<p class="h3"><code class="language-javascript">replace</code>, <code class="language-javascript">scale</code></p>
+
+<p data-string="documentation-change-p6"><?=$Textes->getString('documentation-change-p6')?></p>
+
+<div class="example-code">
+  <pre class="input"><code class="language-javascript">const nuovoColore = rosso.replace('l', '20%');</code></pre>
+
+  <pre class="output"><code slot="output" class="language-javascript">rosso.hsl == 'hsl(0, 100%, 50%)'
+nuovoColore.hsl == 'hsl(0, 100%, 20%)'</code></pre>
+</div>
+
+<p data-string="documentation-change-p7"><?=$Textes->getString('documentation-change-p7')?></p>
+
+<div class="example-code">
+  <pre class="input"><code class="language-javascript">const nuovoColore = rosso.scale('l', '20%');</code></pre>
+
+  <pre class="output"><code slot="output" class="language-javascript">rosso.hsl == 'hsl(0, 100%, 50%)'
+nuovoColore.hsl == 'hsl(0, 100%, 10%)'</code></pre>
+</div>
+
 <p class="h3"><code class="language-javascript">darken</code>, <code class="language-javascript">lighten</code>, <code class="language-javascript">desaturate</code>, <code class="language-javascript">saturate</code></p>
 
 <p data-string="documentation-change-p3"><?=$Textes->getString('documentation-change-p3')?></p>
@@ -163,6 +183,17 @@ nuovoColore.hsl == 'hsl(0, 100%, 45%)'</code></pre>
   <li><code class="language-javascript">desaturate</code><span data-string="documentation-change-aliases-desaturate"><?=$Textes->getString('documentation-change-aliases-desaturate')?></span></li>
   <li><code class="language-javascript">saturate</code><span data-string="documentation-change-aliases-saturate"><?=$Textes->getString('documentation-change-aliases-saturate')?></span></li>
 </ul>
+
+<p class="h3"><code class="language-javascript">greyscale</code></p>
+
+<p data-string="documentation-change-p8"><?=$Textes->getString('documentation-change-p8')?></p>
+
+<div class="example-code">
+  <pre class="input"><code class="language-javascript">const nuovoColore = rosso.greyscale();</code></pre>
+
+  <pre class="output"><code slot="output" class="language-javascript">rosso.hsl == 'hsl(0, 100%, 50%)'
+nuovoColore.hsl == 'hsl(0, 0%, 50%)'</code></pre>
+</div>
 
 <h2 class="titre-partie-docu" data-string="documentation-complement-titre"><?=$Textes->getString('documentation-complement-titre')?></h2>
 
