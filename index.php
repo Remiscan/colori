@@ -195,11 +195,10 @@ foreach($steps as $k => $e) {
       <h1 data-string="titre-section-documentation"><?=$Textes->getString('titre-section-documentation')?></h1>
 
       <div class="prog-lang-changer">
-        <input type="checkbox" id="switch-js-php">
-        <label for="switch-js-php" class="focusable">
+        <button class="switch-js-php" data-current-tab="js">
           <span id="sw-js" class="sw-span">.js</span>
           <span id="sw-php" class="sw-span">.php</span>
-        </label>
+        </button>
       </div>
 
       <!-- DOCUMENTATION JavaScript -->
@@ -382,21 +381,24 @@ foreach($steps as $k => $e) {
       window.addEventListener('DOMContentLoaded', () => {
         textualiser()
         .then(() => {
-          const langSwitch = document.getElementById('switch-js-php');
+          const langSwitch = document.querySelector('.switch-js-php');
 
           langSwitch.addEventListener('click', () => {
             setTimeout(() => {
-              if (langSwitch.checked) {
+              if (langSwitch.dataset.currentTab == 'js') {
+                langSwitch.dataset.currentTab = 'php';
                 document.querySelector('header>h1').innerHTML = 'colori.php';
                 document.getElementById('documentation-js').classList.add('off');
                 document.getElementById('documentation-php').classList.remove('off');
               } else {
+                langSwitch.dataset.currentTab = 'js';
                 document.querySelector('header>h1').innerHTML = 'colori.js';
                 document.getElementById('documentation-php').classList.add('off');
                 document.getElementById('documentation-js').classList.remove('off');
               }
-              localStorage.setItem('colori/lang-php', langSwitch.checked);
+              localStorage.setItem('colori/lang-php', langSwitch.dataset.currentTab == 'php');
             }, 20);
+            langSwitch.addEventListener('mouseout', () => langSwitch.blur());
           });
 
           Array.from(document.querySelectorAll('#documentation-php code.language-javascript')).forEach(e => {
@@ -404,7 +406,7 @@ foreach($steps as $k => $e) {
           });
 
           if (isPhp == 'true')
-            langSwitch.checked = true;
+          langSwitch.dataset.currentTab = 'php';
 
           document.documentElement.classList.add('loaded');
         });

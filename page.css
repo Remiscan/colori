@@ -66,6 +66,7 @@ h6, .h6 {
 }
 
 button:focus:not(:hover),
+/*input[type=checkbox]:focus:not(:hover) + label,*/
 a:focus:not(:hover) {
   outline: 2px solid var(--link-color);
 }
@@ -400,20 +401,19 @@ section::before {
   right: .7rem;
 }
 
-input[type=checkbox] {
-	height: 0;
-	width: 0;
-  visibility: hidden;
-  position: absolute;
-}
-
-label {
+.switch-js-php {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
   display: grid;
   grid-template-columns: auto auto;
   height: var(--height);
   position: relative;
   cursor: pointer;
-  background-color: transparent;
   overflow: hidden;
 }
 
@@ -428,10 +428,11 @@ label {
   font-weight: 600;
   color: var(--h1-color);
   padding: 0 .4rem;
+  height: 100%;
 }
 
-input:not(:checked) + label>#sw-js,
-input:checked + label>#sw-php {
+.switch-js-php[data-current-tab=js]>#sw-js,
+.switch-js-php[data-current-tab=php]>#sw-php {
   background-color: var(--section-color);
   border-radius: .6rem .6rem 0 0;
 }
