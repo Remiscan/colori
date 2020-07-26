@@ -455,7 +455,7 @@ export default class Couleur {
 
   // Calcule la luminance d'une couleur
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
-  luminance() {
+  get luminance() {
     let couleur = this;
     if (this.a < 1)
       throw 'Can\'t calculate luminance of transparent color';
@@ -478,8 +478,8 @@ export default class Couleur {
   static contrast(couleur1, couleur2) {
     if (!(couleur1 instanceof Couleur) || !(couleur2 instanceof Couleur))
       throw 'Arguments should be two instances of the Couleur class';
-    const L1 = couleur1.luminance();
-    const L2 = couleur2.luminance();
+    const L1 = couleur1.luminance;
+    const L2 = couleur2.luminance;
     const Lmax = Math.max(L1, L2);
     const Lmin = Math.min(L1, L2);
     return (Lmax + 0.05) / (Lmin + 0.05);
@@ -487,7 +487,7 @@ export default class Couleur {
 
   // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
   contrastedText() {
-    const L = this.luminance(); // luminance de la couleur entrée
+    const L = this.luminance; // luminance de la couleur entrée
     const LB = 1; // luminance du blanc
     const LN = 0; // luminance du noir
     const contrastes = [
@@ -604,9 +604,11 @@ export default class Couleur {
   }
 
   negative() {
-    return this.change('r', 255 * (1 - this.r), true)
-               .change('g', 255 * (1 - this.g), true)
-               .change('b', 255 * (1 - this.b), true);
+    return new Couleur(`rgba(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`);
+  }
+
+  invert() {
+    return this.negative();
   }
 
   // options : {scale: true/false}
