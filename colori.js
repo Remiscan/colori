@@ -147,8 +147,19 @@ export default class Couleur {
     let logged;
     let error;
 
+    if (type == 'arbitrary') {
+      // Si n est un pourcentage (n'importe lequel)
+      if (new RegExp('^' + Couleur.vPer + '$').test(n)) {
+        _n = _n / 100;
+        logged = 'arbitrary%';
+      }
+      // Si n est un nombre (n'importe lequel)
+      else if (new RegExp('^' + Couleur.vNum + '$').test(n)) {
+        logged = 'arbitraryN';
+      }
+    }
     // Si n est un pourcentage (entre 0 et 100%)
-    if (new RegExp('^' + Couleur.vPer + '$').test(n))
+    else if (new RegExp('^' + Couleur.vPer + '$').test(n))
     {
       _n = _n / 100;
       if (_n < 0)
@@ -615,7 +626,7 @@ export default class Couleur {
 
   // options : {scale: true/false}
   darken(_value, options = {}) {
-    let value = Couleur.parse(_value, 'alpha');
+    let value = Couleur.parse(_value, 'arbitrary');
     value = value * 100;
     const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
     const newValue = (scale == true) ? (this.l * (100 - parseFloat(value))) + '%'
@@ -624,7 +635,7 @@ export default class Couleur {
   }
 
   lighten(_value, options = {}) {
-    let value = Couleur.parse(_value, 'alpha');
+    let value = Couleur.parse(_value, 'arbitrary');
     value = value * 100;
     const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
     const newValue = (scale == true) ? (this.l * (100 + parseFloat(value))) + '%'
@@ -633,7 +644,7 @@ export default class Couleur {
   }
 
   desaturate(_value, options = {}) {
-    let value = Couleur.parse(_value, 'alpha');
+    let value = Couleur.parse(_value, 'arbitrary');
     value = value * 100;
     const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
     const newValue = (scale == true) ? (this.s * (100 - parseFloat(value))) + '%'
@@ -642,7 +653,7 @@ export default class Couleur {
   }
 
   saturate(_value, options = {}) {
-    let value = Couleur.parse(_value, 'alpha');
+    let value = Couleur.parse(_value, 'arbitrary');
     value = value * 100;
     const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
     const newValue = (scale == true) ? (this.s * (100 + parseFloat(value))) + '%'
