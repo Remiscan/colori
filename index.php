@@ -272,7 +272,7 @@ foreach($steps as $k => $e) {
       champ.addEventListener('input', event => {
         let evt = event || window.event;
         document.querySelector('.demo-conteneur').classList.remove('calced');
-        interpreterCouleur(evt.target.value)
+        interpreterCouleur(evt.target.value, 50)
         .catch(error => {});
       });
 
@@ -284,6 +284,7 @@ foreach($steps as $k => $e) {
         await new Promise(resolve => setTimeout(resolve, delai));
         if (lastTry != thisTry) return;
 
+        const vNPandOptions = `(${Couleur.vNP})(?:\\,(?: +)?(true|false|\\{(?:.+)?\\}))?`;
         const acceptedMethods = [
           {
             name: 'change',
@@ -305,22 +306,22 @@ foreach($steps as $k => $e) {
             args: null
           }, {
             name: 'darken',
-            args: /a/
+            args: new RegExp(vNPandOptions)
           }, {
             name: 'lighten',
-            args: /a/
+            args: new RegExp(vNPandOptions)
           }, {
             name: 'desaturate',
-            args: /a/
+            args: new RegExp(vNPandOptions)
           }, {
             name: 'saturate',
-            args: /a/
+            args: new RegExp(vNPandOptions)
           }, {
             name: 'greyscale',
-            args: /a/
+            args: null
           }, {
             name: 'grayscale',
-            args: /a/
+            args: null
           }
         ];
 
@@ -363,7 +364,7 @@ foreach($steps as $k => $e) {
           let coul = entree;
           for (const method of methods) {
             try {
-              coul = Couleur.prototype[method.name].apply(coul, [method.args]);
+              coul = Couleur.prototype[method.name].call(coul, ...method.args.map(arg => arg === 'true' ? true : arg === 'false' ? false : arg));
             } catch(error) { console.error(error); }
           }
 
