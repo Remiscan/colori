@@ -238,9 +238,6 @@ foreach($steps as $k => $e) {
       import Couleur from '/colori/colori--<?=version(__DIR__, 'colori.js')?>.js';
       import { traduire, getString, switchLangage, getLangage } from '/_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js';
 
-      console.log(new Couleur('pink').complement().rgb);
-      console.log(new Couleur('pink').negative().rgb);
-
       function textualiser() {
         return traduire('colori')
         .then(() => {
@@ -258,14 +255,18 @@ foreach($steps as $k => $e) {
 
       let test;
       let entree;
-      let wait;
-      try {
-        test = new Couleur('<?=$startColor->hsl()?>');
-        interpreterCouleur(test.hex, 0, false)
-        .catch(error => console.error(error));
-      } catch(error) {
-        console.error('Erreur (couleur aléatoire)');
+      let lastTry;
+
+      async function initCouleur() {
+        try {
+          test = new Couleur('<?=$startColor->hsl()?>');
+          await interpreterCouleur(test.hex, 0, false);
+        }
+        catch(error) {
+          console.error('Erreur (couleur aléatoire)', error);
+        }
       }
+      initCouleur();
 
       const champ = document.getElementById('entree');
       champ.addEventListener('input', event => {
@@ -275,107 +276,193 @@ foreach($steps as $k => $e) {
         .catch(error => {});
       });
 
-      function interpreterCouleur(couleur, delai = 100, adaptPage = true)
+      async function interpreterCouleur(couleur, delai = 100, adaptPage = true)
       {
-        clearTimeout(wait);
-        return new Promise((resolve, reject) => {
-          wait = setTimeout(() => {
-            try {
-              entree = new Couleur(couleur);
+        const thisTry = Date.now();
+        lastTry = thisTry;
 
-              
+        await new Promise(resolve => setTimeout(resolve, delai));
+        if (lastTry != thisTry) return;
 
-              if (adaptPage)
-              {
-                document.documentElement.style.setProperty('--user-color', entree.rgb);
-                document.documentElement.style.setProperty('--user-hue', Math.round(entree.h * 360));
+        const acceptedMethods = [
+          {
+            name: 'change',
+            args: /a/
+          }, {
+            name: 'replace',
+            args: /a/
+          }, {
+            name: 'scale',
+            args: /a/
+          }, {
+            name: 'complement',
+            args: null
+          }, {
+            name: 'negative',
+            args: null
+          }, {
+            name: 'invert',
+            args: null
+          }, {
+            name: 'darken',
+            args: /a/
+          }, {
+            name: 'lighten',
+            args: /a/
+          }, {
+            name: 'desaturate',
+            args: /a/
+          }, {
+            name: 'saturate',
+            args: /a/
+          }, {
+            name: 'greyscale',
+            args: /a/
+          }, {
+            name: 'grayscale',
+            args: /a/
+          }
+        ];
 
-                // Calcul des couleurs du body et des sections selon le contraste de la couleur d'entrée
-                let sectionColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 100%, 80%)');
-                let bodyColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 100%, 70%)');
-                while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
-                  bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
-                  sectionColor = bodyColor.change('l', '80%', true);
-                  if (bodyColor.w < 0.05 && bodyColor.bk > 0.95) break;
-                }
-                document.body.style.setProperty('--body-color', bodyColor.hsl);
-                document.body.style.setProperty('--section-color', sectionColor.hsl);
-                document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
+        let done = false;
+        let value = couleur;
+        let methods = [];
+        while (true) {
+          let nextMethod = null;
 
-                // Calcul de la couleur des liens
-                let linkColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 100%, 30%)');
-                while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
-                  linkColor = linkColor.change('bk', '+5%').change('w', '-5%');
-                  if (linkColor.w < 0.05 && linkColor.bk > 0.95) break;
-                }
-                document.body.style.setProperty('--link-color', linkColor.hsl);
+          // On vérifie si la valeur de l'input vérifie couleur.methode()
+          for (const method of acceptedMethods) {
+            const regex = new RegExp(`(.+)\\.${method.name}\\(([^\(\)]+)?\\)$`);
+            const match = value.match(regex);
 
-                // Calcul de la couleur du fond de la démo
-                let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
-                let _entree = entree.change('a', '1', true);
-                let frameColor = Couleur.blend(sectionColor, frameOverlay);
-                while (Couleur.contrast(frameColor, _entree) < 1.2) {
-                  frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
-                  if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
-                }
-                document.querySelector('.demo-conteneur').style.setProperty('--frame-color', frameColor.hsl);
-
-                // Calcul de la coloration syntaxique selon le contraste
-                const steps = ['-90', '+45', '-45', '+135'];
-                const tokenTypes = ['number', 'string', 'operator', 'keyword'];
-                steps.forEach((e, k) => {
-                  let tokenColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 70%, 60%)');
-                  tokenColor = tokenColor.change('h', steps[k]);
-                  while (Couleur.contrast(tokenColor, frameColor) < 5) {
-                    tokenColor = tokenColor.change('bk', '-5%').change('w', '+5%');
-                    if (tokenColor.w > 0.95 && tokenColor.bk < 0.05) break;
-                  }
-                  document.body.style.setProperty('--token-' + tokenTypes[k], tokenColor.hsl);
-                });
-              }
-
-              // Peuplage des données de la couleur dans la démo
-              const objet = document.querySelector('#objet>pre>code');
-              objet.innerHTML = JSON.stringify(entree, null, 2);
-              Prism.highlightElement(objet);
-
-              let code;
-
-              code = document.querySelector('.hex>.format-donnee>code');
-              code.innerHTML = entree.hex;
-              Prism.highlightElement(code);
-
-              code = document.querySelector('.rgb>.format-donnee>code');
-              code.innerHTML = entree.rgb;
-              Prism.highlightElement(code);
-
-              code = document.querySelector('.hsl>.format-donnee>code');
-              code.innerHTML = entree.hsl;
-              Prism.highlightElement(code);
-
-              code = document.querySelector('.hwb>.format-donnee>code');
-              code.innerHTML = entree.hwb;
-              Prism.highlightElement(code);
-
-              if (entree.name == null)
-              {
-                document.querySelector('.name').classList.remove('oui');
-                document.querySelector('.name>.format-donnee>code').innerHTML = '';
-              }
-              else
-              {
-                document.querySelector('.name').classList.add('oui');
-                document.querySelector('.name>.format-donnee>code').innerHTML = entree.name;
-              }
-
-              document.querySelector('.demo-conteneur').classList.add('calced');
-
-              resolve();
-            } catch(error) {
-              reject(error);
+            if (match !== null) {
+              const args = Array.from((match[2] || '').match(method.args) || []).slice(1);
+              nextMethod = {
+                name: method.name,
+                args: args
+              };
+              value = match[1];
+              break;
             }
-          }, delai);
+          }
+
+          // Si la valeur de l'input ne vérifie couleur.methode() pour aucune methode de acceptedMethods,
+          // on passe à l'étape suivante (vérifier si la valeur de l'input est une expression valide de couleur)
+          if (nextMethod == null)
+            break;
+          else
+            methods.push(nextMethod);
+        }
+
+        // Si la valeur restante de l'input est une expression valide de couleur, on pourra continuer.
+        // Sinon, la valeur est invalide.
+        try {
+          entree = new Couleur(value);
+
+          methods.reverse();
+          let coul = entree;
+          for (const method of methods) {
+            try {
+              coul = Couleur.prototype[method.name].apply(coul, [method.args]);
+            } catch(error) { console.error(error); }
+          }
+
+          entree = coul;
+
+          // On colore l'interface selon la couleur obtenue
+          if (adaptPage) colorInterface(entree);
+
+          // Peuplage des données de la couleur dans la démo
+          populateColorData(entree);
+        }
+        catch(error) {
+          // La valeur de l'input est invalide, ne rien faire.
+        }
+      }
+
+      function colorInterface(entree) {
+        document.documentElement.style.setProperty('--user-color', entree.rgb);
+        document.documentElement.style.setProperty('--user-hue', Math.round(entree.h * 360));
+
+        // Calcul des couleurs du body et des sections selon le contraste de la couleur d'entrée
+        let sectionColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 100%, 80%)');
+        let bodyColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 100%, 70%)');
+        while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
+          bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
+          sectionColor = bodyColor.change('l', '80%', true);
+          if (bodyColor.w < 0.05 && bodyColor.bk > 0.95) break;
+        }
+        document.body.style.setProperty('--body-color', bodyColor.hsl);
+        document.body.style.setProperty('--section-color', sectionColor.hsl);
+        document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
+
+        // Calcul de la couleur des liens
+        let linkColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 100%, 30%)');
+        while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
+          linkColor = linkColor.change('bk', '+5%').change('w', '-5%');
+          if (linkColor.w < 0.05 && linkColor.bk > 0.95) break;
+        }
+        document.body.style.setProperty('--link-color', linkColor.hsl);
+
+        // Calcul de la couleur du fond de la démo
+        let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
+        let _entree = entree.change('a', '1', true);
+        let frameColor = Couleur.blend(sectionColor, frameOverlay);
+        while (Couleur.contrast(frameColor, _entree) < 1.2) {
+          frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
+          if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
+        }
+        document.querySelector('.demo-conteneur').style.setProperty('--frame-color', frameColor.hsl);
+
+        // Calcul de la coloration syntaxique selon le contraste
+        const steps = ['-90', '+45', '-45', '+135'];
+        const tokenTypes = ['number', 'string', 'operator', 'keyword'];
+        steps.forEach((e, k) => {
+          let tokenColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 70%, 60%)');
+          tokenColor = tokenColor.change('h', steps[k]);
+          while (Couleur.contrast(tokenColor, frameColor) < 5) {
+            tokenColor = tokenColor.change('bk', '-5%').change('w', '+5%');
+            if (tokenColor.w > 0.95 && tokenColor.bk < 0.05) break;
+          }
+          document.body.style.setProperty('--token-' + tokenTypes[k], tokenColor.hsl);
         });
+      }
+
+      function populateColorData(entree) {
+        const objet = document.querySelector('#objet>pre>code');
+        objet.innerHTML = JSON.stringify(entree, null, 2);
+        Prism.highlightElement(objet);
+
+        let code;
+
+        code = document.querySelector('.hex>.format-donnee>code');
+        code.innerHTML = entree.hex;
+        Prism.highlightElement(code);
+
+        code = document.querySelector('.rgb>.format-donnee>code');
+        code.innerHTML = entree.rgb;
+        Prism.highlightElement(code);
+
+        code = document.querySelector('.hsl>.format-donnee>code');
+        code.innerHTML = entree.hsl;
+        Prism.highlightElement(code);
+
+        code = document.querySelector('.hwb>.format-donnee>code');
+        code.innerHTML = entree.hwb;
+        Prism.highlightElement(code);
+
+        if (entree.name == null)
+        {
+          document.querySelector('.name').classList.remove('oui');
+          document.querySelector('.name>.format-donnee>code').innerHTML = '';
+        }
+        else
+        {
+          document.querySelector('.name').classList.add('oui');
+          document.querySelector('.name>.format-donnee>code').innerHTML = entree.name;
+        }
+
+        document.querySelector('.demo-conteneur').classList.add('calced');
       }
 
       window.addEventListener('DOMContentLoaded', () => {
