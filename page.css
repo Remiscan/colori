@@ -679,7 +679,8 @@ pre[class*="language-"].format-donnee {
     grid-row: 2 / 3;
     min-height: 8rem;
     border-width: .9rem;
-    border-radius: .6rem .6rem 0 0;
+    /*border-radius: .6rem .6rem 0 0;*/
+    border-radius: .6rem;
   }
   .fenetre::after {
     box-shadow: 0 0 0 .7rem var(--frame-color);
@@ -691,6 +692,7 @@ pre[class*="language-"].format-donnee {
     border-radius: 0 0 .6rem .6rem;
     background: var(--frame-color);
     margin-top: -1.5rem;
+    display: none;
   }
 }
 
