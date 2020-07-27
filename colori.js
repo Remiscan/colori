@@ -466,6 +466,11 @@ export default class Couleur {
     return new Couleur(`rgb(${r}, ${g}, ${b})`);
   }
 
+  // Raccourci pour blend
+  blend(couleur2) {
+    return Couleur.blend(this, couleur2);
+  }
+
   // Calcule la luminance d'une couleur
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   get luminance() {
@@ -496,6 +501,11 @@ export default class Couleur {
     const Lmax = Math.max(L1, L2);
     const Lmin = Math.min(L1, L2);
     return (Lmax + 0.05) / (Lmin + 0.05);
+  }
+
+  // Raccourci pour contrast
+  contrast(couleur2) {
+    return Couleur.contrast(this, couleur2);
   }
 
   // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
