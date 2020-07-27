@@ -328,23 +328,23 @@ foreach($steps as $k => $e) {
         let done = false;
         let value = couleur;
         let methods = [];
+        const methodsRegex = acceptedMethods.map(method => method.name).join('|');
+        const regex = new RegExp(`(.+)\\.(${methodsRegex})\\(([^\(\)]+)?\\)$`);
+
         while (true) {
           let nextMethod = null;
-
+          
           // On vérifie si la valeur de l'input vérifie couleur.methode()
-          for (const method of acceptedMethods) {
-            const regex = new RegExp(`(.+)\\.${method.name}\\(([^\(\)]+)?\\)$`);
-            const match = value.match(regex);
+          const match = value.match(regex);
 
-            if (match !== null) {
-              const args = Array.from((match[2] || '').match(method.args) || []).slice(1);
-              nextMethod = {
-                name: method.name,
-                args: args
-              };
-              value = match[1];
-              break;
-            }
+          if (match !== null) {
+            const method = acceptedMethods[acceptedMethods.findIndex(method => method.name == match[2])];
+            const args = Array.from((match[3] || '').match(method.args) || []).slice(1);
+            nextMethod = {
+              name: method.name,
+              args: args
+            };
+            value = match[1];
           }
 
           // Si la valeur de l'input ne vérifie couleur.methode() pour aucune methode de acceptedMethods,
