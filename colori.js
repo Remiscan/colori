@@ -460,24 +460,34 @@ export default class Couleur {
       background = couleur1;
       overlay = couleur2;
     }
-    const r = Math.round(255 * (overlay.a * overlay.r + (1 - overlay.a) * background.r));
-    const g = Math.round(255 * (overlay.a * overlay.g + (1 - overlay.a) * background.g));
-    const b = Math.round(255 * (overlay.a * overlay.b + (1 - overlay.a) * background.b));
+    const r = 255 * (overlay.a * overlay.r + (1 - overlay.a) * background.r);
+    const g = 255 * (overlay.a * overlay.g + (1 - overlay.a) * background.g);
+    const b = 255 * (overlay.a * overlay.b + (1 - overlay.a) * background.b);
     return new Couleur(`rgb(${r}, ${g}, ${b})`);
   }
 
   // Raccourci pour blend
-  blend(_couleur2) {
+  blend(_couleur2, alpha = null) {
     let couleur2 = _couleur2;
     if (!(_couleur2 instanceof Couleur)) {
       try {
         couleur2 = new Couleur(_couleur2);
       }
       catch(error) {
-        throw 'Argument should be an instance of the Couleur class, or a valid color string';
+        throw 'First argument should be an instance of the Couleur class, or a valid color string';
       }
     }
-    return Couleur.blend(this, couleur2);
+    let background, overlay;
+    if (this.a < 1 && couleur2.a == 1) {
+      overlay = this;
+      background = couleur2;
+    }
+    else {
+      background = this;
+      overlay = couleur2;
+    }
+    if (alpha !== null && alpha != overlay.a) overlay = overlay.replace('a', alpha);
+    return Couleur.blend(background, overlay);
   }
 
   // Calcule la luminance d'une couleur
