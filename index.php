@@ -332,7 +332,7 @@ foreach($steps as $k => $e) {
             args: null
           }, {
             name: 'blend',
-            args: new RegExp('(.+)')
+            args: new RegExp(`(.+)`)
           }
         ];
 
@@ -350,11 +350,18 @@ foreach($steps as $k => $e) {
 
           if (match !== null) {
             const method = acceptedMethods[acceptedMethods.findIndex(method => method.name == match[2])];
-            const args = Array.from((match[3] || '').match(method.args) || []).slice(1);
+            let args = Array.from((match[3] || '').match(method.args) || []).slice(1);
 
             // Si la méthode prend une couleur en argument, vérifier que l'argument en est bien une
             if (['blend', 'contrast'].includes(method.name)) {
               if (args.length == 1) {
+                const match = args[0].match(new RegExp(`${vSep}(${Couleur.vNP})$`));
+                if (match !== null) {
+                  args = [
+                    args[0].replace(match[0], ''),
+                    match[1]
+                  ];
+                }
                 try {
                   const coulArg = new Couleur(args[0]);
                 }
