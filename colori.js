@@ -666,7 +666,7 @@ export default class Couleur {
   darken(_value, options = {}) {
     let value = Couleur.parse(_value, 'arbitrary');
     value = value * 100;
-    const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
+    const scale = (options === true || options === false) ? options : ((typeof options.scale != 'undefined') ? options.scale : true);
     const newValue = (scale == true) ? (this.l * (100 - parseFloat(value))) + '%'
                                      : -1 * parseFloat(value) + '%';
     return this.change('l', newValue, scale);
@@ -675,7 +675,7 @@ export default class Couleur {
   lighten(_value, options = {}) {
     let value = Couleur.parse(_value, 'arbitrary');
     value = value * 100;
-    const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
+    const scale = (options === true || options === false) ? options : ((typeof options.scale != 'undefined') ? options.scale : true);
     const newValue = (scale == true) ? (this.l * (100 + parseFloat(value))) + '%'
                                      : parseFloat(value) + '%';
     return this.change('l', newValue, scale);
@@ -684,7 +684,7 @@ export default class Couleur {
   desaturate(_value, options = {}) {
     let value = Couleur.parse(_value, 'arbitrary');
     value = value * 100;
-    const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
+    const scale = (options === true || options === false) ? options : ((typeof options.scale != 'undefined') ? options.scale : true);
     const newValue = (scale == true) ? (this.s * (100 - parseFloat(value))) + '%'
                                      : -1 * parseFloat(value) + '%';
     return this.change('s', newValue, scale);
@@ -693,7 +693,7 @@ export default class Couleur {
   saturate(_value, options = {}) {
     let value = Couleur.parse(_value, 'arbitrary');
     value = value * 100;
-    const scale = (options === true) || ((typeof options.scale != 'undefined') ? options.scale : false);
+    const scale = (options === true || options === false) ? options : ((typeof options.scale != 'undefined') ? options.scale : true);
     const newValue = (scale == true) ? (this.s * (100 + parseFloat(value))) + '%'
                                      : parseFloat(value) + '%';
     return this.change('s', newValue, scale);
