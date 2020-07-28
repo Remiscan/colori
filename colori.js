@@ -467,7 +467,16 @@ export default class Couleur {
   }
 
   // Raccourci pour blend
-  blend(couleur2) {
+  blend(_couleur2) {
+    let couleur2 = _couleur2;
+    if (!(_couleur2 instanceof Couleur)) {
+      try {
+        couleur2 = new Couleur(_couleur2);
+      }
+      catch(error) {
+        throw 'Argument should be an instance of the Couleur class, or a valid color string';
+      }
+    }
     return Couleur.blend(this, couleur2);
   }
 
@@ -504,7 +513,16 @@ export default class Couleur {
   }
 
   // Raccourci pour contrast
-  contrast(couleur2) {
+  contrast(_couleur2) {
+    let couleur2 = _couleur2;
+    if (!(_couleur2 instanceof Couleur)) {
+      try {
+        couleur2 = new Couleur(_couleur2);
+      }
+      catch(error) {
+        throw 'Argument should be an instance of the Couleur class, or a valid color string';
+      }
+    }
     return Couleur.contrast(this, couleur2);
   }
 
@@ -679,6 +697,10 @@ export default class Couleur {
     return this.greyscale();
   }
 
+  static get properties() {
+    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk'];
+  }
+
   static get formats() {
     return [
       {
@@ -795,6 +817,7 @@ export default class Couleur {
   static get vPer() { return Couleur.vNum + '%'; } // percent (r, g, b, s, l, w, bk)
   static get vNP() { return Couleur.vNum + '%?'; } // number or percent (a)
   static get vAng() { return Couleur.vNum + '(?:deg|grad|rad|turn)?'; } // angle (h)
+  static get vProp() { return Couleur.properties.join('|'); } // noms des propriétés (r, g, b, etc)
 
   static get couleursNommees() {
     return {
