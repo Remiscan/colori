@@ -284,17 +284,25 @@ foreach($steps as $k => $e) {
         await new Promise(resolve => setTimeout(resolve, delai));
         if (lastTry != thisTry) return;
 
-        const vNPandOptions = `(${Couleur.vNP})(?:\\,(?: +)?(true|false|\\{(?:.+)?\\}))?`;
+        // RegExp du séparateur entre arguments : virgule puis espace(s) optionnel(s)
+        const vSep = '\\,(?: +)?';
+        // RegExp des options d'une méthode
+        const vOpt = 'true|false|\\{(?:.+)?\\}';
+        // RegExp des arguments d'une méthode qui prend un nombre ou pourcentage et des options
+        const vNPandOptions = `(${Couleur.vNP})(?:${vSep}(${vOpt}))?`;
+        // RegExp des arguments d'une méthode qui prend un nom de propriété, une valeur (en pourcentage) et des options
+        const vPropNPandOptions = `(${Couleur.vProp})${vSep}(${Couleur.vNP})(?:${vSep}(${vOpt}))?`;
+
         const acceptedMethods = [
           {
             name: 'change',
-            args: /a/
+            args: new RegExp(vPropNPandOptions)
           }, {
             name: 'replace',
-            args: /a/
+            args: new RegExp(vPropNPandOptions)
           }, {
             name: 'scale',
-            args: /a/
+            args: new RegExp(vPropNPandOptions)
           }, {
             name: 'complement',
             args: null
@@ -322,6 +330,9 @@ foreach($steps as $k => $e) {
           }, {
             name: 'grayscale',
             args: null
+          }, {
+            name: 'blend',
+            args: new RegExp('(.+)')
           }
         ];
 
@@ -329,7 +340,7 @@ foreach($steps as $k => $e) {
         let value = couleur;
         let methods = [];
         const methodsRegex = acceptedMethods.map(method => method.name).join('|');
-        const regex = new RegExp(`(.+)\\.(${methodsRegex})\\(([^\(\)]+)?\\)$`);
+        const regex = new RegExp(`(.+)\\.(${methodsRegex})\\((.+)?\\)$`);
 
         while (true) {
           let nextMethod = null;
@@ -340,6 +351,19 @@ foreach($steps as $k => $e) {
           if (match !== null) {
             const method = acceptedMethods[acceptedMethods.findIndex(method => method.name == match[2])];
             const args = Array.from((match[3] || '').match(method.args) || []).slice(1);
+
+            // Si la méthode prend une couleur en argument, vérifier que l'argument en est bien une
+            if (['blend', 'contrast'].includes(method.name)) {
+              if (args.length == 1) {
+                try {
+                  const coulArg = new Couleur(args[0]);
+                }
+                catch(error) {
+                  break;
+                }
+              }
+            }
+
             nextMethod = {
               name: method.name,
               args: args
