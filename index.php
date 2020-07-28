@@ -415,10 +415,11 @@ foreach($steps as $k => $e) {
       function colorInterface(entree) {
         document.documentElement.style.setProperty('--user-color', entree.rgb);
         document.documentElement.style.setProperty('--user-hue', Math.round(entree.h * 360));
+        document.documentElement.style.setProperty('--user-saturation', Math.round(entree.s * 100) + '%');
 
         // Calcul des couleurs du body et des sections selon le contraste de la couleur d'entrée
-        let sectionColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 100%, 80%)');
-        let bodyColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 100%, 70%)');
+        let sectionColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 80%)`);
+        let bodyColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 70%)`);
         while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
           bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
           sectionColor = bodyColor.change('l', '80%', true);
@@ -429,7 +430,7 @@ foreach($steps as $k => $e) {
         document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
 
         // Calcul de la couleur des liens
-        let linkColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 100%, 30%)');
+        let linkColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 30%)`);
         while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
           linkColor = linkColor.change('bk', '+5%').change('w', '-5%');
           if (linkColor.w < 0.05 && linkColor.bk > 0.95) break;

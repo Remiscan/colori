@@ -85,6 +85,7 @@ html {
   --easing-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);
   --easing-accelerate: cubic-bezier(0.4, 0.0, 1, 1);
   --h-diff: -1;
+  --user-saturation: 100%;
 }
 
 html.loaded {
@@ -99,12 +100,12 @@ body { /* Desktop-like */
   margin: 0;
   padding: 0;
   background-color: var(--body-color);
-  --body-color: hsl(var(--user-hue), 100%, 70%);
-  --section-color: hsl(var(--user-hue), 100%, 80%);
-  --h1-color: hsl(var(--user-hue), 100%, 20%);
-  --h3-color: hsl(var(--user-hue), 100%, 30%);
-  --text-color: hsl(var(--user-hue), 50%, 20%);
-  --link-color: hsl(calc(var(--user-hue) + 180), 100%, 30%);
+  --body-color: hsl(var(--user-hue), var(--user-saturation), 70%);
+  --section-color: hsl(var(--user-hue), var(--user-saturation), 80%);
+  --h1-color: hsl(var(--user-hue), var(--user-saturation), 20%);
+  --h3-color: hsl(var(--user-hue), var(--user-saturation), 30%);
+  --text-color: hsl(var(--user-hue), calc(0.5 * var(--user-saturation)), 20%);
+  --link-color: hsl(calc(var(--user-hue) + 180), var(--user-saturation), 30%);
 }
 
 @media screen/*(max-width: 100rem)*/ { /* Narrow desktop-like */
@@ -537,16 +538,16 @@ input {
   font-family: 'Open Sans';
   color: var(--text-color);
   transition: box-shadow .2s ease, color .3s ease;
-  background-color: hsl(var(--user-hue), 100%, 92%);
+  background-color: hsl(var(--user-hue), var(--user-saturation), 92%);
   border-radius: .6rem;
 }
 
 input:active, input:focus {
-  background-color: hsl(var(--user-hue), 100%, 98%);
+  background-color: hsl(var(--user-hue), var(--user-saturation), 98%);
 }
 
 ::placeholder {
-  color: hsl(var(--user-hue), 50%, 20%, .7);
+  color: hsl(var(--user-hue), calc(0.5 * var(--user-saturation)), 20%, .7);
 }
 
 
