@@ -8,47 +8,20 @@ require_once $commonDir.'/php/getStrings.php';
 $version = version(__DIR__);
 $Textes = new Textes('colori');
 
-$h = mt_rand(20, 360);
-$s = mt_rand(10, 90);
-$l = mt_rand(10, 90);
-$startColor = new Couleur('hsl(' . $h . ', ' . $s . '%, ' . $l . '%)');
+$namedColors = array_keys(Couleur::COULEURS_NOMMEES);
+$r = mt_rand(0, count($namedColors) - 1);
+$startColor = new Couleur($namedColors[$r]);
 
 // Adapte l'interface
-$sectionColor = new Couleur('hsl(' . round($startColor->h * 360) . ', 100%, 80%)');
-$bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', 100%, 70%)');
+$sectionColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 80%)');
+$bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 70%)');
 while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
   $bodyColor = $bodyColor->change('bk', '+5%')->change('w', '-5%');
   $sectionColor = $bodyColor->change('l', '80%', true);
 }
-
-$linkColor = new Couleur('hsl(' . round($startColor->h * 360) . ', 100%, 30%)');
-while(Couleur::contrast($linkColor, $sectionColor) < 4.5) {
-  $linkColor = $linkColor->change('bk', '+5%')->change('w', '-5%');
-  if ($linkColor->w < 0.05 && $linkColor->bk > 0.95) break;
-}
-
-$frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
-$frameColor = Couleur::blend($sectionColor, $frameOverlay);
-while(Couleur::contrast($frameColor, $startColor) < 1.2) {
-  $frameColor = $frameColor->change('bk', '-5%')->change('w', '+5%');
-  if ($frameColor->w > 0.95 && $frameColor->bk < 0.05) break;
-}
-
-$steps = ['-90', '+45', '-45', '+135'];
-$tokenTypes = ['number', 'string', 'operator', 'keyword'];
-$tokenColors = [];
-foreach($steps as $k => $e) {
-  $tokenColor = new Couleur('hsl(' . round($startColor->h * 360) . ', 70%, 60%)');
-  $tokenColor = $tokenColor->change('h', $steps[$k]);
-  while(Couleur::contrast($tokenColor, $frameColor) < 5) {
-    $tokenColor = $tokenColor->change('bk', '-5%')->change('w', '+5%');
-    if ($tokenColor->w > 0.95 && $tokenColor->bk < 0.05) break;
-  }
-  $tokenColors[$tokenTypes[$k]] = $tokenColor;
-}
 ?>
 <!doctype html>
-<html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>" style="--user-hue: <?=round($startColor->h*360)?>; --user-color: <?=$startColor->rgb()?>;">
+<html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>" style="--user-hue: <?=round($startColor->h*360)?>; --user-color: <?=$startColor->name?>;">
   <head>
     <meta charset="utf-8">
     <title>Colori</title>
@@ -104,11 +77,6 @@ foreach($steps as $k => $e) {
 
   <body style="--body-color: <?=$bodyColor->hsl()?>;
                --section-color: <?=$sectionColor->hsl()?>;
-               --link-color: <?=$linkColor->hsl()?>;
-               --token-number: <?=$tokenColors['number']->hsl()?>;
-               --token-string: <?=$tokenColors['string']->hsl()?>;
-               --token-operator: <?=$tokenColors['operator']->hsl()?>;
-               --token-keyword: <?=$tokenColors['keyword']->hsl()?>;
               ">
 
     <svg version="1.1" style="display: none">
@@ -152,7 +120,7 @@ foreach($steps as $k => $e) {
       <h1 data-string="titre-section-demo"><?=$Textes->getString('titre-section-demo')?></h1>
 
       <div class="demo-inside">
-        <div class="demo-conteneur calced" style="--frame-color: <?=$frameColor->hsl()?>;">
+        <div class="demo-conteneur calced">
           <div id="saisie">
             <label for="entree">Saisissez une couleur</label>
             <input id="entree" class="h4" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
@@ -259,8 +227,8 @@ foreach($steps as $k => $e) {
 
       async function initCouleur() {
         try {
-          test = new Couleur('<?=$startColor->hsl()?>');
-          await interpreterCouleur(test.hex, 0, false);
+          test = new Couleur('<?=$startColor->name?>');
+          await interpreterCouleur(test.name, 50);
         }
         catch(error) {
           console.error('Erreur (couleur aléatoire)', error);

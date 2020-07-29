@@ -1,7 +1,7 @@
 <?php
 class Couleur
 {
-  private const COULEURS_NOMMEES = array(
+  public const COULEURS_NOMMEES = array(
     'transparent' => '00000000',
     'aliceblue' => 'f0f8ff',
     'antiquewhite' => 'faebd7',
