@@ -12,7 +12,7 @@ $namedColors = array_keys(Couleur::COULEURS_NOMMEES);
 $r = mt_rand(0, count($namedColors) - 1);
 $startColor = new Couleur($namedColors[$r]);
 
-// Adapte l'interface
+// Adapte l'interface (en attendant que JavaScript s'en charge)
 $sectionColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 80%)');
 $bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 70%)');
 while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
