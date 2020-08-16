@@ -4,17 +4,25 @@
   "display": "browser",
   "start_url": "/colori/",
   "icons": [{
+    "src": "/colori/icons/icon-192-maskable.png",
+    "sizes": "192x192",
+    "type": "image/png",
+    "purpose": "maskable"
+  }, {
     "src": "/colori/icons/icon-192.png",
     "sizes": "192x192",
     "type": "image/png"
-  },
-  {
+  }, {
+    "src": "/colori/icons/icon-512-maskable.png",
+    "sizes": "512x512",
+    "type": "image/png",
+    "purpose": "maskable"
+  }, {
     "src": "/colori/icons/icon-512.png",
     "sizes": "512x512",
     "type": "image/png"
-  },
-  {
-    "src": "/colori/icons/icon.svg",
+  }, {
+    "src": "/colori/icons/icon-maskable.svg",
     "type": "image/svg",
     "purpose": "maskable"
   }],
