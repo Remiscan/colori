@@ -5,6 +5,22 @@ export default class Couleur {
     else if (typeof couleur != 'string')
       throw 'Couleur objects can only be created from a String';
 
+    this.r = null;
+    this.g = null;
+    this.b = null;
+    this.h = null;
+    this.s = null;
+    this.l = null;
+    this.w = null;
+    this.bk = null;
+    this.a = null;
+    this.ciel = null;
+    this.ciea = null;
+    this.cieb = null;
+    this.ciec = null;
+    this.cieh = null;
+    this.name = null;
+
     const format = Couleur.matchSyntax(couleur.trim());
 
     if (['HEX', 'HEXA'].includes(format.id))
@@ -29,8 +45,8 @@ export default class Couleur {
       this.a = parseInt(a, 16) / 255;
       this.rgb2hsl();
       this.hsl2hwb();
-      this.rgb2lch();
-      this.lch2lab();
+      this.rgb2lab();
+      this.lab2lch();
     }
     else if (['RGB', 'RGBA'].includes(format.id))
     {
@@ -48,8 +64,8 @@ export default class Couleur {
       this.a = a;
       this.rgb2hsl();
       this.hsl2hwb();
-      this.rgb2lch();
-      this.lch2lab();
+      this.rgb2lab();
+      this.lab2lch();
     }
     else if (['HSL', 'HSLA'].includes(format.id))
     {
@@ -67,8 +83,8 @@ export default class Couleur {
       this.a = a;
       this.hsl2rgb();
       this.hsl2hwb();
-      this.rgb2lch();
-      this.lch2lab();
+      this.rgb2lab();
+      this.lab2lch();
     }
     else if (['HWB', 'HWBA'].includes(format.id))
     {
@@ -86,8 +102,46 @@ export default class Couleur {
       this.a = a;
       this.hwb2hsl();
       this.hsl2rgb();
-      this.rgb2lch();
+      this.rgb2lab();
+      this.lab2lch();
+    }
+    else if (['LAB'].includes(format.id))
+    {
+      let ciel, ciea, cieb, a;
+      ciel = Couleur.parse(format.data[1], 'cie');
+      ciea = format.data[2];
+      cieb = format.data[3];
+      if (typeof format.data[4] !== 'undefined')
+        a = Couleur.parse(format.data[4], 'alpha');
+      else
+        a = 1;
+      this.ciel = ciel;
+      this.ciea = ciea;
+      this.cieb = cieb;
+      this.a = a;
+      this.lab2lch();
+      this.lab2rgb();
+      this.rgb2hsl();
+      this.hsl2hwb();
+    }
+    else if (['LCH'].includes(format.id))
+    {
+      let ciel, ciec, cieh, a;
+      ciel = Couleur.parse(format.data[1], 'cie');
+      ciec = Couleur.parse(format.data[2], 'cie');
+      cieh = Couleur.parse(format.data[3], 'angle');
+      if (typeof format.data[4] !== 'undefined')
+        a = Couleur.parse(format.data[4], 'alpha');
+      else
+        a = 1;
+      this.ciel = ciel;
+      this.ciec = ciec;
+      this.cieh = cieh;
+      this.a = a;
       this.lch2lab();
+      this.lab2rgb();
+      this.rgb2hsl();
+      this.hsl2hwb();
     }
 
     if (this.a == 1)
@@ -176,12 +230,12 @@ export default class Couleur {
       _n = _n / 100;
       if (_n < 0)
         _n = 0;
-      else if (_n > 1)
+      else if (_n > 1 && type != 'cie')
         _n = 1;
       logged = '%';
     }
     // Si n est un nombre (entre 0 et 255)
-    else if (new RegExp('^' + Couleur.vNum + '$').test(n) && type != 'angle' && type != 'alpha')
+    else if (new RegExp('^' + Couleur.vNum + '$').test(n) && type != 'angle' && type != 'alpha' && type != 'cie')
     {
       _n = _n / 255;
       if (_n < 0)
@@ -198,6 +252,13 @@ export default class Couleur {
       else if (_n > 1)
         _n = 1;
       logged = 'alpha';
+    }
+    // Si n est un nombre (entre 0 et +Infinity)
+    else if (new RegExp('^' + Couleur.vNum + '$').test(n) && type == 'cie')
+    {
+      if (_n < 0)
+        _n = 0;
+      logged = 'cieC';
     }
     // Si n est un angle (donc un nombre ou un nombre avec unité d'angle)
     else if (new RegExp('^' + Couleur.vAng + '$').test(n) && type == 'angle')
@@ -345,7 +406,7 @@ export default class Couleur {
   }
 
   get lab() {
-    const ciel = Math.round(this.l * 100);
+    const ciel = Math.round(this.ciel * 100);
     const ciea = Math.round(this.ciea);
     const cieb = Math.round(this.cieb);
     if (this.a < 1)
@@ -355,7 +416,7 @@ export default class Couleur {
   }
 
   get lch() {
-    const ciel = Math.round(this.l * 100);
+    const ciel = Math.round(this.ciel * 100);
     const ciec = Math.round(this.ciec);
     const cieh = Math.round(this.cieh * 360);
     if (this.a < 1)
@@ -475,88 +536,80 @@ export default class Couleur {
     this.l = l;
   }
 
-  rgb2lch() {
-    // Source des maths : https://en.wikipedia.org/wiki/HCL_color_space
-    const atan2 = (y, x) => {
-      if (x > 0)           return Math.atan(y / x);
-      if (x < 0 && y >= 0) return Math.atan(y / x) + Math.PI;
-      if (x < 0 && y < 0)  return Math.atan(y / x) - Math.PI;
-      if (x == 0 && y > 0) return Math.PI / 2;
-      if (x == 0 && y < 0) return -1 * Math.PI / 2;
-      else                 return undefined;
-    }
+  rgb2lab() {
+    // Source des maths : https://www.w3.org/TR/css-color-4/#rgb-to-lab
+    const linRGB = x => (x < 0.04045) ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+    const r = linRGB(this.r);
+    const g = linRGB(this.g);
+    const b = linRGB(this.b);
 
-    let max = Math.max(this.r, this.g, this.b);
-    let min = Math.min(this.r, this.g, this.b);
-    let Q = Math.exp(.03 * min / max);
-    let ciel = ((Q * max) + (1 - Q) * min) / 2;
+    let x = 0.4124564 * r + 0.3575761 * g + 0.1804375 * b;
+    let y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b;
+    let z = 0.0193339 * r + 0.1191920 * g + 0.9503041 * b;
 
-    let r = this.r * 255;
-    let g = this.g * 255;
-    let b = this.b * 255;
+    let x50 = 1.0478112 * x + 0.0228866 * y - 0.0501270 * z;
+    let y50 = 0.0295424 * x + 0.9904844 * y - 0.0170491 * z;
+    let z50 = -0.0092345 * x + 0.0150436 * y + 0.7521316 * z;
 
-    let ciec = (Q * (Math.abs(r - g) + Math.abs(g - b) + Math.abs(b - r)) / 3);
+    const ε = 216/24389;
+    const κ = 24389/27;
+    const w = [0.96422, 1, 0.82521];
 
-    let cieh = Math.atan2(g - b, r - g);
+    x = x50 / w[0];
+    y = y50 / w[1];
+    z = z50 / w[2];
 
-    this.ciel = ciel;
-    this.ciec = ciec;
-    this.cieh = cieh / 360;
+    const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
+
+    this.ciel = (116 * f(y) - 16) / 100;
+    this.ciea = 500 * (f(x) - f(y));
+    this.cieb = 200 * (f(y) - f(z));
   }
 
-  lch2rgb() {
-    // Source des maths : https://en.wikipedia.org/wiki/HCL_color_space#cite_note-Pudding2005-4
-    let Q = Math.exp(.03 * (1 - (3 * this.ciec) / (4 * this.ciel)));
-    let min = (4 * this.ciel - 3 * this.ciec) / (4 * Q - 2);
-    let max = min + 3 * this.ciec / 2 * Q;
-    let cieh = this.cieh * 360;
+  lab2rgb() {
+    // Source des maths : https://www.w3.org/TR/css-color-4/#lab-to-rgb
+    const ε = 216/24389;
+    const κ = 24389/27;
+    const w = [0.96422, 1, 0.82521];
 
-    let r, g, b;
+    const l = this.ciel * 100;
 
-    if (cieh >= 0 && cieh <= 60) {
-      r = max;
-      b = min;
-      g = (r * (Math.tan(3 * cieh / 2)) + b) / (1 + Math.tan(3 * cieh / 2));
-    }
-    else if (cieh > 60 && cieh <= 120) {
-      g = max;
-      b = min;
-      r = (g * (1 + Math.tan((3 / 4) * (cieh - 180))) - b) / Math.tan((3 / 4) * (cieh - 180));
-    }
-    else if (cieh > 120 && cieh <= 180) {
-      g = max;
-      r = min;
-      b = g * (1 + Math.tan((3 / 4) * (cieh - 180))) - r * Math.tan((3 / 4) * (cieh - 180));
-    }
-    else if (cieh >= -60 && cieh < 0) {
-      r = max;
-      g = min;
-      b = g * (1 + Math.tan(3 * cieh / 4)) - r * Math.tan(3 * cieh / 4);
-    }
-    else if (cieh >= -120 && cieh < -60) {
-      b = max;
-      g = min;
-      r = (g * (1 + Math.tan(3 * cieh / 4)) - b) / Math.tan(3 * cieh / 4);
-    }
-    else if (cieh > -180 && cieh < 120) {
-      b = max;
-      r = min;
-      g = (r * (Math.tan((3 / 2) * (cieh + 180))) + b) / (1 + Math.tan((3 / 2) * (cieh + 180)));
-    }
+    let f1 = (l + 16) / 116;
+    let f0 = this.ciea / 500 + f1;
+    let f2 = f1 - this.cieb / 200;
 
-    this.r = r;
-    this.g = g;
-    this.b = b;
-  }
+    let x50 = (f0 ** 3 > ε) ? f0 ** 3 : (116 * f0 - 16) / κ;
+    let y50 = (l > κ * ε) ? ((l + 16) / 116) ** 3 : l / κ;
+    let z50 = (f2 ** 3 > ε) ? f2 ** 3 : (116 * f2 - 16) / κ;
 
-  lch2lab() {
-    this.ciea = this.ciec * Math.cos(this.cieh * 360);
-    this.cieb = this.ciec * Math.sin(this.cieh * 360);
+    x50 = x50 * w[0];
+    y50 = y50 * w[1];
+    z50 = z50 * w[2];
+
+    let x = 0.9555766 * x50 - 0.0230393 * y50 + 0.0631636 * z50;
+    let y = -0.0282895 * x50 + 1.0099416 * y50 + 0.0210077 * z50;
+    let z = 0.0122982 * x50 - 0.0204830 * y50 + 1.3299098 * z50;
+
+    let r = 3.2404542 * x - 1.5371385 * y - 0.4985341 * z;
+    let g = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z;
+    let b = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z;
+
+    const gamRGB = x => (x > 0.0031308) ? 1.055 * Math.pow(x, 1 / 2.4) - 0.055 : 12.92 * x;
+
+    this.r = gamRGB(r);
+    this.g = gamRGB(g);
+    this.b = gamRGB(b);
   }
 
   lab2lch() {
     this.ciec = Math.sqrt(this.ciea ** 2 + this.cieb ** 2);
-    this.cieh = Math.atan2(this.cieb, this.ciea);
+    this.cieh = Couleur.parse(Math.atan2(this.cieb, this.ciea) * 180 / Math.PI, 'angle');
+  }
+
+  lch2lab() {
+    let cieh = this.cieh * 360;
+    this.ciea = this.ciec * Math.cos(cieh * Math.PI / 180);
+    this.cieb = this.ciec * Math.sin(cieh * Math.PI / 180);
   }
 
   // Fusionne une couleur transparente et une couleur opaque
