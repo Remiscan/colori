@@ -152,6 +152,14 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
             <pre class="format-donnee"><code class="language-css"></code></pre>
           </div>
 
+          <div class="format lab">
+            <pre class="format-donnee"><code class="language-css"></code></pre>
+          </div>
+
+          <div class="format lch">
+            <pre class="format-donnee"><code class="language-css"></code></pre>
+          </div>
+
           <div class="format name">
             <pre class="format-donnee"><code class="language-css"></code></pre>
           </div>
@@ -370,10 +378,15 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
           entree = coul;
 
           // On colore l'interface selon la couleur obtenue
-          if (adaptPage) colorInterface(entree);
+          try {
+            if (adaptPage) colorInterface(entree);
 
-          // Peuplage des données de la couleur dans la démo
-          populateColorData(entree);
+            // Peuplage des données de la couleur dans la démo
+            populateColorData(entree);
+          }
+          catch(error) {
+            console.error(error);
+          }
         }
         catch(error) {
           // La valeur de l'input est invalide, ne rien faire.
@@ -450,6 +463,14 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
 
         code = document.querySelector('.hwb>.format-donnee>code');
         code.innerHTML = entree.hwb;
+        Prism.highlightElement(code);
+
+        code = document.querySelector('.lab>.format-donnee>code');
+        code.innerHTML = entree.lab;
+        Prism.highlightElement(code);
+
+        code = document.querySelector('.lch>.format-donnee>code');
+        code.innerHTML = entree.lch;
         Prism.highlightElement(code);
 
         if (entree.name == null)
