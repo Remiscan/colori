@@ -781,6 +781,48 @@ export default class Couleur {
         throw error;
       return new Couleur(nouvelleCouleur.hsl);
     }
+    else if (['ciel'].includes(propriete))
+    {
+      let [_valeur, log] = Couleur.parse(valeur, 'cie', true);
+      if (log == '%')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / 100) * 100 + '%', 'cie');
+      else
+        throw error;
+      return new Couleur(nouvelleCouleur.lab);
+    }
+    else if (['ciea', 'cieb'].includes(propriete))
+    {
+      let [_valeur, log] = Couleur.parse(valeur, 'arbitrary', true);
+      if (log == 'arbitraryN')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur)), 'arbitrary');
+      else
+        throw error;
+      return new Couleur(nouvelleCouleur.lab);
+    }
+    else if (['ciec'].includes(propriete))
+    {
+      let [_valeur, log] = Couleur.parse(valeur, 'cie', true);
+      if (log == 'cieC')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur)), 'cie');
+      else
+        throw error;
+      return new Couleur(nouvelleCouleur.lch);
+    }
+    else if (['cieh'].includes(propriete))
+    {
+      let [_valeur, log] = Couleur.parse(valeur, 'angle', true);
+      if (log == 'deg')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / 360) * 360 + 'deg', 'angle');
+      else if (log == 'grad')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / 400) * 400 + 'grad', 'angle');
+      else if (log == 'rad')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + parseFloat(valeur) / (360 * (Math.PI / 180))) * 360 * (Math.PI / 180) + 'rad', 'angle');
+      else if (log == 'turn')
+        nouvelleCouleur[propriete] = Couleur.parse(((remplace ? 0 : nouvelleCouleur[propriete]) + _valeur) + 'turn', 'angle');
+      else
+        throw error;
+      return new Couleur(nouvelleCouleur.lch);
+    }
     else
       return new Couleur(nouvelleCouleur.rgb);
   }

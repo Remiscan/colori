@@ -104,6 +104,7 @@ $testChangeHue = new Couleur('hsl(350, 25%, 52%)');
       const couleurh = new Colour('hsla(128, 52%, 47%, 0.4)');
       const testContraste = new Colour('hsl(200, 10%, 10%)');
       const testChangeHue = new Colour('hsl(350, 25%, 52%)');
+      const testLab = new Colour('lab(92% -45 9)');
 
       const tests = [
         `JSON.stringify(new Colour('fuchsia'), null, 2)`,
@@ -154,6 +155,15 @@ $testChangeHue = new Couleur('hsl(350, 25%, 52%)');
         `JSON.stringify(couleur.scale('h', '20%').hsl, null, 2)`,
         `JSON.stringify(couleur.scale('bk', '20%').hwb, null, 2)`,
         `JSON.stringify(couleur.scale('a', '20%').hsla, null, 2)`,
+        `JSON.stringify(new Colour('lab(92% -45 9)'), null, 2)`,
+        `JSON.stringify(new Colour('lch(92% 46 168)'), null, 2)`,
+        `JSON.stringify(testLab.lab, null, 2)`,
+        `JSON.stringify(testLab.change('ciel', '-10%').lab, null, 2)`,
+        `JSON.stringify(testLab.change('ciea', '20').lab, null, 2)`,
+        `JSON.stringify(testLab.change('cieb', '20').lab, null, 2)`,
+        `JSON.stringify(testLab.lch, null, 2)`,
+        `JSON.stringify(testLab.change('ciec', '20').lch, null, 2)`,
+        `JSON.stringify(testLab.change('cieh', '20deg').lch, null, 2)`,
       ];
       const section = document.getElementById('js');
 
