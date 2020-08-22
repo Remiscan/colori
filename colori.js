@@ -409,6 +409,7 @@ export default class Couleur {
     const ciel = Math.round(this.ciel * 100);
     const ciea = Math.round(this.ciea);
     const cieb = Math.round(this.cieb);
+    const a = Math.round(this.a * 100) / 100;
     if (this.a < 1)
       return `lab(${ciel}% ${ciea} ${cieb} / ${a})`;
     else
@@ -419,6 +420,7 @@ export default class Couleur {
     const ciel = Math.round(this.ciel * 100);
     const ciec = Math.round(this.ciec);
     const cieh = Math.round(this.cieh * 360);
+    const a = Math.round(this.a * 100) / 100;
     if (this.a < 1)
       return `lch(${ciel}% ${ciec} ${cieh} / ${a})`;
     else
