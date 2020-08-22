@@ -122,8 +122,21 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       <div class="demo-inside">
         <div class="demo-conteneur calced">
           <div id="saisie">
-            <label for="entree">Saisissez une couleur</label>
+            <label for="entree" class="h2 titre-partie-demo" data-string="demo-input-label"><?=$Textes->getString('demo-input-label')?></label>
+            <div class="exemples-saisie exemples-valeurs">
+              <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
+              <button class="exemple">red</button>
+              <button class="exemple">#0000FF</button>
+              <button class="exemple">rgb(0, 128, 0)</button>
+            </div>
             <input id="entree" class="h4" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <p class="instructions-exemples-fonctions" data-string="instructions-demo"><?=$Textes->getString('instructions-demo')?></p>
+            <div class="exemples-saisie exemples-fonctions">
+            <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
+              <button class="exemple">red.invert()</button>
+              <button class="exemple">#0000FF.darken(20%)</button>
+              <button class="exemple">rgb(0, 128, 0).desaturate(50%).lighten(20%)</button>
+            </div>
           </div>
 
           <div id="apercu"></div>
@@ -217,7 +230,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       function textualiser() {
         return traduire('colori')
         .then(() => {
-          document.getElementById('entree').setAttribute('placeholder', getString('demo-input-placeholder'));
+          //document.getElementById('entree').setAttribute('placeholder', getString('demo-input-placeholder'));
           Prism.highlightAll();
         });
       }
@@ -484,6 +497,8 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
           document.querySelector('.name>.format-donnee>code').innerHTML = entree.name;
         }
 
+        champ.placeholder = entree.name || entree.hex;
+
         document.querySelector('.demo-conteneur').classList.add('calced');
       }
 
@@ -512,6 +527,14 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
 
           Array.from(document.querySelectorAll('#documentation-php code.language-javascript')).forEach(e => {
             if (e.innerHTML == 'Colore') e.outerHTML = '<code class="language-php">Couleur</code>';
+          });
+
+          Array.from(document.querySelectorAll('.exemple')).forEach(async e => {
+            e.addEventListener('click', () => {
+              champ.value = e.textContent;
+              champ.dispatchEvent(new Event('input'), { bubbles: true });
+              e.addEventListener('mouseleave', () => e.blur());
+            });
           });
 
           if (isPhp == 'true')
