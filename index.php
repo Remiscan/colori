@@ -129,7 +129,8 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
               <button class="exemple">#0000FF</button>
               <button class="exemple">rgb(0, 128, 0)</button>
             </div>
-            <input id="entree" class="h4" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
+                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
             <p class="instructions-exemples-fonctions" data-string="instructions-demo"><?=$Textes->getString('instructions-demo')?></p>
             <div class="exemples-saisie exemples-fonctions">
             <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
@@ -231,6 +232,11 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
         return traduire('colori')
         .then(() => {
           //document.getElementById('entree').setAttribute('placeholder', getString('demo-input-placeholder'));
+          champ.dataset.abbr = getString('exemple-abbr');
+          champ.placeholder = champ.placeholder.replace(
+            new RegExp(`${getString('exemple-abbr', 'fr')}|${getString('exemple-abbr', 'en')}`),
+            getString('exemple-abbr')
+          );
           Prism.highlightAll();
         });
       }
@@ -497,7 +503,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
           document.querySelector('.name>.format-donnee>code').innerHTML = entree.name;
         }
 
-        champ.placeholder = entree.name || entree.hex;
+        champ.placeholder = `${champ.dataset.abbr} ${entree.name || entree.hex}`;
 
         document.querySelector('.demo-conteneur').classList.add('calced');
       }
