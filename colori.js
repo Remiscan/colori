@@ -213,7 +213,8 @@ export default class Couleur {
     let logged;
     let error;
 
-    if (type == 'arbitrary') {
+    if (type == 'arbitrary')
+    {
       // Si n est un pourcentage (n'importe lequel)
       if (new RegExp('^' + Couleur.vPer + '$').test(n)) {
         _n = _n / 100;
@@ -874,6 +875,12 @@ export default class Couleur {
       return new Couleur(nouvelleCouleur.hwb);
     else if (['a'].includes(propriete))
       return new Couleur(nouvelleCouleur.hsl);
+    else if (['ciel'].includes(propriete))
+      return new Couleur(nouvelleCouleur.lab);
+    else if (['ciea', 'cieb'].includes(propriete))
+      return new Couleur(nouvelleCouleur.lab);
+    else if (['ciec', 'cieh'].includes(propriete))
+      return new Couleur(nouvelleCouleur.lab);
     else
       return new Couleur(nouvelleCouleur.rgb);
   }
@@ -937,7 +944,7 @@ export default class Couleur {
   }
 
   static get properties() {
-    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk'];
+    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
   }
 
   static get formats() {
@@ -1041,7 +1048,7 @@ export default class Couleur {
       }, {
         id: 'LAB',
         prefix: 'lab(',
-        separator: ', ',
+        separator: ' ',
         suffix: ')',
         syntaxes: [
           // lab(300% 25 40)
@@ -1052,7 +1059,7 @@ export default class Couleur {
       }, {
         id: 'LCH',
         prefix: 'lch(',
-        separator: ', ',
+        separator: ' ',
         suffix: ')',
         syntaxes: [
           // lch(300% 25 <angle>)
