@@ -125,18 +125,18 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
             <label for="entree" class="h2 titre-partie-demo" data-string="demo-input-label"><?=$Textes->getString('demo-input-label')?></label>
             <div class="exemples-saisie exemples-valeurs">
               <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
-              <button class="exemple">red</button>
-              <button class="exemple">#0000FF</button>
-              <button class="exemple">rgb(0, 128, 0)</button>
+              <button class="exemple">pink</button>
+              <button class="exemple">#ABCDFF</button>
+              <button class="exemple">rgb(255, 127, 80)</button>
             </div>
             <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
             <p class="instructions-exemples-fonctions" data-string="instructions-demo"><?=$Textes->getString('instructions-demo')?></p>
             <div class="exemples-saisie exemples-fonctions">
             <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
-              <button class="exemple">red.invert()</button>
-              <button class="exemple">#0000FF.darken(20%)</button>
-              <button class="exemple">rgb(0, 128, 0).desaturate(50%).lighten(20%)</button>
+              <button class="exemple">pink.invert()</button>
+              <button class="exemple">#ABCDFF.darken(50%)</button>
+              <button class="exemple">rgb(255, 127, 80).desaturate(50%).lighten(20%)</button>
             </div>
           </div>
 
