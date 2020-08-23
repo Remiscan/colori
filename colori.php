@@ -308,10 +308,10 @@ class Couleur
   
   function __construct($couleur)
   {
-    if ($couleur instanceof Couleur)
-      throw new Exception('Already an instance of Couleur');
+    if ($couleur instanceof self)
+      throw new Exception('Already an instance of ' . __CLASS__);
     else if (!is_string($couleur))
-      throw 'Couleur objects can only be created from a String';
+      throw __CLASS__ . ' objects can only be created from a String';
 
     $format = self::matchSyntax(trim($couleur));
 
@@ -395,7 +395,7 @@ class Couleur
     }
     elseif (in_array($format['id'], array('LAB')))
     {
-      $ciel = Couleur::parse($format['data'][1], 'cie');
+      $ciel = self::parse($format['data'][1], 'cie');
       $ciea = $format['data'][2];
       $cieb = $format['data'][3];
       if (array_key_exists(4, $format['data']))
@@ -413,9 +413,9 @@ class Couleur
     }
     elseif (in_array($format['id'], array('LCH')))
     {
-      $ciel = Couleur::parse($format['data'][1], 'cie');
-      $ciec = Couleur::parse($format['data'][2], 'cie');
-      $cieh = Couleur::parse($format['data'][3], 'angle');
+      $ciel = self::parse($format['data'][1], 'cie');
+      $ciec = self::parse($format['data'][2], 'cie');
+      $cieh = self::parse($format['data'][3], 'angle');
       if (array_key_exists(4, $format['data']))
         $a = self::parse($format['data'][4], 'alpha');
       else
@@ -922,10 +922,10 @@ class Couleur
   }
 
   // Fusionne la couleur et une couleur de fond "background"
-  public static function blend(Couleur $couleur1, Couleur $couleur2)
+  public static function blend(self $couleur1, self $couleur2)
   {
     if ($couleur1->a < 1 && $couleur2->a < 1)
-      throw new Exception('At least one of the arguments needs to be an opaque Couleur');
+      throw new Exception('At least one of the arguments needs to be an opaque ' . __CLASS__);
     else if ($couleur1->a < 1 && $couleur2->a == 1)
     {
       $background = $couleur2;
@@ -939,7 +939,7 @@ class Couleur
     $r = round(255 * ($overlay->a * $overlay->r + (1 - $overlay->a) * $background->r));
     $g = round(255 * ($overlay->a * $overlay->g + (1 - $overlay->a) * $background->g));
     $b = round(255 * ($overlay->a * $overlay->b + (1 - $overlay->a) * $background->b));
-    return new Couleur('rgb('.$r.', '.$g.', '.$b.')');
+    return new self('rgb('.$r.', '.$g.', '.$b.')');
   }
 
   // Raccourci pour blend impossible
@@ -947,7 +947,7 @@ class Couleur
   // Calcule la luminance d'une couleur
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   public function luminance() {
-    $couleur = new Couleur($this->rgb());
+    $couleur = new self($this->rgb());
     if ($this->a < 1)
       throw new Exception('Can\'t calculate luminance of transparent color');
 
@@ -967,8 +967,8 @@ class Couleur
   // Calcule le contraste entre deux couleurs
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
   public static function contrast($couleur1, $couleur2) {
-    if (!($couleur1 instanceof Couleur) || !($couleur2 instanceof Couleur))
-      throw new Exception('Arguments should be two instances of the Couleur class');
+    if (!($couleur1 instanceof self) || !($couleur2 instanceof self))
+      throw new Exception('Arguments should be two instances of the ' . __CLASS__ . ' class');
     $L1 = $couleur1->luminance();
     $L2 = $couleur2->luminance();
     $Lmax = max($L1, $L2);
@@ -996,7 +996,7 @@ class Couleur
 
   // Change une propriété d'une couleur
   public function change($propriete, $valeur, $remplace = false) {
-    $nouvelleCouleur = new Couleur($this->rgb());
+    $nouvelleCouleur = new self($this->rgb());
     $error = 'Incorrect value format for ' . $propriete;
 
     if (in_array($propriete, ['r', 'g', 'b']))
@@ -1008,7 +1008,7 @@ class Couleur
         $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur) / 255) * 255);
       else
         throw new Exception($error);
-      return new Couleur($nouvelleCouleur->rgb());
+      return new self($nouvelleCouleur->rgb());
     }
     elseif (in_array($propriete, ['h']))
     {
@@ -1023,7 +1023,7 @@ class Couleur
         $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur)) . 'turn', 'angle');
       else
         throw new Exception($error . ' - ' . $log);
-      return new Couleur($nouvelleCouleur->hsl());
+      return new self($nouvelleCouleur->hsl());
     }
     elseif (in_array($propriete, ['s', 'l']))
     {
@@ -1034,7 +1034,7 @@ class Couleur
       }
       else
         throw new Exception($error);
-      return new Couleur($nouvelleCouleur->hsl());
+      return new self($nouvelleCouleur->hsl());
     }
     elseif (in_array($propriete, ['w', 'bk']))
     {
@@ -1045,7 +1045,7 @@ class Couleur
       }
       else
         throw new Exception($error);
-      return new Couleur($nouvelleCouleur->hwb());
+      return new self($nouvelleCouleur->hwb());
     }
     elseif (in_array($propriete, ['a']))
     {
@@ -1056,7 +1056,7 @@ class Couleur
         $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur) / 100) * 100 . '%', 'alpha');
       else
         throw new Exception($error);
-      return new Couleur($nouvelleCouleur->hsl());
+      return new self($nouvelleCouleur->hsl());
     }
     elseif (in_array($propriete, ['ciel']))
     {
@@ -1065,7 +1065,7 @@ class Couleur
         $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur) / 100) * 100 . '%', 'cie');
       else
         throw new Exception($error);
-      return new Couleur($nouvelleCouleur->lab());
+      return new self($nouvelleCouleur->lab());
     }
     elseif (in_array($propriete, ['ciea', 'cieb']))
     {
@@ -1074,7 +1074,7 @@ class Couleur
         $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur)), 'arbitrary');
       else
         throw new Exception($error);
-      return new Couleur($nouvelleCouleur->lab());
+      return new self($nouvelleCouleur->lab());
     }
     elseif (in_array($propriete, ['ciec']))
     {
@@ -1083,7 +1083,7 @@ class Couleur
         $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur)), 'cie');
       else
         throw new Exception($error);
-      return new Couleur($nouvelleCouleur->lch());
+      return new self($nouvelleCouleur->lch());
     }
     elseif (in_array($propriete, ['cieh']))
     {
@@ -1098,10 +1098,10 @@ class Couleur
         $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleu->$propriete) + $_valeur) . 'turn', 'angle');
       else
         throw new Exception($error);
-      return new Couleur($nouvelleCouleur->lch());
+      return new self($nouvelleCouleur->lch());
     }
     else
-      return new Couleur($nouvelleCouleur->rgb());
+      return new self($nouvelleCouleur->rgb());
   }
 
   // Remplace une propriété d'une couleur
@@ -1120,27 +1120,27 @@ class Couleur
     if (!in_array($log, ['%', 'alpha']))
       throw new Exception('Second parameter should be a percentage or a number between 0 and 1');
 
-    $nouvelleCouleur = new Couleur($this->rgb());
+    $nouvelleCouleur = new self($this->rgb());
     $nouvelleCouleur->{$propriete} = $_valeur * $nouvelleCouleur->{$propriete};
 
     if (in_array($propriete, ['r', 'g', 'b']))
-      return new Couleur($nouvelleCouleur->rgb());
+      return new self($nouvelleCouleur->rgb());
     elseif (in_array($propriete, ['h']))
-      return new Couleur($nouvelleCouleur->hsl());
+      return new self($nouvelleCouleur->hsl());
     elseif (in_array($propriete, ['s', 'l']))
-      return new Couleur($nouvelleCouleur->hsl());
+      return new self($nouvelleCouleur->hsl());
     elseif (in_array($propriete, ['w', 'bk']))
-      return new Couleur($nouvelleCouleur->hwb());
+      return new self($nouvelleCouleur->hwb());
     elseif (in_array($propriete, ['a']))
-      return new Couleur($nouvelleCouleur->hsl());
+      return new self($nouvelleCouleur->hsl());
     elseif (in_array($propriete, ['ciel']))
-      return new Couleur($nouvelleCouleur->lab());
+      return new self($nouvelleCouleur->lab());
     elseif (in_array($propriete, ['ciea', 'cieb']))
-      return new Couleur($nouvelleCouleur->lab());
+      return new self($nouvelleCouleur->lab());
     elseif (in_array($propriete, ['ciec', 'cieh']))
-      return new Couleur($nouvelleCouleur->lab());
+      return new self($nouvelleCouleur->lab());
     else
-      return new Couleur($nouvelleCouleur->rgb());
+      return new self($nouvelleCouleur->rgb());
   }
 
   // change() aliases
@@ -1149,7 +1149,7 @@ class Couleur
   }
 
   public function negative() {
-    return new Couleur('rgba(' . 255 * (1 - $this->r) . ', ' . 255 * (1 - $this->g) . ', ' . 255 * (1 - $this->b) . ', ' . $this->a . ')');
+    return new self('rgba(' . 255 * (1 - $this->r) . ', ' . 255 * (1 - $this->g) . ', ' . 255 * (1 - $this->b) . ', ' . $this->a . ')');
   }
 
   public function invert() {
