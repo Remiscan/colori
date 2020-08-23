@@ -789,6 +789,12 @@ p + p.h3 {
   margin-top: 2.4rem;
 }
 
+@media (max-width: 42rem) { /* Phone-like */
+  ul {
+    padding-left: 20px;
+  }
+}
+
 
 
 /*
