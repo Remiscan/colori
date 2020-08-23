@@ -861,7 +861,11 @@ strong, em {
   margin-bottom: 1em;
 }
 
-.example-code>pre[class*="language-"] {
+:not(pre) > code[class*="language-"] {
+  white-space: normal;
+}
+
+.example-code > pre[class*="language-"] {
   margin: 0;
 }
 
