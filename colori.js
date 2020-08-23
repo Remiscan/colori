@@ -416,6 +416,14 @@ export default class Couleur {
       return `lab(${ciel}% ${ciea} ${cieb})`;
   }
 
+  get laba() {
+    const ciel = Math.round(this.ciel * 100);
+    const ciea = Math.round(this.ciea);
+    const cieb = Math.round(this.cieb);
+    const a = Math.round(this.a * 100) / 100;
+    return `lab(${ciel}% ${ciea} ${cieb} / ${a})`;
+  }
+
   get lch() {
     const ciel = Math.round(this.ciel * 100);
     const ciec = Math.round(this.ciec);
@@ -425,6 +433,14 @@ export default class Couleur {
       return `lch(${ciel}% ${ciec} ${cieh} / ${a})`;
     else
       return `lch(${ciel}% ${ciec} ${cieh})`;
+  }
+
+  get lcha() {
+    const ciel = Math.round(this.ciel * 100);
+    const ciec = Math.round(this.ciec);
+    const cieh = Math.round(this.cieh * 360);
+    const a = Math.round(this.a * 100) / 100;
+    return `lch(${ciel}% ${ciec} ${cieh} / ${a})`;
   }
 
   rgb2hsl() {
