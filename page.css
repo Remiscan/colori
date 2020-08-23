@@ -30,7 +30,7 @@ h1, .h1 {
 h2, .h2 {
   font-size: calc(var(--mod) * var(--mod) * 1rem);
 }
-h4, .h4 {
+h4, .h4, p.h3 {
   font-size: calc(var(--mod) * 1rem);
 }
 h5, .h5 {
