@@ -257,6 +257,28 @@ class Couleur
         '/^hwba?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
+      'id' => 'LAB',
+      'prefix' => 'lab(',
+      'separator' => ' ',
+      'suffix' => ')',
+      'syntaxes' => array(
+        // lab(300% 25 40)
+        '/^lab\\(('.self::vPer.') ('.self::vNum.') ('.self::vNum.')\\)$/',
+        // lab(300% 25 40 / .5)
+        '/^lab\\(('.self::vPer.') ('.self::vNum.') ('.self::vNum.') ?\\/ ?('.self::vNP.')\\)$/'
+      )
+    ), array(
+      'id' => 'LCH',
+      'prefix' => 'lch(',
+      'separator' => ' ',
+      'suffix' => ')',
+      'syntaxes' => array(
+        // lch(300% 25 <angle>)
+        '/^lch\\(('.self::vPer.') ('.self::vNum.') ('.self::vAng.')\\)$/',
+        // lch(300% 25 <angle> / .5)
+        '/^lch\\(('.self::vPer.') ('.self::vNum.') ('.self::vAng.') ?\\/ ?('.self::vNP.')\\)$/'
+      )
+    ), array(
       'id' => 'NAME',
       'prefix' => '',
       'separator' => '',
@@ -277,6 +299,11 @@ class Couleur
   public $w;
   public $bk;
   public $a;
+  public $ciel;
+  public $ciea;
+  public $cieb;
+  public $ciec;
+  public $cieh;
   public $name;
   
   function __construct($couleur)
@@ -309,6 +336,8 @@ class Couleur
       $this->a = floatval(hexdec($a) / 255);
       $this->rgb2hsl();
       $this->hsl2hwb();
+      $this->rgb2lab();
+      $this->lab2lch();
     }
     elseif (in_array($format['id'], array('RGB', 'RGBA')))
     {
@@ -325,6 +354,8 @@ class Couleur
       $this->a = $a;
       $this->rgb2hsl();
       $this->hsl2hwb();
+      $this->rgb2lab();
+      $this->lab2lch();
     }
     elseif (in_array($format['id'], array('HSL', 'HSLA')))
     {
@@ -341,6 +372,8 @@ class Couleur
       $this->a = $a;
       $this->hsl2rgb();
       $this->hsl2hwb();
+      $this->rgb2lab();
+      $this->lab2lch();
     }
     elseif (in_array($format['id'], array('HWB', 'HWBA')))
     {
@@ -357,6 +390,44 @@ class Couleur
       $this->a = $a;
       $this->hwb2hsl();
       $this->hsl2rgb();
+      $this->rgb2lab();
+      $this->lab2lch();
+    }
+    elseif (in_array($format['id'], array('LAB')))
+    {
+      $ciel = Couleur::parse($format['data'][1], 'cie');
+      $ciea = $format['data'][2];
+      $cieb = $format['data'][3];
+      if (array_key_exists(4, $format['data']))
+        $a = self::parse($format['data'][4], 'alpha');
+      else
+        $a = 1;
+      $this->ciel = $ciel;
+      $this->ciea = $ciea;
+      $this->cieb = $cieb;
+      $this->a = $a;
+      $this->lab2lch();
+      $this->lab2rgb();
+      $this->rgb2hsl();
+      $this->hsl2hwb();
+    }
+    elseif (in_array($format['id'], array('LCH')))
+    {
+      $ciel = Couleur::parse($format['data'][1], 'cie');
+      $ciec = Couleur::parse($format['data'][2], 'cie');
+      $cieh = Couleur::parse($format['data'][3], 'angle');
+      if (array_key_exists(4, $format['data']))
+        $a = self::parse($format['data'][4], 'alpha');
+      else
+        $a = 1;
+      $this->ciel = $ciel;
+      $this->ciec = $ciec;
+      $this->cieh = $cieh;
+      $this->a = $a;
+      $this->lch2lab();
+      $this->lab2rgb();
+      $this->rgb2hsl();
+      $this->hsl2hwb();
     }
 
     if ($this->a == 1)
@@ -385,8 +456,12 @@ class Couleur
       $formats = [self::FORMATS[4], self::FORMATS[5]];
     elseif ($tri == 'hwb')
       $formats = [self::FORMATS[6], self::FORMATS[7]];
-    else
+    elseif ($tri == 'lab')
       $formats = [self::FORMATS[8]];
+    elseif ($tri == 'lch')
+      $formats = [self::FORMATS[9]];
+    else
+      $formats = [self::FORMATS[10]];
 
     $resultat = false;
     foreach($formats as $format) {
@@ -420,18 +495,30 @@ class Couleur
     $logged;
     $error = 'Error';
 
+    if ($type == 'arbitrary')
+    {
+      // Si n est un pourcentage (n'importe lequel)
+      if (preg_match('/^' . self::vPer . '$/', $n)) {
+        $_n = $_n / 100;
+        $logged = 'arbitrary%';
+      }
+      // Si n est un nombre (n'importe lequel)
+      elseif (preg_match('/^' . self::vNum . '$/', $n)) {
+        $logged = 'arbitraryN';
+      }
+    }
     // Si n est un pourcentage
-    if (preg_match('/^' . self::vPer . '$/', $n))
+    elseif (preg_match('/^' . self::vPer . '$/', $n))
     {
       $_n = $_n / 100;
       if ($_n < 0)
         $_n = 0;
-      elseif ($_n > 1)
+      elseif ($_n > 1 && $type != 'cie')
         $_n = 1;
       $logged = '%';
     }
     // Si n est un nombre (entre 0 et 255)
-    elseif (preg_match('/^' . self::vNum . '$/', $n) && $type != 'angle' && $type != 'alpha')
+    elseif (preg_match('/^' . self::vNum . '$/', $n) && $type != 'angle' && $type != 'alpha' && $type != 'cie')
     {
       $_n = $_n / 255;
       if ($_n < 0)
@@ -448,6 +535,13 @@ class Couleur
       elseif ($_n > 1)
         $_n = 1;
       $logged = 'alpha';
+    }
+    // Si n est un nombre (entre 0 et +Infinity)
+    elseif (preg_match('/^' . self::vNum . '$/', $n) && $type == 'cie')
+    {
+      if ($_n < 0)
+        $_n = 0;
+      $logged = 'cieC';
     }
     // Si n est un angle (donc un nombre ou un nombre avec unité d'angle)
     elseif (preg_match('/^' . self::vAng . '$/', $n) && $type == 'angle')
@@ -600,6 +694,47 @@ class Couleur
       return 'hwb('.$h.' '.$w.'% '.$bk.'%)';
   }
 
+  public function lab() {
+    $ciel = round($this->ciel * 100);
+    $ciea = round($this->ciea);
+    $cieb = round($this->cieb);
+    $a = round($this->a * 100) / 100;
+    if ($this->a < 1)
+      return "lab(${ciel}% ${ciea} ${cieb} / ${a})";
+    else
+      return "lab(${ciel}% ${ciea} ${cieb})";
+  }
+
+  public function laba() {
+    $ciel = round($this->ciel * 100);
+    $ciea = round($this->ciea);
+    $cieb = round($this->cieb);
+    $a = round($this->a * 100) / 100;
+    return "lab(${ciel}% ${ciea} ${cieb} / ${a})";
+  }
+
+  public function lch() {
+    $ciel = round($this->ciel * 100);
+    $ciec = round($this->ciec);
+    $cieh = round($this->cieh * 360);
+    $a = round($this->a * 100) / 100;
+    if ($this->a < 1)
+      return "lch(${ciel}% ${ciec} ${cieh} / ${a})";
+    else
+      return "lch(${ciel}% ${ciec} ${cieh})";
+  }
+
+  public function lcha() {
+    $ciel = round($this->ciel * 100);
+    $ciec = round($this->ciec);
+    $cieh = round($this->cieh * 360);
+    $a = round($this->a * 100) / 100;
+    if ($this->a < 1)
+      return "lch(${ciel}% ${ciec} ${cieh} / ${a})";
+    else
+      return "lch(${ciel}% ${ciec} ${cieh})";
+  }
+
   private function rgb2hsl() {
     $r = $this->r;
     $g = $this->g;
@@ -710,6 +845,82 @@ class Couleur
     $this->l = $l;
   }
 
+  private function rgb2lab() {
+    // Source des maths : https://www.w3.org/TR/css-color-4/#rgb-to-lab
+    $linRGB = function($x) { return ($x < 0.04045) ? ($x / 12.92) : (($x + 0.055) / 1.055) ** 2.4; };
+    $r = $linRGB($this->r);
+    $g = $linRGB($this->g);
+    $b = $linRGB($this->b);
+
+    $x = 0.4124564 * $r + 0.3575761 * $g + 0.1804375 * $b;
+    $y = 0.2126729 * $r + 0.7151522 * $g + 0.0721750 * $b;
+    $z = 0.0193339 * $r + 0.1191920 * $g + 0.9503041 * $b;
+
+    $x50 = 1.0478112 * $x + 0.0228866 * $y - 0.0501270 * $z;
+    $y50 = 0.0295424 * $x + 0.9904844 * $y - 0.0170491 * $z;
+    $z50 = -0.0092345 * $x + 0.0150436 * $y + 0.7521316 * $z;
+
+    $ε = 216/24389;
+    $κ = 24389/27;
+    $w = [0.96422, 1, 0.82521];
+
+    $x = $x50 / $w[0];
+    $y = $y50 / $w[1];
+    $z = $z50 / $w[2];
+
+    $f = function($x) { return ($x > $ε) ? $x ** (1/3) : ($κ * $x + 16) / 116; };
+
+    $this->ciel = (116 * $f($y) - 16) / 100;
+    $this->ciea = 500 * ($f($x) - $f($y));
+    $this->cieb = 200 * ($f($y) - $f($z));
+  }
+
+  private function lab2rgb() {
+    // Source des maths : https://www.w3.org/TR/css-color-4/#lab-to-rgb
+    $ε = 216/24389;
+    $κ = 24389/27;
+    $w = [0.96422, 1, 0.82521];
+
+    $l = $this->ciel * 100;
+
+    $f1 = ($l + 16) / 116;
+    $f0 = $this->ciea / 500 + $f1;
+    $f2 = $f1 - $this->cieb / 200;
+
+    $x50 = ($f0 ** 3 > $ε) ? $f0 ** 3 : (116 * $f0 - 16) / $κ;
+    $y50 = ($l > $κ * $ε) ? (($l + 16) / 116) ** 3 : $l / $κ;
+    $z50 = ($f2 ** 3 > $ε) ? $f2 ** 3 : (116 * $f2 - 16) / $κ;
+
+    $x50 = $x50 * $w[0];
+    $y50 = $y50 * $w[1];
+    $z50 = $z50 * $w[2];
+
+    $x = 0.9555766 * $x50 - 0.0230393 * $y50 + 0.0631636 * $z50;
+    $y = -0.0282895 * $x50 + 1.0099416 * $y50 + 0.0210077 * $z50;
+    $z = 0.0122982 * $x50 - 0.0204830 * $y50 + 1.3299098 * $z50;
+
+    $r = 3.2404542 * $x - 1.5371385 * $y - 0.4985341 * $z;
+    $g = -0.9692660 * $x + 1.8760108 * $y + 0.0415560 * $z;
+    $b = 0.0556434 * $x - 0.2040259 * $y + 1.0572252 * $z;
+
+    $gamRGB = function($x) { return ($x > 0.0031308) ? 1.055 * pow($x, 1 / 2.4) - 0.055 : 12.92 * $x; };
+
+    $this->r = $gamRGB($r);
+    $this->g = $gamRGB($g);
+    $this->b = $gamRGB($b);
+  }
+
+  private function lab2lch() {
+    $this->ciec = sqrt($this->ciea ** 2 + $this->cieb ** 2);
+    $this->cieh = self::parse(atan2($this->cieb, $this->ciea) * 180 / pi(), 'angle');
+  }
+
+  private function lch2lab() {
+    $cieh = $this->cieh * 360;
+    $this->ciea = $this->ciec * cos($cieh * pi() / 180);
+    $this->cieb = $this->ciec * sin($cieh * pi() / 180);
+  }
+
   // Fusionne la couleur et une couleur de fond "background"
   public static function blend(Couleur $couleur1, Couleur $couleur2)
   {
@@ -730,6 +941,8 @@ class Couleur
     $b = round(255 * ($overlay->a * $overlay->b + (1 - $overlay->a) * $background->b));
     return new Couleur('rgb('.$r.', '.$g.', '.$b.')');
   }
+
+  // Raccourci pour blend impossible
 
   // Calcule la luminance d'une couleur
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
@@ -762,6 +975,8 @@ class Couleur
     $Lmin = min($L1, $L2);
     return ($Lmax + 0.05) / ($Lmin + 0.05);
   }
+
+  // Raccourci pour contrast impossible
   
   // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
   // (source des maths : https://www.w3.org/TR/WCAG20-TECHS/G18.html)
@@ -843,6 +1058,48 @@ class Couleur
         throw new Exception($error);
       return new Couleur($nouvelleCouleur->hsl());
     }
+    elseif (in_array($propriete, ['ciel']))
+    {
+      [$_valeur, $log] = self::parse($valeur, 'cie', true);
+      if ($log == '%')
+        $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur) / 100) * 100 . '%', 'cie');
+      else
+        throw new Exception($error);
+      return new Couleur($nouvelleCouleur->lab());
+    }
+    elseif (in_array($propriete, ['ciea', 'cieb']))
+    {
+      [$_valeur, $log] = self::parse($valeur, 'arbitrary', true);
+      if ($log == 'arbitraryN')
+        $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur)), 'arbitrary');
+      else
+        throw new Exception($error);
+      return new Couleur($nouvelleCouleur->lab());
+    }
+    elseif (in_array($propriete, ['ciec']))
+    {
+      [$_valeur, $log] = self::parse($valeur, 'cie', true);
+      if ($log == 'cieC')
+        $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur)), 'cie');
+      else
+        throw new Exception($error);
+      return new Couleur($nouvelleCouleur->lch());
+    }
+    elseif (in_array($propriete, ['cieh']))
+    {
+      [$_valeur, $log] = self::parse($valeur, 'angle', true);
+      if ($log == 'deg')
+        $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur) / 360) * 360 . 'deg', 'angle');
+      elseif ($log == 'grad')
+        $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur) / 400) * 400 . 'grad', 'angle');
+      elseif ($log == 'rad')
+        $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleur->$propriete) + floatval($valeur) / (360 * (pi() / 180))) * 360 * (pi() / 180) . 'rad', 'angle');
+      elseif ($log == 'turn')
+        $nouvelleCouleur->$propriete = self::parse((($remplace ? 0 : $nouvelleCouleu->$propriete) + $_valeur) . 'turn', 'angle');
+      else
+        throw new Exception($error);
+      return new Couleur($nouvelleCouleur->lch());
+    }
     else
       return new Couleur($nouvelleCouleur->rgb());
   }
@@ -876,6 +1133,12 @@ class Couleur
       return new Couleur($nouvelleCouleur->hwb());
     elseif (in_array($propriete, ['a']))
       return new Couleur($nouvelleCouleur->hsl());
+    elseif (in_array($propriete, ['ciel']))
+      return new Couleur($nouvelleCouleur->lab());
+    elseif (in_array($propriete, ['ciea', 'cieb']))
+      return new Couleur($nouvelleCouleur->lab());
+    elseif (in_array($propriete, ['ciec', 'cieh']))
+      return new Couleur($nouvelleCouleur->lab());
     else
       return new Couleur($nouvelleCouleur->rgb());
   }
@@ -886,39 +1149,49 @@ class Couleur
   }
 
   public function negative() {
-    return $this->change('r', 255 * (1 - $this->r), true)
-                ->change('g', 255 * (1 - $this->g), true)
-                ->change('b', 255 * (1 - $this->b), true);
+    return new Couleur('rgba(' . 255 * (1 - $this->r) . ', ' . 255 * (1 - $this->g) . ', ' . 255 * (1 - $this->b) . ', ' . $this->a . ')');
+  }
+
+  public function invert() {
+    return $this->negative();
   }
 
   // options : {scale: true/false}
-  public function darken($value, $options = null) {
+  public function darken($_value, $options = null) {
+    $value = self::parse($_value, 'arbitrary');
+    $value = $value * 100;
     if ($options === null) $options = new stdClass();
-    $scale = ($options === true) || (property_exists($options, 'scale') ? $options['scale'] : false);
+    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options['scale'] : true);
     $newValue = ($scale == true) ? ($this->l * (100 - floatval($value))) . '%'
                                  : -1 * floatval($value) . '%';
     return $this->change('l', $newValue, $scale);
   }
 
-  public function lighten($value, $options = null) {
+  public function lighten($_value, $options = null) {
+    $value = self::parse($_value, 'arbitrary');
+    $value = $value * 100;
     if ($options === null) $options = new stdClass();
-    $scale = ($options === true) || (property_exists($options, 'scale') ? $options['scale'] : false);
+    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options['scale'] : true);
     $newValue = ($scale == true) ? ($this->l * (100 + floatval($value))) . '%'
                                  : floatval($value) . '%';
     return $this->change('l', $newValue, $scale);
   }
 
-  public function desaturate($value, $options = null) {
+  public function desaturate($_value, $options = null) {
+    $value = self::parse($_value, 'arbitrary');
+    $value = $value * 100;
     if ($options === null) $options = new stdClass();
-    $scale = ($options === true) || (property_exists($options, 'scale') ? $options['scale'] : false);
+    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options['scale'] : true);
     $newValue = ($scale == true) ? ($this->s * (100 - floatval($value))) . '%'
                                  : -1 * floatval($value) . '%';
     return $this->change('s', $newValue, $scale);
   }
 
-  public function saturate($value, $options = null) {
+  public function saturate($_value, $options = null) {
+    $value = self::parse($_value, 'arbitrary');
+    $value = $value * 100;
     if ($options === null) $options = new stdClass();
-    $scale = ($options === true) || (property_exists($options, 'scale') ? $options['scale'] : false);
+    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options['scale'] : true);
     $newValue = ($scale == true) ? ($this->s * (100 + floatval($value))) . '%'
                                  : floatval($value) . '%';
     return $this->change('s', $newValue, $scale);
