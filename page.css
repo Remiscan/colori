@@ -505,7 +505,7 @@ footer {
   /*--coupe: .9rem;
   clip-path: polygon(0 0, calc(100% - var(--coupe)) 0, 100% var(--coupe), 100% 100%, 0 100%, 0 0);*/
   /*--frame-color: rgba(0, 0, 0, .6);*/
-  --frame-color: hsl(var(--user-hue), 100%, 10%);
+  --frame-color: hsl(var(--user-hue), var(--user-saturation), 10%);
 }
 
 
@@ -682,7 +682,6 @@ input:active, input:focus {
   justify-content: flex-start;
   align-items: flex-start;
   flex-wrap: wrap;
-  color: hsl(var(--user-hue), 10%, 10%);
   margin-left: -.6rem;
 }
 
@@ -812,7 +811,7 @@ a:active {
 }
 
 strong, em {
-  color: hsl(var(--user-hue), 100%, 20%);
+  color: hsl(var(--user-hue), var(--user-saturation), 20%);
   font-weight: 600;
 }
 
