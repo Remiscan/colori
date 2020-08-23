@@ -206,16 +206,6 @@ $fusion = Couleur::blend($transparente, $opaque);</code></pre>
   <pre class="output"><code slot="output" class="language-php">$fusion->rgb() == 'rgb(128, 128, 128)'</code></pre>
 </div>
 
-<p data-string="documentation-fusion-p2-php"><?=$Textes->getString('documentation-fusion-p2-php')?></p>
-
-<div class="example-code">
-  <pre class="input"><code class="language-php">$fusion = $opaque->blend($transparente);</code></pre>
-
-  <pre class="output"><code slot="output" class="language-php">$fusion->rgb() == 'rgb(128, 128, 128)'</code></pre>
-</div>
-
-<p data-string="documentation-fusion-p3-php"><?=$Textes->getString('documentation-fusion-p3-php')?></p>
-
 <h2 class="titre-partie-docu" data-string="documentation-comparer-titre"><?=$Textes->getString('documentation-comparer-titre')?></h2>
 
 <p class="h3"><code class="language-javascript">contrast</code></p>
@@ -227,12 +217,6 @@ $fusion = Couleur::blend($transparente, $opaque);</code></pre>
 $noir = new Couleur('black');</code></pre>
 
   <pre class="output"><code slot="output" class="language-php">Couleur::contrast($noir, $blanc) == 21</code></pre>
-</div>
-
-<p data-string="documentation-contraste-p4-php"><?=$Textes->getString('documentation-contraste-p4-php')?></p>
-
-<div class="example-code">
-  <pre class="output"><code slot="output" class="language-javascript">$noir->contrast($blanc) == 21</code></pre>
 </div>
 
 <p data-string="documentation-contraste-p2"><?=$Textes->getString('documentation-contraste-p2')?></p>
