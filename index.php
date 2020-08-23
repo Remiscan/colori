@@ -213,7 +213,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
     <footer><span><span data-string="syntax-highlighting-source"><?=$Textes->getString('syntax-highlighting-source')?></span> <a href="https://prismjs.com/" target="_blank" rel="noopener">prism.js</a></span></footer>
 
     <!-- SCRIPTS -->
-    <script src="/colori/ext/prism.js"></script>
+    <script src="/colori/ext/prism.js" data-manual></script>
     <script src="/_common/js/test-support--<?=version($commonDir.'/js', 'test-support.js')?>.js" id="test-support-script"></script>
     <script id="test-support-script-exe">
       TestSupport.getSupportResults([
@@ -231,13 +231,13 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       function textualiser() {
         return traduire('colori')
         .then(() => {
-          //document.getElementById('entree').setAttribute('placeholder', getString('demo-input-placeholder'));
           champ.dataset.abbr = getString('exemple-abbr');
           champ.placeholder = champ.placeholder.replace(
             new RegExp(`${getString('exemple-abbr', 'fr')}|${getString('exemple-abbr', 'en')}`),
             getString('exemple-abbr')
           );
-          Prism.highlightAll();
+          setTimeout(() => Prism.highlightAll());
+          return;
         });
       }
 
@@ -255,13 +255,12 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       async function initCouleur() {
         try {
           test = new Couleur('<?=$startColor->name?>');
-          await interpreterCouleur(test.name, 50);
+          await interpreterCouleur(test.name, 10);
         }
         catch(error) {
           console.error('Erreur (couleur aléatoire)', error);
         }
       }
-      initCouleur();
 
       const champ = document.getElementById('entree');
       champ.addEventListener('input', event => {
@@ -492,62 +491,64 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
         code.innerHTML = entree.lch;
         Prism.highlightElement(code);
 
+        code = document.querySelector('.name>.format-donnee>code');
         if (entree.name == null)
         {
           document.querySelector('.name').classList.remove('oui');
-          document.querySelector('.name>.format-donnee>code').innerHTML = '';
+          code.innerHTML = '';
         }
         else
         {
           document.querySelector('.name').classList.add('oui');
-          document.querySelector('.name>.format-donnee>code').innerHTML = entree.name;
+          code.innerHTML = entree.name;
         }
+        Prism.highlightElement(code);
 
         champ.placeholder = `${champ.dataset.abbr} ${entree.name || entree.hex}`;
 
         document.querySelector('.demo-conteneur').classList.add('calced');
       }
 
-      window.addEventListener('DOMContentLoaded', () => {
-        textualiser()
-        .then(() => {
-          const langSwitch = document.querySelector('.switch-js-php');
+      window.addEventListener('DOMContentLoaded', async () => {
+        await initCouleur();
+        await textualiser();
 
-          langSwitch.addEventListener('click', () => {
-            setTimeout(() => {
-              if (langSwitch.dataset.currentTab == 'js') {
-                langSwitch.dataset.currentTab = 'php';
-                document.querySelector('header>h1').innerHTML = 'colori.php';
-                document.getElementById('documentation-js').classList.add('off');
-                document.getElementById('documentation-php').classList.remove('off');
-              } else {
-                langSwitch.dataset.currentTab = 'js';
-                document.querySelector('header>h1').innerHTML = 'colori.js';
-                document.getElementById('documentation-php').classList.add('off');
-                document.getElementById('documentation-js').classList.remove('off');
-              }
-              localStorage.setItem('colori/lang-php', langSwitch.dataset.currentTab == 'php');
-            }, 20);
-            langSwitch.addEventListener('mouseout', () => langSwitch.blur());
-          });
+        const langSwitch = document.querySelector('.switch-js-php');
 
-          Array.from(document.querySelectorAll('#documentation-php code.language-javascript')).forEach(e => {
-            if (e.innerHTML == 'Colore') e.outerHTML = '<code class="language-php">Couleur</code>';
-          });
-
-          Array.from(document.querySelectorAll('.exemple')).forEach(async e => {
-            e.addEventListener('click', () => {
-              champ.value = e.textContent;
-              champ.dispatchEvent(new Event('input'), { bubbles: true });
-              e.addEventListener('mouseleave', () => e.blur());
-            });
-          });
-
-          if (isPhp == 'true')
-          langSwitch.dataset.currentTab = 'php';
-
-          document.documentElement.classList.add('loaded');
+        langSwitch.addEventListener('click', () => {
+          setTimeout(() => {
+            if (langSwitch.dataset.currentTab == 'js') {
+              langSwitch.dataset.currentTab = 'php';
+              document.querySelector('header>h1').innerHTML = 'colori.php';
+              document.getElementById('documentation-js').classList.add('off');
+              document.getElementById('documentation-php').classList.remove('off');
+            } else {
+              langSwitch.dataset.currentTab = 'js';
+              document.querySelector('header>h1').innerHTML = 'colori.js';
+              document.getElementById('documentation-php').classList.add('off');
+              document.getElementById('documentation-js').classList.remove('off');
+            }
+            localStorage.setItem('colori/lang-php', langSwitch.dataset.currentTab == 'php');
+          }, 20);
+          langSwitch.addEventListener('mouseout', () => langSwitch.blur());
         });
+
+        Array.from(document.querySelectorAll('#documentation-php code.language-javascript')).forEach(e => {
+          if (e.innerHTML == 'Colore') e.outerHTML = '<code class="language-php">Couleur</code>';
+        });
+
+        Array.from(document.querySelectorAll('.exemple')).forEach(async e => {
+          e.addEventListener('click', () => {
+            champ.value = e.textContent;
+            champ.dispatchEvent(new Event('input'), { bubbles: true });
+            e.addEventListener('mouseleave', () => e.blur());
+          });
+        });
+
+        if (isPhp == 'true')
+        langSwitch.dataset.currentTab = 'php';
+
+        document.documentElement.classList.add('loaded');
       });
     </script>
   </body>
