@@ -10,4 +10,6 @@ My main goal with **colori** is to make it easy to use for everyone. You just do
 
 * * *
 
-This repo also includes the source code for the demo / documentation website [remiscan.fr/colori/](https://remiscan.fr/colori/).
+The **colori** module itself is fully contained in the **colori.js** or **colori.php** files. There are no dependencies, and you can download these files on the [Releases page](https://github.com/Remiscan/colori/releases).
+
+All the other files in this repo are part of the source code for the demo / documentation website [remiscan.fr/colori/](https://remiscan.fr/colori/).
