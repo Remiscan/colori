@@ -1,11 +1,13 @@
 # colori
-JavaScript module to convert (between CSS-supported formats) and manipulate colors.
+JavaScript module to convert (between CSS-supported formats) and manipulate colors. Also available in PHP if that's what you use to generate colors server-side.
 
-Also available in PHP if that's what you use to generate colors server-side.
+My main goal with **colori** is to make it easy to use for everyone. You just download the .js or .php file and import it in your code as shown in the documentation.
 
-My main goal with **colori** is to make it easy to use for everyone. You just download the .js or .php file and import it in your code as shown below.
+### How to use
 
-### Documentation
+*   [colori.js: JavaScript documentation](https://github.com/Remiscan/colori/wiki/Documentation-(JavaScript))
+*   [colori.php: PHP documentation](https://github.com/Remiscan/colori/wiki/Documentation-(PHP))
 
-*   [JavaScript documentation](https://github.com/Remiscan/colori/wiki/Documentation-(JavaScript))
-*   [PHP documentation](https://github.com/Remiscan/colori/wiki/Documentation-(PHP))
+* * *
+
+This repo also includes the source code for the demo / documentation website [remiscan.fr/colori/](https://remiscan.fr/colori/).
