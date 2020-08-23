@@ -136,7 +136,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
             <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
               <button class="exemple">pink.invert()</button>
               <button class="exemple">#ABCDFF.darken(50%)</button>
-              <button class="exemple">rgb(255, 127, 80).desaturate(50%).lighten(20%)</button>
+              <button class="exemple">rgb(255, 127, 80).desaturate(50%).blend(red, .2)</button>
             </div>
           </div>
 
