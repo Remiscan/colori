@@ -15,9 +15,18 @@
     const files = ['documentation-js', 'documentation-php'];
     const filenames = ['Documentation-(JavaScript).md', 'Documentation-(PHP).md'];
     files.forEach((e, k) => {
+      const code = document.getElementById(e);
+      Array.from(code.querySelectorAll('p.h3')).forEach(p => {
+        let newHtml = '';
+        if (p.previousElementSibling.tagName != 'H2') newHtml += '<hr>';
+        newHtml += '<h3>' + p.innerHTML + '</h3>';
+        p.outerHTML = newHtml;
+      });
+      //code.innerHTML = code.innerHTML.replace(new RegExp('<p class="h3">(.+)</p>', 'g'), '<hr><h3>$1</h3>');
       let markdown = turndownService.turndown(document.getElementById(e));
       markdown = markdown.replace('[colori.js](https://github.com/Remiscan/colori/releases/latest/download/colori.js)', 'colori.js');
       markdown = markdown.replace('[colori.php](https://github.com/Remiscan/colori/releases/latest/download/colori.php)', 'colori.php');
+      markdown = markdown.replace(new RegExp('##(.+)\*\ \*\ \*', 'g'), '##$1');
 
       const filename = filenames[k];
       const file = new File([markdown], filename, {type: 'text/markdown'});
