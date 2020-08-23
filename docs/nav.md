@@ -1,0 +1,13 @@
+> ### Quick navigation:
+> * [How to use colori](#how-to-use-colorijs)
+> * [Create a color](#create-a-color)
+> * [Express a color in different formats](#express-a-color-in-different-formats)
+> * [Modify a color](#modify-a-color)
+>     * [change](#change)
+>     * [replace, scale](#replace-scale)
+>     * [darken, lighten, desaturate, saturate](#darken-lighten-desaturate-saturate)
+>     * [greyscale / grayscale](#greyscale--grayscale)
+>     * [complement, negative / invert](#complement-negative--invert)
+>     * [blend](#blend)
+> * [Compare two colors](#compare-two-colors)
+>     * [contrast](#contrast)

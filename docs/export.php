@@ -7,14 +7,14 @@
 
   const currentLanguage = localStorage.getItem('colori/langage');
 
-  wait(1000)
-  .then(() => switchLangage('en'))
-  .then(() => traduire('colori'))
-  .then(() => {
+  wait(1000).then(async () => {
+    await switchLangage('en');
+    await traduire('colori');
+
     const turndownService = new TurndownService({headingStyle: 'atx', codeBlockStyle: 'fenced'});
     const files = ['documentation-js', 'documentation-php'];
     const filenames = ['Documentation-(JavaScript).md', 'Documentation-(PHP).md'];
-    files.forEach((e, k) => {
+    files.forEach(async (e, k) => {
       const code = document.getElementById(e);
       Array.from(code.querySelectorAll('p.h3')).forEach(p => {
         let newHtml = '';
@@ -22,11 +22,16 @@
         newHtml += '<h3>' + p.innerHTML + '</h3>';
         p.outerHTML = newHtml;
       });
-      //code.innerHTML = code.innerHTML.replace(new RegExp('<p class="h3">(.+)</p>', 'g'), '<hr><h3>$1</h3>');
+
+      let nav = await fetch('./nav.md');
+      nav = await nav.text();
+
       let markdown = turndownService.turndown(document.getElementById(e));
       markdown = markdown.replace('[colori.js](https://github.com/Remiscan/colori/releases/latest/download/colori.js)', 'colori.js');
       markdown = markdown.replace('[colori.php](https://github.com/Remiscan/colori/releases/latest/download/colori.php)', 'colori.php');
       markdown = markdown.replace(new RegExp('##(.+)\*\ \*\ \*', 'g'), '##$1');
+
+      markdown = nav + '\n\n' + markdown;
 
       const filename = filenames[k];
       const file = new File([markdown], filename, {type: 'text/markdown'});
