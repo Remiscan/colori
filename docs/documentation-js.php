@@ -99,7 +99,7 @@ rosso.lcha == 'lch(54% 107 41 / 1)'</code></pre>
 
 <h2 class="titre-partie-docu" data-string="documentation-change-titre"><?=$Textes->getString('documentation-change-titre')?></h2>
 
-<p class="h3"><code class="language-javascript">change</code></p>
+<p class="h3"><span><code class="language-javascript">change</code></span></p>
 
 <p data-string="documentation-change-p1"><?=$Textes->getString('documentation-change-p1')?></p>
 
@@ -119,7 +119,7 @@ nuovoColore.hsl == 'hsl(0, 100%, 40%)'</code></pre>
 nuovoColore.hsl == 'hsl(0, 100%, 35%)'</code></pre>
 </div>
 
-<p class="h3"><code class="language-javascript">replace</code>, <code class="language-javascript">scale</code></p>
+<p class="h3"><span><code class="language-javascript">replace</code>, <code class="language-javascript">scale</code></span></p>
 
 <p data-string="documentation-change-p6"><?=$Textes->getString('documentation-change-p6')?></p>
 
@@ -139,7 +139,7 @@ nuovoColore.hsl == 'hsl(0, 100%, 20%)'</code></pre>
 nuovoColore.hsl == 'hsl(0, 100%, 10%)'</code></pre>
 </div>
 
-<p class="h3"><code class="language-javascript">darken</code>, <code class="language-javascript">lighten</code>, <code class="language-javascript">desaturate</code>, <code class="language-javascript">saturate</code></p>
+<p class="h3"><span><code class="language-javascript">darken</code>, <code class="language-javascript">lighten</code>, <code class="language-javascript">desaturate</code>, <code class="language-javascript">saturate</code></span></p>
 
 <p data-string="documentation-change-p3"><?=$Textes->getString('documentation-change-p3')?></p>
 
@@ -168,7 +168,7 @@ nuovoColore.hsl == 'hsl(0, 100%, 40%)'</code></pre>
   <li><code class="language-javascript">saturate</code><span data-string="documentation-change-aliases-saturate"><?=$Textes->getString('documentation-change-aliases-saturate')?></span></li>
 </ul>
 
-<p class="h3"><code class="language-javascript">greyscale</code> / <code class="language-javascript">grayscale</code></p>
+<p class="h3"><span><code class="language-javascript">greyscale</code> / <code class="language-javascript">grayscale</code></span></p>
 
 <p data-string="documentation-change-p8"><?=$Textes->getString('documentation-change-p8')?></p>
 
@@ -179,7 +179,7 @@ nuovoColore.hsl == 'hsl(0, 100%, 40%)'</code></pre>
 nuovoColore.hsl == 'hsl(0, 0%, 50%)'</code></pre>
 </div>
 
-<p class="h3"><code class="language-javascript">complement</code>, <code class="language-javascript">negative</code> / <code class="language-javascript">invert</code></p>
+<p class="h3"><span><code class="language-javascript">complement</code>, <code class="language-javascript">negative</code> / <code class="language-javascript">invert</code></span></p>
 
 <p data-string="documentation-complement-p1"><?=$Textes->getString('documentation-complement-p1')?></p>
 
@@ -193,7 +193,7 @@ complementare.rgb == 'rgb(194, 255, 245)'
 negativo.rgb == 'rgb(0, 63, 52)'</code></pre>
 </div>
 
-<p class="h3"><code class="language-javascript">blend</code></p>
+<p class="h3"><span><code class="language-javascript">blend</code></span></p>
 
 <p data-string="documentation-fusion-p1"><?=$Textes->getString('documentation-fusion-p1')?></p>
 
@@ -217,7 +217,7 @@ const fusione = Colore.blend(trasparente, opaco);</code></pre>
 
 <h2 class="titre-partie-docu" data-string="documentation-comparer-titre"><?=$Textes->getString('documentation-comparer-titre')?></h2>
 
-<p class="h3"><code class="language-javascript">contrast</code></p>
+<p class="h3"><span><code class="language-javascript">contrast</code></span></p>
 
 <p data-string="documentation-contraste-p1"><?=$Textes->getString('documentation-contraste-p1')?></p>
 

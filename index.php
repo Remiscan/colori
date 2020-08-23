@@ -181,7 +181,10 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       </div>
     </section>
 
+    <aside class="nav-documentation" data-label="nav-documentation"></aside>
+
     <section class="documentation">
+      <a id="documentation" aria-hidden="true"></a>
       <h1 data-string="titre-section-documentation"><?=$Textes->getString('titre-section-documentation')?></h1>
 
       <div class="prog-lang-changer">
@@ -529,6 +532,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
               document.getElementById('documentation-js').classList.remove('off');
             }
             localStorage.setItem('colori/lang-php', langSwitch.dataset.currentTab == 'php');
+            makeNav(langSwitch.dataset.currentTab);
           }, 20);
           langSwitch.addEventListener('mouseout', () => langSwitch.blur());
         });
@@ -548,8 +552,42 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
         if (isPhp == 'true')
         langSwitch.dataset.currentTab = 'php';
 
+        makeNav(langSwitch.dataset.currentTab);
+
         document.documentElement.classList.add('loaded');
       });
+
+      function makeNav(language = 'js') {
+        // Get nav listing
+        const anchors = Array.from(document.querySelectorAll(`#documentation-${language} h2, #documentation-${language} p.h3`));
+        const getAnchorUrl = a => a.textContent.toLowerCase()
+                                   .replace(/\ \/\ /g, '--')
+                                   .replace(/\ |\,\ /g, '-');
+
+        // Reset nav link destinations
+        const anchorDests = Array.from(document.querySelectorAll('.anchor-dest'));
+        anchorDests.forEach(a => a.remove());
+
+        // Create nav links
+        let navHtml = '<ul>';
+        let previousDepth = 0;                         
+        for (const a of anchors) {
+          const depth = (a.tagName == 'H2') ? 0 : 1;
+          if (depth > previousDepth) navHtml += '\n<ul>';
+          else if (depth < previousDepth) navHtml += '\n</ul>';
+          navHtml += `\n<li><a href="#${getAnchorUrl(a)}">${a.textContent}</a></li>`;
+          previousDepth = depth;
+
+          a.outerHTML = `<a id="${getAnchorUrl(a)}" class="anchor-dest"></a>\n${a.outerHTML}`;
+        }
+        navHtml += '\n</ul>';
+
+        // Populate links on page
+        const aside = document.querySelector('aside.nav-documentation');
+        aside.innerHTML = navHtml;
+
+        return navHtml;
+      }
     </script>
   </body>
 </html>
