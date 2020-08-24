@@ -3,7 +3,7 @@ export function makeNav(language = 'js') {
   const anchors = Array.from(document.querySelectorAll(`#documentation-${language} h2, #documentation-${language} p.h3`));
   const getAnchorUrl = a => a.textContent.toLowerCase()
                               .replace(/\ \/\ /g, '--')
-                              .replace(/\ |\,\ /g, '-');
+                              .replace(/\ |\,\ |\./g, '-');
 
   // Reset nav link destinations
   const anchorDests = Array.from(document.querySelectorAll('.anchor-dest'));
