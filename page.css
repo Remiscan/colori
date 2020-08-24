@@ -735,8 +735,8 @@ pre[class*="language-"].format-donnee {
   left: var(--border-size);
   background-image: linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
                     linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%);
-  background-size: 4vmin 4vmin;
-  background-position: 0 0, 2vmin 2vmin;
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
   background-color: #ddd;
   border-radius: .5rem;
   position: absolute;
