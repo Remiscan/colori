@@ -597,7 +597,7 @@ input:active, input:focus {
 }
 
 ::placeholder {
-  color: hsl(var(--user-hue), calc(0.5 * var(--user-saturation)), 20%, .7);
+  color: hsl(var(--user-hue), calc(0.5 * var(--user-saturation)), 20%, .5);
 }
 
 
