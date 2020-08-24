@@ -150,6 +150,8 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
         </div>
 
         <div id="donnees">
+          <div class="format couleur"></div>
+
           <div class="format hex">
             <pre class="format-donnee"><code class="language-css"></code></pre>
           </div>
@@ -447,7 +449,12 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
           frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
           if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
         }
-        document.querySelector('.demo-conteneur').style.setProperty('--frame-color', frameColor.hsl);
+        document.querySelector('.demo-inside').style.setProperty('--frame-color', frameColor.hsl);
+        while (Couleur.contrast(frameColor, _entree) < 1.8) {
+          frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
+          if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
+        }
+        document.querySelector('.demo-inside').style.setProperty('--frame-color-mini', frameColor.hsl);
 
         // Calcul de la coloration syntaxique selon le contraste
         const steps = ['-90', '+45', '-45', '+135'];
