@@ -535,6 +535,7 @@ label[for=entree] {
   gap: .6rem;
   align-items: flex-end;
   overflow-x: auto;
+  scrollbar-width: thin;
 }
 .exemples-saisie>span {
   opacity: .7;
