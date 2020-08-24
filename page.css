@@ -766,13 +766,11 @@ pre[class*="language-"].format-donnee {
   }
 
   #apercu {
-    display: none;
     grid-column: 1 / 2;
     grid-row: 2 / 3;
   }
 
   .fenetre {
-    display: none;
     grid-column: 1 / 2;
     grid-row: 2 / 3;
     min-height: 8rem;
@@ -790,12 +788,7 @@ pre[class*="language-"].format-donnee {
     border-radius: 0 0 .6rem .6rem;
     background: var(--frame-color);
     margin-top: -1.5rem;
-    display: none;
   }
-
-  /*.format.couleur {
-    display: flex;
-  }*/
 }
 
 @media (max-width: 30rem) {
