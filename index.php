@@ -279,6 +279,12 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
         .catch(error => {});
       });
 
+      // Detects click on tiny color preview
+      const apercu = document.querySelector('.format.couleur');
+      apercu.addEventListener('click', () => {
+        document.querySelector('.demo-conteneur').classList.toggle('details');
+      })
+
       // On page load
       window.addEventListener('DOMContentLoaded', async () => {
         await initCouleur();
