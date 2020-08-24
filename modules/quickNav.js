@@ -28,19 +28,20 @@ export function makeNav(language = 'js') {
   }
 
   // Populate links on page
-  const buttonHtml = `
+  /*const buttonHtml = `
     <input type="checkbox" id="enable-nav">
     <label for="enable-nav"><svg height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" style="fill: var(--h1-color);"/></svg></label>
-  `;
+  `;*/
   const aside = document.querySelector('aside.nav-documentation');
-  aside.innerHTML = navHtml + buttonHtml;
+  const titre = `<h1 class="titre-nav-rapide">${aside.dataset.titre}</h1>`;
+  aside.innerHTML = titre + navHtml/* + buttonHtml*/;
 
   // Enable nav button for mobile
-  const navButton = document.querySelector('input#enable-nav');
+  /*const navButton = document.querySelector('input#enable-nav');
   navButton.addEventListener('change', () => {
     if (navButton.checked) aside.classList.add('on');
     else aside.classList.remove('on');
-  });
+  });*/
 
   return navHtml;
 }

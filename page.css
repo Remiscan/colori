@@ -929,10 +929,15 @@ aside.nav-documentation {
   margin-left: .6rem;
   line-height: 1em;
   position: sticky;
-  top: .6rem;
+  top: 1.8rem;
   background-color: var(--section-color);
   border-radius: .6rem;
   padding: .6rem;
+}
+
+.titre-nav-rapide {
+  font-size: calc(var(--mod) * 1.1rem);
+  line-height: normal;
 }
 
 aside ul {

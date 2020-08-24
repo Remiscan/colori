@@ -237,10 +237,14 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       import { makeNav } from '/colori/modules/quickNav--<?=version(__DIR__.'/modules', 'quickNav.js')?>.js';
       import { updateCouleur, interpreterCouleur, colorInterface, populateColorData } from '/colori/modules/colorDetection--<?=version(__DIR__.'/modules', 'colorDetection.js.php')?>.js.php';
 
+      const langSwitch = document.querySelector('.switch-js-php');
+
       // Translate the page
       function textualiser() {
         return traduire('colori')
         .then(() => {
+          document.querySelector('.nav-documentation').dataset.titre = getString('nav-documentation');
+          makeNav(langSwitch.dataset.currentTab);
           setTimeout(() => Prism.highlightAll());
           return;
         });
@@ -279,8 +283,6 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       window.addEventListener('DOMContentLoaded', async () => {
         await initCouleur();
         await textualiser();
-
-        const langSwitch = document.querySelector('.switch-js-php');
 
         langSwitch.addEventListener('click', () => {
           setTimeout(() => {
