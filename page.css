@@ -551,6 +551,7 @@ label[for=entree] {
 .exemples-fonctions {
   grid-column: 1 / 3;
   font-size: .9em;
+  margin: 0;
 }
 .exemple {
   -webkit-appearance: none;
@@ -1089,4 +1090,8 @@ aside a {
 .token.regex,
 .token.important {
   color: #e90;
+}
+
+.off {
+  display: none;
 }

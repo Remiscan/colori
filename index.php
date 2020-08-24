@@ -128,16 +128,17 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
               <button class="exemple">pink</button>
               <button class="exemple">#ABCDFF</button>
               <button class="exemple">rgb(255, 127, 80)</button>
+              <button class="exemple">+</button>
             </div>
-            <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
-                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-            <p class="instructions-exemples-fonctions" data-string="instructions-demo"><?=$Textes->getString('instructions-demo')?></p>
-            <div class="exemples-saisie exemples-fonctions">
-            <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
+            <p class="instructions-exemples-fonctions inst-hidden off" data-string="instructions-demo"><?=$Textes->getString('instructions-demo')?></p>
+            <div class="exemples-saisie exemples-fonctions inst-hidden off">
+              <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
               <button class="exemple">pink.invert()</button>
               <button class="exemple">#ABCDFF.darken(50%)</button>
               <button class="exemple">rgb(255, 127, 80).desaturate(50%).blend(red, .2)</button>
             </div>
+            <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
+                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
           </div>
 
           <div id="apercu"></div>
@@ -550,8 +551,13 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
 
         Array.from(document.querySelectorAll('.exemple')).forEach(async e => {
           e.addEventListener('click', () => {
-            champ.value = e.textContent;
-            champ.dispatchEvent(new Event('input'), { bubbles: true });
+            if (e.textContent == '+') {
+              Array.from(document.querySelectorAll('.inst-hidden')).forEach(e => e.classList.toggle('off'));
+            }
+            else {
+              champ.value = e.textContent;
+              champ.dispatchEvent(new Event('input'), { bubbles: true });
+            }
             e.addEventListener('mouseleave', () => e.blur());
           });
         });
