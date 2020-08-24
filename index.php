@@ -237,11 +237,11 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       function textualiser() {
         return traduire('colori')
         .then(() => {
-          champ.dataset.abbr = getString('exemple-abbr');
+          /*champ.dataset.abbr = getString('exemple-abbr');
           champ.placeholder = champ.placeholder.replace(
             new RegExp(`${getString('exemple-abbr', 'fr')}|${getString('exemple-abbr', 'en')}`),
             getString('exemple-abbr')
-          );
+          );*/
           setTimeout(() => Prism.highlightAll());
           return;
         });
@@ -515,7 +515,8 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
         }
         Prism.highlightElement(code);
 
-        champ.placeholder = `${champ.dataset.abbr} ${entree.name || entree.hex}`;
+        //champ.placeholder = `${champ.dataset.abbr} ${entree.name || entree.hex}`;
+        champ.placeholder = entree.name || entree.hex;
 
         document.querySelector('.demo-conteneur').classList.add('calced');
       }
