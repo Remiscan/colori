@@ -577,7 +577,7 @@ label[for=entree] {
   box-shadow: inset 0 0 0 1px var(--link-color);
 }
 input {
-  grid-row: 2;
+  grid-row: auto;
   grid-column: 1 / 3;
   width: 100%;
   height: 100%;
