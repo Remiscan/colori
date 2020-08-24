@@ -126,7 +126,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
             <div class="exemples-saisie exemples-valeurs">
               <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
               <button class="exemple">pink</button>
-              <button class="exemple">#ABCDFF</button>
+              <button class="exemple">#4169E1</button>
               <button class="exemple">rgb(255, 127, 80)</button>
               <button class="exemple" data-label="more-examples" aria-label="<?=$Textes->getString('more-examples')?>">+</button>
             </div>
@@ -134,7 +134,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
             <div class="exemples-saisie exemples-fonctions inst-hidden off">
               <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
               <button class="exemple">pink.invert()</button>
-              <button class="exemple">#ABCDFF.darken(50%)</button>
+              <button class="exemple">#4169E1.darken(50%)</button>
               <button class="exemple">rgb(255, 127, 80).desaturate(50%).blend(red, .2)</button>
               <button class="exemple">aqua.blend(red.blend(white.darken(.8), .8), .5)</button>
             </div>
