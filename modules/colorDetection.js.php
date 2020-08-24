@@ -190,7 +190,7 @@ export function interpreterCouleur(couleur)
 
 ///////////////////////
 // Colors the interface
-export function colorInterface(entree) {
+export function colorInterface(entree, fixContrast = true) {
   document.documentElement.style.setProperty('--user-color', entree.rgb);
   document.documentElement.style.setProperty('--user-hue', Math.round(entree.h * 360));
   document.documentElement.style.setProperty('--user-saturation', Math.round(entree.s * 100) + '%');
@@ -198,10 +198,12 @@ export function colorInterface(entree) {
   // Calcul des couleurs du body et des sections selon le contraste de la couleur d'entrée
   let sectionColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 80%)`);
   let bodyColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 70%)`);
-  while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
-    bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
-    sectionColor = bodyColor.change('l', '80%', true);
-    if (bodyColor.w < 0.05 && bodyColor.bk > 0.95) break;
+  if (fixContrast) {
+    while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
+      bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
+      sectionColor = bodyColor.change('l', '80%', true);
+      if (bodyColor.w < 0.05 && bodyColor.bk > 0.95) break;
+    }
   }
   document.body.style.setProperty('--body-color', bodyColor.hsl);
   document.body.style.setProperty('--section-color', sectionColor.hsl);
@@ -209,9 +211,11 @@ export function colorInterface(entree) {
 
   // Calcul de la couleur des liens
   let linkColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 30%)`);
-  while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
-    linkColor = linkColor.change('bk', '+5%').change('w', '-5%');
-    if (linkColor.w < 0.05 && linkColor.bk > 0.95) break;
+  if (fixContrast) {
+    while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
+      linkColor = linkColor.change('bk', '+5%').change('w', '-5%');
+      if (linkColor.w < 0.05 && linkColor.bk > 0.95) break;
+    }
   }
   document.body.style.setProperty('--link-color', linkColor.hsl);
 
@@ -219,14 +223,18 @@ export function colorInterface(entree) {
   let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
   let _entree = entree.change('a', '1', true);
   let frameColor = Couleur.blend(sectionColor, frameOverlay);
-  while (Couleur.contrast(frameColor, _entree) < 1.2) {
-    frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
-    if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
+  if (fixContrast) {
+    while (Couleur.contrast(frameColor, _entree) < 1.2) {
+      frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
+      if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
+    }
   }
   document.querySelector('.demo-inside').style.setProperty('--frame-color', frameColor.hsl);
-  while (Couleur.contrast(frameColor, _entree) < 1.8) {
-    frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
-    if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
+  if (fixContrast) {
+    while (Couleur.contrast(frameColor, _entree) < 1.8) {
+      frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
+      if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
+    }
   }
   document.querySelector('.demo-inside').style.setProperty('--frame-color-mini', frameColor.hsl);
 
@@ -236,9 +244,11 @@ export function colorInterface(entree) {
   steps.forEach((e, k) => {
     let tokenColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 70%, 60%)');
     tokenColor = tokenColor.change('h', steps[k]);
-    while (Couleur.contrast(tokenColor, frameColor) < 5) {
-      tokenColor = tokenColor.change('bk', '-5%').change('w', '+5%');
-      if (tokenColor.w > 0.95 && tokenColor.bk < 0.05) break;
+    if (fixContrast) {
+      while (Couleur.contrast(tokenColor, frameColor) < 5) {
+        tokenColor = tokenColor.change('bk', '-5%').change('w', '+5%');
+        if (tokenColor.w > 0.95 && tokenColor.bk < 0.05) break;
+      }
     }
     document.body.style.setProperty('--token-' + tokenTypes[k], tokenColor.hsl);
   });
