@@ -128,7 +128,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
               <button class="exemple">pink</button>
               <button class="exemple">#ABCDFF</button>
               <button class="exemple">rgb(255, 127, 80)</button>
-              <button class="exemple">+</button>
+              <button class="exemple" data-label="more-examples" aria-label="<?=$Textes->getString('more-examples')?>">+</button>
             </div>
             <p class="instructions-exemples-fonctions inst-hidden off" data-string="instructions-demo"><?=$Textes->getString('instructions-demo')?></p>
             <div class="exemples-saisie exemples-fonctions inst-hidden off">
@@ -152,7 +152,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
         </div>
 
         <div id="donnees">
-          <div class="format couleur"></div>
+          <div class="format couleur" data-string="apercu-couleur"><?=$Textes->getString('apercu-couleur')?></div>
 
           <div class="format hex">
             <pre class="format-donnee"><code class="language-css"></code></pre>

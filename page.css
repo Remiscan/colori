@@ -715,6 +715,7 @@ pre[class*="language-"].format-donnee {
   background-color: var(--frame-color-mini);
   border-radius: .6rem;
   position: relative;
+  font-size: 0;
 }
 
 .format.couleur::before {
