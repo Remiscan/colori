@@ -136,6 +136,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
               <button class="exemple">pink.invert()</button>
               <button class="exemple">#ABCDFF.darken(50%)</button>
               <button class="exemple">rgb(255, 127, 80).desaturate(50%).blend(red, .2)</button>
+              <button class="exemple">aqua.blend(red.blend(white.darken(.8), .8), .5)</button>
             </div>
             <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
@@ -233,20 +234,19 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
     <script type="module">
       import Couleur from '/colori/colori--<?=version(__DIR__, 'colori.js')?>.js';
       import { traduire, getString, switchLangage, getLangage } from '/_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js';
+      import { makeNav } from '/colori/modules/quickNav--<?=version(__DIR__.'/modules', 'quickNav.js')?>.js';
+      import { updateCouleur, interpreterCouleur, colorInterface, populateColorData } from '/colori/modules/colorDetection--<?=version(__DIR__.'/modules', 'colorDetection.js.php')?>.js.php';
 
+      // Translate the page
       function textualiser() {
         return traduire('colori')
         .then(() => {
-          /*champ.dataset.abbr = getString('exemple-abbr');
-          champ.placeholder = champ.placeholder.replace(
-            new RegExp(`${getString('exemple-abbr', 'fr')}|${getString('exemple-abbr', 'en')}`),
-            getString('exemple-abbr')
-          );*/
           setTimeout(() => Prism.highlightAll());
           return;
         });
       }
 
+      // Detect clicks on translation buttons
       Array.from(document.querySelectorAll('.bouton-langage')).forEach(bouton => {
         bouton.addEventListener('click', () => {
           switchLangage(bouton.dataset.lang)
@@ -254,273 +254,28 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
         });
       });
 
+      // Adapts the page to the initial random color
       let test;
-      let entree;
-      let lastTry;
-
       async function initCouleur() {
         try {
           test = new Couleur('<?=$startColor->name?>');
-          await interpreterCouleur(test.name, 10);
+          await updateCouleur(test.name, 10);
         }
         catch(error) {
           console.error('Erreur (couleur aléatoire)', error);
         }
       }
 
+      // Detects user input in the "type a color" field
       const champ = document.getElementById('entree');
       champ.addEventListener('input', event => {
         let evt = event || window.event;
         document.querySelector('.demo-conteneur').classList.remove('calced');
-        interpreterCouleur(evt.target.value, 50)
+        updateCouleur(evt.target.value, 50)
         .catch(error => {});
       });
 
-      async function interpreterCouleur(couleur, delai = 100, adaptPage = true)
-      {
-        const thisTry = Date.now();
-        lastTry = thisTry;
-
-        await new Promise(resolve => setTimeout(resolve, delai));
-        if (lastTry != thisTry) return;
-
-        // RegExp du séparateur entre arguments : virgule puis espace(s) optionnel(s)
-        const vSep = '\\,(?: +)?';
-        // RegExp des options d'une méthode
-        const vOpt = 'true|false|\\{(?:.+)?\\}';
-        // RegExp des arguments d'une méthode qui prend un nombre ou pourcentage et des options
-        const vNPandOptions = `(${Couleur.vNP})(?:${vSep}(${vOpt}))?`;
-        // RegExp des arguments d'une méthode qui prend un nom de propriété, une valeur (en pourcentage) et des options
-        const vPropNPandOptions = `(${Couleur.vProp})${vSep}(${Couleur.vNP})(?:${vSep}(${vOpt}))?`;
-
-        const acceptedMethods = [
-          {
-            name: 'change',
-            args: new RegExp(vPropNPandOptions)
-          }, {
-            name: 'replace',
-            args: new RegExp(vPropNPandOptions)
-          }, {
-            name: 'scale',
-            args: new RegExp(vPropNPandOptions)
-          }, {
-            name: 'complement',
-            args: null
-          }, {
-            name: 'negative',
-            args: null
-          }, {
-            name: 'invert',
-            args: null
-          }, {
-            name: 'darken',
-            args: new RegExp(vNPandOptions)
-          }, {
-            name: 'lighten',
-            args: new RegExp(vNPandOptions)
-          }, {
-            name: 'desaturate',
-            args: new RegExp(vNPandOptions)
-          }, {
-            name: 'saturate',
-            args: new RegExp(vNPandOptions)
-          }, {
-            name: 'greyscale',
-            args: null
-          }, {
-            name: 'grayscale',
-            args: null
-          }, {
-            name: 'blend',
-            args: new RegExp(`(.+)`)
-          }
-        ];
-
-        let done = false;
-        let value = couleur;
-        let methods = [];
-        const methodsRegex = acceptedMethods.map(method => method.name).join('|');
-        const regex = new RegExp(`(.+)\\.(${methodsRegex})\\((.+)?\\)$`);
-
-        while (true) {
-          let nextMethod = null;
-          
-          // On vérifie si la valeur de l'input vérifie couleur.methode()
-          const match = value.match(regex);
-
-          if (match !== null) {
-            const method = acceptedMethods[acceptedMethods.findIndex(method => method.name == match[2])];
-            let args = Array.from((match[3] || '').match(method.args) || []).slice(1);
-
-            // Si la méthode prend une couleur en argument, vérifier que l'argument en est bien une
-            if (['blend', 'contrast'].includes(method.name)) {
-              if (args.length == 1) {
-                const match = args[0].match(new RegExp(`${vSep}(${Couleur.vNP})$`));
-                if (match !== null) {
-                  args = [
-                    args[0].replace(match[0], ''),
-                    match[1]
-                  ];
-                }
-                try {
-                  const coulArg = new Couleur(args[0]);
-                }
-                catch(error) {
-                  break;
-                }
-              }
-            }
-
-            nextMethod = {
-              name: method.name,
-              args: args
-            };
-            value = match[1];
-          }
-
-          // Si la valeur de l'input ne vérifie couleur.methode() pour aucune methode de acceptedMethods,
-          // on passe à l'étape suivante (vérifier si la valeur de l'input est une expression valide de couleur)
-          if (nextMethod == null)
-            break;
-          else
-            methods.push(nextMethod);
-        }
-
-        // Si la valeur restante de l'input est une expression valide de couleur, on pourra continuer.
-        // Sinon, la valeur est invalide.
-        try {
-          entree = new Couleur(value);
-
-          methods.reverse();
-          let coul = entree;
-          for (const method of methods) {
-            try {
-              coul = Couleur.prototype[method.name].call(coul, ...method.args.map(arg => arg === 'true' ? true : arg === 'false' ? false : arg));
-            } catch(error) { console.error(error); }
-          }
-
-          entree = coul;
-
-          // On colore l'interface selon la couleur obtenue
-          try {
-            if (adaptPage) colorInterface(entree);
-
-            // Peuplage des données de la couleur dans la démo
-            populateColorData(entree);
-          }
-          catch(error) {
-            console.error(error);
-          }
-        }
-        catch(error) {
-          // La valeur de l'input est invalide, ne rien faire.
-        }
-      }
-
-      function colorInterface(entree) {
-        document.documentElement.style.setProperty('--user-color', entree.rgb);
-        document.documentElement.style.setProperty('--user-hue', Math.round(entree.h * 360));
-        document.documentElement.style.setProperty('--user-saturation', Math.round(entree.s * 100) + '%');
-
-        // Calcul des couleurs du body et des sections selon le contraste de la couleur d'entrée
-        let sectionColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 80%)`);
-        let bodyColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 70%)`);
-        while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
-          bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
-          sectionColor = bodyColor.change('l', '80%', true);
-          if (bodyColor.w < 0.05 && bodyColor.bk > 0.95) break;
-        }
-        document.body.style.setProperty('--body-color', bodyColor.hsl);
-        document.body.style.setProperty('--section-color', sectionColor.hsl);
-        document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
-
-        // Calcul de la couleur des liens
-        let linkColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 30%)`);
-        while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
-          linkColor = linkColor.change('bk', '+5%').change('w', '-5%');
-          if (linkColor.w < 0.05 && linkColor.bk > 0.95) break;
-        }
-        document.body.style.setProperty('--link-color', linkColor.hsl);
-
-        // Calcul de la couleur du fond de la démo
-        let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
-        let _entree = entree.change('a', '1', true);
-        let frameColor = Couleur.blend(sectionColor, frameOverlay);
-        while (Couleur.contrast(frameColor, _entree) < 1.2) {
-          frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
-          if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
-        }
-        document.querySelector('.demo-inside').style.setProperty('--frame-color', frameColor.hsl);
-        while (Couleur.contrast(frameColor, _entree) < 1.8) {
-          frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
-          if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
-        }
-        document.querySelector('.demo-inside').style.setProperty('--frame-color-mini', frameColor.hsl);
-
-        // Calcul de la coloration syntaxique selon le contraste
-        const steps = ['-90', '+45', '-45', '+135'];
-        const tokenTypes = ['number', 'string', 'operator', 'keyword'];
-        steps.forEach((e, k) => {
-          let tokenColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 70%, 60%)');
-          tokenColor = tokenColor.change('h', steps[k]);
-          while (Couleur.contrast(tokenColor, frameColor) < 5) {
-            tokenColor = tokenColor.change('bk', '-5%').change('w', '+5%');
-            if (tokenColor.w > 0.95 && tokenColor.bk < 0.05) break;
-          }
-          document.body.style.setProperty('--token-' + tokenTypes[k], tokenColor.hsl);
-        });
-      }
-
-      function populateColorData(entree) {
-        const objet = document.querySelector('#objet>pre>code');
-        objet.innerHTML = JSON.stringify(entree, null, 2);
-        Prism.highlightElement(objet);
-
-        let code;
-
-        code = document.querySelector('.hex>.format-donnee>code');
-        code.innerHTML = entree.hex;
-        Prism.highlightElement(code);
-
-        code = document.querySelector('.rgb>.format-donnee>code');
-        code.innerHTML = entree.rgb;
-        Prism.highlightElement(code);
-
-        code = document.querySelector('.hsl>.format-donnee>code');
-        code.innerHTML = entree.hsl;
-        Prism.highlightElement(code);
-
-        code = document.querySelector('.hwb>.format-donnee>code');
-        code.innerHTML = entree.hwb;
-        Prism.highlightElement(code);
-
-        code = document.querySelector('.lab>.format-donnee>code');
-        code.innerHTML = entree.lab;
-        Prism.highlightElement(code);
-
-        code = document.querySelector('.lch>.format-donnee>code');
-        code.innerHTML = entree.lch;
-        Prism.highlightElement(code);
-
-        code = document.querySelector('.name>.format-donnee>code');
-        if (entree.name == null)
-        {
-          document.querySelector('.name').classList.remove('oui');
-          code.innerHTML = '';
-        }
-        else
-        {
-          document.querySelector('.name').classList.add('oui');
-          code.innerHTML = entree.name;
-        }
-        Prism.highlightElement(code);
-
-        //champ.placeholder = `${champ.dataset.abbr} ${entree.name || entree.hex}`;
-        champ.placeholder = entree.name || entree.hex;
-
-        document.querySelector('.demo-conteneur').classList.add('calced');
-      }
-
+      // On page load
       window.addEventListener('DOMContentLoaded', async () => {
         await initCouleur();
         await textualiser();
@@ -570,53 +325,6 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
 
         document.documentElement.classList.add('loaded');
       });
-
-      function makeNav(language = 'js') {
-        // Get nav listing
-        const anchors = Array.from(document.querySelectorAll(`#documentation-${language} h2, #documentation-${language} p.h3`));
-        const getAnchorUrl = a => a.textContent.toLowerCase()
-                                   .replace(/\ \/\ /g, '--')
-                                   .replace(/\ |\,\ /g, '-');
-
-        // Reset nav link destinations
-        const anchorDests = Array.from(document.querySelectorAll('.anchor-dest'));
-        anchorDests.forEach(a => a.remove());
-
-        // Create nav links
-        let navHtml = '<ul>';
-        let previousDepth = 0;
-        let depth = 0;
-        for (const a of anchors) {
-          depth = (a.tagName == 'H2') ? 0 : 1;
-          if (depth > previousDepth) navHtml += '\n<ul>';
-          else if (depth < previousDepth) navHtml += '\n</ul>';
-          navHtml += `\n<li><a href="#${getAnchorUrl(a)}">${a.textContent}</a></li>`;
-          previousDepth = depth;
-
-          a.outerHTML = `<a id="${getAnchorUrl(a)}" class="anchor-dest"></a>\n${a.outerHTML}`;
-        }
-        while (depth >= 0) {
-          navHtml += '\n</ul>';
-          depth--;
-        }
-
-        // Populate links on page
-        const buttonHtml = `
-          <input type="checkbox" id="enable-nav">
-          <label for="enable-nav"><svg height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" style="fill: var(--h1-color);"/></svg></label>
-        `;
-        const aside = document.querySelector('aside.nav-documentation');
-        aside.innerHTML = navHtml + buttonHtml;
-
-        // Enable nav button for mobile
-        const navButton = document.querySelector('input#enable-nav');
-        navButton.addEventListener('change', () => {
-          if (navButton.checked) aside.classList.add('on');
-          else aside.classList.remove('on');
-        });
-
-        return navHtml;
-      }
     </script>
   </body>
 </html>
