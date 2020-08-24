@@ -788,6 +788,21 @@ pre[class*="language-"].format-donnee {
   }
 }
 
+@media (max-width: 30rem) {
+  #saisie {
+    grid-template-columns: 1fr;
+  }
+
+  label[for=entree] {
+    grid-column: 1;
+  }
+
+  .exemples-valeurs {
+    grid-row: auto;
+    grid-column: 1;
+  }
+}
+
 
 
 
