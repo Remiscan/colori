@@ -738,7 +738,7 @@ pre[class*="language-"].format-donnee {
   background-size: 16px 16px;
   background-position: 0 0, 8px 8px;
   background-color: #ddd;
-  border-radius: .5rem;
+  border-radius: .49rem;
   position: absolute;
 }
 
