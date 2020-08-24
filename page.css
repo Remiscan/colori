@@ -890,9 +890,54 @@ aside a {
   text-decoration: none;
 }
 
+.nav-documentation > input[type=checkbox] {
+  height: 0;
+  width: 0;
+  margin: 0;
+  visibility: hidden;
+  position: absolute;
+}
+
+.nav-documentation > input[type=checkbox] + label {
+  display: none;
+  place-items: center start;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
 @media (max-width: calc(.6rem + 20rem + .6rem + 42rem + .6rem + 20rem + .6rem + 2.4rem)) {
   aside.nav-documentation {
     display: none;
+    grid-row: 3;
+    grid-column: 2;
+    align-self: end;
+    justify-self: start;
+    padding: .3rem;
+    width: 24px;
+    height: 24px;
+    z-index: 4;
+    top: unset;
+    bottom: .45rem;
+    background-color: var(--body-color);
+    margin-left: .45rem;
+    margin-bottom: .45rem;
+  }
+
+  aside.nav-documentation.on {
+    width: auto;
+    height: auto;
+  }
+
+  .nav-documentation ul {
+    display: none;
+  }
+  .nav-documentation.on ul {
+    display: block;
+  }
+
+  .nav-documentation > input[type=checkbox] + label {
+    display: grid;
   }
 }
 
