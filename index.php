@@ -13,11 +13,20 @@ $r = mt_rand(0, count($namedColors) - 1);
 $startColor = new Couleur($namedColors[$r]);
 
 // Adapte l'interface (en attendant que JavaScript s'en charge)
-$sectionColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 80%)');
-$bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 70%)');
-while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
-  $bodyColor = $bodyColor->change('bk', '+5%')->change('w', '-5%');
-  $sectionColor = $bodyColor->change('l', '80%', true);
+if ($_COOKIE['resolvedTheme'] === 'dark') {
+  $sectionColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . 0.2 * round($startColor->s * 100) . '%, 20%)');
+  $bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . 0.2 * round($startColor->s * 100) . '%, 10%)');
+  while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
+    $bodyColorDark = $bodyColor->change('bk', '+5%')->change('w', '-5%');
+    $sectionColorDark = $bodyColor->change('l', '20%', true);
+  }
+} else {
+  $sectionColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 80%)');
+  $bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 70%)');
+  while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
+    $bodyColor = $bodyColor->change('bk', '+5%')->change('w', '-5%');
+    $sectionColor = $bodyColor->change('l', '80%', true);
+  }
 }
 ?>
 <!doctype html>
@@ -49,9 +58,18 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
     <link rel="preload" as="fetch" href="/colori/strings--<?=version(__DIR__, 'strings.json')?>.json" crossorigin
           id="strings" data-version="<?=version(__DIR__, 'strings.json')?>">
     <link rel="modulepreload" href="/_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js">
+    <link rel="modulepreload" href="/colori/modules/themeSelector--<?=version(__DIR__.'/modules', 'themeSelector.js.php')?>.js.php">
+    <link rel="modulepreload" href="/colori/modules/colorDetection--<?=version(__DIR__.'/modules', 'colorDetection.js.php')?>.js.php">
+    <link rel="modulepreload" href="/colori/modules/quickNav--<?=version(__DIR__.'/modules', 'quickNav.js')?>.js">
+    <link rel="modulepreload" href="/colori/modules/cookies--<?=version(__DIR__.'/modules', 'cookies.js')?>.js">
 
     <link rel="stylesheet" href="/colori/ext/prism--<?=version(__DIR__.'/ext', 'prism.css')?>.css">
     <link rel="stylesheet" href="/colori/page--<?=version(__DIR__, 'page.css')?>.css">
+
+    <script type="module">
+      import Theme from '/colori/modules/themeSelector--<?=version(__DIR__.'/modules', 'themeSelector.js.php')?>.js.php';
+      Theme.set();
+    </script>
 
     <style>
       .loading {
@@ -104,6 +122,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       <div class="groupe-langages">
         <button class="bouton-langage" data-lang="fr">Français</button>
         <button class="bouton-langage" data-lang="en" disabled>English</button>
+        <theme-selector></theme-selector>
       </div>
 
       <a href="https://github.com/Remiscan/colori" target="_blank" rel="noopener" class="lien-github"
@@ -111,8 +130,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
         <span data-string="github"><?=$Textes->getString('github')?></span>
         <span class="space">&nbsp;</span>
         <i class="github-logo"><svg viewBox="0 0 45 16"><use href="#github-logo" /></svg></i>
-        <!--<span class="space">&nbsp;</span>
-        <i class="github-cat"><svg viewBox="0 0 16 16"><use href="#github-cat" /></svg></i>-->
+        <i class="github-cat"><svg viewBox="0 0 16 16"><use href="#github-cat" /></svg></i>
       </a>
     </header>
 
@@ -244,6 +262,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
         return traduire('colori')
         .then(() => {
           document.querySelector('.nav-documentation').dataset.titre = getString('nav-documentation');
+          document.querySelector('theme-selector').dataset.tolabel = getString('change-theme');
           makeNav(langSwitch.dataset.currentTab);
           setTimeout(() => Prism.highlightAll());
           return;
@@ -283,7 +302,10 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       const apercu = document.querySelector('.format.couleur');
       apercu.addEventListener('click', () => {
         document.querySelector('.demo-conteneur').classList.toggle('details');
-      })
+      });
+
+      // On theme change
+      window.addEventListener('themechange', () => colorInterface());
 
       // On page load
       window.addEventListener('DOMContentLoaded', async () => {
@@ -306,7 +328,6 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
             localStorage.setItem('colori/lang-php', langSwitch.dataset.currentTab == 'php');
             makeNav(langSwitch.dataset.currentTab);
           }, 20);
-          langSwitch.addEventListener('mouseout', () => langSwitch.blur());
         });
 
         Array.from(document.querySelectorAll('#documentation-php code.language-javascript')).forEach(e => {
@@ -322,7 +343,6 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
               champ.value = e.textContent;
               champ.dispatchEvent(new Event('input'), { bubbles: true });
             }
-            e.addEventListener('mouseleave', () => e.blur());
           });
         });
 

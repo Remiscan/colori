@@ -2,6 +2,7 @@
   "fr": {
     "description-site": "Module JS pour manipuler les couleurs (aussi disponible en PHP)",
     "github": "Voir sur",
+    "change-theme": "Changer le thème (auto, sombre ou clair)",
     "titre-section-demo": "Démo",
     "demo-input-label": "Saisissez une couleur",
     "exemple-abbr": "ex. :",
@@ -75,6 +76,7 @@
   "en": {
     "description-site": "JS module to manipulate colours (also available in PHP)",
     "github": "View on",
+    "change-theme": "Change theme (auto, dark or light)",
     "titre-section-demo": "Demo",
     "demo-input-label": "Type a color",
     "exemple-abbr": "e.g.:",

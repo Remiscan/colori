@@ -2,6 +2,7 @@
 /*<?php ob_start();?>*/
 
 import Couleur from '../colori.js';
+import Theme from './themeSelector.js.php';
 
 /*<?php $imports = ob_get_clean();
 require_once dirname(__DIR__, 2).'/_common/php/versionize-js-imports.php';
@@ -190,19 +191,34 @@ export function interpreterCouleur(couleur)
 
 ///////////////////////
 // Colors the interface
-export function colorInterface(entree, fixContrast = true) {
-  document.documentElement.style.setProperty('--user-color', entree.rgb);
-  document.documentElement.style.setProperty('--user-hue', Math.round(entree.h * 360));
-  document.documentElement.style.setProperty('--user-saturation', Math.round(entree.s * 100) + '%');
+export function colorInterface(couleur = entree, fixContrast = true) {
+  document.documentElement.style.setProperty('--user-color', couleur.rgb);
+  document.documentElement.style.setProperty('--user-hue', Math.round(couleur.h * 360));
+  document.documentElement.style.setProperty('--user-saturation', Math.round(couleur.s * 100) + '%');
+
+  const theme = Theme.active;
 
   // Calcul des couleurs du body et des sections selon le contraste de la couleur d'entrée
-  let sectionColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 80%)`);
-  let bodyColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 70%)`);
-  if (fixContrast) {
-    while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
-      bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
-      sectionColor = bodyColor.change('l', '80%', true);
-      if (bodyColor.w < 0.05 && bodyColor.bk > 0.95) break;
+  let bodyColor, sectionColor;
+  if (theme == 'light') {
+    sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 80%)`);
+    bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 70%)`);
+    if (fixContrast) {
+      while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
+        bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
+        sectionColor = bodyColor.change('l', '80%', true);
+        if (bodyColor.w < 0.05 && bodyColor.bk > 0.95) break;
+      }
+    }
+  } else if (theme == 'dark') {
+    sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 20%)`);
+    bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 10%)`);
+    if (fixContrast) {
+      while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
+        bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
+        sectionColor = bodyColor.change('l', '20%', true);
+        if (bodyColor.w < 0.05 && bodyColor.bk > 0.95) break;
+      }
     }
   }
   document.body.style.setProperty('--body-color', bodyColor.hsl);
@@ -210,40 +226,53 @@ export function colorInterface(entree, fixContrast = true) {
   document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
 
   // Calcul de la couleur des liens
-  let linkColor = new Couleur(`hsl(${Math.round(entree.h * 360)}, ${Math.round(entree.s * 100)}%, 30%)`);
-  if (fixContrast) {
-    while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
-      linkColor = linkColor.change('bk', '+5%').change('w', '-5%');
-      if (linkColor.w < 0.05 && linkColor.bk > 0.95) break;
+  let linkColor;
+  if (theme == 'light') {
+    linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 30%)`);
+    if (fixContrast) {
+      while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
+        linkColor = linkColor.change('bk', '+5%').change('w', '-5%');
+        if (linkColor.w < 0.05 && linkColor.bk > 0.95) break;
+      }
+    }
+  } else if (theme == 'dark') {
+    linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.6 * Math.round(couleur.s * 100)}%, 80%)`);
+    if (fixContrast) {
+      while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
+        linkColor = linkColor.change('w', '+5%').change('bk', '-5%');
+        if (linkColor.bk < 0.05 && linkColor.w > 0.95) break;
+      }
     }
   }
   document.body.style.setProperty('--link-color', linkColor.hsl);
 
   // Calcul de la couleur du fond de la démo
   let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
-  let _entree = entree.change('a', '1', true);
+  let _couleur = couleur.change('a', '1', true);
   let frameColor = Couleur.blend(sectionColor, frameOverlay);
   if (fixContrast) {
-    while (Couleur.contrast(frameColor, _entree) < 1.2) {
+    while (Couleur.contrast(frameColor, _couleur) < 1.2) {
       frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
       if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
     }
   }
-  document.querySelector('.demo-inside').style.setProperty('--frame-color', frameColor.hsl);
+
   let miniFrameColor = frameColor;
   if (fixContrast) {
-    while (Couleur.contrast(miniFrameColor, _entree) < 1.8) {
+    while (Couleur.contrast(miniFrameColor, _couleur) < 1.8) {
       miniFrameColor = miniFrameColor.change('bk', '-5%').change('w', '+5%');
       if (miniFrameColor.w > 0.95 && miniFrameColor.bk < 0.05) break;
     }
   }
+
+  document.querySelector('.demo-inside').style.setProperty('--frame-color', frameColor.hsl);
   document.querySelector('.demo-inside').style.setProperty('--frame-color-mini', miniFrameColor.hsl);
 
   // Calcul de la coloration syntaxique selon le contraste
   const steps = ['-90', '+45', '-45', '+135'];
   const tokenTypes = ['number', 'string', 'operator', 'keyword'];
   steps.forEach((e, k) => {
-    let tokenColor = new Couleur('hsl(' + Math.round(entree.h * 360) + ', 70%, 60%)');
+    let tokenColor = new Couleur('hsl(' + Math.round(couleur.h * 360) + ', 70%, 60%)');
     tokenColor = tokenColor.change('h', steps[k]);
     if (fixContrast) {
       while (Couleur.contrast(tokenColor, frameColor) < 5) {
@@ -259,39 +288,39 @@ export function colorInterface(entree, fixContrast = true) {
 
 //////////////////////////////////////////////////////
 // Adds data about the selected color to the interface
-export function populateColorData(entree) {
+export function populateColorData(couleur) {
   const objet = document.querySelector('#objet>pre>code');
-  objet.innerHTML = JSON.stringify(entree, null, 2);
+  objet.innerHTML = JSON.stringify(couleur, null, 2);
   Prism.highlightElement(objet);
 
   let code;
 
   code = document.querySelector('.hex>.format-donnee>code');
-  code.innerHTML = entree.hex;
+  code.innerHTML = couleur.hex;
   Prism.highlightElement(code);
 
   code = document.querySelector('.rgb>.format-donnee>code');
-  code.innerHTML = entree.rgb;
+  code.innerHTML = couleur.rgb;
   Prism.highlightElement(code);
 
   code = document.querySelector('.hsl>.format-donnee>code');
-  code.innerHTML = entree.hsl;
+  code.innerHTML = couleur.hsl;
   Prism.highlightElement(code);
 
   code = document.querySelector('.hwb>.format-donnee>code');
-  code.innerHTML = entree.hwb;
+  code.innerHTML = couleur.hwb;
   Prism.highlightElement(code);
 
   code = document.querySelector('.lab>.format-donnee>code');
-  code.innerHTML = entree.lab;
+  code.innerHTML = couleur.lab;
   Prism.highlightElement(code);
 
   code = document.querySelector('.lch>.format-donnee>code');
-  code.innerHTML = entree.lch;
+  code.innerHTML = couleur.lch;
   Prism.highlightElement(code);
 
   code = document.querySelector('.name>.format-donnee>code');
-  if (entree.name == null)
+  if (couleur.name == null)
   {
     document.querySelector('.name').classList.remove('oui');
     code.innerHTML = '';
@@ -299,12 +328,12 @@ export function populateColorData(entree) {
   else
   {
     document.querySelector('.name').classList.add('oui');
-    code.innerHTML = entree.name;
+    code.innerHTML = couleur.name;
   }
   Prism.highlightElement(code);
 
   const champ = document.getElementById('entree');
-  champ.placeholder = entree.name || entree.hex;
+  champ.placeholder = couleur.name || couleur.hex;
 
   document.querySelector('.demo-conteneur').classList.add('calced');
 }

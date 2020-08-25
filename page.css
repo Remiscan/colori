@@ -78,7 +78,6 @@ a:focus:not(:hover) {
  */
 html {
   width: 100%;
-  color: var(--text-color);
   overflow-x: hidden;
   overflow-y: hidden;
   --easing-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -100,12 +99,51 @@ body { /* Desktop-like */
   margin: 0;
   padding: 0;
   background-color: var(--body-color);
+  color: var(--text-color);
+  /* --- THEME COLORS --- */
+  /* Background colors */
   --body-color: hsl(var(--user-hue), var(--user-saturation), 70%);
   --section-color: hsl(var(--user-hue), var(--user-saturation), 80%);
+  --frame-color: rgba(0, 0, 0, .8);
+  /* Text colors */
   --h1-color: hsl(var(--user-hue), var(--user-saturation), 20%);
   --h3-color: hsl(var(--user-hue), var(--user-saturation), 30%);
-  --text-color: hsl(var(--user-hue), calc(0.5 * var(--user-saturation)), 20%);
+  --text-color: hsl(var(--user-hue), calc(0.5 * var(--user-saturation)), 0%);
   --link-color: hsl(calc(var(--user-hue) + 180), var(--user-saturation), 30%);
+  --text-strong-color: hsl(var(--user-hue), var(--user-saturation), 20%);
+  /* Input colors */
+  --input-bg-color: hsl(var(--user-hue), var(--user-saturation), 92%);
+  --input-active-bg-color: hsl(var(--user-hue), var(--user-saturation), 98%);
+  --input-placeholder-color: hsl(var(--user-hue), calc(0.5 * var(--user-saturation)), 20%, .5);
+  --input-hover-border-color: hsl(var(--user-hue), var(--user-saturation), 30%, .5);
+  /* Button colors */
+  --button-bg-color: rgba(255, 255, 255, .2);
+  --button-border-color: rgba(255, 255, 255, .5);
+  --button-hover-bg-color: rgba(255, 255, 255, .4);
+  --button-hover-border-color: white;
+}
+
+html.dark>body {
+  /* Background colors */
+  --body-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 10%);
+  --section-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 20%);
+  --frame-color: rgba(0, 0, 0, .8);
+  /* Text colors */
+  --h1-color: hsl(var(--user-hue), calc(.3 * var(--user-saturation)), 80%);
+  --h3-color: hsl(var(--user-hue), calc(.4 * var(--user-saturation)), 70%);
+  --text-color: hsl(var(--user-hue), calc(.1 * var(--user-saturation)), 90%);
+  --link-color: hsl(var(--user-hue), calc(.6 * var(--user-saturation)), 80%);
+  --text-strong-color: hsl(var(--user-hue), calc(.5 * var(--user-saturation)), 80%);
+  /* Input colors */
+  --input-bg-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 32%);
+  --input-active-bg-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 10%);
+  --input-placeholder-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 90%, .5);
+  --input-hover-border-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 0%);
+  /* Button colors */
+  --button-bg-color: rgba(255, 255, 255, .1);
+  --button-border-color: rgba(255, 255, 255, .3);
+  --button-hover-bg-color: rgba(255, 255, 255, .2);
+  --button-hover-border-color: rgba(255, 255, 255, .5);
 }
 
 @media screen/*(max-width: 100rem)*/ { /* Narrow desktop-like */
@@ -219,6 +257,24 @@ header>h1 {
   font-size: calc(1.2 * var(--mod) * var(--mod) * 1rem);
 }
 
+theme-selector {
+  display: block;
+  width: 1.8em;
+  height: 1.8em;
+  margin: .3rem;
+}
+
+theme-selector>button {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  cursor: pointer;
+}
+
 .groupe-langages {
   grid-column: 2 / 3;
   grid-row: 1 / 2;
@@ -303,8 +359,9 @@ span[data-string=github] {
 }
 
 .github-cat {
-  width: 2rem;
-  height: 2rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  display: none;
 }
 
 @media (max-width: 30rem) {
@@ -313,13 +370,21 @@ span[data-string=github] {
   }
 
   span[data-string=github],
-  .github-cat,
   .space {
     display: none;
   }
 
   .groupe-langages {
     justify-self: center;
+  }
+}
+
+@media (max-width: 24rem) {
+  .github-logo {
+    display: none;
+  }
+  .github-cat {
+    display: block;
   }
 }
 
@@ -560,18 +625,19 @@ label[for=entree] {
   appearance: none;
   font-family: inherit;
   font-size: .9rem;
+  color: inherit;
   line-height: inherit;
   margin: 0;
   padding: .2em .6em;
-  border: 1px solid rgba(255, 255, 255, .5);
+  border: 1px solid var(--button-border-color);
   border-radius: 4px;
-  background: rgba(255, 255, 255, .2);
+  background: var(--button-bg-color);
   cursor: pointer;
   white-space: nowrap;
 }
 .exemple:hover {
-  border-color: white;
-  background: rgba(255, 255, 255, .4);
+  border-color: var(--button-hover-border-color);
+  background: var(--button-hover-bg-color);
 }
 .exemple:focus:not(:hover) {
   outline: none;
@@ -590,22 +656,22 @@ input {
   font-family: 'Open Sans';
   color: var(--text-color);
   transition: color .3s ease;
-  background-color: hsl(var(--user-hue), var(--user-saturation), 92%);
+  background-color: var(--input-bg-color);
   border-radius: .6rem;
   box-shadow: 0 0 0 1px var(--body-color);
 }
 
 input:hover {
-  box-shadow: 0 0 0 1px hsl(var(--user-hue), var(--user-saturation), 30%, .5);
+  box-shadow: 0 0 0 1px var(--input-hover-border-color);
 }
 
 input:active, input:focus {
-  background-color: hsl(var(--user-hue), var(--user-saturation), 98%);
+  background-color: var(--input-active-bg-color);
   box-shadow: 0 0 0 2px var(--h3-color);
 }
 
 ::placeholder {
-  color: hsl(var(--user-hue), calc(0.5 * var(--user-saturation)), 20%, .5);
+  color: var(--input-placeholder-color);
 }
 
 
@@ -931,7 +997,7 @@ a:active {
 }
 
 strong, em {
-  color: hsl(var(--user-hue), var(--user-saturation), 20%);
+  color: var(--text-strong-color);
   font-weight: 600;
 }
 
