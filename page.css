@@ -837,6 +837,7 @@ h1[data-string=titre-section-documentation] {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  padding-right: .5em;
 }
 
 p {
