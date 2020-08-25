@@ -527,6 +527,7 @@ footer {
 label[for=entree] {
   grid-row: 1;
   grid-column: 1;
+  width: fit-content;
 }
 .exemples-saisie {
   display: flex;
