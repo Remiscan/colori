@@ -832,6 +832,13 @@ pre[class*="language-"].format-donnee {
  * Espacement des paragraphes
  */
 
+h1[data-string=titre-section-documentation] {
+  max-width: calc(100vw - 2 * .6rem - 1.2rem - .7rem - 4rem - 1.2rem);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 p {
   margin: 0 0 1em 0;
 }
