@@ -230,13 +230,14 @@ export function colorInterface(entree, fixContrast = true) {
     }
   }
   document.querySelector('.demo-inside').style.setProperty('--frame-color', frameColor.hsl);
+  let miniFrameColor = frameColor;
   if (fixContrast) {
-    while (Couleur.contrast(frameColor, _entree) < 1.8) {
-      frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
-      if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
+    while (Couleur.contrast(miniFrameColor, _entree) < 1.8) {
+      miniFrameColor = miniFrameColor.change('bk', '-5%').change('w', '+5%');
+      if (miniFrameColor.w > 0.95 && miniFrameColor.bk < 0.05) break;
     }
   }
-  document.querySelector('.demo-inside').style.setProperty('--frame-color-mini', frameColor.hsl);
+  document.querySelector('.demo-inside').style.setProperty('--frame-color-mini', miniFrameColor.hsl);
 
   // Calcul de la coloration syntaxique selon le contraste
   const steps = ['-90', '+45', '-45', '+135'];
