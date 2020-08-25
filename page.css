@@ -710,6 +710,10 @@ input:active, input:focus {
   margin-left: .6rem;
 }
 
+pre[class*="language-"] {
+  padding: .4em .5em;
+}
+
 pre[class*="language-"].format-donnee {
   margin: 0;
 }
