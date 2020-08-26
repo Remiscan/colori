@@ -311,7 +311,7 @@ class Couleur
     if ($couleur instanceof self)
       throw new Exception('Already an instance of ' . __CLASS__);
     else if (!is_string($couleur))
-      throw __CLASS__ . ' objects can only be created from a String';
+      throw new Exception(__CLASS__ . ' objects can only be created from a String');
 
     $format = self::matchSyntax(trim($couleur));
 
