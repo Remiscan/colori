@@ -39,10 +39,10 @@ export default class Couleur {
       }
       else
         a = 'ff';
-      this.r = parseInt(r, 16) / 255;
-      this.g = parseInt(g, 16) / 255;
-      this.b = parseInt(b, 16) / 255;
-      this.a = parseInt(a, 16) / 255;
+      this.r = Couleur.pRound(parseInt(r, 16) / 255);
+      this.g = Couleur.pRound(parseInt(g, 16) / 255);
+      this.b = Couleur.pRound(parseInt(b, 16) / 255);
+      this.a = Couleur.pRound(parseInt(a, 16) / 255);
       this.rgb2hsl();
       this.hsl2hwb();
       this.rgb2lab();
@@ -58,10 +58,10 @@ export default class Couleur {
         a = Couleur.parse(format.data[4], 'alpha');
       else
         a = 1;
-      this.r = r;
-      this.g = g;
-      this.b = b;
-      this.a = a;
+      this.r = Couleur.pRound(r);
+      this.g = Couleur.pRound(g);
+      this.b = Couleur.pRound(b);
+      this.a = Couleur.pRound(a);
       this.rgb2hsl();
       this.hsl2hwb();
       this.rgb2lab();
@@ -77,10 +77,10 @@ export default class Couleur {
         a = Couleur.parse(format.data[4], 'alpha');
       else
         a = 1;
-      this.h = h;
-      this.s = s;
-      this.l = l;
-      this.a = a;
+      this.h = Couleur.pRound(h);
+      this.s = Couleur.pRound(s);
+      this.l = Couleur.pRound(l);
+      this.a = Couleur.pRound(a);
       this.hsl2rgb();
       this.hsl2hwb();
       this.rgb2lab();
@@ -96,10 +96,10 @@ export default class Couleur {
         a = Couleur.parse(format.data[4], 'alpha');
       else
         a = 1;
-      this.h = h;
-      this.w = w;
-      this.bk = bk;
-      this.a = a;
+      this.h = Couleur.pRound(h);
+      this.w = Couleur.pRound(w);
+      this.bk = Couleur.pRound(bk);
+      this.a = Couleur.pRound(a);
       this.hwb2hsl();
       this.hsl2rgb();
       this.rgb2lab();
@@ -115,10 +115,10 @@ export default class Couleur {
         a = Couleur.parse(format.data[4], 'alpha');
       else
         a = 1;
-      this.ciel = ciel;
-      this.ciea = ciea;
-      this.cieb = cieb;
-      this.a = a;
+      this.ciel = Couleur.pRound(ciel);
+      this.ciea = Couleur.pRound(ciea);
+      this.cieb = Couleur.pRound(cieb);
+      this.a = Couleur.pRound(a);
       this.lab2lch();
       this.lab2rgb();
       this.rgb2hsl();
@@ -134,10 +134,10 @@ export default class Couleur {
         a = Couleur.parse(format.data[4], 'alpha');
       else
         a = 1;
-      this.ciel = ciel;
-      this.ciec = ciec;
-      this.cieh = cieh;
-      this.a = a;
+      this.ciel = Couleur.pRound(ciel);
+      this.ciec = Couleur.pRound(ciec);
+      this.cieh = Couleur.pRound(cieh);
+      this.a = Couleur.pRound(a);
       this.lch2lab();
       this.lab2rgb();
       this.rgb2hsl();
@@ -330,6 +330,15 @@ export default class Couleur {
     return (s.length < 2) ? `0${s}` : s;
   }
 
+  // Renvoie un float avec une précision de n chiffres
+  static pRound(_x, n = 5) {
+    let x = (typeof _x == 'number') ? _x : Number(_x);
+    return Number(parseFloat(x.toPrecision(n)));
+    /*const intDigits = (x !== 0) ? Math.floor(Math.log10(x > 0 ? x : -1 * x) + 1) : 1;
+    const precision = Math.round(n - intDigits);
+    return Math.round(Math.pow(10, precision) * x) / Math.pow(10, precision);*/
+  }
+
   get hexa() {
     const r = Couleur.pad(Math.round(this.r * 255).toString(16));
     const g = Couleur.pad(Math.round(this.g * 255).toString(16));
@@ -486,9 +495,9 @@ export default class Couleur {
     else
       s = chroma / (2 - 2 * l);
 
-    this.h = h / 360;
-    this.s = s;
-    this.l = l;
+    this.h = Couleur.pRound(h / 360);
+    this.s = Couleur.pRound(s);
+    this.l = Couleur.pRound(l);
   }
 
   hsl2rgb() {
@@ -506,9 +515,9 @@ export default class Couleur {
     g = f(8);
     b = f(4);
 
-    this.r = r;
-    this.g = g;
-    this.b = b;
+    this.r = Couleur.pRound(r);
+    this.g = Couleur.pRound(g);
+    this.b = Couleur.pRound(b);
   }
 
   hsl2hwb() {
@@ -527,8 +536,8 @@ export default class Couleur {
     w = (1 - _s) * v;
     bk = 1 - v;
 
-    this.w = w;
-    this.bk = bk;
+    this.w = Couleur.pRound(w);
+    this.bk = Couleur.pRound(bk);
   }
 
   hwb2hsl() {
@@ -556,8 +565,8 @@ export default class Couleur {
     else
       s = (v - l) / Math.min(l, 1 - l);
 
-    this.s = s;
-    this.l = l;
+    this.s = Couleur.pRound(s);
+    this.l = Couleur.pRound(l);
   }
 
   rgb2lab() {
@@ -585,9 +594,14 @@ export default class Couleur {
 
     const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
 
-    this.ciel = (116 * f(y) - 16) / 100;
-    this.ciea = 500 * (f(x) - f(y));
-    this.cieb = 200 * (f(y) - f(z));
+    let ciel, ciea, cieb;
+    ciel = (116 * f(y) - 16) / 100;
+    ciea = 500 * (f(x) - f(y));
+    cieb = 200 * (f(y) - f(z));
+
+    this.ciel = Couleur.pRound(ciel);
+    this.ciea = Couleur.pRound(ciea);
+    this.cieb = Couleur.pRound(cieb);
   }
 
   lab2rgb() {
@@ -620,20 +634,32 @@ export default class Couleur {
 
     const gamRGB = x => (x > 0.0031308) ? 1.055 * Math.pow(x, 1 / 2.4) - 0.055 : 12.92 * x;
 
-    this.r = gamRGB(r);
-    this.g = gamRGB(g);
-    this.b = gamRGB(b);
+    r = gamRGB(r);
+    g = gamRGB(g);
+    b = gamRGB(b);
+
+    this.r = Couleur.pRound(r);
+    this.g = Couleur.pRound(g);
+    this.b = Couleur.pRound(b);
   }
 
   lab2lch() {
-    this.ciec = Math.sqrt(this.ciea ** 2 + this.cieb ** 2);
-    this.cieh = Couleur.parse(Math.atan2(this.cieb, this.ciea) * 180 / Math.PI, 'angle');
+    let ciec, cieh;
+    ciec = Math.sqrt(this.ciea ** 2 + this.cieb ** 2);
+    cieh = Couleur.parse(Math.atan2(this.cieb, this.ciea) * 180 / Math.PI, 'angle');
+
+    this.ciec = Couleur.pRound(ciec);
+    this.cieh = Couleur.pRound(cieh);
   }
 
   lch2lab() {
     let cieh = this.cieh * 360;
-    this.ciea = this.ciec * Math.cos(cieh * Math.PI / 180);
-    this.cieb = this.ciec * Math.sin(cieh * Math.PI / 180);
+    let ciea, cieb;
+    ciea = this.ciec * Math.cos(cieh * Math.PI / 180);
+    cieb = this.ciec * Math.sin(cieh * Math.PI / 180);
+
+    this.ciea = Couleur.pRound(ciea);
+    this.cieb = Couleur.pRound(cieb);
   }
 
   // Fusionne une couleur transparente et une couleur opaque
@@ -718,7 +744,7 @@ export default class Couleur {
       arr[i] = e;
     }
 
-    return 0.2126 * arr[0] + 0.7152 * arr[1] + 0.0722 * arr[2];
+    return Couleur.pRound(0.2126 * arr[0] + 0.7152 * arr[1] + 0.0722 * arr[2]);
   }
 
   // Calcule le contraste entre deux couleurs
@@ -748,7 +774,7 @@ export default class Couleur {
     const L2 = couleur2.luminance;
     const Lmax = Math.max(L1, L2);
     const Lmin = Math.min(L1, L2);
-    return (Lmax + 0.05) / (Lmin + 0.05);
+    return Couleur.pRound((Lmax + 0.05) / (Lmin + 0.05));
   }
 
   // Raccourci pour contrast

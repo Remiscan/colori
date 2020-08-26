@@ -330,10 +330,10 @@ class Couleur
       }
       else
         $a = 'ff';
-      $this->r = intval(hexdec($r)) / 255;
-      $this->g = intval(hexdec($g)) / 255;
-      $this->b = intval(hexdec($b)) / 255;
-      $this->a = floatval(hexdec($a) / 255);
+      $this->r = self::pRound(intval(hexdec($r)) / 255);
+      $this->g = self::pRound(intval(hexdec($g)) / 255);
+      $this->b = self::pRound(intval(hexdec($b)) / 255);
+      $this->a = self::pRound(floatval(hexdec($a) / 255));
       $this->rgb2hsl();
       $this->hsl2hwb();
       $this->rgb2lab();
@@ -348,10 +348,10 @@ class Couleur
         $a = self::parse($format['data'][4], 'alpha');
       else
         $a = 1;
-      $this->r = $r;
-      $this->g = $g;
-      $this->b = $b;
-      $this->a = $a;
+      $this->r = self::pRound($r);
+      $this->g = self::pRound($g);
+      $this->b = self::pRound($b);
+      $this->a = self::pRound($a);
       $this->rgb2hsl();
       $this->hsl2hwb();
       $this->rgb2lab();
@@ -366,10 +366,10 @@ class Couleur
         $a = self::parse($format['data'][4], 'alpha');
       else
         $a = 1;
-      $this->h = $h;
-      $this->s = $s;
-      $this->l = $l;
-      $this->a = $a;
+      $this->h = self::pRound($h);
+      $this->s = self::pRound($s);
+      $this->l = self::pRound($l);
+      $this->a = self::pRound($a);
       $this->hsl2rgb();
       $this->hsl2hwb();
       $this->rgb2lab();
@@ -384,10 +384,10 @@ class Couleur
         $a = self::parse($format['data'][4], 'alpha');
       else
         $a = 1;
-      $this->h = $h;
-      $this->w = $w;
-      $this->bk = $bk;
-      $this->a = $a;
+      $this->h = self::pRound($h);
+      $this->w = self::pRound($w);
+      $this->bk = self::pRound($bk);
+      $this->a = self::pRound($a);
       $this->hwb2hsl();
       $this->hsl2rgb();
       $this->rgb2lab();
@@ -402,10 +402,10 @@ class Couleur
         $a = self::parse($format['data'][4], 'alpha');
       else
         $a = 1;
-      $this->ciel = $ciel;
-      $this->ciea = $ciea;
-      $this->cieb = $cieb;
-      $this->a = $a;
+      $this->ciel = self::pRound($ciel);
+      $this->ciea = self::pRound($ciea);
+      $this->cieb = self::pRound($cieb);
+      $this->a = self::pRound($a);
       $this->lab2lch();
       $this->lab2rgb();
       $this->rgb2hsl();
@@ -420,10 +420,10 @@ class Couleur
         $a = self::parse($format['data'][4], 'alpha');
       else
         $a = 1;
-      $this->ciel = $ciel;
-      $this->ciec = $ciec;
-      $this->cieh = $cieh;
-      $this->a = $a;
+      $this->ciel = self::pRound($ciel);
+      $this->ciec = self::pRound($ciec);
+      $this->cieh = self::pRound($cieh);
+      $this->a = self::pRound($a);
       $this->lch2lab();
       $this->lab2rgb();
       $this->rgb2hsl();
@@ -620,6 +620,14 @@ class Couleur
     return (strlen($s) < 2) ? '0' . $s : $s;
   }
 
+  // Renvoie un float avec une précision de n chiffres
+  private static function pRound($_x, $n = 5) {
+    $x = (float) $_x;
+    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -1 * $x) + 1) : 1;
+    $precision = (int) ($n - $intDigits);
+    return round($x, $precision);
+  }
+
   public function hexa() {
     $r = self::pad(dechex(round($this->r * 255)));
     $g = self::pad(dechex(round($this->g * 255)));
@@ -777,9 +785,9 @@ class Couleur
     else
       $s = $chroma / (2 - 2 * $l);
     
-    $this->h = $h / 360;
-    $this->s = $s;
-    $this->l = $l;
+    $this->h = self::pRound($h / 360);
+    $this->s = self::pRound($s);
+    $this->l = self::pRound($l);
   }
 
   private function hsl2rgb() {
@@ -800,9 +808,9 @@ class Couleur
     $g = $arr[1];
     $b = $arr[2];
     
-    $this->r = $r;
-    $this->g = $g;
-    $this->b = $b;
+    $this->r = self::pRound($r);
+    $this->g = self::pRound($g);
+    $this->b = self::pRound($b);
   }
 
   private function hsl2hwb() {
@@ -818,8 +826,8 @@ class Couleur
     $w = (1 - $_s) * $v;
     $bk = 1 - $v;
 
-    $this->w = $w;
-    $this->bk = $bk;
+    $this->w = self::pRound($w);
+    $this->bk = self::pRound($bk);
   }
 
   private function hwb2hsl() {
@@ -844,8 +852,8 @@ class Couleur
     else
       $s = ($v - $l) / min($l, 1 - $l);
 
-    $this->s = $s;
-    $this->l = $l;
+    $this->s = self::pRound($s);
+    $this->l = self::pRound($l);
   }
 
   private function rgb2lab() {
@@ -871,9 +879,13 @@ class Couleur
 
     $f = function($x) { $ε = 216/24389; $κ = 24389/27; return ($x > $ε) ? $x ** (1/3) : ($κ * $x + 16) / 116; };
 
-    $this->ciel = (116 * $f($y) - 16) / 100;
-    $this->ciea = 500 * ($f($x) - $f($y));
-    $this->cieb = 200 * ($f($y) - $f($z));
+    $ciel = (116 * $f($y) - 16) / 100;
+    $ciea = 500 * ($f($x) - $f($y));
+    $cieb = 200 * ($f($y) - $f($z));
+
+    $this->ciel = self::pRound($ciel);
+    $this->ciea = self::pRound($ciea);
+    $this->cieb = self::pRound($cieb);
   }
 
   private function lab2rgb() {
@@ -906,20 +918,30 @@ class Couleur
 
     $gamRGB = function($x) { return ($x > 0.0031308) ? 1.055 * pow($x, 1 / 2.4) - 0.055 : 12.92 * $x; };
 
-    $this->r = $gamRGB($r);
-    $this->g = $gamRGB($g);
-    $this->b = $gamRGB($b);
+    $r = $gamRGB($r);
+    $g = $gamRGB($g);
+    $b = $gamRGB($b);
+
+    $this->r = self::pRound($r);
+    $this->g = self::pRound($g);
+    $this->b = self::pRound($b);
   }
 
   private function lab2lch() {
-    $this->ciec = sqrt($this->ciea ** 2 + $this->cieb ** 2);
-    $this->cieh = self::parse(atan2($this->cieb, $this->ciea) * 180 / pi(), 'angle');
+    $ciec = sqrt($this->ciea ** 2 + $this->cieb ** 2);
+    $cieh = self::parse(atan2($this->cieb, $this->ciea) * 180 / pi(), 'angle');
+
+    $this->ciec = self::pRound($ciec);
+    $this->cieh = self::pRound($cieh);
   }
 
   private function lch2lab() {
     $cieh = $this->cieh * 360;
-    $this->ciea = $this->ciec * cos($cieh * pi() / 180);
-    $this->cieb = $this->ciec * sin($cieh * pi() / 180);
+    $ciea = $this->ciec * cos($cieh * pi() / 180);
+    $cieb = $this->ciec * sin($cieh * pi() / 180);
+
+    $this->ciea = self::pRound($ciea);
+    $this->cieb = self::pRound($cieb);
   }
 
   // Fusionne la couleur et une couleur de fond "background"
@@ -982,7 +1004,7 @@ class Couleur
       $arr[$i] = $e;
     }
     
-    return 0.2126 * $arr[0] + 0.7152 * $arr[1] + 0.0722 * $arr[2];
+    return self::pRound(0.2126 * $arr[0] + 0.7152 * $arr[1] + 0.0722 * $arr[2]);
   }
 
   // Calcule le contraste entre deux couleurs
@@ -1014,7 +1036,7 @@ class Couleur
     $L2 = $couleur2->luminance();
     $Lmax = max($L1, $L2);
     $Lmin = min($L1, $L2);
-    return ($Lmax + 0.05) / ($Lmin + 0.05);
+    return self::pRound(($Lmax + 0.05) / ($Lmin + 0.05));
   }
 
   // Raccourci pour contrast impossible
