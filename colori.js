@@ -306,18 +306,16 @@ export default class Couleur {
       }
       else
       {
-        _n = null;
         error = 'Invalid angle format';
       }
     }
     else
     {
-      _n = null;
       error = 'Invalid value format';
     }
 
-    if (_n == null) {
-      console.error(error);
+    if (error) {
+      console.error(error, n, _n, type, log);
       throw error;
     }
     
@@ -514,6 +512,8 @@ export default class Couleur {
   }
 
   hsl2hwb() {
+    // Source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                  & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
     let s = this.s;
     let l = this.l;
     let _s, v, w, bk;
@@ -532,6 +532,8 @@ export default class Couleur {
   }
 
   hwb2hsl() {
+    // Source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                  & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
     let w = this.w;
     let bk = this.bk;
     let _s, v, s, l;
@@ -543,7 +545,10 @@ export default class Couleur {
     }
 
     v = 1 - bk;
-    _s = 1 - w / v;
+    if (bk == 1)
+      _s = 0;
+    else
+      _s = 1 - w / v;
 
     l = v - v * _s / 2;
     if (l == 0 || l == 1)
