@@ -637,9 +637,27 @@ export default class Couleur {
   }
 
   // Fusionne une couleur transparente et une couleur opaque
-  static blend(couleur1, couleur2) {
-    if (!(couleur1 instanceof Couleur) || !(couleur2 instanceof Couleur))
-      throw 'Arguments should be two instances of the Couleur class';
+  static blend(_couleur1, _couleur2) {
+    let couleur1 = _couleur1;
+    if (!(_couleur1 instanceof Couleur)) {
+      try {
+        couleur1 = new Couleur(_couleur1);
+      }
+      catch(error) {
+        throw 'First argument should be an instance of the Couleur class, or a valid color string';
+      }
+    }
+
+    let couleur2 = _couleur2;
+    if (!(_couleur2 instanceof Couleur)) {
+      try {
+        couleur2 = new Couleur(_couleur2);
+      }
+      catch(error) {
+        throw 'Second argument should be an instance of the Couleur class, or a valid color string';
+      }
+    }
+
     let background, overlay;
     if (couleur1.a < 1 && couleur2.a < 1)
       throw 'At least one of the arguments needs to be an opaque Couleur';
@@ -705,9 +723,27 @@ export default class Couleur {
 
   // Calcule le contraste entre deux couleurs
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
-  static contrast(couleur1, couleur2) {
-    if (!(couleur1 instanceof Couleur) || !(couleur2 instanceof Couleur))
-      throw 'Arguments should be two instances of the Couleur class';
+  static contrast(_couleur1, _couleur2) {
+    let couleur1 = _couleur1;
+    if (!(_couleur1 instanceof Couleur)) {
+      try {
+        couleur1 = new Couleur(_couleur1);
+      }
+      catch(error) {
+        throw 'First argument should be an instance of the Couleur class, or a valid color string';
+      }
+    }
+
+    let couleur2 = _couleur2;
+    if (!(_couleur2 instanceof Couleur)) {
+      try {
+        couleur2 = new Couleur(_couleur2);
+      }
+      catch(error) {
+        throw 'Second argument should be an instance of the Couleur class, or a valid color string';
+      }
+    }
+
     const L1 = couleur1.luminance;
     const L2 = couleur2.luminance;
     const Lmax = Math.max(L1, L2);

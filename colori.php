@@ -923,8 +923,28 @@ class Couleur
   }
 
   // Fusionne la couleur et une couleur de fond "background"
-  public static function blend(self $couleur1, self $couleur2)
+  public static function blend($_couleur1, $_couleur2)
   {
+    $couleur1 = $_couleur1;
+    if (!(is_a($couleur1, __CLASS__))) {
+      try {
+        $couleur1 = new Couleur($_couleur1);
+      }
+      catch(Exception $error) {
+        throw new Exception('First argument should be an instance of the ' . __CLASS__ . ' class, or a valid color string');
+      }
+    }
+
+    $couleur2 = $_couleur2;
+    if (!(is_a($couleur2, __CLASS__))) {
+      try {
+        $couleur2 = new Couleur($_couleur2);
+      }
+      catch(Exception $error) {
+        throw new Exception('Second argument should be an instance of the ' . __CLASS__ . ' class, or a valid color string');
+      }
+    }
+
     if ($couleur1->a < 1 && $couleur2->a < 1)
       throw new Exception('At least one of the arguments needs to be an opaque ' . __CLASS__);
     else if ($couleur1->a < 1 && $couleur2->a == 1)
@@ -967,7 +987,27 @@ class Couleur
 
   // Calcule le contraste entre deux couleurs
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
-  public static function contrast($couleur1, $couleur2) {
+  public static function contrast($_couleur1, $_couleur2) {
+    $couleur1 = $_couleur1;
+    if (!(is_a($couleur1, __CLASS__))) {
+      try {
+        $couleur1 = new Couleur($_couleur1);
+      }
+      catch(Exception $error) {
+        throw new Exception('First argument should be an instance of the ' . __CLASS__ . ' class, or a valid color string');
+      }
+    }
+
+    $couleur2 = $_couleur2;
+    if (!(is_a($couleur2, __CLASS__))) {
+      try {
+        $couleur2 = new Couleur($_couleur2);
+      }
+      catch(Exception $error) {
+        throw new Exception('Second argument should be an instance of the ' . __CLASS__ . ' class, or a valid color string');
+      }
+    }
+
     if (!($couleur1 instanceof self) || !($couleur2 instanceof self))
       throw new Exception('Arguments should be two instances of the ' . __CLASS__ . ' class');
     $L1 = $couleur1->luminance();
@@ -1162,7 +1202,7 @@ class Couleur
     $value = self::parse($_value, 'arbitrary');
     $value = $value * 100;
     if ($options === null) $options = new stdClass();
-    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options['scale'] : true);
+    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options->{'scale'} : true);
     $newValue = ($scale == true) ? ($this->l * (100 - floatval($value))) . '%'
                                  : -1 * floatval($value) . '%';
     return $this->change('l', $newValue, $scale);
@@ -1172,7 +1212,7 @@ class Couleur
     $value = self::parse($_value, 'arbitrary');
     $value = $value * 100;
     if ($options === null) $options = new stdClass();
-    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options['scale'] : true);
+    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options->{'scale'} : true);
     $newValue = ($scale == true) ? ($this->l * (100 + floatval($value))) . '%'
                                  : floatval($value) . '%';
     return $this->change('l', $newValue, $scale);
@@ -1182,7 +1222,7 @@ class Couleur
     $value = self::parse($_value, 'arbitrary');
     $value = $value * 100;
     if ($options === null) $options = new stdClass();
-    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options['scale'] : true);
+    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options->{'scale'} : true);
     $newValue = ($scale == true) ? ($this->s * (100 - floatval($value))) . '%'
                                  : -1 * floatval($value) . '%';
     return $this->change('s', $newValue, $scale);
@@ -1192,7 +1232,7 @@ class Couleur
     $value = self::parse($_value, 'arbitrary');
     $value = $value * 100;
     if ($options === null) $options = new stdClass();
-    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options['scale'] : true);
+    $scale = ($options === true || $options === false) ? $options : (property_exists($options, 'scale') ? $options->{'scale'} : true);
     $newValue = ($scale == true) ? ($this->s * (100 + floatval($value))) . '%'
                                  : floatval($value) . '%';
     return $this->change('s', $newValue, $scale);
