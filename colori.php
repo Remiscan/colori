@@ -833,7 +833,10 @@ class Couleur
     }
 
     $v = 1 - $bk;
-    $_s = 1 - $w / $v;
+    if ($bk == 1)
+      $_s = 0;
+    else
+      $_s = 1 - $w / $v;
 
     $l = $v - $v * $_s / 2;
     if ($l == 0 || $l == 1)
