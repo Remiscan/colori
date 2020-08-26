@@ -1,4 +1,6 @@
 <?php
+error_reporting(-1);
+ini_set('display_errors', 1);/**/
 require_once 'colori.php';
 
 // Calcule la version du site
@@ -17,11 +19,94 @@ function version()
 }
 $version = version();
 
-$themecolor = new Couleur('rgba(58, 184, 74, 0.4)');
-$colorh = new Couleur('hsla(128, 52%, 47%, 0.4)');
-$testContraste = new Couleur('hsl(200, 10%, 10%)');
-$fuchsia = new Couleur('fuchsia');
-$testChangeHue = new Couleur('hsl(350, 25%, 52%)');
+class Test {
+  function __construct($fonction = null, $resultatAttendu = null, $nophp = false) {
+    $exGetters = ['hexa', 'hex', 'rgba', 'rgb', 'hsla', 'hsl', 'hwba', 'hwb', 'laba', 'lab', 'lcha', 'lch', 'luminance'];
+    $f = str_replace(
+      array_map(function($x) { return '.' . $x; }, $exGetters), 
+      array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
+      $fonction
+    );
+    $methods = ['blend', 'contrast', 'contrastedText', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale'];
+    $f = str_replace(
+      array_map(function($x) { return '.' . $x; }, $methods), 
+      array_map(function($x) { return '->' . $x; }, $methods),
+      $f
+    );
+    $vars = ['couleur', 'testContraste', 'testChangeHue', 'testLab'];
+    $f = str_replace(
+      array_map(function($x) { return $x; }, $vars),
+      array_map(function($x) { return '$' . $x; }, $vars),
+      $f
+    );
+    $f = str_replace(
+      ['Colour->', 'Colour'], 
+      ['Couleur::', 'Couleur'],
+      $f
+    );
+    $f = str_replace(
+      ['{ scale: true }', '{ scale: false }', '{ replace: true }', '{ replace: false }'],
+      ['(object)["scale"=>true]', '(object)["scale"=>false]', '(object)["replace"=>true]', '(object)["replace"=>false]'],
+      $f
+    );
+    $this->fonction = $f;
+    $this->resultatAttendu = $resultatAttendu;
+    $this->nophp = $nophp;
+  }
+
+  public function resultat() {
+    try {
+      $vars = '
+        $couleur = new Couleur(\'rgba(58, 184, 74, 0.4)\');
+        $couleurh = new Couleur(\'hsla(128, 52%, 47%, 0.4)\');
+        $testContraste = new Couleur(\'hsl(200, 10%, 10%)\');
+        $testChangeHue = new Couleur(\'hsl(350, 25%, 52%)\');
+        $testLab = new Couleur(\'lab(92% -45 9)\');
+      ';
+      return eval($vars . "return " . $this->fonction . ";");
+    }
+    catch (Error $error) {
+      return ['Error', $error];
+    }
+    catch (Exception $error) {
+      return ['Error', $error];
+    }
+  }
+
+  public function nom() {
+    return $this->fonction . ';';
+  }
+
+  public function validate() {
+    try {
+      $resultat = $this->resultat();
+      $resultat = (is_array($resultat) && $resultat[0] == 'Error') ? $resultat[0] : $resultat;
+    } catch(ParseError $error) {
+      return false;
+    }
+
+    if (is_a($this->resultatAttendu, 'stdClass')) {
+      if ($resultat == 'Error') return false;
+
+      $c1Props = get_object_vars($resultat);
+      $c2Props = get_object_vars($this->resultatAttendu);
+
+      foreach($c2Props as $prop => $value) {
+        if (
+          $value != $c1Props[$prop]
+          && $value - $c1Props[$prop] > 10 ** (-12) // fix float rounding error
+        ) return false;
+      }
+
+      return true;
+    }
+    else return $resultat == $this->resultatAttendu;
+  }
+}
+
+$tests_json = file_get_contents('tests.json');
+$tests = json_decode($tests_json);
+$tests = array_map(function($test) { return new Test($test->fonction, $test->resultatAttendu, property_exists($test, 'nophp')); }, $tests);
 ?>
 <!doctype html>
 <html>
@@ -29,169 +114,152 @@ $testChangeHue = new Couleur('hsl(350, 25%, 52%)');
     <style>
       body {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 50vw 50vw;
+        gap: 2px 0;
+      }
+      h2 {
+        grid-row: 1;
+      }
+      div.js, div.php {
+        border-top: 1px solid black;
+        border-bottom: 1px solid black;
+      }
+      .php {
+        grid-column: 1;
+      }
+      .js {
+        grid-column: 2;
       }
     </style>
   </head>
 
   <body>
-    <section id="php">
-      <h2>Tests de colori.php</h2>
+    <h2 class="php">Tests de colori.php</h2>
 
-      <?php
-      $tests = [
-        '$fuchsia = new Couleur("fuchsia"); var_dump($fuchsia);',
-        '$color = new Couleur("#e5b"); var_dump($color);',
-        '$color = new Couleur("#e5bd"); var_dump($color);',
-        '$color = new Couleur("#e5b32c"); var_dump($color);',
-        '$color = new Couleur("#e5b32cbd"); var_dump($color);',
-        '$themecolor = new Couleur("rgba(58, 184, 74, 0.4)"); var_dump($themecolor);',
-        '$colorh = new Couleur("hsla(128, 52%, 47%, 0.4)"); var_dump($colorh);',
-        'echo $themecolor->hex();',
-        'echo $themecolor->rgb();',
-        'echo $themecolor->hsl();',
-        'echo $themecolor->hwb();',
-        'echo $themecolor->lab();',
-        'echo $themecolor->lch();',
-        'var_dump($themecolor->change("l", "20%", true));',
-        'var_dump($themecolor->change("l", "20%", true)->rgb());',
-        'var_dump(Couleur::blend($themecolor, new Couleur("white")));',
-        'var_dump(Couleur::blend($themecolor, new Couleur("white"))->rgb());',
-        'var_dump($testContraste);',
-        'var_dump($testContraste->rgb());',
-        'var_dump($testContraste->luminance());',
-        'var_dump(Couleur::contrast($testContraste, new Couleur("rgb(58, 184, 74)")));',
-        'var_dump($testContraste->contrastedText());',
-        'var_dump($testChangeHue->complement()->hsl());',
-        'var_dump($testChangeHue->negative()->rgb());',
-        'var_dump($testChangeHue->darken("10%")->hsl());',
-        'var_dump($testChangeHue->darken("10%", true)->hsl());',
-        'var_dump($testChangeHue->darken("10%", false)->hsl());',
-        'var_dump($testChangeHue->lighten("10%")->hsl());',
-        'var_dump($testChangeHue->lighten("10%", false)->hsl());',
-        'var_dump($testChangeHue->desaturate("10%")->hsl());',
-        'var_dump($testChangeHue->desaturate("10%", false)->hsl());',
-        'var_dump($testChangeHue->desaturate("0.1")->hsl());',
-        'var_dump($testChangeHue->desaturate(".1", false)->hsl());',
-        'var_dump($testChangeHue->saturate("10%")->hsl());',
-        'var_dump($testChangeHue->saturate("10%", false)->hsl());',
-        'var_dump($testChangeHue->saturate("0.1")->hsl());',
-        'var_dump($testChangeHue->saturate(".1", false)->hsl());',
-        'var_dump($themecolor->greyscale()->hsl());',
-        'var_dump($themecolor->grayscale()->hsl());',
-        'var_dump($themecolor->replace("l", "20%")->hsl());',
-        'var_dump($themecolor->scale("l", "20%")->hsl());',
-        'var_dump($themecolor->scale("r", "20%")->rgb());',
-        'var_dump($themecolor->scale("h", "20%")->hsl());',
-        'var_dump($themecolor->scale("bk", "20%")->hwb());',
-        'var_dump($themecolor->scale("a", "20%")->hsla());',
-        '$testLab = new Couleur("lab(92% -45 9)"); var_dump($color);',
-        '$color = new Couleur("lch(92% 46 168)"); var_dump($color);',
-        'var_dump($testLab->lab());',
-        'var_dump($testLab->change("ciel", "-10%")->lab());',
-        'var_dump($testLab->change("ciea", "20")->lab());',
-        'var_dump($testLab->change("cieb", "20")->lab());',
-        'var_dump($testLab->lch());',
-        'var_dump($testLab->change("ciec", "20")->lch());',
-        'var_dump($testLab->change("cieh", "20deg")->lch());'
-      ];
+    <?php
 
-      foreach($tests as $t) {
-        ?>
-          <h3><?=$t?></h3>
-          <p><?=eval($t)?></p>
-        <?php
+    foreach($tests as $k => $test) {
+      if ($test->nophp) continue;
+      $c = null;
+      try {
+        $resultat = $test->resultat();
+        if (is_a($resultat, 'Couleur')) $c = $resultat;
+        else $c = new Couleur($test->resultatAttendu);
       }
+      catch(Exception $error) {
+        //continue;
+      }
+      $resultat = (is_array($resultat) && $resultat[0] == 'Error') ? [$resultat[0], $resultat[1]->getMessage()] : $resultat;
       ?>
-    </section>
+      <div class="php" style="grid-row: <?=$k+2?>">
+        <h3 class="php" style="<?php
+          if ($c != null) echo 'background-color: ' . $c->rgba() . '; color: ' . $c->replace('a', 1)->contrastedText();
+        ?>"><?=$test->nom()?></h3>
+        <span class="php"><?php
+          echo $test->validate() ? '✅ Success' : '❌ Failure';
+        ?></span>
+        <p class="php">Reçu : <?=var_dump($resultat)?></p>
+        <?php if (!$test->validate()) { ?>
+          <p class="php" style="color: red;">Attendu : <?=var_dump($test->resultatAttendu)?></p>
+        <?php } ?>
+      </div>
+      <?php
+    }
+    ?>
 
-    <section id="js">
-      <h2>Tests de colori.js</h2>
-
-    </section>
+    <h2 class="js">Tests de colori.js</h2>
 
     <script type="module">
       import Colour from './colori--<?=$version?>.js';
 
-      console.log(JSON.stringify(new Colour('red'), null, 2));
-
-      const p = document.getElementById('js').querySelectorAll('pre');
       const couleur = new Colour('rgba(58, 184, 74, 0.4)');
       const couleurh = new Colour('hsla(128, 52%, 47%, 0.4)');
       const testContraste = new Colour('hsl(200, 10%, 10%)');
       const testChangeHue = new Colour('hsl(350, 25%, 52%)');
       const testLab = new Colour('lab(92% -45 9)');
 
-      const tests = [
-        `JSON.stringify(new Colour('fuchsia'), null, 2)`,
-        `JSON.stringify(new Colour('#e5b'), null, 2)`,
-        `JSON.stringify(new Colour('#e5bd'), null, 2)`,
-        `JSON.stringify(new Colour('#e5b32c'), null, 2)`,
-        `JSON.stringify(new Colour('#e5b32cbd'), null, 2)`,
-        `JSON.stringify(new Colour('rgba(58, 184, 74, 0.4)'), null, 2)`,
-        `JSON.stringify(new Colour('hsla(128, 52%, 47%, 0.4)'), null, 2)`,
-        `couleur.hex`,
-        `couleur.rgb`,
-        `couleur.hsl`,
-        `couleur.hwb`,
-        `couleur.lab`,
-        `couleur.lch`,
-        `JSON.stringify(couleur.change('l', '20%', {replace: true}), null, 2)`,
-        `JSON.stringify(couleur.change('l', '20%', true).rgb, null, 2)`,
-        `JSON.stringify(Colour.blend(couleur, new Colour('white')), null, 2)`,
-        `JSON.stringify(Colour.blend(couleur, new Colour('white')).rgb, null, 2)`,
-        `JSON.stringify(couleur.blend(new Colour('white')).rgb, null, 2)`,
-        `JSON.stringify(testContraste, null, 2)`,
-        `JSON.stringify(testContraste.rgb, null, 2)`,
-        `JSON.stringify(testContraste.luminance, null, 2)`,
-        `JSON.stringify(Colour.contrast(testContraste, new Colour('rgb(58, 184, 74)')), null, 2)`,
-        `JSON.stringify(testContraste.contrast(new Colour('rgb(58, 184, 74)')), null, 2)`,
-        `JSON.stringify(testContraste.contrastedText(), null, 2)`,
-        `JSON.stringify(testChangeHue.complement().hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.negative().rgb, null, 2)`,
-        `JSON.stringify(testChangeHue.darken('10%').hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.darken('10%', true).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.darken('10%', { scale: true }).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.darken('10%', false).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.darken('10%', { scale: false}).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.lighten('10%').hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.lighten('10%', {scale: false}).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.desaturate('10%').hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.desaturate('10%', false).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.desaturate(0.1).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.desaturate(.1, false).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.saturate('10%').hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.saturate('10%', {scale: false}).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.saturate(0.1).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.saturate(.1, {scale: false}).hsl, null, 2)`,
-        `JSON.stringify(testChangeHue.saturate(0).hsl, null, 2)`,
-        `JSON.stringify(couleur.greyscale().hsl, null, 2)`,
-        `JSON.stringify(couleur.grayscale().hsl, null, 2)`,
-        `JSON.stringify(couleur.replace('l', '20%').hsl, null, 2)`,
-        `JSON.stringify(couleur.scale('l', '20%').hsl, null, 2)`,
-        `JSON.stringify(couleur.scale('r', '20%').rgb, null, 2)`,
-        `JSON.stringify(couleur.scale('h', '20%').hsl, null, 2)`,
-        `JSON.stringify(couleur.scale('bk', '20%').hwb, null, 2)`,
-        `JSON.stringify(couleur.scale('a', '20%').hsla, null, 2)`,
-        `JSON.stringify(new Colour('lab(92% -45 9)'), null, 2)`,
-        `JSON.stringify(new Colour('lch(92% 46 168)'), null, 2)`,
-        `JSON.stringify(testLab.lab, null, 2)`,
-        `JSON.stringify(testLab.change('ciel', '-10%').lab, null, 2)`,
-        `JSON.stringify(testLab.change('ciea', '20').lab, null, 2)`,
-        `JSON.stringify(testLab.change('cieb', '20').lab, null, 2)`,
-        `JSON.stringify(testLab.lch, null, 2)`,
-        `JSON.stringify(testLab.change('ciec', '20').lch, null, 2)`,
-        `JSON.stringify(testLab.change('cieh', '20deg').lch, null, 2)`,
-      ];
-      const section = document.getElementById('js');
+      function sameColor(couleur1, couleur2) {
+        var c1Props = Object.getOwnPropertyNames(couleur1);
+        var c2Props = Object.getOwnPropertyNames(couleur2);
+
+        if (c1Props.length != c2Props.length) return false;
+
+        for (var i = 0; i < c1Props.length; i++) {
+            var prop = c1Props[i];
+            if (couleur1[prop] !== couleur2[prop]) return false;
+        }
+
+        return true;
+      }
+
+      class Test {
+        constructor(fonction = null, resultatAttendu = {}) {
+          this.fonction = fonction;
+          this.resultatAttendu = resultatAttendu;
+          this.resultatReel = null;
+        }
+
+        get resultat() {
+          try {
+            if (!this.resultatReel) this.resultatReel = eval(this.fonction);
+            return this.resultatReel;
+          }
+          catch(error) {
+            return ['Error', error];
+          }
+        }
+
+        get nom() {
+          return this.fonction;
+        }
+
+        validate() {
+          const resultat = (typeof this.resultat == 'object' && this.resultat[0] == 'Error') ? this.resultat[0] : this.resultat;
+          if (typeof this.resultatAttendu === 'object') return sameColor(resultat, this.resultatAttendu);
+          else return resultat == this.resultatAttendu;
+        }
+      }
+
+      const tests_json = <?=$tests_json?>;
+      const tests = tests_json.map(test => new Test(test.fonction, test.resultatAttendu));
 
       tests.forEach((test, k) => {
+        const div = document.createElement('div');
+        div.classList.add('js');
+        div.style.setProperty('grid-row', k + 2);
         const h3 = document.createElement('h3');
-        h3.innerHTML = tests[k].replace(/^JSON\.stringify\(|, null, 2\)$/g, '');
+        h3.classList.add('js');
         const pre = document.createElement('pre');
-        pre.innerHTML = eval(tests[k]);
-        section.appendChild(h3);
-        section.appendChild(pre);
+        pre.classList.add('js');
+        let span, pre2;
+
+        span = document.createElement('span');
+        span.classList.add('js');
+        h3.innerHTML = test.nom;
+        span.innerHTML = test.validate() ? '✅ Success' : '❌ Failure';
+        const resultat = test.resultat;
+        pre.innerHTML = 'Reçu :\n\n' + JSON.stringify(resultat, null, 2);
+        if (!test.validate()) {
+          pre2 = document.createElement('pre');
+          pre2.innerHTML = 'Attendu :\n\n' + JSON.stringify(test.resultatAttendu, null, 2);
+          pre2.style.setProperty('color', red);
+          pre2.classList.add('js');
+        }
+
+        let c;
+        try {
+          if (resultat instanceof Colour) c = resultat;
+          else c = new Colour(test.resultatAttendu);
+          h3.style.setProperty('background-color', c.rgba);
+          h3.style.setProperty('color', c.replace('a', 1).contrastedText());
+        }
+        catch(error) {console.log(error)}
+        
+        div.appendChild(h3);
+        if (span) div.appendChild(span);
+        div.appendChild(pre);
+        if (pre2) div.appendChild(pre2);
+        document.body.appendChild(div);
       });
     </script>
   </body>

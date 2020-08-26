@@ -1,0 +1,191 @@
+[
+  {
+    "fonction": "new Colour('fuchsia')",
+    "resultatAttendu": {"r":1,"g":0,"b":1,"h":0.8333333333333334,"s":1,"l":0.5,"w":0,"bk":0,"a":1,"ciel":0.601697008006315,"ciea":93.54998546820059,"cieb":-60.49854210467602,"ciec":111.40768994055931,"cieh":0.9086370886810021,"name":"fuchsia"}
+  }, {
+    "fonction": "new Colour(new Colour('fuchsia'))",
+    "resultatAttendu": "Error"
+  }, {
+    "fonction": "new Colour('#e5b')",
+    "resultatAttendu": { "r": 0.9333333333333333, "g": 0.3333333333333333, "b": 0.7333333333333333, "h": 0.8888888888888888, "s": 0.8181818181818182, "l": 0.6333333333333333, "w": 0.3333333333333332, "bk": 0.06666666666666665, "a": 1, "ciel": 0.6038105102712379, "ciea": 66.74489885823482, "cieb": -22.15764344216482, "ciec": 70.32668545087351, "cieh": 0.9489864428427842, "name": null }
+  }, {
+    "fonction": "new Colour('#e5bd')",
+    "resultatAttendu": { "r": 0.9333333333333333, "g": 0.3333333333333333, "b": 0.7333333333333333, "h": 0.8888888888888888, "s": 0.8181818181818182, "l": 0.6333333333333333, "w": 0.3333333333333332, "bk": 0.06666666666666665, "a": 0.8666666666666667, "ciel": 0.6038105102712379, "ciea": 66.74489885823482, "cieb": -22.15764344216482, "ciec": 70.32668545087351, "cieh": 0.9489864428427842, "name": null }
+  }, {
+    "fonction": "new Colour('#e5b32c')",
+    "resultatAttendu": { "r": 0.8980392156862745, "g": 0.7019607843137254, "b": 0.17254901960784313, "h": 0.12162162162162157, "s": 0.7805907172995781, "l": 0.5352941176470588, "w": 0.17254901960784313, "bk": 0.10196078431372546, "a": 1, "ciel": 0.7600944744391386, "ciea": 10.097249489738724, "cieb": 69.6536835826055, "ciec": 70.38174538815981, "cieh": 0.2270879299615053, "name": null }
+  }, {
+    "fonction": "new Colour('#e5b32cbd')",
+    "resultatAttendu": { "r": 0.8980392156862745, "g": 0.7019607843137254, "b": 0.17254901960784313, "h": 0.12162162162162157, "s": 0.7805907172995781, "l": 0.5352941176470588, "w": 0.17254901960784313, "bk": 0.10196078431372546, "a": 0.7411764705882353, "ciel": 0.7600944744391386, "ciea": 10.097249489738724, "cieb": 69.6536835826055, "ciec": 70.38174538815981, "cieh": 0.2270879299615053, "name": null }
+  }, {
+    "fonction": "new Colour('rgba(58, 184, 74, 0.4)')",
+    "resultatAttendu": { "r": 0.22745098039215686, "g": 0.7215686274509804, "b": 0.2901960784313726, "h": 0.3544973544973545, "s": 0.5206611570247934, "l": 0.4745098039215686, "w": 0.22745098039215692, "bk": 0.2784313725490196, "a": 0.4, "ciel": 0.6630387682631881, "ciea": -52.59073251842506, "cieb": 44.256533676989164, "ciec": 68.73445947941256, "cieh": 0.3886624314456886, "name": null }
+  }, {
+    "fonction": "new Colour('hsla(128, 52%, 47%, 0.4)')",
+    "resultatAttendu": { "r": 0.22559999999999997, "g": 0.7143999999999999, "b": 0.2907733333333331, "h": 0.35555555555555557, "s": 0.52, "l": 0.47, "w": 0.22560000000000005, "bk": 0.2856000000000001, "a": 0.4, "ciel": 0.6570859152228933, "ciea": -52.07966350263548, "cieb": 43.51476124622605, "ciec": 67.86623458586604, "cieh": 0.389221712776019, "name": null }
+  }, {
+    "fonction": "couleur.hex",
+    "resultatAttendu": "#3ab84a66"
+  }, {
+    "fonction": "couleur.rgb",
+    "resultatAttendu": "rgb(58, 184, 74, 0.4)"
+  }, {
+    "fonction": "couleur.hsl",
+    "resultatAttendu": "hsl(128, 52%, 47%, 0.4)"
+  }, {
+    "fonction": "couleur.hwb",
+    "resultatAttendu": "hwb(128 23% 28% / 0.4)"
+  }, {
+    "fonction": "couleur.lab",
+    "resultatAttendu": "lab(66% -53 44 / 0.4)"
+  }, {
+    "fonction": "couleur.lch",
+    "resultatAttendu": "lch(66% 69 140 / 0.4)"
+  }, {
+    "fonction": "couleur.change('l', '20%', { replace: true })",
+    "resultatAttendu": { "r": 0.096, "g": 0.30400000000000005, "b": 0.12373333333333324, "h": 0.35555555555555557, "s": 0.52, "l": 0.2, "w": 0.09599999999999997, "bk": 0.696, "a": 0.4, "ciel": 0.2861235660965136, "ciea": -26.59479131364728, "cieb": 21.54532285227827, "ciec": 34.226946428586835, "cieh": 0.3916331115348873, "name": null }
+  }, {
+    "fonction": "couleur.change('l', '20%', true).rgb",
+    "resultatAttendu": "rgb(24, 78, 32, 0.4)"
+  }, {
+    "fonction": "Colour.blend(couleur, 'white')",
+    "resultatAttendu": { "r": 0.6909803921568627, "g": 0.8886274509803922, "b": 0.716078431372549, "h": 0.3544973544973545, "s": 0.4701492537313435, "l": 0.7898039215686274, "w": 0.6909803921568628, "bk": 0.1113725490196078, "a": 1, "ciel": 0.8570001365466072, "ciea": -23.234650000579784, "cieb": 16.056322371073307, "ciec": 28.242776930274957, "cieh": 0.40375988564192566, "name": null }
+  }, {
+    "fonction": "Colour.blend(couleur, 'lolilol')",
+    "resultatAttendu": "Error"
+  }, {
+    "fonction": "Colour.blend(couleur, 'white').rgb",
+    "resultatAttendu": "rgb(176, 227, 183)"
+  }, {
+    "fonction": "couleur.blend('white').rgb",
+    "resultatAttendu": "rgb(176, 227, 183)",
+    "nophp": "1"
+  }, {
+    "fonction": "testContraste",
+    "resultatAttendu": { "r": 0.09, "g": 0.10333333333333333, "b": 0.11000000000000001, "h": 0.5555555555555556, "s": 0.1, "l": 0.1, "w": 0.09000000000000001, "bk": 0.89, "a": 1, "ciel": 0.09130435519280461, "ciea": -1.3116660032876788, "cieb": -1.76790164618984, "ciec": 2.2013504797695025, "cieh": 0.6484084191492212, "name": null }
+  }, {
+    "fonction": "testContraste.rgb",
+    "resultatAttendu": "rgb(23, 26, 28)"
+  }, {
+    "fonction": "testContraste.luminance",
+    "resultatAttendu": 0.010200373737469157
+  }, {
+    "fonction": "Colour.contrast(testContraste, 'rgb(58, 184, 74)')",
+    "resultatAttendu": 6.756591354204456
+  }, {
+    "fonction": "Colour.contrast(testContraste, 'lolilol')",
+    "resultatAttendu": "Error"
+  }, {
+    "fonction": "testContraste.contrast('rgb(58, 184, 74)')",
+    "resultatAttendu": 6.756591354204456,
+    "nophp": "1"
+  }, {
+    "fonction": "testContraste.contrastedText()",
+    "resultatAttendu": "white"
+  }, {
+    "fonction": "testChangeHue.complement().hsl",
+    "resultatAttendu": "hsl(170, 25%, 52%)"
+  }, {
+    "fonction": "testChangeHue.negative().rgb",
+    "resultatAttendu": "rgb(92, 153, 143)"
+  }, {
+    "fonction": "testChangeHue.darken('10%').hsl",
+    "resultatAttendu": "hsl(350, 25%, 47%)"
+  }, {
+    "fonction": "testChangeHue.darken('10%', true).hsl",
+    "resultatAttendu": "hsl(350, 25%, 47%)"
+  }, {
+    "fonction": "testChangeHue.darken('10%', { scale: true }).hsl",
+    "resultatAttendu": "hsl(350, 25%, 47%)"
+  }, {
+    "fonction": "testChangeHue.darken('10%', false).hsl",
+    "resultatAttendu": "hsl(350, 25%, 42%)"
+  }, {
+    "fonction": "testChangeHue.darken('10%', { scale: false }).hsl",
+    "resultatAttendu": "hsl(350, 25%, 42%)"
+  }, {
+    "fonction": "testChangeHue.lighten('10%').hsl",
+    "resultatAttendu": "hsl(350, 25%, 57%)"
+  }, {
+    "fonction": "testChangeHue.lighten('10%', { scale: false }).hsl",
+    "resultatAttendu": "hsl(350, 25%, 62%)"
+  }, {
+    "fonction": "testChangeHue.desaturate('10%').hsl",
+    "resultatAttendu": "hsl(350, 23%, 52%)"
+  }, {
+    "fonction": "testChangeHue.desaturate('10%', false).hsl",
+    "resultatAttendu": "hsl(350, 15%, 52%)"
+  }, {
+    "fonction": "testChangeHue.desaturate(0.1).hsl",
+    "resultatAttendu": "hsl(350, 23%, 52%)"
+  }, {
+    "fonction": "testChangeHue.desaturate(.1, false).hsl",
+    "resultatAttendu": "hsl(350, 15%, 52%)"
+  }, {
+    "fonction": "testChangeHue.saturate('10%').hsl",
+    "resultatAttendu": "hsl(350, 28%, 52%)"
+  }, {
+    "fonction": "testChangeHue.saturate('10%', { scale: false }).hsl",
+    "resultatAttendu": "hsl(350, 35%, 52%)"
+  }, {
+    "fonction": "testChangeHue.saturate(0.1).hsl",
+    "resultatAttendu": "hsl(350, 28%, 52%)"
+  }, {
+    "fonction": "testChangeHue.saturate(.1, { scale: false }).hsl",
+    "resultatAttendu": "hsl(350, 35%, 52%)"
+  }, {
+    "fonction": "testChangeHue.saturate(0).hsl",
+    "resultatAttendu": "hsl(350, 25%, 52%)"
+  }, {
+    "fonction": "couleur.greyscale().hsl",
+    "resultatAttendu": "hsl(128, 0%, 47%, 0.4)"
+  }, {
+    "fonction": "couleur.grayscale().hsl",
+    "resultatAttendu": "hsl(128, 0%, 47%, 0.4)"
+  }, {
+    "fonction": "couleur.replace('l', '20%').hsl",
+    "resultatAttendu": "hsl(128, 52%, 20%, 0.4)"
+  }, {
+    "fonction": "couleur.scale('l', '20%').hsl",
+    "resultatAttendu": "hsl(128, 52%, 9%, 0.4)"
+  }, {
+    "fonction": "couleur.scale('r', '20%').rgb",
+    "resultatAttendu": "rgb(12, 184, 74, 0.4)"
+  }, {
+    "fonction": "couleur.scale('h', '20%').hsl",
+    "resultatAttendu": "hsl(26, 52%, 47%, 0.4)"
+  }, {
+    "fonction": "couleur.scale('bk', '20%').hwb",
+    "resultatAttendu": "hwb(128 23% 6% / 0.4)"
+  }, {
+    "fonction": "couleur.scale('a', '20%').hsla",
+    "resultatAttendu": "hsla(128, 52%, 47%, 0.08)"
+  }, {
+    "fonction": "new Colour('lab(92% -45 9)')",
+    "resultatAttendu": { "r": 0.4968249441086569, "g": 1.001835752010397, "b": 0.8340065148713134, "h": 0.44461199822752506, "s": 1.007323391548144, "l": 0.749330348059527, "w": 0.49682494410865685, "bk": -0.001835752010397096, "a": 1, "ciel": 0.92, "ciea": "-45", "cieb": "9", "ciec": 45.89117562233506, "cieh": 0.46858352090549943, "name": null }
+  }, {
+    "fonction": "new Colour('lch(92% 46 168)')",
+    "resultatAttendu": { "r": 0.49980536113167345, "g": 1.0017464572143584, "b": 0.8297045159518278, "h": 0.44287445857518504, "s": 1.007007577833119, "l": 0.750775909173016, "w": 0.49980536113167356, "bk": -0.001746457214358399, "a": 1, "ciel": 0.92, "ciea": -44.99478963375506, "cieb": 9.563937777616928, "ciec": 46, "cieh": 0.4666666666666667, "name": "aquamarine" }
+  }, {
+    "fonction": "testLab.lab",
+    "resultatAttendu": "lab(92% -45 9)"
+  }, {
+    "fonction": "testLab.change('ciel', '-10%').lab",
+    "resultatAttendu": "lab(82% -45 9)"
+  }, {
+    "fonction": "testLab.change('ciea', '20').lab",
+    "resultatAttendu": "lab(92% -25 9)"
+  }, {
+    "fonction": "testLab.change('cieb', '20').lab",
+    "resultatAttendu": "lab(92% -45 29)"
+  }, {
+    "fonction": "testLab.lch",
+    "resultatAttendu": "lch(92% 46 169)"
+  }, {
+    "fonction": "testLab.change('ciec', '20').lch",
+    "resultatAttendu": "lch(92% 66 169)"
+  }, {
+    "fonction": "testLab.change('cieh', '20deg').lch",
+    "resultatAttendu": "lch(92% 46 189)"
+  }
+]
