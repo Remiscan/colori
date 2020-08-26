@@ -203,68 +203,40 @@ export function colorInterface(couleur = entree, fixContrast = true) {
   if (theme == 'light') {
     sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 80%)`);
     bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 70%)`);
-    if (fixContrast) {
-      while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
-        bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
-        sectionColor = bodyColor.change('l', '80%', true);
-        if (bodyColor.w < 0.05 && bodyColor.bk > 0.95) break;
-      }
-    }
   } else if (theme == 'dark') {
     sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 20%)`);
     bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 10%)`);
-    if (fixContrast) {
-      while (Couleur.contrast(sectionColor, bodyColor) < 1.2) {
-        bodyColor = bodyColor.change('bk', '+5%').change('w', '-5%');
-        sectionColor = bodyColor.change('l', '20%', true);
-        if (bodyColor.w < 0.05 && bodyColor.bk > 0.95) break;
-      }
-    }
   }
+
+  if (fixContrast)
+    [bodyColor, sectionColor] = betterContrast(bodyColor, sectionColor, 1.2, true);
   document.body.style.setProperty('--body-color', bodyColor.hsl);
   document.body.style.setProperty('--section-color', sectionColor.hsl);
   document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
 
   // Calcul de la couleur des liens
   let linkColor;
-  if (theme == 'light') {
+  if (theme == 'light')
     linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 30%)`);
-    if (fixContrast) {
-      while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
-        linkColor = linkColor.change('bk', '+5%').change('w', '-5%');
-        if (linkColor.w < 0.05 && linkColor.bk > 0.95) break;
-      }
-    }
-  } else if (theme == 'dark') {
+  else if (theme == 'dark')
     linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.6 * Math.round(couleur.s * 100)}%, 80%)`);
-    if (fixContrast) {
-      while (Couleur.contrast(linkColor, sectionColor) < 4.5) {
-        linkColor = linkColor.change('w', '+5%').change('bk', '-5%');
-        if (linkColor.bk < 0.05 && linkColor.w > 0.95) break;
-      }
-    }
-  }
+
+  if (fixContrast)
+    linkColor = betterContrast(linkColor, sectionColor, 4.5);
   document.body.style.setProperty('--link-color', linkColor.hsl);
 
   // Calcul de la couleur du fond de la démo
   let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
-  let _couleur = couleur.change('a', '1', true);
+  //let _couleur = couleur.change('a', '1', true);
+  const white = new Couleur('white');
+  let _couleur = white.blend(`rgba(0, 0, 0, ${frameOverlay.a})`).blend(couleur);
   let frameColor = Couleur.blend(sectionColor, frameOverlay);
-  if (fixContrast) {
-    while (Couleur.contrast(frameColor, _couleur) < 1.2) {
-      frameColor = frameColor.change('bk', '-5%').change('w', '+5%');
-      if (frameColor.w > 0.95 && frameColor.bk < 0.05) break;
-    }
-  }
+  if (fixContrast)
+    frameColor = betterContrast(frameColor, _couleur, 1.2);
 
   let miniFrameColor = frameColor;
-  if (fixContrast) {
-    while (Couleur.contrast(miniFrameColor, _couleur) < 1.8) {
-      miniFrameColor = miniFrameColor.change('bk', '-5%').change('w', '+5%');
-      if (miniFrameColor.w > 0.95 && miniFrameColor.bk < 0.05) break;
-    }
-  }
-
+  if (fixContrast)
+    miniFrameColor = betterContrast(miniFrameColor, _couleur, 1.8);
   document.querySelector('.demo-inside').style.setProperty('--frame-color', frameColor.hsl);
   document.querySelector('.demo-inside').style.setProperty('--frame-color-mini', miniFrameColor.hsl);
 
@@ -274,12 +246,8 @@ export function colorInterface(couleur = entree, fixContrast = true) {
   steps.forEach((e, k) => {
     let tokenColor = new Couleur('hsl(' + Math.round(couleur.h * 360) + ', 70%, 60%)');
     tokenColor = tokenColor.change('h', steps[k]);
-    if (fixContrast) {
-      while (Couleur.contrast(tokenColor, frameColor) < 5) {
-        tokenColor = tokenColor.change('bk', '-5%').change('w', '+5%');
-        if (tokenColor.w > 0.95 && tokenColor.bk < 0.05) break;
-      }
-    }
+    if (fixContrast)
+      tokenColor = betterContrast(tokenColor, frameColor, 5);
     document.body.style.setProperty('--token-' + tokenTypes[k], tokenColor.hsl);
   });
 }
@@ -336,4 +304,65 @@ export function populateColorData(couleur) {
   champ.placeholder = couleur.name || couleur.hex;
 
   document.querySelector('.demo-conteneur').classList.add('calced');
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Changes a color to augment its contrast with another color above a threshold
+function betterContrast(_couleur1, _couleur2, threshold, adaptSecondColorToo = false) {
+  let couleur1, couleur2;
+  let contrast;
+  
+  const init = () => {
+    couleur1 = _couleur1;
+    if (!(couleur1 instanceof Couleur)) {
+      try {
+        couleur1 = new Couleur(_couleur1);
+      }
+      catch(error) {
+        throw 'First argument should be an instance of the Couleur class, or a valid color string';
+      }
+    }
+
+    couleur2 = _couleur2;
+    if (!(couleur2 instanceof Couleur)) {
+      try {
+        couleur2 = new Couleur(_couleur2);
+      }
+      catch(error) {
+        throw 'Second argument should be an instance of the Couleur class, or a valid color string';
+      }
+    }
+
+    contrast = couleur1.contrast(couleur2);
+  }
+
+  init();
+
+  let lower = 'bk', higher = 'w';
+  let initialLightness = couleur2.l;
+  while (contrast < threshold)
+  {
+    couleur1 = couleur1.change(lower, '-5%')
+                       .change(higher, '+5%');
+    if (adaptSecondColorToo)
+      couleur2 = couleur1.replace('l', `${initialLightness * 100}%`);
+    if (couleur1[higher] > 0.95 && couleur1[lower] < 0.05)
+      break;
+    const newContrast = Couleur.contrast(couleur1, couleur2);
+
+    // If we're going the wrong way, reverse
+    if (newContrast < contrast && lower == 'bk') {
+      lower = 'w';
+      higher = 'bk';
+      init();
+    }
+    else contrast = newContrast;
+  }
+
+  if (adaptSecondColorToo)
+    return [couleur1, couleur2];
+  else
+    return couleur1;
 }
