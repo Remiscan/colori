@@ -57,11 +57,12 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     <link rel="preload" as="script" href="/colori/colori--<?=version(__DIR__, 'colori.js')?>.js" crossorigin>
     <link rel="preload" as="fetch" href="/colori/strings--<?=version(__DIR__, 'strings.json')?>.json" crossorigin
           id="strings" data-version="<?=version(__DIR__, 'strings.json')?>">
-    <link rel="modulepreload" href="/_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js">
-    <link rel="modulepreload" href="/colori/modules/themeSelector--<?=version(__DIR__.'/modules', 'themeSelector.js.php')?>.js.php">
-    <link rel="modulepreload" href="/colori/modules/colorDetection--<?=version(__DIR__.'/modules', 'colorDetection.js.php')?>.js.php">
-    <link rel="modulepreload" href="/colori/modules/quickNav--<?=version(__DIR__.'/modules', 'quickNav.js')?>.js">
-    <link rel="modulepreload" href="/colori/modules/cookies--<?=version(__DIR__.'/modules', 'cookies.js')?>.js">
+    <!-- Préchargement des modules -->
+    <link rel="modulepreload" href="../_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js">
+    <?php $mods = preg_filter('/(.+)\.(js\.php)/', '$1', scandir(__DIR__.'/modules'));
+    foreach($mods as $mod) { ?>
+    <link rel="modulepreload" href="/colori/modules/<?=$mod?>--<?=version(__DIR__.'/modules', $mod.'.js.php')?>.js.php">
+    <?php } ?>
 
     <link rel="stylesheet" href="/colori/ext/prism--<?=version(__DIR__.'/ext', 'prism.css')?>.css">
     <link rel="stylesheet" href="/colori/page--<?=version(__DIR__, 'page.css')?>.css">
@@ -251,31 +252,11 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     </script>
     <script type="module">
       import Couleur from '/colori/colori--<?=version(__DIR__, 'colori.js')?>.js';
-      import { traduire, getString, switchLangage, getLangage } from '/_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js';
-      import { makeNav } from '/colori/modules/quickNav--<?=version(__DIR__.'/modules', 'quickNav.js')?>.js';
+      import { Traduction, getString } from '/colori/modules/traduction--<?=version(__DIR__.'/modules', 'traduction.js.php')?>.js.php';
+      import { makeNav } from '/colori/modules/quickNav--<?=version(__DIR__.'/modules', 'quickNav.js.php')?>.js.php';
       import { updateCouleur, interpreterCouleur, colorInterface, populateColorData } from '/colori/modules/colorDetection--<?=version(__DIR__.'/modules', 'colorDetection.js.php')?>.js.php';
 
       const langSwitch = document.querySelector('.switch-js-php');
-
-      // Translate the page
-      function textualiser() {
-        return traduire('colori')
-        .then(() => {
-          document.querySelector('.nav-documentation').dataset.titre = getString('nav-documentation');
-          document.querySelector('theme-selector').dataset.tolabel = getString('change-theme');
-          makeNav(langSwitch.dataset.currentTab);
-          setTimeout(() => Prism.highlightAll());
-          return;
-        });
-      }
-
-      // Detect clicks on translation buttons
-      Array.from(document.querySelectorAll('.bouton-langage')).forEach(bouton => {
-        bouton.addEventListener('click', () => {
-          switchLangage(bouton.dataset.lang)
-          .then(textualiser);
-        });
-      });
 
       // Adapts the page to the initial random color
       let test;
@@ -310,7 +291,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
       // On page load
       window.addEventListener('DOMContentLoaded', async () => {
         await initCouleur();
-        await textualiser();
+        await Traduction.traduire();
 
         langSwitch.addEventListener('click', () => {
           setTimeout(() => {

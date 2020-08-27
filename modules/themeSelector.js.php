@@ -1,7 +1,7 @@
 // ▼ ES modules cache-busted grâce à PHP
 /*<?php ob_start();?>*/
 
-import Cookie from './cookies.js';
+import Cookie from './cookies.js.php';
 
 /*<?php $imports = ob_get_clean();
 require_once dirname(__DIR__, 2).'/_common/php/versionize-js-imports.php';
