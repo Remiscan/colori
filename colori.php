@@ -979,9 +979,11 @@ class Couleur
       $background = $couleur1;
       $overlay = $couleur2;
     }
-    $r = round(255 * ($overlay->a * $overlay->r + (1 - $overlay->a) * $background->r));
-    $g = round(255 * ($overlay->a * $overlay->g + (1 - $overlay->a) * $background->g));
-    $b = round(255 * ($overlay->a * $overlay->b + (1 - $overlay->a) * $background->b));
+
+    // * 10 ** 5 to avoid the accumulation of precision errors
+    $r = round(10 ** 5 * 255 * ($overlay->a * $overlay->r + (1 - $overlay->a) * $background->r)) / 10 ** 5;
+    $g = round(10 ** 5 * 255 * ($overlay->a * $overlay->g + (1 - $overlay->a) * $background->g)) / 10 ** 5;
+    $b = round(10 ** 5 * 255 * ($overlay->a * $overlay->b + (1 - $overlay->a) * $background->b)) / 10 ** 5;
     return new self('rgb('.$r.', '.$g.', '.$b.')');
   }
 
@@ -990,11 +992,10 @@ class Couleur
   // Calcule la luminance d'une couleur
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   public function luminance() {
-    $couleur = new self($this->rgb());
     if ($this->a < 1)
       throw new Exception('Can\'t calculate luminance of transparent color');
 
-    $arr = array($couleur->r, $couleur->g, $couleur->b);
+    $arr = array(1 * $this->r, 1 * $this->g, 1 * $this->b);
     for ($i = 0; $i <= 2; $i++) {
       $e = $arr[$i];
       if ($e <= 0.03928)
