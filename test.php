@@ -94,7 +94,7 @@ class Test {
       foreach($c2Props as $prop => $value) {
         if (
           $value != $c1Props[$prop]
-          && $value - $c1Props[$prop] > 10 ** (-12) // fix float rounding error
+          && abs($value - $c1Props[$prop]) > 10 ** (-5) // fix float rounding error
         ) return false;
       }
 
@@ -124,6 +124,12 @@ $tests = array_map(function($test) { return new Test($test->fonction, $test->res
         border-top: 1px solid black;
         border-bottom: 1px solid black;
       }
+      .yes {
+        background-color: <?php $c = new Couleur('palegreen'); echo $c->replace('a', '.2')->hsl(); ?>;
+      }
+      .no {
+        background-color: pink;
+      }
       .php {
         grid-column: 1;
       }
@@ -151,7 +157,7 @@ $tests = array_map(function($test) { return new Test($test->fonction, $test->res
       }
       $resultat = (is_array($resultat) && $resultat[0] == 'Error') ? [$resultat[0], $resultat[1]->getMessage()] : $resultat;
       ?>
-      <div class="php" style="grid-row: <?=$k+2?>">
+      <div class="php <?=$test->validate() ? 'yes' : 'no'?>" style="grid-row: <?=$k+2?>">
         <h3 class="php" style="<?php
           if ($c != null) echo 'background-color: ' . $c->rgba() . '; color: ' . $c->replace('a', 1)->contrastedText();
         ?>"><?=$test->nom()?></h3>
@@ -185,8 +191,11 @@ $tests = array_map(function($test) { return new Test($test->fonction, $test->res
         if (c1Props.length != c2Props.length) return false;
 
         for (var i = 0; i < c1Props.length; i++) {
-            var prop = c1Props[i];
-            if (couleur1[prop] !== couleur2[prop]) return false;
+          var prop = c1Props[i];
+          if (
+            couleur1[prop] !== couleur2[prop]
+            && Math.abs(prop - c2Props[prop]) > 10 ** (-5)
+          ) return false;
         }
 
         return true;
@@ -226,6 +235,7 @@ $tests = array_map(function($test) { return new Test($test->fonction, $test->res
       tests.forEach((test, k) => {
         const div = document.createElement('div');
         div.classList.add('js');
+        div.classList.add(test.validate() ? 'yes' : 'no');
         div.style.setProperty('grid-row', k + 2);
         const h3 = document.createElement('h3');
         h3.classList.add('js');
@@ -242,7 +252,7 @@ $tests = array_map(function($test) { return new Test($test->fonction, $test->res
         if (!test.validate()) {
           pre2 = document.createElement('pre');
           pre2.innerHTML = 'Attendu :\n\n' + JSON.stringify(test.resultatAttendu, null, 2);
-          pre2.style.setProperty('color', red);
+          pre2.style.setProperty('color', 'red');
           pre2.classList.add('js');
         }
 
