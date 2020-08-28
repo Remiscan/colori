@@ -134,7 +134,7 @@
     "documentation-change-aliases-desaturate": ", to decrease saturation",
     "documentation-change-aliases-saturate": ", to increase saturation",
     "documentation-complement-titre": "Complementary and inverse colors",
-    "documentation-complement-p1": "The <code class=\"language-javascript\">complement</code> (or <code class=\"language-javascript\">invert</code>) method computes the complementary color of a color, and the <code class=\"language-javascript\">negative</code> method computes the inverse color of a color:",
+    "documentation-complement-p1": "The <code class=\"language-javascript\">complement</code> method computes the complementary color of a color, and the <code class=\"language-javascript\">negative</code> (or <code class=\"language-javascript\">invert</code>) method computes the inverse color of a color:",
     "documentation-intro-p1-php": "<strong>colori.php</strong> is a PHP library to convert a color into its different CSS-supported formats (RGB, HSL, HWB), and to manipulate colors with some useful functions (blend two colors, calculate their contrast, etc.).",
     "documentation-utiliser-titre-php": "How to use colori.php",
     "documentation-utiliser-p1-php": "You need to download the file <a href=\"https://github.com/Remiscan/colori/releases/latest/download/colori.php\" download=\"colori\">colori.php</a>, then just import it into your PHP code like this:",
