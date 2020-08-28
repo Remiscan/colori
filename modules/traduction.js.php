@@ -27,6 +27,7 @@ class ExtTraduction extends DefTraduction {
     const langSwitch = document.querySelector('.switch-js-php');
     makeNav(langSwitch.dataset.currentTab);
     setTimeout(() => Prism.highlightAll());
+    return;
   }
 }
 
