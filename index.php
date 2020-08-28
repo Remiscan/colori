@@ -54,23 +54,30 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Lato&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato&display=swap" media="print" onload="this.media='all'">
 
-    <link rel="preload" as="script" href="/colori/colori--<?=version(__DIR__, 'colori.js')?>.js" crossorigin>
-    <link rel="preload" as="fetch" href="/colori/strings--<?=version(__DIR__, 'strings.json')?>.json" crossorigin
+    <!-- ▼ Fichiers cache-busted grâce à PHP -->
+    <!--<?php ob_start();?>-->
+
+    <link rel="preload" as="script" href="/colori/colori.js" crossorigin>
+    <link rel="preload" as="fetch" href="/colori/strings.json" crossorigin
           id="strings" data-version="<?=version(__DIR__, 'strings.json')?>">
     <!-- Préchargement des modules -->
-    <link rel="modulepreload" href="../_common/js/traduction--<?=version($commonDir.'/js', 'traduction.js')?>.js">
+    <link rel="modulepreload" href="/_common/js/traduction.js">
     <?php $mods = preg_filter('/(.+)\.(js\.php)/', '$1', scandir(__DIR__.'/modules'));
     foreach($mods as $mod) { ?>
-    <link rel="modulepreload" href="/colori/modules/<?=$mod?>--<?=version(__DIR__.'/modules', $mod.'.js.php')?>.js.php">
+    <link rel="modulepreload" href="/colori/modules/<?=$mod?>.js.php">
     <?php } ?>
 
-    <link rel="stylesheet" href="/colori/ext/prism--<?=version(__DIR__.'/ext', 'prism.css')?>.css">
-    <link rel="stylesheet" href="/colori/page--<?=version(__DIR__, 'page.css')?>.css">
+    <link rel="stylesheet" href="/colori/ext/prism.css">
+    <link rel="stylesheet" href="/colori/page.css">
 
     <script type="module">
-      import Theme from '/colori/modules/themeSelector--<?=version(__DIR__.'/modules', 'themeSelector.js.php')?>.js.php';
+      import Theme from '/colori/modules/themeSelector.js.php';
       Theme.set();
     </script>
+
+    <!--<?php $imports = ob_get_clean();
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
+    echo versionizeFiles($imports, __DIR__); ?>-->
 
     <style>
       .loading {
@@ -238,9 +245,12 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
 
     <footer><span><span data-string="syntax-highlighting-source"><?=$Textes->getString('syntax-highlighting-source')?></span> <a href="https://prismjs.com/" target="_blank" rel="noopener">prism.js</a></span></footer>
 
+    <!-- ▼ Fichiers cache-busted grâce à PHP -->
+    <!--<?php ob_start();?>-->
+
     <!-- SCRIPTS -->
     <script src="/colori/ext/prism.js" data-manual></script>
-    <script src="/_common/js/test-support--<?=version($commonDir.'/js', 'test-support.js')?>.js" id="test-support-script"></script>
+    <script src="/_common/js/test-support.js" id="test-support-script"></script>
     <script id="test-support-script-exe">
       TestSupport.getSupportResults([
         { name: 'CSS custom properties', priority: 1 },
@@ -251,10 +261,10 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
       ]);
     </script>
     <script type="module">
-      import Couleur from '/colori/colori--<?=version(__DIR__, 'colori.js')?>.js';
-      import { Traduction, getString } from '/colori/modules/traduction--<?=version(__DIR__.'/modules', 'traduction.js.php')?>.js.php';
-      import { makeNav } from '/colori/modules/quickNav--<?=version(__DIR__.'/modules', 'quickNav.js.php')?>.js.php';
-      import { updateCouleur, interpreterCouleur, colorInterface, populateColorData } from '/colori/modules/colorDetection--<?=version(__DIR__.'/modules', 'colorDetection.js.php')?>.js.php';
+      import Couleur from '/colori/colori.js';
+      import { Traduction, getString } from '/colori/modules/traduction.js.php';
+      import { makeNav } from '/colori/modules/quickNav.js.php';
+      import { updateCouleur, interpreterCouleur, colorInterface, populateColorData } from '/colori/modules/colorDetection.js.php';
 
       const langSwitch = document.querySelector('.switch-js-php');
 
@@ -335,5 +345,9 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
         document.documentElement.classList.add('loaded');
       });
     </script>
+
+    <!--<?php $imports = ob_get_clean();
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
+    echo versionizeFiles($imports, __DIR__); ?>-->
   </body>
 </html>

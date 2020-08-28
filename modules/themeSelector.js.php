@@ -4,8 +4,8 @@
 import Cookie from './cookies.js.php';
 
 /*<?php $imports = ob_get_clean();
-require_once dirname(__DIR__, 2).'/_common/php/versionize-js-imports.php';
-echo versionizeImports($imports, __DIR__); ?>*/
+require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
+echo versionizeFiles($imports, __DIR__); ?>*/
 
 const template = document.createElement('template');
 template.innerHTML = `
