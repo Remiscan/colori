@@ -662,7 +662,7 @@ input {
 }
 
 input:hover {
-  box-shadow: 0 0 0 1px var(--input-hover-border-color);
+  box-shadow: 0 0 0 2px var(--h3-color);
 }
 
 input:active, input:focus {
