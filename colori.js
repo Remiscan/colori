@@ -185,8 +185,7 @@ export default class Couleur {
     for (const format of formats) {
       for (const [k, syntaxe] of format.syntaxes.entries()) {
         const result = couleur.match(syntaxe);
-        if (result != null && result[0] === couleur)
-        {
+        if (result != null && result[0] === couleur) {
           const allNames = Couleur.couleursNommees;
           if (format.id != 'NAME')
             resultat = {
@@ -201,10 +200,8 @@ export default class Couleur {
       }
     }
 
-    if (resultat)
-      return resultat;
-    else
-      throw 'Invalid format';
+    if (resultat) return resultat;
+    else          throw 'Invalid format';
   }
 
   // Parses a number / percentage / angle into correct format to store it
@@ -215,17 +212,17 @@ export default class Couleur {
 
     if (type == 'arbitrary')
     {
-      // Si n est un pourcentage (n'importe lequel)
+      // If n is any percentage
       if (new RegExp('^' + Couleur.vPer + '$').test(n)) {
         _n = _n / 100;
         logged = 'arbitrary%';
       }
-      // Si n est un nombre (n'importe lequel)
+      // If n is any number
       else if (new RegExp('^' + Couleur.vNum + '$').test(n)) {
         logged = 'arbitraryN';
       }
     }
-    // Si n est un pourcentage (entre 0 et 100%)
+    // If n is a percentage between 0 and 100%
     else if (new RegExp('^' + Couleur.vPer + '$').test(n))
     {
       _n = _n / 100;
@@ -235,7 +232,7 @@ export default class Couleur {
         _n = 1;
       logged = '%';
     }
-    // Si n est un nombre (entre 0 et 255)
+    // If n is a number between 0 and 255
     else if (new RegExp('^' + Couleur.vNum + '$').test(n) && type != 'angle' && type != 'alpha' && type != 'cie')
     {
       _n = _n / 255;
@@ -245,7 +242,7 @@ export default class Couleur {
         _n = 1;
       logged = '255';
     }
-    // Si n est un nombre (entre 0 et 1)
+    // If n is a number between 0 and 1
     else if (new RegExp('^' + Couleur.vNum + '$').test(n) && type == 'alpha')
     {
       if (_n < 0)
@@ -254,17 +251,17 @@ export default class Couleur {
         _n = 1;
       logged = 'alpha';
     }
-    // Si n est un nombre (entre 0 et +Infinity)
+    // If n is a number between 0 and +Infinity
     else if (new RegExp('^' + Couleur.vNum + '$').test(n) && type == 'cie')
     {
       if (_n < 0)
         _n = 0;
       logged = 'cieC';
     }
-    // Si n est un angle (donc un nombre ou un nombre avec unité d'angle)
+    // If n is an angle (i.e. a number with or without an angle unit)
     else if (new RegExp('^' + Couleur.vAng + '$').test(n) && type == 'angle')
     {
-      // en deg
+      // deg
       if (String(n).slice(-3) == 'deg' || new RegExp('^' + Couleur.vNum + '$').test(n))
       {
         while (_n < 0)
@@ -274,7 +271,7 @@ export default class Couleur {
         _n = _n / 360;
         logged = 'deg';
       }
-      // en grad
+      // grad
       else if (String(n).slice(-4) == 'grad')
       {
         while (_n < 0)
@@ -284,7 +281,7 @@ export default class Couleur {
         _n = _n / 400;
         logged = 'grad'
       }
-      // en rad
+      // rad
       else if (String(n).slice(-3) == 'rad')
       {
         _n = _n * 180 / Math.PI;
@@ -295,7 +292,7 @@ export default class Couleur {
         _n = _n / 360;
         logged = 'rad';
       }
-      // en turn
+      // turn
       else if (String(n).slice(-4) == 'turn')
       {
         while (_n < 0)
@@ -325,12 +322,12 @@ export default class Couleur {
       return _n;
   }
 
-  // Ajoute un zéro avant une chaîne d'un seul caractère
+  // Adds a zero before a string of length 1
   static pad(s) {
     return (s.length < 2) ? `0${s}` : s;
   }
 
-  // Renvoie un float avec une précision de n chiffres
+  // Returns a float precise to the nth decimal
   static pRound(_x, n = 5) {
     let x = (typeof _x == 'number') ? _x : Number(_x);
     return Number(parseFloat(x.toPrecision(n)));
@@ -501,7 +498,7 @@ export default class Couleur {
   }
 
   hsl2rgb() {
-    // source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
+    // source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     let h = this.h * 360;
     let s = this.s;
     let l = this.l;
@@ -521,8 +518,8 @@ export default class Couleur {
   }
 
   hsl2hwb() {
-    // Source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
-    //                  & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
     let s = this.s;
     let l = this.l;
     let _s, v, w, bk;
@@ -541,8 +538,8 @@ export default class Couleur {
   }
 
   hwb2hsl() {
-    // Source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
-    //                  & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
     let w = this.w;
     let bk = this.bk;
     let _s, v, s, l;
@@ -570,7 +567,7 @@ export default class Couleur {
   }
 
   rgb2lab() {
-    // Source des maths : https://www.w3.org/TR/css-color-4/#rgb-to-lab
+    // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
     const linRGB = x => (x < 0.04045) ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
     const r = linRGB(this.r);
     const g = linRGB(this.g);
@@ -605,7 +602,7 @@ export default class Couleur {
   }
 
   lab2rgb() {
-    // Source des maths : https://www.w3.org/TR/css-color-4/#lab-to-rgb
+    // Source of the math: https://www.w3.org/TR/css-color-4/#lab-to-rgb
     const ε = 216/24389;
     const κ = 24389/27;
     const w = [0.96422, 1, 0.82521];
@@ -662,7 +659,7 @@ export default class Couleur {
     this.cieb = Couleur.pRound(cieb);
   }
 
-  // Fusionne une couleur transparente et une couleur opaque
+  // Blends a transparent color and an opaque color
   static blend(_couleur1, _couleur2) {
     let couleur1 = _couleur1;
     if (!(_couleur1 instanceof Couleur)) {
@@ -687,13 +684,10 @@ export default class Couleur {
     let background, overlay;
     if (couleur1.a < 1 && couleur2.a < 1)
       throw 'At least one of the arguments needs to be an opaque Couleur';
-    else if (couleur1.a < 1 && couleur2.a == 1)
-    {
+    else if (couleur1.a < 1 && couleur2.a == 1) {
       background = couleur2;
       overlay = couleur1;
-    }
-    else
-    {
+    } else {
       background = couleur1;
       overlay = couleur2;
     }
@@ -703,7 +697,7 @@ export default class Couleur {
     return new Couleur(`rgb(${r}, ${g}, ${b})`);
   }
 
-  // Raccourci pour blend
+  // Shorthand to Couleur.blend
   blend(_couleur2, alpha = null) {
     let couleur2 = _couleur2;
     if (!(_couleur2 instanceof Couleur)) {
@@ -718,8 +712,7 @@ export default class Couleur {
     if (this.a < 1 && couleur2.a == 1) {
       overlay = this;
       background = couleur2;
-    }
-    else {
+    } else {
       background = this;
       overlay = couleur2;
     }
@@ -727,28 +720,25 @@ export default class Couleur {
     return Couleur.blend(background, overlay);
   }
 
-  // Calcule la luminance d'une couleur
+  // Computes the luminance of a color
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   get luminance() {
     let couleur = this;
-    if (this.a < 1)
-      throw 'Can\'t calculate luminance of transparent color';
+    if (this.a < 1) throw 'Can\'t calculate luminance of transparent color';
 
     let arr = [couleur.r, couleur.g, couleur.b];
     for (let i = 0; i <= 2; i++) {
       let e = arr[i];
-      if (e <= 0.03928)
-        e = e / 12.92;
-      else
-        e = Math.pow((e + 0.055) / 1.055, 2.4);
+      if (e <= 0.03928) e = e / 12.92;
+      else              e = Math.pow((e + 0.055) / 1.055, 2.4);
       arr[i] = e;
     }
 
     return Couleur.pRound(0.2126 * arr[0] + 0.7152 * arr[1] + 0.0722 * arr[2]);
   }
 
-  // Calcule le contraste entre deux couleurs
-  // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
+  // Computes the contrast between two colors
+  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
   static contrast(_couleur1, _couleur2) {
     let couleur1 = _couleur1;
     if (!(_couleur1 instanceof Couleur)) {
@@ -777,7 +767,7 @@ export default class Couleur {
     return Couleur.pRound((Lmax + 0.05) / (Lmin + 0.05));
   }
 
-  // Raccourci pour contrast
+  // Shorthand for Couleur.contrast
   contrast(_couleur2) {
     let couleur2 = _couleur2;
     if (!(_couleur2 instanceof Couleur)) {
@@ -791,22 +781,20 @@ export default class Couleur {
     return Couleur.contrast(this, couleur2);
   }
 
-  // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
+  // Checks if black or white text would have better contrast with this color
   contrastedText() {
-    const L = this.luminance; // luminance de la couleur entrée
-    const LB = 1; // luminance du blanc
-    const LN = 0; // luminance du noir
+    const L = this.luminance;
+    const LB = 1; // luminance of white
+    const LN = 0; // luminance of black
     const contrastes = [
-      (L + 0.05) / (LN + 0.05), // contraste entre la couleur entrée et le noir
-      (LB + 0.05) / (L + 0.05)  // contraste entre le blanc et la couleur entrée
+      (L + 0.05) / (LN + 0.05), // contrast between this and black
+      (LB + 0.05) / (L + 0.05)  // contrast between white and this
     ];
-    if (contrastes[0] > contrastes[1]) // contraste plus fort avec le noir
-      return 'black'; // le texte noir ira mieux sur le fond de couleur
-    else
-      return 'white'; // le texte blanc ira mieux sur le fond de couleur
+    if (contrastes[0] > contrastes[1])  return black; // if contrast is higher with black
+    else                                return 'white';
   }
 
-  // Change une propriété d'une couleur
+  // Changes a property of the color
   change(propriete, valeur, options = {}) {
     let nouvelleCouleur = new Couleur(`${this.rgb}`);
     const error = 'Incorrect value format for ' + propriete;
@@ -913,14 +901,14 @@ export default class Couleur {
       return new Couleur(nouvelleCouleur.rgb);
   }
 
-  // Remplace une propriété d'une couleur
+  // Replaces a property of the color
   replace(propriete, valeur, options = {}) {
     const _options = options;
     options.replace = true;
     return this.change(propriete, valeur, options);
   }
 
-  // Remplace une propriété d'une couleur par un pourcentage de sa valeur initiale
+  // Replaces a property of the color by a percentage of its initial value
   scale(propriete, valeur, options = {}) {
     const _options = options;
     options.replace = true;
