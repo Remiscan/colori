@@ -204,6 +204,17 @@ export default class Couleur {
     else          throw 'Invalid format';
   }
 
+  // Checks if a variable is a Couleur object, or if it can be made into one
+  static check(color) {
+    if (color instanceof Couleur) return color;
+    try {
+      return new Couleur(color);
+    }
+    catch(error) {
+      throw 'Argument should be an instance of the Couleur class, or a valid color string';
+    }
+  }
+
   // Parses a number / percentage / angle into correct format to store it
   static parse(n, type = null, log = false) {
     let _n = parseFloat(n);
@@ -661,25 +672,8 @@ export default class Couleur {
 
   // Blends a transparent color and an opaque color
   static blend(_couleur1, _couleur2) {
-    let couleur1 = _couleur1;
-    if (!(_couleur1 instanceof Couleur)) {
-      try {
-        couleur1 = new Couleur(_couleur1);
-      }
-      catch(error) {
-        throw 'First argument should be an instance of the Couleur class, or a valid color string';
-      }
-    }
-
-    let couleur2 = _couleur2;
-    if (!(_couleur2 instanceof Couleur)) {
-      try {
-        couleur2 = new Couleur(_couleur2);
-      }
-      catch(error) {
-        throw 'Second argument should be an instance of the Couleur class, or a valid color string';
-      }
-    }
+    let couleur1 = Couleur.check(_couleur1);
+    let couleur2 = Couleur.check(_couleur2);
 
     let background, overlay;
     if (couleur1.a < 1 && couleur2.a < 1)
@@ -699,15 +693,7 @@ export default class Couleur {
 
   // Shorthand to Couleur.blend
   blend(_couleur2, alpha = null) {
-    let couleur2 = _couleur2;
-    if (!(_couleur2 instanceof Couleur)) {
-      try {
-        couleur2 = new Couleur(_couleur2);
-      }
-      catch(error) {
-        throw 'First argument should be an instance of the Couleur class, or a valid color string';
-      }
-    }
+    let couleur2 = Couleur.check(_couleur2);
     let background, overlay;
     if (this.a < 1 && couleur2.a == 1) {
       overlay = this;
@@ -740,25 +726,8 @@ export default class Couleur {
   // Computes the contrast between two colors
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
   static contrast(_couleur1, _couleur2) {
-    let couleur1 = _couleur1;
-    if (!(_couleur1 instanceof Couleur)) {
-      try {
-        couleur1 = new Couleur(_couleur1);
-      }
-      catch(error) {
-        throw 'First argument should be an instance of the Couleur class, or a valid color string';
-      }
-    }
-
-    let couleur2 = _couleur2;
-    if (!(_couleur2 instanceof Couleur)) {
-      try {
-        couleur2 = new Couleur(_couleur2);
-      }
-      catch(error) {
-        throw 'Second argument should be an instance of the Couleur class, or a valid color string';
-      }
-    }
+    let couleur1 = Couleur.check(_couleur1);
+    let couleur2 = Couleur.check(_couleur2);
 
     const L1 = couleur1.luminance;
     const L2 = couleur2.luminance;
@@ -769,15 +738,7 @@ export default class Couleur {
 
   // Shorthand for Couleur.contrast
   contrast(_couleur2) {
-    let couleur2 = _couleur2;
-    if (!(_couleur2 instanceof Couleur)) {
-      try {
-        couleur2 = new Couleur(_couleur2);
-      }
-      catch(error) {
-        throw 'Argument should be an instance of the Couleur class, or a valid color string';
-      }
-    }
+    let couleur2 = Couleur.check(_couleur2);
     return Couleur.contrast(this, couleur2);
   }
 
