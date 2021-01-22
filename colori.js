@@ -210,7 +210,7 @@ export default class Couleur {
     try {
       return new Couleur(color);
     }
-    catch(error) {
+    catch (error) {
       throw 'Argument should be an instance of the Couleur class, or a valid color string';
     }
   }
@@ -342,9 +342,6 @@ export default class Couleur {
   static pRound(_x, n = 5) {
     let x = (typeof _x == 'number') ? _x : Number(_x);
     return Number(parseFloat(x.toPrecision(n)));
-    /*const intDigits = (x !== 0) ? Math.floor(Math.log10(x > 0 ? x : -1 * x) + 1) : 1;
-    const precision = Math.round(n - intDigits);
-    return Math.round(Math.pow(10, precision) * x) / Math.pow(10, precision);*/
   }
 
   get hexa() {
@@ -470,14 +467,14 @@ export default class Couleur {
     const min = Math.min(r, g, b);
     const chroma = max - min;
 
-    // Luminosité (l)
+    // Luminosity (l)
     l = (max + min) / 2;
 
-    // Si chrome == 0, la couleur est grise
+    // If chroma == 0, the color is grey
     if (chroma == 0)
       h = 0;
-    // Sinon, on calcule la teinte h
-    // (source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
+    // If not, we calculate the hue h
+    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
     else
     {
       switch (max) {
@@ -555,8 +552,7 @@ export default class Couleur {
     let bk = this.bk;
     let _s, v, s, l;
 
-    if (w + bk > 1)
-    {
+    if (w + bk > 1) {
       w = w / (w + bk);
       bk = bk / (w + bk);
     }
@@ -691,7 +687,7 @@ export default class Couleur {
     return new Couleur(`rgb(${r}, ${g}, ${b})`);
   }
 
-  // Shorthand to Couleur.blend
+  // Shorthand for Couleur.blend
   blend(_couleur2, alpha = null) {
     let couleur2 = Couleur.check(_couleur2);
     let background, overlay;
@@ -707,7 +703,7 @@ export default class Couleur {
   }
 
   // Computes the luminance of a color
-  // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
+  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   get luminance() {
     let couleur = this;
     if (this.a < 1) throw 'Can\'t calculate luminance of transparent color';
@@ -914,7 +910,7 @@ export default class Couleur {
     return this.negative();
   }
 
-  // options : {scale: true/false}
+  // options: {scale: true/false}
   darken(_value, options = {}) {
     let value = Couleur.parse(_value, 'arbitrary');
     value = value * 100;
@@ -971,9 +967,9 @@ export default class Couleur {
         separator: '',
         suffix: '',
         syntaxes: [
-          // #abc ou #ABC
+          // #abc or #ABC
           /^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/,
-          // #aabbcc ou #AABBCC
+          // #aabbcc or #AABBCC
           /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/
         ]
       }, {
@@ -982,9 +978,9 @@ export default class Couleur {
         separator: '',
         suffix: '',
         syntaxes: [
-          // #abcd ou #ABCD
+          // #abcd or #ABCD
           /^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/,
-          // #aabbccdd ou #AABBCCDD
+          // #aabbccdd or #AABBCCDD
           /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/
         ]
       }, {
@@ -993,9 +989,9 @@ export default class Couleur {
         separator: ', ',
         suffix: ')',
         syntaxes: [
-          // rgb(255, 255, 255) ou rgb(255,255,255)
+          // rgb(255, 255, 255) or rgb(255,255,255)
           new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum})\\)$`),
-          // rgb(100%, 100%, 100%) ou rgb(100%,100%,100%)
+          // rgb(100%, 100%, 100%) or rgb(100%,100%,100%)
           new RegExp(`^rgba?\\((${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)$`),
           // rgb(255 255 255)
           new RegExp(`^rgba?\\((${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum})\\)$`),
@@ -1008,13 +1004,13 @@ export default class Couleur {
         separator: ', ',
         suffix: ')',
         syntaxes: [
-          // rgba(255, 255, 255, .5) ou rgba(255, 255, 255, 50%) (espaces optionnels)
+          // rgba(255, 255, 255, .5) or rgba(255, 255, 255, 50%) (espaces optionnels)
           new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNP})\\)$`),
-          // rgba(100%, 100%, 100%, .5) ou rgba(100%, 100%, 100%, 50%) (espaces optionnels)
+          // rgba(100%, 100%, 100%, .5) or rgba(100%, 100%, 100%, 50%) (espaces optionnels)
           new RegExp(`^rgba?\\((${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
-          // rgba(255 255 255 / 50%) ou rgba(255 255 255 / .5)
+          // rgba(255 255 255 / 50%) or rgba(255 255 255 / .5)
           new RegExp(`^rgba?\\((${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum}) ?\\/ ?(${Couleur.vNP})\\)$`),
-          // rgba(100% 100% 100% / 50%) ou rgba(100% 100% 100% / .5)
+          // rgba(100% 100% 100% / 50%) or rgba(100% 100% 100% / .5)
           new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
@@ -1034,9 +1030,9 @@ export default class Couleur {
         separator: ', ',
         suffix: ')',
         syntaxes: [
-          // hsla(<angle>, 100%, 100%, .5) ou hsla(<angle>, 100%, 100%, 50%)
+          // hsla(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
           new RegExp(`^hsla?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
-          // hsla(<angle> 100% 100% / .5) ou hsl(<angle> 100% 100% / 50%)
+          // hsla(<angle> 100% 100% / .5) or hsl(<angle> 100% 100% / 50%)
           new RegExp(`^hsla?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
@@ -1056,9 +1052,9 @@ export default class Couleur {
         separator: ', ',
         suffix: ')',
         syntaxes: [
-          // hwba(<angle>, 100%, 100%, .5) ou hsla(<angle>, 100%, 100%, 50%)
+          // hwba(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
           new RegExp(`^hwba?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
-          // hwba(<angle> 100% 100% / .5) ou hsl(<angle> 100% 100% / 50%)
+          // hwba(<angle> 100% 100% / .5) or hsl(<angle> 100% 100% / 50%)
           new RegExp(`^hwba?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
@@ -1089,7 +1085,7 @@ export default class Couleur {
         separator: '',
         suffix: '',
         syntaxes: [
-          // white ou WHITE ou WhiTe
+          // white or WHITE or WhiTe
           /^[A-Za-z]+$/
         ]
       }

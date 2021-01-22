@@ -166,9 +166,9 @@ class Couleur
       'separator' => '',
       'suffix' => '',
       'syntaxes' => array(
-        // #abc ou #ABC
+        // #abc or #ABC
         '/^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/',
-        // #aabbcc ou #AABBCC
+        // #aabbcc or #AABBCC
         '/^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/'
       )
     ), array(
@@ -177,9 +177,9 @@ class Couleur
       'separator' => '',
       'suffix' => '',
       'syntaxes' => array(
-        // #abcd ou #ABCD
+        // #abcd or #ABCD
         '/^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/',
-        // #aabbccdd ou #AABBCCDD
+        // #aabbccdd or #AABBCCDD
         '/^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/'
       )
     ), array(
@@ -188,9 +188,9 @@ class Couleur
       'separator' => ', ',
       'suffix' => ')',
       'syntaxes' => array(
-        // rgb(255, 255, 255) ou rgb(255,255,255)
+        // rgb(255, 255, 255) or rgb(255,255,255)
         '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.')\\)$/',
-        // rgb(100%, 100%, 100%) ou rgb(100%,100%,100%)
+        // rgb(100%, 100%, 100%) or rgb(100%,100%,100%)
         '/^rgba?\\(('.self::vPer.'), ?('.self::vPer.'), ?('.self::vPer.')\\)$/',
         // rgb(255 255 255)
         '/^rgba?\\(('.self::vNum.') ('.self::vNum.') ('.self::vNum.')\\)$/',
@@ -203,13 +203,13 @@ class Couleur
       'separator' => ', ',
       'suffix' => ')',
       'syntaxes' => array(
-        // rgba(255, 255, 255, .5) ou rgba(255, 255, 255, 50%) (espaces optionnels)
+        // rgba(255, 255, 255, .5) or rgba(255, 255, 255, 50%) (espaces optionnels)
         '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNP.')\\)$/',
-        // rgba(100%, 100%, 100%, .5) ou rgba(100%, 100%, 100%, 50%) (espaces optionnels)
+        // rgba(100%, 100%, 100%, .5) or rgba(100%, 100%, 100%, 50%) (espaces optionnels)
         '/^rgba?\\(('.self::vPer.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
-        // rgba(255 255 255 / 50%) ou rgba(255 255 255 / .5)
+        // rgba(255 255 255 / 50%) or rgba(255 255 255 / .5)
         '/^rgba?\\(('.self::vNum.') ('.self::vNum.') ('.self::vNum.') ?\\/ ?('.self::vNP.')\\)$/',
-        // rgba(100% 100% 100% / 50%) ou rgba(100% 100% 100% / .5)
+        // rgba(100% 100% 100% / 50%) or rgba(100% 100% 100% / .5)
         '/^rgba?\\(('.self::vPer.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
@@ -229,9 +229,9 @@ class Couleur
       'separator' => ', ',
       'suffix' => ')',
       'syntaxes' => array(
-        // hsla(<angle>, 100%, 100%, .5) ou hsla(<angle>, 100%, 100%, 50%)
+        // hsla(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
         '/^hsla?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
-        // hsla(<angle> 100% 100% / .5) ou hsl(<angle> 100% 100% / 50%)
+        // hsla(<angle> 100% 100% / .5) or hsl(<angle> 100% 100% / 50%)
         '/^hsla?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
@@ -251,9 +251,9 @@ class Couleur
       'separator' => ', ',
       'suffix' => ')',
       'syntaxes' => array(
-        // hwba(<angle>, 100%, 100%, .5) ou hsla(<angle>, 100%, 100%, 50%)
+        // hwba(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
         '/^hwba?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
-        // hwba(<angle> 100% 100% / .5) ou hsl(<angle> 100% 100% / 50%)
+        // hwba(<angle> 100% 100% / .5) or hsl(<angle> 100% 100% / 50%)
         '/^hwba?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
@@ -284,7 +284,7 @@ class Couleur
       'separator' => '',
       'suffix' => '',
       'syntaxes' => array(
-        // white ou WHITE ou WhiTe
+        // white or WHITE or WhiTe
         '/^[A-Za-z]+$/'
       )
     )
@@ -508,17 +508,17 @@ class Couleur
 
     if ($type == 'arbitrary')
     {
-      // Si n est un pourcentage (n'importe lequel)
+      // If n is any percentage
       if (preg_match('/^' . self::vPer . '$/', $n)) {
         $_n = $_n / 100;
         $logged = 'arbitrary%';
       }
-      // Si n est un nombre (n'importe lequel)
+      // If n is any number
       elseif (preg_match('/^' . self::vNum . '$/', $n)) {
         $logged = 'arbitraryN';
       }
     }
-    // Si n est un pourcentage
+    // If n is a percentage between 0 and 100%
     elseif (preg_match('/^' . self::vPer . '$/', $n))
     {
       $_n = $_n / 100;
@@ -528,7 +528,7 @@ class Couleur
         $_n = 1;
       $logged = '%';
     }
-    // Si n est un nombre (entre 0 et 255)
+    // If n is a number between 0 and 255
     elseif (preg_match('/^' . self::vNum . '$/', $n) && $type != 'angle' && $type != 'alpha' && $type != 'cie')
     {
       $_n = $_n / 255;
@@ -538,7 +538,7 @@ class Couleur
         $_n = 1;
       $logged = '255';
     }
-    // Si n est un nombre (entre 0 et 1)
+    // If n is a number between 0 and 1
     elseif (preg_match('/^' . self::vNum . '$/', $n) && $type == 'alpha')
     {
       if ($_n < 0)
@@ -547,17 +547,17 @@ class Couleur
         $_n = 1;
       $logged = 'alpha';
     }
-    // Si n est un nombre (entre 0 et +Infinity)
+    // If n is a number between 0 and +Infinity
     elseif (preg_match('/^' . self::vNum . '$/', $n) && $type == 'cie')
     {
       if ($_n < 0)
         $_n = 0;
       $logged = 'cieC';
     }
-    // Si n est un angle (donc un nombre ou un nombre avec unité d'angle)
+    // If n is an angle (i.e. a number with or without an angle unit)
     elseif (preg_match('/^' . self::vAng . '$/', $n) && $type == 'angle')
     {
-      // en deg
+      // deg
       if (substr($n, -3) == 'deg' || preg_match('/^' . self::vNum . '$/', $n))
       {
         while ($_n < 0) {
@@ -569,7 +569,7 @@ class Couleur
         $_n = $_n / 360;
         $logged = 'deg';
       }
-      // en grad
+      // grad
       elseif (substr($n, -4) == 'grad')
       {
         while ($_n < 0) {
@@ -581,7 +581,7 @@ class Couleur
         $_n = $_n / 400;
         $logged = 'grad';
       }
-      // en rad
+      // rad
       elseif (substr($n, -3) == 'rad')
       {
         $_n = $_n * 180 / pi();
@@ -594,7 +594,7 @@ class Couleur
         $_n = $_n / 360;
         $logged = 'rad';
       }
-      // en turn
+      // turn
       elseif (substr($n, -4) == 'turn')
       {
         while ($_n < 0) {
@@ -626,12 +626,12 @@ class Couleur
       return $_n;
   }
 
-  // Ajoute un zéro avant une chaîne d'un seul caractère
+  // Adds a zero before a string of length 1
   private static function pad($s) {
     return (strlen($s) < 2) ? '0' . $s : $s;
   }
 
-  // Renvoie un float avec une précision de n chiffres
+  // Returns a float precise to the nth decimal
   private static function pRound($_x, $n = 5) {
     $x = (float) $_x;
     $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -1 * $x) + 1) : 1;
@@ -763,14 +763,14 @@ class Couleur
     $min = min($r, $g, $b);
     $chroma = $max - $min;
     
-    // Luminosité (l)
+    // Luminosity (l)
     $l = ($max + $min) / 2;
     
-    // Si chroma == 0, la couleur est grise
+    // If chroma == 0, the color is grey
     if ($chroma == 0)
       $h = 0;
-    // Sinon, on calcule la teinte h
-    // (source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
+    // If not, we calculate the hue h
+    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
     else
     {
       switch($max) {
@@ -802,7 +802,7 @@ class Couleur
   }
 
   private function hsl2rgb() {
-    // source des maths : https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     $h = $this->h * 360;
     $s = $this->s;
     $l = $this->l;
@@ -825,6 +825,8 @@ class Couleur
   }
 
   private function hsl2hwb() {
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
     $s = $this->s;
     $l = $this->l;
 
@@ -842,11 +844,12 @@ class Couleur
   }
 
   private function hwb2hsl() {
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
     $w = $this->w;
     $bk = $this->bk;
 
-    if ($w + $bk > 1)
-    {
+    if ($w + $bk > 1) {
       $w = $w / ($w + $bk);
       $bk = $bk / ($w + $bk);
     }
@@ -868,7 +871,7 @@ class Couleur
   }
 
   private function rgb2lab() {
-    // Source des maths : https://www.w3.org/TR/css-color-4/#rgb-to-lab
+    // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
     $linRGB = function($x) { return ($x < 0.04045) ? ($x / 12.92) : (($x + 0.055) / 1.055) ** 2.4; };
     $r = $linRGB($this->r);
     $g = $linRGB($this->g);
@@ -900,7 +903,7 @@ class Couleur
   }
 
   private function lab2rgb() {
-    // Source des maths : https://www.w3.org/TR/css-color-4/#lab-to-rgb
+    // Source of the math: https://www.w3.org/TR/css-color-4/#lab-to-rgb
     $ε = 216/24389;
     $κ = 24389/27;
     $w = [0.96422, 1, 0.82521];
@@ -955,7 +958,7 @@ class Couleur
     $this->cieb = self::pRound($cieb);
   }
 
-  // Fusionne la couleur et une couleur de fond "background"
+  // Blends a transparent color and an opaque color
   public static function blend($_couleur1, $_couleur2)
   {
     $couleur1 = self::check($_couleur1);
@@ -981,10 +984,10 @@ class Couleur
     return new self('rgb('.$r.', '.$g.', '.$b.')');
   }
 
-  // Raccourci pour blend impossible
+  // Shorthand for blend impossible
 
-  // Calcule la luminance d'une couleur
-  // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
+  // Computes the luminance of a color
+  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   public function luminance() {
     if ($this->a < 1)
       throw new Exception('Can\'t calculate luminance of transparent color');
@@ -1002,8 +1005,8 @@ class Couleur
     return self::pRound(0.2126 * $arr[0] + 0.7152 * $arr[1] + 0.0722 * $arr[2]);
   }
 
-  // Calcule le contraste entre deux couleurs
-  // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
+  // Computes the contrast between two colors
+  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
   public static function contrast($_couleur1, $_couleur2) {
     $couleur1 = self::check($_couleur1);
     $couleur2 = self::check($_couleur2);
@@ -1015,10 +1018,9 @@ class Couleur
     return self::pRound(($Lmax + 0.05) / ($Lmin + 0.05));
   }
 
-  // Raccourci pour contrast impossible
+  // Shorthand for contrast impossible
   
-  // Vérifie si un texte blanc ou noir aurait meilleur contraste avec cette couleur
-  // (source des maths : https://www.w3.org/TR/WCAG20-TECHS/G18.html)
+  // Checks if black or white text would have better contrast with this color
   public function contrastedText() {
     $L = $this->luminance(); // luminance de la couleur entrée
     $LB = 1; // luminance du blanc
@@ -1033,7 +1035,7 @@ class Couleur
       return 'white'; // le texte blanc ira mieux sur le fond de couleur
   }
 
-  // Change une propriété d'une couleur
+  // Changes a property of the color
   public function change($propriete, $valeur, $remplace = false) {
     $nouvelleCouleur = new self($this->rgb());
     $error = 'Incorrect value format for ' . $propriete;
@@ -1143,14 +1145,14 @@ class Couleur
       return new self($nouvelleCouleur->rgb());
   }
 
-  // Remplace une propriété d'une couleur
+  // Replaces a property of the color
   public function replace($propriete, $valeur, $options = null) {
     if ($options === null) $options = new stdClass();
     $options->replace = true;
     return $this->change($propriete, $valeur, $options);
   }
 
-  // Remplace une propriété d'une couleur par un pourcentage de sa valeur initiale
+  // Replaces a property of the color by a percentage of its initial value
   public function scale($propriete, $valeur, $options = null) {
     if ($options === null) $options = new stdClass();
     $options->replace = true;
@@ -1195,7 +1197,7 @@ class Couleur
     return $this->negative();
   }
 
-  // options : {scale: true/false}
+  // options: {scale: true/false}
   public function darken($_value, $options = null) {
     $value = self::parse($_value, 'arbitrary');
     $value = $value * 100;
