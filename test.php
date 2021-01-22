@@ -27,7 +27,7 @@ class Test {
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
       $fonction
     );
-    $methods = ['blend', 'contrast', 'contrastedText', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale'];
+    $methods = ['blend', 'contrast', 'contrastedText', 'betterContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $methods), 
       array_map(function($x) { return '->' . $x; }, $methods),

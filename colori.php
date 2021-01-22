@@ -1010,7 +1010,7 @@ class Couleur
   public static function contrast($_couleur1, $_couleur2) {
     $couleur1 = self::check($_couleur1);
     $couleur2 = self::check($_couleur2);
-
+    
     $L1 = $couleur1->luminance();
     $L2 = $couleur2->luminance();
     $Lmax = max($L1, $L2);
@@ -1033,6 +1033,53 @@ class Couleur
       return 'black'; // le texte noir ira mieux sur le fond de couleur
     else
       return 'white'; // le texte blanc ira mieux sur le fond de couleur
+  }
+
+  // Modifies the color (without changing its hue) to give it
+  // better contrast (= closer to desiredContrast) with referenceColor
+  public function betterContrast($referenceColor, $desiredContrast, $step = 5, $maxIterations = 1000) {
+    $movingColor = new self($this->rgb());
+    $refColor = self::check($referenceColor);
+
+    // Lets measure the initial contrast
+    // and decide if we want it to go up or down.
+    $contrast = self::contrast($movingColor, $refColor);
+    if ($contrast > $desiredContrast)     $direction = -1;
+    elseif ($contrast < $desiredContrast) $direction = 1;
+    else                                  $direction = 0;
+    if ($direction == 0) return $movingColor;
+
+    // We keep going as long as contrast is still below / over desiredContrast.
+    $up = 'bk';
+    $i = 0;
+    while(($direction > 0) ? ($contrast < $desiredContrast) : ($contrast > $desiredContrast) && $i < $maxIterations) {
+      $i++;
+      // Let's try to raise contrast by increasing blackness and reducing whiteness.
+      if ($up == 'bk')  $newColor = $movingColor->change('bk', "+$step%")->change('w', "-$step%");
+      else              $newColor = $movingColor->change('bk', "-$step%")->change('w', "+$step%");
+      $newContrast = self::contrast($newColor, $refColor);
+
+      // We're going the wrong way! Let's reverse blackness's and whiteness's roles.
+      $wrongWay =  ($direction > 0) ? ($newContrast <= $contrast)
+                                    : ($newContrast >= $contrast);
+      if ($wrongWay) {
+        $up = 'w';
+        continue;
+      }
+
+      // We went the right way! But we overshot a little. Let's stop.
+      $overshot = abs($contrast - $desiredContrast) <= abs($newContrast - $desiredContrast);
+      if ($overshot) {
+        break;
+      }
+
+      // We went the right way, let's keep going!
+      $contrast = $newContrast;
+      $movingColor = $newColor;
+    }
+
+    // We're done!
+    return $movingColor;
   }
 
   // Changes a property of the color

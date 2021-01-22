@@ -751,6 +751,57 @@ export default class Couleur {
     else                                return 'white';
   }
 
+  // Modifies the color (without changing its hue) to give it
+  // better contrast (= closer to desiredContrast) with referenceColor
+  betterContrast(referenceColor, desiredContrast, step = 5, maxIterations = 1000) {
+    let movingColor = new Couleur(`${this.rgb}`);
+    let refColor = Couleur.check(referenceColor);
+
+    // Lets measure the initial contrast
+    // and decide if we want it to go up or down.
+    let contrast = movingColor.contrast(refColor);
+    let direction;
+    if (contrast > desiredContrast)      direction = -1;
+    else if (contrast < desiredContrast) direction = 1;
+    else                                 direction = 0;
+    if (direction == 0) return movingColor;
+
+    // We keep going as long as contrast is still below / over desiredContrast.
+    const condition =  c => (direction > 0) ? (c < desiredContrast)
+                                            : (c > desiredContrast);
+    let up = 'bk';
+    let i = 0;
+    while (condition(contrast) && i < maxIterations) {
+      i++;
+      let newColor;
+      // Let's try to raise contrast by increasing blackness and reducing whiteness.
+      if (up == 'bk') newColor = movingColor.change('bk', `+${step}%`).change('w', `-${step}%`);
+      else            newColor = movingColor.change('bk', `-${step}%`).change('w', `+${step}%`);
+      const newContrast = newColor.contrast(refColor);
+
+      // We're going the wrong way! Let's reverse blackness's and whiteness's roles.
+      const wrongWay =  (direction > 0) ? (newContrast <= contrast)
+                                        : (newContrast >= contrast);
+      if (wrongWay) {
+        up = 'w';
+        continue;
+      }
+
+      // We went the right way! But we overshot a little. Let's stop.
+      const overshot = Math.abs(contrast - desiredContrast) <= Math.abs(newContrast - desiredContrast);
+      if (overshot) {
+        break;
+      }
+
+      // We went the right way, let's keep going!
+      contrast = newContrast;
+      movingColor = newColor;
+    }
+
+    // We're done!
+    return movingColor;
+  }
+
   // Changes a property of the color
   change(propriete, valeur, options = {}) {
     let nouvelleCouleur = new Couleur(`${this.rgb}`);

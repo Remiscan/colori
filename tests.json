@@ -187,5 +187,20 @@
   }, {
     "fonction": "testLab.change('cieh', '20deg').lch",
     "resultatAttendu": "lch(92% 46 189)"
+  }, {
+    "fonction": "Colour.contrast('hsl(230, 25%, 10%)', 'hsl(55, 85%, 80%)')",
+    "resultatAttendu": "15.511"
+  }, {
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).betterContrast('hsl(230, 25%, 10%)', 17, 5).hsl",
+    "resultatAttendu": "hsl(55, 100%, 89%)"
+  }, {
+    "fonction": "Colour.contrast('hsl(55, 100%, 89%)', 'hsl(230, 25%, 10%)')",
+    "resultatAttendu": "17.094"
+  }, {
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).betterContrast('hsl(230, 25%, 10%)', 12, 5).hsl",
+    "resultatAttendu": "hsl(54, 57%, 70%)"
+  }, {
+    "fonction": "Colour.contrast('hsl(54, 57%, 70%)', 'hsl(230, 25%, 10%)')",
+    "resultatAttendu": "12.105"
   }
 ]
