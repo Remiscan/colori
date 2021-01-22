@@ -489,6 +489,17 @@ class Couleur
       throw new Exception('Invalid format');
   }
 
+  // Checks if a variable is a Couleur object, or if it can be made into one
+  private static function check($color) {
+    if ($color instanceof self) return $color;
+    try {
+      return new self($color);
+    }
+    catch (Exception $error) {
+      throw new Exception('Argument should be an instance of the ' . __CLASS__ . 'class, or a valid color string');
+    }
+  }
+
   // Parses a number / percentage / angle into correct format to store it
   private static function parse($n, $type = null, $log = false) {
     $_n = floatval($n);
@@ -947,25 +958,8 @@ class Couleur
   // Fusionne la couleur et une couleur de fond "background"
   public static function blend($_couleur1, $_couleur2)
   {
-    $couleur1 = $_couleur1;
-    if (!(is_a($couleur1, __CLASS__))) {
-      try {
-        $couleur1 = new Couleur($_couleur1);
-      }
-      catch(Exception $error) {
-        throw new Exception('First argument should be an instance of the ' . __CLASS__ . ' class, or a valid color string');
-      }
-    }
-
-    $couleur2 = $_couleur2;
-    if (!(is_a($couleur2, __CLASS__))) {
-      try {
-        $couleur2 = new Couleur($_couleur2);
-      }
-      catch(Exception $error) {
-        throw new Exception('Second argument should be an instance of the ' . __CLASS__ . ' class, or a valid color string');
-      }
-    }
+    $couleur1 = self::check($_couleur1);
+    $couleur2 = self::check($_couleur2);
 
     if ($couleur1->a < 1 && $couleur2->a < 1)
       throw new Exception('At least one of the arguments needs to be an opaque ' . __CLASS__);
@@ -1011,28 +1005,9 @@ class Couleur
   // Calcule le contraste entre deux couleurs
   // (source des maths : https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
   public static function contrast($_couleur1, $_couleur2) {
-    $couleur1 = $_couleur1;
-    if (!(is_a($couleur1, __CLASS__))) {
-      try {
-        $couleur1 = new Couleur($_couleur1);
-      }
-      catch(Exception $error) {
-        throw new Exception('First argument should be an instance of the ' . __CLASS__ . ' class, or a valid color string');
-      }
-    }
+    $couleur1 = self::check($_couleur1);
+    $couleur2 = self::check($_couleur2);
 
-    $couleur2 = $_couleur2;
-    if (!(is_a($couleur2, __CLASS__))) {
-      try {
-        $couleur2 = new Couleur($_couleur2);
-      }
-      catch(Exception $error) {
-        throw new Exception('Second argument should be an instance of the ' . __CLASS__ . ' class, or a valid color string');
-      }
-    }
-
-    if (!($couleur1 instanceof self) || !($couleur2 instanceof self))
-      throw new Exception('Arguments should be two instances of the ' . __CLASS__ . ' class');
     $L1 = $couleur1->luminance();
     $L2 = $couleur2->luminance();
     $Lmax = max($L1, $L2);
