@@ -1,26 +1,16 @@
-export default class Cookie {
-  constructor(name, value, path = '/colori', maxAge = null) {
-    this.name = name;
-    this.value = value;
-    this.path = path;
-    this.maxAge = maxAge;
-    this.set();
-  }
+// ▼ ES modules cache-busted grâce à PHP
+/*<?php ob_start();?>*/
 
-  set() {
-    const expiration = this.maxAge ? `max-age=${this.maxAge}` 
-                                   : `expires=${new Date(2147483647000).toUTCString()}`;
-    document.cookie = `${this.name}=${this.value}; path=${this.path}; ${expiration};`
-  }
+import DefCookie from '/_common/js/cookies.js';
 
-  delete() {
-    this.value = '';
-    this.maxAge = -1;
-    this.set();
-  }
+/*<?php $imports = ob_get_clean();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
+echo versionizeFiles($imports, __DIR__); ?>*/
 
-  static get(name) {
-    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-    return (match !== null) ? match[1] : null;
+
+
+export default class Cookie extends DefCookie {
+  constructor(name, value, maxAge = null) {
+    super(name, value, '/colori', maxAge);
   }
 }

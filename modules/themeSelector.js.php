@@ -7,6 +7,8 @@ import Cookie from './cookies.js.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
 echo versionizeFiles($imports, __DIR__); ?>*/
 
+
+
 const template = document.createElement('template');
 template.innerHTML = `
 <button>
@@ -37,6 +39,8 @@ template.innerHTML = `
   </svg>
 </button>
 `;
+
+
 
 export default class Theme extends HTMLElement {
   constructor() {
