@@ -96,62 +96,63 @@ export function interpreterCouleur(couleur)
   const recursiveMethods = [
     {
       name: 'blend',
-      args: new RegExp(`^(.+)${vSep}(${Couleur.vNP})?|(.+)$`)
+      args: [
+        new RegExp(`^(.+)${vSep}(${Couleur.vNP})$`),
+        new RegExp(`^(.+)$`)
+      ]
+    }, {
+      name: 'betterContrast',
+      args: [
+        new RegExp(`^(.+)${vSep}(${Couleur.vNum})${vSep}(${Couleur.vNum})$`),
+        new RegExp(`^(.+)${vSep}(${Couleur.vNum})$`)
+      ]
     }
   ];
 
-  let done = false;
   let value = couleur;
-  let methods = [];
+  
   const methodsRegex = acceptedMethods.map(method => method.name).join('|');
   const regex = new RegExp(`(.+)\\.(${methodsRegex})\\((.+)?\\)$`);
   const recursiveMethodsRegex = recursiveMethods.map(method => method.name).join('|');
   const recursiveRegex = new RegExp(`^((?:[^\\(\\)]+(?:\\(.+\\))?)+)\\.(${recursiveMethodsRegex})\\((.+)\\)$`);
 
+  // On cherche la liste de méthodes successivement appliquées à la couleur
+  let methods = [];
   while (true) {
-    let nextMethod = null;
-
-    // On vérifie si la valeur de l'input vérifie couleur.methodeRecursive()
-    const match = value.match(recursiveRegex);
-    if (match !== null) {
-      const method = recursiveMethods[recursiveMethods.findIndex(method => method.name == match[2])];
-      const args = Array.from((match[3] || '').match(method.args) || []);
-      console.log(args);
-
-      const _couleur = args[1] || args[3];
-      const alpha = args[1] ? args[2] : null;
-
-      nextMethod = {
-        name: method.name,
-        args: [_couleur, alpha],
-        recursive: true
-      };
-      value = match[1];
-    }
-
-    else {
-      // On vérifie si la valeur de l'input vérifie couleur.methodeNonRecursive()
-      const match = value.match(regex);
-      if (match !== null) {
-        const method = acceptedMethods[acceptedMethods.findIndex(method => method.name == match[2])];
-        const args = Array.from((match[3] || '').match(method.args) || []).slice(1);
-
-        nextMethod = {
-          name: method.name,
-          args: args,
-          resursive: false
-        };
-        value = match[1];
-      }
-    }
+    // On vérifie si la valeur de l'input est de la forme couleur.methodeRecursive() ou couleur.methodeNonRecursive()
+    const match = value.match(recursiveRegex) || value.match(regex);
 
     // Si la valeur de l'input ne vérifie couleur.methode() pour aucune methode de acceptedMethods,
     // on passe à l'étape suivante (vérifier si la valeur de l'input est une expression valide de couleur)
-    if (nextMethod == null)
+    if (match === null) break;
+
+    // On détermine quelle méthode est appliquée à la couleur
+    let method;
+    method = recursiveMethods[recursiveMethods.findIndex(m => m.name == match[2])];
+    const isRecursive = (method != null);
+    method = method || acceptedMethods[acceptedMethods.findIndex(m => m.name == match[2])];
+
+    // On détermine les arguments passés à la méthode
+    let args = [];
+    for (const regex of [method.args].flat()) {
+      const temp = (match[3] || '').match(regex);
+      if (temp == null) continue;
+      args = [...(temp || [])].slice(1);
       break;
-    else
-      methods.push(nextMethod);
+    }
+    //console.log('args:', args);
+
+    // On ajoute cette méthode à la liste de méthodes appliquées à la couleur
+    const nextMethod = {
+      name: method.name,
+      args: args,
+      recursive: isRecursive
+    };
+    value = match[1];
+
+    methods.push(nextMethod);
   }
+  //console.log('Methods:', methods);
 
   // Si la valeur restante de l'input est une expression valide de couleur, on pourra continuer.
   // Sinon, la valeur est invalide.
