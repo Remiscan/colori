@@ -106,6 +106,10 @@ export function interpreterCouleur(couleur)
         new RegExp(`^(.+)${vSep}(${Couleur.vNum})${vSep}(${Couleur.vNum})$`),
         new RegExp(`^(.+)${vSep}(${Couleur.vNum})$`)
       ]
+    }, {
+      name: 'contrast',
+      args: new RegExp(`^(.+)$`),
+      resultIsNoColor: true
     }
   ];
 
@@ -146,7 +150,8 @@ export function interpreterCouleur(couleur)
     const nextMethod = {
       name: method.name,
       args: args,
-      recursive: isRecursive
+      recursive: isRecursive,
+      resultIsNoColor: method.resultIsNoColor
     };
     value = match[1];
 
@@ -169,20 +174,27 @@ export function interpreterCouleur(couleur)
           coul2 = interpreterCouleur(method.args[0]);
           method.args[0] = coul2;
         }
-        catch(error) { throw 'Couleur en argument invalide'; }
+        catch (error) { throw 'Couleur en argument invalide'; }
       }
       else coul2 = null;
 
-      try {
-        coul = Couleur.prototype[method.name].call(coul, ...method.args.map(arg => arg === 'true' ? true : arg === 'false' ? false : arg));
+      if (method.resultIsNoColor) {
+        try {
+          const res = Couleur.prototype[method.name].call(coul, ...method.args.map(arg => arg === 'true' ? true : arg === 'false' ? false : arg));
+          console.log(`${coul.name || coul.hsl}.${method.name}(${method.args.map(arg => (arg instanceof Couleur) ? (arg.name || arg.hsl) : arg).join(', ')}) = ${res}`);
+        } catch (error) {}
+      } else {
+        try {
+            coul = Couleur.prototype[method.name].call(coul, ...method.args.map(arg => arg === 'true' ? true : arg === 'false' ? false : arg));
+          }
+        catch (error) { console.error(error); }
       }
-      catch(error) { console.error(error); }
     }
 
     _couleur = coul;
     return _couleur;
   }
-  catch(error) {
+  catch (error) {
     // La valeur de l'input est invalide, ne rien faire.
     return null;
   }
