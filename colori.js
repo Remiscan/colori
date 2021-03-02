@@ -747,7 +747,7 @@ export default class Couleur {
       (L + 0.05) / (LN + 0.05), // contrast between this and black
       (LB + 0.05) / (L + 0.05)  // contrast between white and this
     ];
-    if (contrastes[0] > contrastes[1])  return black; // if contrast is higher with black
+    if (contrastes[0] > contrastes[1])  return 'black'; // if contrast is higher with black
     else                                return 'white';
   }
 
