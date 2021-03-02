@@ -1006,6 +1006,33 @@ export default class Couleur {
     return this.greyscale();
   }
 
+  // Computes the values of intermediate colors to make a gradient that avoids "grey zone"
+  static gradient(_from, _to, _steps = 5) {
+    const from = Couleur.check(_from);
+    const to = Couleur.check(_to);
+    const steps = Math.min(Math.max(1, _steps), 100);
+
+    const intermediateColors = [from];
+    const stepL = (to.ciel - from.ciel) / steps;
+    const stepC = (to.ciec - from.ciec) / steps;
+    const stepH = (to.cieh - from.cieh) / steps;
+
+    for (let i = 1; i < steps; i++) {
+      let previous = intermediateColors[i - 1];
+      const L = previous.ciel + stepL;
+      const C = previous.ciec + stepC;
+      const H = previous.cieh + stepH;
+      try {
+        const next = new Couleur(`lch(${L * 100}% ${C} ${H * 360})`);
+        intermediateColors.push(next);
+        previous = next;
+      } catch(error) {
+        console.error(error);
+      }
+    }
+    return [...intermediateColors, to];
+  }
+
   static get properties() {
     return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
   }

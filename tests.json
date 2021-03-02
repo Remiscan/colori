@@ -202,5 +202,17 @@
   }, {
     "fonction": "Colour.contrast('hsl(54, 57%, 70%)', 'hsl(230, 25%, 10%)')",
     "resultatAttendu": "12.105"
+  }, {
+    "fonction": "Colour.gradient('yellow', 'blue').map(c => c.lch)",
+    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('yellow', 'blue'))",
+    "resultatAttendu": [ "lch(98% 95 100)", "lch(84% 102 140)", "lch(70% 109 180)", "lch(57% 117 221)", "lch(43% 124 261)", "lch(30% 131 301)" ]
+  }, {
+    "fonction": "Colour.gradient('yellow', 'blue', 1).map(c => c.lch)",
+    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('yellow', 'blue', 1))",
+    "resultatAttendu": [ "lch(98% 95 100)", "lch(30% 131 301)" ]
+  }, {
+    "fonction": "Colour.gradient('yellow', 'blue', -5).map(c => c.lch)",
+    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('yellow', 'blue', -5))",
+    "resultatAttendu": [ "lch(98% 95 100)", "lch(30% 131 301)" ]
   }
 ]

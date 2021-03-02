@@ -1292,4 +1292,30 @@ class Couleur
   public function grayscale() {
     return $this->greyscale();
   }
+
+  // Computes the values of intermediate colors to make a gradient that avoids "grey zone"
+  public static function gradient($_from, $_to, $_steps = 5) {
+    $from = self::check($_from);
+    $to = self::check($_to);
+    $steps = min(max(1, $_steps), 100);
+
+    $intermediateColors = array($from);
+    $stepL = ($to->ciel - $from->ciel) / $steps;
+    $stepC = ($to->ciec - $from->ciec) / $steps;
+    $stepH = ($to->cieh - $from->cieh) / $steps;
+
+    for ($i = 1; $i < $steps; $i++) {
+      $previous = $intermediateColors[$i - 1];
+      $L = $previous->ciel + $stepL;
+      $C = $previous->ciec + $stepC;
+      $H = $previous->cieh + $stepH;
+
+      $next = new self('lch('. $L * 100 .'% '. $C .' '. $H * 360 .')');
+      $intermediateColors[] = $next;
+      $previous = $next;
+    }
+
+    $intermediateColors[] = $to;
+    return $intermediateColors;
+  }
 }

@@ -27,7 +27,7 @@ class Test {
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
       $fonction
     );
-    $methods = ['blend', 'contrast', 'contrastedText', 'betterContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale'];
+    $methods = ['blend', 'contrast', 'contrastedText', 'betterContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale', 'gradient'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $methods), 
       array_map(function($x) { return '->' . $x; }, $methods),
@@ -106,7 +106,7 @@ class Test {
 
 $tests_json = file_get_contents('tests.json');
 $tests = json_decode($tests_json);
-$tests = array_map(function($test) { return new Test($test->fonction, $test->resultatAttendu, property_exists($test, 'nophp')); }, $tests);
+$tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test->fonction, $test->resultatAttendu, property_exists($test, 'nophp')); }, $tests);
 ?>
 <!doctype html>
 <html>
@@ -150,6 +150,7 @@ $tests = array_map(function($test) { return new Test($test->fonction, $test->res
       try {
         $resultat = $test->resultat();
         if (is_a($resultat, 'Couleur')) $c = $resultat;
+        elseif (is_array($resultat))    $c = $resultat;
         else $c = new Couleur($test->resultatAttendu);
       }
       catch(Exception $error) {
@@ -159,7 +160,13 @@ $tests = array_map(function($test) { return new Test($test->fonction, $test->res
       ?>
       <div class="php <?=$test->validate() ? 'yes' : 'no'?>" style="grid-row: <?=$k+2?>">
         <h3 class="php" style="<?php
-          if ($c != null) echo 'background-color: ' . $c->rgba() . '; color: ' . $c->replace('a', 1)->contrastedText();
+          if (is_array($c)) {
+            try {
+              $gradientString = implode(',', array_map(function($co) { return (new Couleur($co))->rgb(); }, $c));
+              echo 'background-image: linear-gradient(to right, ' . $gradientString . ')';
+            } catch (Exception $err) {}
+          }
+          elseif ($c != null) echo 'background-color: ' . $c->rgba() . '; color: ' . $c->replace('a', 1)->contrastedText();
         ?>"><?=$test->nom()?></h3>
         <span class="php"><?php
           echo $test->validate() ? '✅ Success' : '❌ Failure';
@@ -259,7 +266,15 @@ $tests = array_map(function($test) { return new Test($test->fonction, $test->res
         let c;
         try {
           if (resultat instanceof Colour) c = resultat;
+          else if (Array.isArray(resultat)) {
+            c = resultat;
+            const gradient = `linear-gradient(to right, ${c.map(co => (new Colour(co)).rgb).join(', ')})`;
+            console.log(gradient);
+            h3.style.setProperty('background-image', gradient);
+            c = new Colour(c[0]);
+          }
           else c = new Colour(test.resultatAttendu);
+
           h3.style.setProperty('background-color', c.rgba);
           h3.style.setProperty('color', c.replace('a', 1).contrastedText());
         }
