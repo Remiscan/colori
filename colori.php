@@ -1302,7 +1302,10 @@ class Couleur
     $intermediateColors = array($from);
     $stepL = ($to->ciel - $from->ciel) / $steps;
     $stepC = ($to->ciec - $from->ciec) / $steps;
-    $stepH = ($to->cieh - $from->cieh) / $steps;
+    // Minimize the distance to travel through hues
+    $stepHup = (360 * ($to->cieh - $from->cieh) % 360 + 360) % 360 / 360;
+    $stepHdown = (360 * ($from->cieh - $to->cieh) % 360 + 360) % 360 / 360;
+    $stepH = (($stepHup <= $stepHdown) ? $stepHup : (-1 * $stepHdown)) / $steps;
 
     for ($i = 1; $i < $steps; $i++) {
       $previous = $intermediateColors[$i - 1];

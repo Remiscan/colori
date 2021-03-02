@@ -203,16 +203,20 @@
     "fonction": "Colour.contrast('hsl(54, 57%, 70%)', 'hsl(230, 25%, 10%)')",
     "resultatAttendu": "12.105"
   }, {
-    "fonction": "Colour.gradient('yellow', 'blue').map(c => c.lch)",
-    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('yellow', 'blue'))",
-    "resultatAttendu": [ "lch(98% 95 100)", "lch(84% 102 140)", "lch(70% 109 180)", "lch(57% 117 221)", "lch(43% 124 261)", "lch(30% 131 301)" ]
+    "fonction": "Colour.gradient('lightgreen', 'blue').map(c => c.lch)",
+    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('lightgreen', 'blue'))",
+    "resultatAttendu": [ "lch(87% 56 140)", "lch(75% 71 172)", "lch(64% 86 204)", "lch(52% 101 237)", "lch(41% 116 269)", "lch(30% 131 301)" ]
   }, {
-    "fonction": "Colour.gradient('yellow', 'blue', 1).map(c => c.lch)",
-    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('yellow', 'blue', 1))",
-    "resultatAttendu": [ "lch(98% 95 100)", "lch(30% 131 301)" ]
+    "fonction": "Colour.gradient('lightgreen', 'blue', 1).map(c => c.lch)",
+    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('lightgreen', 'blue', 1))",
+    "resultatAttendu": [ "lch(87% 56 140)", "lch(30% 131 301)" ]
   }, {
-    "fonction": "Colour.gradient('yellow', 'blue', -5).map(c => c.lch)",
-    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('yellow', 'blue', -5))",
-    "resultatAttendu": [ "lch(98% 95 100)", "lch(30% 131 301)" ]
+    "fonction": "Colour.gradient('lightgreen', 'blue', -5).map(c => c.lch)",
+    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('lightgreen', 'blue', -5))",
+    "resultatAttendu": [ "lch(87% 56 140)", "lch(30% 131 301)" ]
+  }, {
+    "fonction": "Colour.gradient('#1f005c', '#ffb56b').map(c => c.lch)",
+    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('#1f005c', '#ffb56b'))",
+    "resultatAttendu": [ "lch(9% 59 305)", "lch(23% 58 329)", "lch(37% 57 353)", "lch(51% 56 17)", "lch(66% 54 41)", "lch(80% 53 65)" ]
   }
 ]

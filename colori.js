@@ -1015,7 +1015,10 @@ export default class Couleur {
     const intermediateColors = [from];
     const stepL = (to.ciel - from.ciel) / steps;
     const stepC = (to.ciec - from.ciec) / steps;
-    const stepH = (to.cieh - from.cieh) / steps;
+    // Minimize the distance to travel through hues
+    const stepHup = (360 * (to.cieh - from.cieh) % 360 + 360) % 360 / 360;
+    const stepHdown = (360 * (from.cieh - to.cieh) % 360 + 360) % 360 / 360;
+    const stepH = ((stepHup <= stepHdown) ? stepHup : (-1 * stepHdown)) / steps;
 
     for (let i = 1; i < steps; i++) {
       let previous = intermediateColors[i - 1];
