@@ -163,7 +163,7 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
           if (is_array($c)) {
             try {
               $gradientString = implode(',', array_map(function($co) { return (new Couleur($co))->rgb(); }, $c));
-              echo 'background-image: linear-gradient(to right, ' . $gradientString . ')';
+              echo 'background-image: linear-gradient(to right, ' . $gradientString . '); color: ' . (new Couleur($c[0]))->replace('a', 1)->contrastedText();
             } catch (Exception $err) {}
           }
           elseif ($c != null) echo 'background-color: ' . $c->rgba() . '; color: ' . $c->replace('a', 1)->contrastedText();
@@ -231,7 +231,8 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
 
         validate() {
           const resultat = (typeof this.resultat == 'object' && this.resultat[0] == 'Error') ? this.resultat[0] : this.resultat;
-          if (typeof this.resultatAttendu === 'object') return sameColor(resultat, this.resultatAttendu);
+          if (Array.isArray(resultat)) return resultat.every((co, k) => co == this.resultatAttendu[k]);
+          else if (typeof this.resultatAttendu === 'object') return sameColor(resultat, this.resultatAttendu);
           else return resultat == this.resultatAttendu;
         }
       }
