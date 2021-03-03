@@ -171,9 +171,9 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
         <span class="php"><?php
           echo $test->validate() ? '✅ Success' : '❌ Failure';
         ?></span>
-        <p class="php">Reçu : <?=var_dump($resultat)?></p>
+        <pre class="php">Reçu : <?="\n\n".json_encode($resultat, JSON_PRETTY_PRINT)?></pre>
         <?php if (!$test->validate()) { ?>
-          <p class="php" style="color: red;">Attendu : <?=var_dump($test->resultatAttendu)?></p>
+          <pre class="php" style="color: red;">Attendu : <?="\n\n".json_encode($test->resultatAttendu, JSON_PRETTY_PRINT)?></pre>
         <?php } ?>
       </div>
       <?php
