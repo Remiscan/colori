@@ -356,7 +356,8 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
           });
         });
 
-        if (isPhp == 'true') await switchBetweenJsPhp('php');
+        if (isPhp == 'true')  await switchBetweenJsPhp('php');
+        else                  await switchBetweenJsPhp('js');
 
         document.documentElement.classList.add('loaded');
       });
