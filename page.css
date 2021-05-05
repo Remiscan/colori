@@ -1011,7 +1011,7 @@ strong, em {
  */
 
 aside.nav-documentation {
-  grid-row: 3;
+  grid-row: 4;
   grid-column: 1;
   align-self: start;
   justify-self: end;
@@ -1027,22 +1027,27 @@ aside.nav-documentation {
   padding: .6rem;
 }
 
+.documentation>.nav-rapide {
+  display: none;
+  padding-bottom: .6rem;
+}
+
 .titre-nav-rapide {
   font-size: calc(var(--mod) * 1.1rem);
   line-height: normal;
 }
 
-aside ul {
+.nav-rapide ul {
   padding-left: 20px;
   margin: 0;
   font-size: .9em;
 }
 
-aside li + li {
+.nav-rapide li + li {
   margin-top: 0;
 }
 
-aside a {
+.nav-rapide a {
   text-decoration: none;
 }
 
@@ -1084,6 +1089,10 @@ aside a {
   aside.nav-documentation.on {
     width: auto;
     height: auto;
+  }
+
+  .documentation>.nav-rapide {
+    display: block;
   }
 
   .nav-documentation ul {

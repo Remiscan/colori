@@ -35,6 +35,8 @@ export function makeNav(language = 'js') {
   const aside = document.querySelector('aside.nav-documentation');
   const titre = `<h1 class="titre-nav-rapide">${aside.dataset.titre}</h1>`;
   aside.innerHTML = titre + navHtml/* + buttonHtml*/;
+  const mininav = document.querySelector('.documentation>.nav-rapide');
+  mininav.innerHTML = navHtml;
 
   // Enable nav button for mobile
   /*const navButton = document.querySelector('input#enable-nav');

@@ -216,7 +216,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
       </div>
     </section>
 
-    <aside class="nav-documentation" data-label="nav-documentation"></aside>
+    <aside class="nav-documentation nav-rapide" data-label="nav-documentation"></aside>
 
     <section class="documentation">
       <a id="documentation" aria-hidden="true"></a>
@@ -228,6 +228,8 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
           <span id="sw-php" class="sw-span">.php</span>
         </button>
       </div>
+
+      <div class="nav-rapide"></div>
 
       <!-- DOCUMENTATION JavaScript -->
       <article id="documentation-js">
