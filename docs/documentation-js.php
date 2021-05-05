@@ -1,4 +1,6 @@
-<h2 class="titre-partie-docu no-separator" data-string="documentation-utiliser-titre"><?=$Textes->getString('documentation-utiliser-titre')?></h2>
+<p data-string="documentation-intro-p2"><?=$Textes->getString('documentation-intro-p2')?></p>
+
+<h2 class="titre-partie-docu" data-string="documentation-utiliser-titre"><?=$Textes->getString('documentation-utiliser-titre')?></h2>
 
 <p data-string="documentation-utiliser-p1"><?=$Textes->getString('documentation-utiliser-p1')?></p>
 

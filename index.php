@@ -145,7 +145,6 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     <section id="intro" class="no-titre">
       <p data-string="documentation-intro-p1"><?=$Textes->getString('documentation-intro-p1')?></p>
       <p data-string="documentation-intro-p1-php" class="off"><?=$Textes->getString('documentation-intro-p1-php')?></p>
-      <p data-string="documentation-intro-p2"><?=$Textes->getString('documentation-intro-p2')?></p>
     </section>
 
     <section id="demo">

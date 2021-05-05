@@ -908,7 +908,8 @@ p {
   margin: 0 0 1em 0;
 }
 
-p:last-child {
+p:last-child,
+#intro>p {
   margin-bottom: 0;
 }
 
