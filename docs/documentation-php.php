@@ -1,8 +1,4 @@
-<p data-string="documentation-intro-p1-php"><?=$Textes->getString('documentation-intro-p1-php')?></p>
-
-<p data-string="documentation-intro-p2"><?=$Textes->getString('documentation-intro-p2')?></p>
-
-<h2 class="titre-partie-docu" data-string="documentation-utiliser-titre-php"><?=$Textes->getString('documentation-utiliser-titre-php')?></h2>
+<h2 class="titre-partie-docu no-separator" data-string="documentation-utiliser-titre-php"><?=$Textes->getString('documentation-utiliser-titre-php')?></h2>
 
 <p data-string="documentation-utiliser-p1-php"><?=$Textes->getString('documentation-utiliser-p1-php')?></p>
 

@@ -233,7 +233,7 @@ header {
   background: var(--section-color);
   border-radius: 0 0 .6rem .6rem;
   /*top: -17.7%;*/
-  margin-bottom: calc(-0.177 * var(--mod) * var(--mod) * var(--mod) * 1rem + 1.2rem);
+  /*margin-bottom: calc(-0.177 * var(--mod) * var(--mod) * var(--mod) * 1rem + 1.2rem);*/
 }
 
 header>h1 {
@@ -394,6 +394,12 @@ span[data-string=github] {
  * Sections (démo & présentation)
  */
 
+header,
+section,
+footer {
+  grid-column: 2;
+}
+
 section {
   background-color: var(--section-color);
   border-radius: .6rem;
@@ -425,9 +431,12 @@ section::before {
   }
 }
 
+section.no-titre {
+  margin-top: 0;
+  padding: .9rem;
+}
+
 #demo {
-  grid-row: 2 / 3;
-  grid-column: 2 / 3;
   height: fit-content;
   position: sticky;
   top: 3.4rem;
@@ -442,11 +451,6 @@ section::before {
     position: sticky;
     top: 1.2rem;
   }
-}
-
-.documentation {
-  grid-row: 2 / 3;
-  grid-column: 4 / 5;
 }
 
 .off {
@@ -510,8 +514,6 @@ section::before {
  */
 
 footer {
-  grid-column: 2 / 5;
-  grid-row: 3 / 4;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -524,24 +526,14 @@ footer {
 
 
 @media screen/*(max-width: 100rem)*/ { 
-  header {
-    grid-column: 2 / 3;
-  }
-
-  footer {
-    grid-row: 4 / 5;
-    grid-column: 2 / 3;
-  }
-
   #demo {
     height: auto;
     position: relative;
     top: unset;
   }
 
+  #demo,
   .documentation {
-    grid-row: 3 / 4;
-    grid-column: 2 / 3;
     margin-top: calc(0.71625 * var(--mod) * var(--mod) * var(--mod) * var(--mod) * 1rem + 1.2rem);
   }
 }
@@ -911,6 +903,10 @@ p {
   margin: 0 0 1em 0;
 }
 
+p:last-child {
+  margin-bottom: 0;
+}
+
 p, li {
   line-height: 1.6em;
 }
@@ -1126,6 +1122,14 @@ aside a {
   transform: translate(-50%, 50%);
   background: var(--h3-color);
   opacity: .15;
+}
+
+.titre-partie-docu.no-separator {
+  margin-top: 0;
+}
+
+.titre-partie-docu.no-separator::before {
+  display: none;
 }
 
 

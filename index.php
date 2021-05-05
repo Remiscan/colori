@@ -142,6 +142,12 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
       </a>
     </header>
 
+    <section id="intro" class="no-titre">
+      <p data-string="documentation-intro-p1"><?=$Textes->getString('documentation-intro-p1')?></p>
+      <p data-string="documentation-intro-p1-php" class="off"><?=$Textes->getString('documentation-intro-p1-php')?></p>
+      <p data-string="documentation-intro-p2"><?=$Textes->getString('documentation-intro-p2')?></p>
+    </section>
+
     <section id="demo">
       <h1 data-string="titre-section-demo"><?=$Textes->getString('titre-section-demo')?></h1>
 
@@ -176,6 +182,8 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
             <pre><code class="language-javascript"></code></pre>
           </div>
         </div>
+
+        <h2 class="titre-partie-docu" data-string="demo-resultats-titre"><?=$Textes->getString('demo-resultats-titre')?></h2>
 
         <div id="donnees">
           <div class="format couleur" data-string="apercu-couleur"><?=$Textes->getString('apercu-couleur')?></div>
@@ -295,6 +303,34 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
         document.querySelector('.demo-conteneur').classList.toggle('details');
       });
 
+      // Switch between js and php version of the page
+      async function switchBetweenJsPhp(language) {
+        const langSwitch = document.querySelector('.switch-js-php');
+
+        return new Promise(resolve => {
+          setTimeout(() => {
+            if (language == 'php') {
+              langSwitch.dataset.currentTab = 'php';
+              document.querySelector('header>h1').innerHTML = 'colori.php';
+              document.getElementById('documentation-js').classList.add('off');
+              document.getElementById('documentation-php').classList.remove('off');
+              document.getElementById('intro').querySelector('[data-string="documentation-intro-p1"]').classList.add('off');
+              document.getElementById('intro').querySelector('[data-string="documentation-intro-p1-php"]').classList.remove('off');
+            } else {
+              langSwitch.dataset.currentTab = 'js';
+              document.querySelector('header>h1').innerHTML = 'colori.js';
+              document.getElementById('documentation-php').classList.add('off');
+              document.getElementById('documentation-js').classList.remove('off');
+              document.getElementById('intro').querySelector('[data-string="documentation-intro-p1"]').classList.remove('off');
+              document.getElementById('intro').querySelector('[data-string="documentation-intro-p1-php"]').classList.add('off');
+            }
+            localStorage.setItem('colori/lang-php', langSwitch.dataset.currentTab == 'php');
+            makeNav(langSwitch.dataset.currentTab);
+            resolve();
+          }, 20);
+        });
+      }
+
       // On theme change
       window.addEventListener('themechange', () => colorInterface());
 
@@ -303,23 +339,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
         await initCouleur();
         await Traduction.traduire();
 
-        langSwitch.addEventListener('click', () => {
-          setTimeout(() => {
-            if (langSwitch.dataset.currentTab == 'js') {
-              langSwitch.dataset.currentTab = 'php';
-              document.querySelector('header>h1').innerHTML = 'colori.php';
-              document.getElementById('documentation-js').classList.add('off');
-              document.getElementById('documentation-php').classList.remove('off');
-            } else {
-              langSwitch.dataset.currentTab = 'js';
-              document.querySelector('header>h1').innerHTML = 'colori.js';
-              document.getElementById('documentation-php').classList.add('off');
-              document.getElementById('documentation-js').classList.remove('off');
-            }
-            localStorage.setItem('colori/lang-php', langSwitch.dataset.currentTab == 'php');
-            makeNav(langSwitch.dataset.currentTab);
-          }, 20);
-        });
+        langSwitch.addEventListener('click', () => switchBetweenJsPhp(langSwitch.dataset.currentTab == 'js' ? 'php' : 'js'));
 
         Array.from(document.querySelectorAll('#documentation-php code.language-javascript')).forEach(e => {
           if (e.innerHTML == 'Colore') e.outerHTML = '<code class="language-php">Couleur</code>';
@@ -337,10 +357,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
           });
         });
 
-        if (isPhp == 'true')
-        langSwitch.dataset.currentTab = 'php';
-
-        makeNav(langSwitch.dataset.currentTab);
+        if (isPhp == 'true') await switchBetweenJsPhp('php');
 
         document.documentElement.classList.add('loaded');
       });
