@@ -1106,8 +1106,8 @@ aside.nav-documentation {
     height: auto;
   }
 
-  .documentation>.nav-rapide,
-  .documentation>.nav-rapide + .exemple {
+  .documentation>.nav-rapide/*,
+  .documentation>.nav-rapide + .exemple*/ {
     display: block;
   }
 
