@@ -173,17 +173,15 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
             <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
           </div>
-
-          <div id="apercu"></div>
-
-          <div class="fenetre"></div>
-
-          <div id="objet">
-            <pre><code class="language-javascript"></code></pre>
-          </div>
         </div>
 
         <h2 class="titre-partie-docu" data-string="demo-resultats-titre"><?=$Textes->getString('demo-resultats-titre')?></h2>
+
+        <div id="apercu"></div>
+        <div class="fenetre"></div>
+        <div id="objet">
+          <pre><code class="language-javascript"></code></pre>
+        </div>
 
         <div id="donnees">
           <div class="format couleur" data-string="apercu-couleur"><?=$Textes->getString('apercu-couleur')?></div>
@@ -298,10 +296,10 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
       });
 
       // Detects click on tiny color preview
-      const apercu = document.querySelector('.format.couleur');
+      /*const apercu = document.querySelector('.format.couleur');
       apercu.addEventListener('click', () => {
         document.querySelector('.demo-conteneur').classList.toggle('details');
-      });
+      });*/
 
       // Switch between js and php version of the page
       async function switchBetweenJsPhp(language) {
