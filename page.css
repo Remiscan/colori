@@ -373,6 +373,10 @@ span[data-string=github] {
   .groupe-langages {
     justify-self: center;
   }
+
+  .bouton-langage:disabled {
+    display: none;
+  }
 }
 
 @media (max-width: 24rem) {
