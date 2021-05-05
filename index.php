@@ -230,6 +230,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
       </div>
 
       <div class="nav-rapide"></div>
+      <a class="exemple" href="#documentation">▲ Navigation rapide</a>
 
       <!-- DOCUMENTATION JavaScript -->
       <article id="documentation-js">
@@ -344,7 +345,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
           if (e.innerHTML == 'Colore') e.outerHTML = '<code class="language-php">Couleur</code>';
         });
 
-        Array.from(document.querySelectorAll('.exemple')).forEach(async e => {
+        Array.from(document.querySelectorAll('button.exemple')).forEach(async e => {
           e.addEventListener('click', () => {
             if (e.textContent == '+') {
               Array.from(document.querySelectorAll('.inst-hidden')).forEach(e => e.classList.toggle('off'));

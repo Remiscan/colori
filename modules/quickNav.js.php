@@ -37,6 +37,8 @@ export function makeNav(language = 'js') {
   aside.innerHTML = titre + navHtml/* + buttonHtml*/;
   const mininav = document.querySelector('.documentation>.nav-rapide');
   mininav.innerHTML = navHtml;
+  const floatingButton = document.querySelector('.documentation>.nav-rapide + .exemple');
+  floatingButton.style.setProperty('--button-height', `-${Math.ceil(floatingButton.getBoundingClientRect().height)}px`);
 
   // Enable nav button for mobile
   /*const navButton = document.querySelector('input#enable-nav');

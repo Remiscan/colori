@@ -617,7 +617,7 @@ label[for=entree] {
   font-size: .9em;
   margin: 0;
 }
-.exemple {
+.exemple.exemple {
   -webkit-appearance: none;
   appearance: none;
   font-family: inherit;
@@ -631,6 +631,7 @@ label[for=entree] {
   background: var(--button-bg-color);
   cursor: pointer;
   white-space: nowrap;
+  text-decoration: none;
 }
 .exemple:hover {
   border-color: var(--button-hover-border-color);
@@ -1030,6 +1031,20 @@ aside.nav-documentation {
 .documentation>.nav-rapide {
   display: none;
   padding-bottom: .6rem;
+  background-color: var(--section-color);
+  position: relative;
+  z-index: 2;
+}
+
+.documentation>.nav-rapide + .exemple {
+  display: none;
+  position: sticky;
+  top: .3rem;
+  margin: 0 auto;
+  background: var(--section-color) linear-gradient(to right, var(--button-bg-color) 0% 100%);
+  z-index: 1;
+  margin-top: var(--button-height, 0);
+  width: fit-content;
 }
 
 .titre-nav-rapide {
@@ -1091,7 +1106,8 @@ aside.nav-documentation {
     height: auto;
   }
 
-  .documentation>.nav-rapide {
+  .documentation>.nav-rapide,
+  .documentation>.nav-rapide + .exemple {
     display: block;
   }
 
