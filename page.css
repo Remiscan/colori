@@ -76,26 +76,13 @@ html {
   width: 100%;
   overflow-x: hidden;
   overflow-y: hidden;
+  background-color: var(--body-color);
   --easing-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
   --easing-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);
   --easing-accelerate: cubic-bezier(0.4, 0.0, 1, 1);
   --h-diff: -1;
   --user-saturation: 100%;
-}
 
-html.loaded {
-  overflow-y: auto;
-}
-
-body { /* Desktop-like */
-  display: grid;
-  grid-template-columns: 1fr 42rem 4.2rem 42rem 1fr;
-  grid-row-gap: 1.2rem;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  background-color: var(--body-color);
-  color: var(--text-color);
   /* --- THEME COLORS --- */
   /* Background colors */
   --body-color: hsl(var(--user-hue), var(--user-saturation), 70%);
@@ -119,7 +106,8 @@ body { /* Desktop-like */
   --button-hover-border-color: white;
 }
 
-html.dark>body {
+html.dark {
+  /* --- THEME COLORS --- */
   /* Background colors */
   --body-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 10%);
   --section-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 20%);
@@ -140,6 +128,21 @@ html.dark>body {
   --button-border-color: rgba(255, 255, 255, .3);
   --button-hover-bg-color: rgba(255, 255, 255, .2);
   --button-hover-border-color: rgba(255, 255, 255, .5);
+}
+
+html.loaded {
+  overflow-y: auto;
+}
+
+body { /* Desktop-like */
+  display: grid;
+  grid-template-columns: 1fr 42rem 4.2rem 42rem 1fr;
+  grid-row-gap: 1.2rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--body-color);
+  color: var(--text-color);
 }
 
 @media screen/*(max-width: 100rem)*/ { /* Narrow desktop-like */

@@ -205,9 +205,10 @@ export function interpreterCouleur(couleur)
 ///////////////////////
 // Colors the interface
 export function colorInterface(couleur = entree, fixContrast = true) {
-  document.documentElement.style.setProperty('--user-color', couleur.rgb);
-  document.documentElement.style.setProperty('--user-hue', Math.round(couleur.h * 360));
-  document.documentElement.style.setProperty('--user-saturation', Math.round(couleur.s * 100) + '%');
+  const element = document.documentElement;
+  element.style.setProperty('--user-color', couleur.rgb);
+  element.style.setProperty('--user-hue', Math.round(couleur.h * 360));
+  element.style.setProperty('--user-saturation', Math.round(couleur.s * 100) + '%');
 
   const theme = Theme.active;
 
@@ -223,8 +224,8 @@ export function colorInterface(couleur = entree, fixContrast = true) {
 
   if (fixContrast)
     [bodyColor, sectionColor] = betterContrast(bodyColor, sectionColor, 1.2, true);
-  document.body.style.setProperty('--body-color', bodyColor.hsl);
-  document.body.style.setProperty('--section-color', sectionColor.hsl);
+  element.style.setProperty('--body-color', bodyColor.hsl);
+  element.style.setProperty('--section-color', sectionColor.hsl);
   document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
 
   // Calcul de la couleur des liens
@@ -236,7 +237,7 @@ export function colorInterface(couleur = entree, fixContrast = true) {
 
   if (fixContrast)
     linkColor = betterContrast(linkColor, sectionColor, 4.5);
-  document.body.style.setProperty('--link-color', linkColor.hsl);
+  element.style.setProperty('--link-color', linkColor.hsl);
 
   // Calcul de la couleur du fond de la démo
   let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
@@ -261,7 +262,7 @@ export function colorInterface(couleur = entree, fixContrast = true) {
     tokenColor = tokenColor.change('h', steps[k]);
     if (fixContrast)
       tokenColor = betterContrast(tokenColor, frameColor, 5);
-    document.body.style.setProperty('--token-' + tokenTypes[k], tokenColor.hsl);
+    element.style.setProperty('--token-' + tokenTypes[k], tokenColor.hsl);
   });
 }
 

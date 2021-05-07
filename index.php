@@ -30,7 +30,12 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
 }
 ?>
 <!doctype html>
-<html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>" style="--user-hue: <?=round($startColor->h*360)?>; --user-color: <?=$startColor->name?>;">
+<html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>"
+      style="--user-hue: <?=round($startColor->h*360)?>;
+             --user-color: <?=$startColor->name?>;
+             --body-color: <?=$bodyColor->hsl()?>;
+             --section-color: <?=$sectionColor->hsl()?>;
+            ">
   <head>
     <meta charset="utf-8">
     <title>Colori</title>
@@ -101,9 +106,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     </noscript>
   </head>
 
-  <body style="--body-color: <?=$bodyColor->hsl()?>;
-               --section-color: <?=$sectionColor->hsl()?>;
-              ">
+  <body>
 
     <svg version="1.1" style="display: none">
       <defs>
@@ -358,7 +361,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
         });
 
         if (isPhp == 'true')  await switchBetweenJsPhp('php');
-        else                  await switchBetweenJsPhp('js');
+        else                  makeNav('js');
 
         document.documentElement.classList.add('loaded');
       });
