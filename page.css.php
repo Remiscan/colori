@@ -288,6 +288,10 @@ theme-selector[open="true"]>.selector {
   transform: translateY(0);
 }
 
+theme-selector .selector-title {
+  color: var(--h3-color);
+}
+
 input[type="radio"] {
   height: 0;
   width: 0;
