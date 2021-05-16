@@ -120,6 +120,9 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
       h2 {
         grid-row: 1;
       }
+      h3 {
+        padding: .5em;
+      }
       div.js, div.php {
         border-top: 1px solid black;
         border-bottom: 1px solid black;
