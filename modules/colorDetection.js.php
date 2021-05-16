@@ -2,7 +2,6 @@
 /*<?php ob_start();?>*/
 
 import Couleur from '/colori/colori.js';
-import Theme from './themeSelector.js.php';
 
 /*<?php $imports = ob_get_clean();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
@@ -210,7 +209,7 @@ export function colorInterface(couleur = entree, fixContrast = true) {
   element.style.setProperty('--user-hue', Math.round(couleur.h * 360));
   element.style.setProperty('--user-saturation', Math.round(couleur.s * 100) + '%');
 
-  const theme = Theme.active;
+  const theme = document.documentElement.dataset.resolvedTheme;
 
   // Calcul des couleurs du body et des sections selon le contraste de la couleur d'entrée
   let bodyColor, sectionColor;

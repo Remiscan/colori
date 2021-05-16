@@ -81,9 +81,13 @@ html {
   --easing-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);
   --easing-accelerate: cubic-bezier(0.4, 0.0, 1, 1);
   --h-diff: -1;
-  --user-saturation: 100%;
+  --user-saturation: 100%; 
+}
 
+/*<?php ob_start();?>*/
+html[data-theme="light"] {
   /* --- THEME COLORS --- */
+  color-scheme: light;
   /* Background colors */
   --body-color: hsl(var(--user-hue), var(--user-saturation), 70%);
   --section-color: hsl(var(--user-hue), var(--user-saturation), 80%);
@@ -106,8 +110,9 @@ html {
   --button-hover-border-color: white;
 }
 
-html.dark {
+html[data-theme="dark"] {
   /* --- THEME COLORS --- */
+  color-scheme: dark;
   /* Background colors */
   --body-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 10%);
   --section-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 20%);
@@ -129,6 +134,9 @@ html.dark {
   --button-hover-bg-color: rgba(255, 255, 255, .2);
   --button-hover-border-color: rgba(255, 255, 255, .5);
 }
+/*<?php $body = ob_get_clean();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/components/theme-selector/build-css.php';
+echo buildThemesStylesheet($body); ?>*/
 
 html.loaded {
   overflow-y: auto;
@@ -232,7 +240,7 @@ header {
   justify-content: center;
   align-items: start;
   position: relative;
-  z-index: 0;
+  /*z-index: 0; WHY??? */
   background: var(--section-color);
   border-radius: 0 0 .6rem .6rem;
   /*top: -17.7%;*/
@@ -257,21 +265,82 @@ header>h1 {
 }
 
 theme-selector {
-  display: block;
   width: 1.8em;
   height: 1.8em;
   margin: .3rem;
+  --primary-color: var(--h1-color);
+  --secondary-color: var(--h1-color);
 }
 
-theme-selector>button {
-  -webkit-appearance: none;
-  appearance: none;
-  border: none;
-  background: transparent;
+theme-selector>.selector {
+  background-color: var(--section-color);
+  box-shadow: 0 1px .2rem 1px var(--body-color);
+  margin-top: .6rem;
+  border-radius: .6rem;
+  overflow: hidden;
+  z-index: 100;
+  transform: translateY(-.2rem);
+  transition: opacity .2s ease,
+              transform .2s ease;
+}
+
+theme-selector[open="true"]>.selector {
+  transform: translateY(0);
+}
+
+input[type="radio"] {
+  height: 0;
+  width: 0;
+  opacity: 0;
   margin: 0;
-  padding: 0;
-  display: flex;
-  cursor: pointer;
+  pointer-events: none;
+  position: absolute;
+}
+
+.selector-title,
+input[type="radio"] + label {
+  padding: .6rem .6rem;
+}
+
+.selector-title {
+  place-self: center;
+}
+
+input[type="radio"] + label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .6rem;
+}
+
+input[type="radio"] + label:hover,
+input[type="radio"]:checked + label {
+  background: var(--input-bg-color);
+}
+
+input[type="radio"] + label::before {
+  content: '';
+  display: block;
+  --size: 1rem;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--h3-color);
+  place-self: center;
+  grid-row: 1;
+  grid-column: 1;
+  /* Rotation forces sub-pixel rendering to make perfect circle,
+     and 3D forces anti-aliasing */
+  transform: rotate3D(0, 0, 1, 360deg);
+}
+
+input[type="radio"]:checked + label::before {
+  background-color: var(--h1-color);
+  box-shadow: inset 0 0 0 .1rem var(--h1-color),
+              inset 0 0 0 .2rem var(--input-bg-color);
+}
+
+input[type="radio"] + label>span {
+  margin: auto 0;
 }
 
 .groupe-langages {

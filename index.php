@@ -31,6 +31,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
 ?>
 <!doctype html>
 <html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>"
+      data-theme="<?=$_COOKIE['theme']?>" data-resolved-theme="<?=$_COOKIE['resolvedTheme']?>"
       style="--user-hue: <?=round($startColor->h*360)?>;
              --user-color: <?=$startColor->name?>;
              --body-color: <?=$bodyColor->hsl()?>;
@@ -50,6 +51,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0">
     <meta name="theme-color" content="<?=$bodyColor->hsl()?>">
+    <meta name="color-scheme" content="light dark">
 
     <link rel="icon" type="image/png" href="/colori/icons/icon-192.png">
     <link rel="apple-touch-icon" href="/colori/icons/apple-touch-icon.png">
@@ -73,12 +75,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     <?php } ?>
 
     <link rel="stylesheet" href="/colori/ext/prism.css">
-    <link rel="stylesheet" href="/colori/page.css">
-
-    <script type="module">
-      import Theme from '/colori/modules/themeSelector.js.php';
-      Theme.set();
-    </script>
+    <link rel="stylesheet" href="/colori/page.css.php">
 
     <!--<?php $imports = ob_get_clean();
     require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
@@ -133,7 +130,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
       <div class="groupe-langages">
         <button class="bouton-langage" data-lang="fr">Français</button>
         <button class="bouton-langage" data-lang="en" disabled>English</button>
-        <theme-selector></theme-selector>
+        <theme-selector position="bottom" icon="reverse"></theme-selector>
       </div>
 
       <a href="https://github.com/Remiscan/colori" target="_blank" rel="noopener" class="lien-github"
@@ -273,6 +270,8 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     </script>
     <script type="module">
       import Couleur from '/colori/colori.js';
+      import '/_common/components/theme-selector/theme-selector.js.php';
+      import Cookie from '/colori/modules/cookies.js.php';
       import { Traduction, getString } from '/colori/modules/traduction.js.php';
       import { makeNav } from '/colori/modules/quickNav.js.php';
       import { updateCouleur, interpreterCouleur, colorInterface, populateColorData } from '/colori/modules/colorDetection.js.php';
@@ -335,7 +334,12 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
       }
 
       // On theme change
-      window.addEventListener('themechange', () => colorInterface());
+      window.addEventListener('themechange', () => {
+        document.documentElement.dataset.resolvedTheme = event.detail.resolvedTheme;
+        colorInterface();
+        new Cookie('theme', event.detail.theme);
+        new Cookie('resolvedTheme', event.detail.resolvedTheme);
+      });
 
       // On page load
       window.addEventListener('DOMContentLoaded', async () => {
@@ -362,6 +366,9 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
 
         if (isPhp == 'true')  await switchBetweenJsPhp('php');
         else                  makeNav('js');
+
+        // Personnalisation du theme-selector
+        document.querySelector('theme-selector .selector-title').classList.add('h4');
 
         document.documentElement.classList.add('loaded');
       });
