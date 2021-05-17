@@ -1317,3 +1317,12 @@ aside.nav-documentation {
 .off {
   display: none;
 }
+
+
+/* If animations disabled */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
