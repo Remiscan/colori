@@ -57,10 +57,6 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     <link rel="apple-touch-icon" href="/colori/icons/apple-touch-icon.png">
     <link rel="manifest" href="/colori/manifest.json">
 
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Lato&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato&display=swap" media="print" onload="this.media='all'">
-
     <!-- ▼ Fichiers cache-busted grâce à PHP -->
     <!--<?php ob_start();?>-->
 
