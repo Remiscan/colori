@@ -13,29 +13,26 @@ $r = mt_rand(0, count($namedColors) - 1);
 $startColor = new Couleur($namedColors[$r]);
 
 // Adapte l'interface (en attendant que JavaScript s'en charge)
-if ($_COOKIE['resolvedTheme'] === 'dark') {
-  $sectionColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . 0.2 * round($startColor->s * 100) . '%, 20%)');
-  $bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . 0.2 * round($startColor->s * 100) . '%, 10%)');
-  while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
-    $bodyColorDark = $bodyColor->change('bk', '+5%')->change('w', '-5%');
-    $sectionColorDark = $bodyColor->change('l', '20%', true);
-  }
-} else {
-  $sectionColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 80%)');
-  $bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 70%)');
-  while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
-    $bodyColor = $bodyColor->change('bk', '+5%')->change('w', '-5%');
-    $sectionColor = $bodyColor->change('l', '80%', true);
-  }
+$sectionColorDark = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . 0.2 * round($startColor->s * 100) . '%, 20%)');
+$bodyColorDark = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . 0.2 * round($startColor->s * 100) . '%, 10%)');
+while (Couleur::contrast($sectionColorDark, $bodyColorDark) < 1.2) {
+  $bodyColorDark = $bodyColorDark->change('bk', '+5%')->change('w', '-5%');
+  $sectionColorDark = $bodyColorDark->change('l', '20%', true);
+}
+
+$sectionColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 80%)');
+$bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 70%)');
+while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
+  $bodyColor = $bodyColor->change('bk', '+5%')->change('w', '-5%');
+  $sectionColor = $bodyColor->change('l', '80%', true);
 }
 ?>
 <!doctype html>
 <html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>"
-      data-theme="<?=$_COOKIE['theme']?>" data-resolved-theme="<?=$_COOKIE['resolvedTheme']?>"
+      data-theme="<?=$_COOKIE['theme'] ?? 'auto'?>" data-resolved-theme="<?=$_COOKIE['resolvedTheme'] ?? 'light'?>"
       style="--user-hue: <?=round($startColor->h*360)?>;
              --user-color: <?=$startColor->name?>;
-             --body-color: <?=$bodyColor->hsl()?>;
-             --section-color: <?=$sectionColor->hsl()?>;
+             --user-saturation: <?=round($startColor->s*360)?>;
             ">
   <head>
     <meta charset="utf-8">
@@ -50,7 +47,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0">
-    <meta name="theme-color" content="<?=$bodyColor->hsl()?>">
+    <meta name="theme-color" content="<?=($_COOKIE['resolvedTheme'] == 'dark' ? $bodyColorDark->hsl() : $bodyColor->hsl())?>">
     <meta name="color-scheme" content="light dark">
 
     <link rel="icon" type="image/png" href="/colori/icons/icon-192.png">
@@ -77,6 +74,22 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
     require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
     echo versionizeFiles($imports, __DIR__); ?>-->
 
+    <style id="theme-variables">
+      <?php ob_start();?>
+      :root[data-theme="light"] {
+        --body-color: <?=$bodyColor->hsl()?>;
+        --section-color: <?=$sectionColor->hsl()?>;
+      }
+
+      :root[data-theme="dark"] {
+        --body-color: <?=$bodyColorDark->hsl()?>;
+        --section-color: <?=$sectionColorDark->hsl()?>;
+      }
+      <?php $body = ob_get_clean();
+      require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/components/theme-selector/build-css.php';
+      echo buildThemesStylesheet($body); ?>
+    </style>
+
     <style>
       .loading {
         position: fixed;
@@ -85,7 +98,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
         width: 100%;
         height: 100%;
         z-index: 1000;
-        background: <?=$bodyColor->hsl()?>;
+        background: var(--body-color);
         transition: opacity .15s ease;
       }
       .loaded .loading {
@@ -332,7 +345,7 @@ if ($_COOKIE['resolvedTheme'] === 'dark') {
       // On theme change
       window.addEventListener('themechange', () => {
         document.documentElement.dataset.resolvedTheme = event.detail.resolvedTheme;
-        colorInterface();
+        //colorInterface();
         new Cookie('theme', event.detail.theme);
         new Cookie('resolvedTheme', event.detail.resolvedTheme);
       });

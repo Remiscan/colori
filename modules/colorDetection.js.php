@@ -209,60 +209,98 @@ export function colorInterface(couleur = entree, fixContrast = true) {
   element.style.setProperty('--user-hue', Math.round(couleur.h * 360));
   element.style.setProperty('--user-saturation', Math.round(couleur.s * 100) + '%');
 
-  const theme = document.documentElement.dataset.resolvedTheme;
+  const themes = ['light', 'dark'];
+  let cssLight, cssDark;
+  for (const theme of themes) {
+    // Calcul des couleurs du body et des sections selon le contraste de la couleur d'entrée
+    let bodyColor, sectionColor;
+    let css = '';
+    if (theme == 'light') {
+      sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 80%)`);
+      bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 70%)`);
+    } else if (theme == 'dark') {
+      sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 20%)`);
+      bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 10%)`);
+    }
 
-  // Calcul des couleurs du body et des sections selon le contraste de la couleur d'entrée
-  let bodyColor, sectionColor;
-  if (theme == 'light') {
-    sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 80%)`);
-    bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 70%)`);
-  } else if (theme == 'dark') {
-    sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 20%)`);
-    bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 10%)`);
+    if (fixContrast)
+      [bodyColor, sectionColor] = betterContrast(bodyColor, sectionColor, 1.2, true);
+    
+    if (document.documentElement.resolvedTheme == theme)
+      document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
+
+    // Calcul de la couleur des liens
+    let linkColor;
+    if (theme == 'light')
+      linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 30%)`);
+    else if (theme == 'dark')
+      linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.6 * Math.round(couleur.s * 100)}%, 80%)`);
+
+    if (fixContrast)
+      linkColor = betterContrast(linkColor, sectionColor, 4.5);
+
+    // Calcul de la couleur du fond de la démo
+    let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
+    //let _couleur = couleur.change('a', '1', true);
+    const white = new Couleur('white');
+    let _couleur = white.blend(`rgba(0, 0, 0, ${frameOverlay.a})`).blend(couleur);
+    let frameColor = Couleur.blend(sectionColor, frameOverlay);
+    if (fixContrast)
+      frameColor = betterContrast(frameColor, _couleur, 1.2);
+
+    let miniFrameColor = frameColor;
+    if (fixContrast)
+      miniFrameColor = betterContrast(miniFrameColor, _couleur, 1.8);
+    css += `
+      --body-color: ${bodyColor.hsl};
+      --section-color: ${sectionColor.hsl};
+      --link-color: ${linkColor.hsl};
+      --frame-color: ${frameColor.hsl};
+      --frame-color-mini: ${miniFrameColor.hsl};
+    `;
+
+    // Calcul de la coloration syntaxique selon le contraste
+    const steps = ['-90', '+45', '-45', '+135'];
+    const tokenTypes = ['number', 'string', 'operator', 'keyword'];
+    steps.forEach((e, k) => {
+      let tokenColor = new Couleur('hsl(' + Math.round(couleur.h * 360) + ', 70%, 60%)');
+      tokenColor = tokenColor.change('h', steps[k]);
+      if (fixContrast)
+        tokenColor = betterContrast(tokenColor, frameColor, 5);
+      css += `--token-${tokenTypes[k]} : ${tokenColor.hsl};
+      `;
+    });
+
+    if (theme == 'dark') cssDark = css;
+    else                 cssLight = css;
   }
 
-  if (fixContrast)
-    [bodyColor, sectionColor] = betterContrast(bodyColor, sectionColor, 1.2, true);
-  element.style.setProperty('--body-color', bodyColor.hsl);
-  element.style.setProperty('--section-color', sectionColor.hsl);
-  document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
+  const style = document.getElementById('theme-variables');
+  style.innerHTML = `
+    :root {
+      ${cssLight}
+    }
 
-  // Calcul de la couleur des liens
-  let linkColor;
-  if (theme == 'light')
-    linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 30%)`);
-  else if (theme == 'dark')
-    linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.6 * Math.round(couleur.s * 100)}%, 80%)`);
+    @media (prefers-color-scheme: light) {
+      :root {
+        ${cssLight}
+      }
+    }
 
-  if (fixContrast)
-    linkColor = betterContrast(linkColor, sectionColor, 4.5);
-  element.style.setProperty('--link-color', linkColor.hsl);
+    @media (prefers-color-scheme: dark) {
+      :root {
+        ${cssDark}
+      }
+    }
 
-  // Calcul de la couleur du fond de la démo
-  let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
-  //let _couleur = couleur.change('a', '1', true);
-  const white = new Couleur('white');
-  let _couleur = white.blend(`rgba(0, 0, 0, ${frameOverlay.a})`).blend(couleur);
-  let frameColor = Couleur.blend(sectionColor, frameOverlay);
-  if (fixContrast)
-    frameColor = betterContrast(frameColor, _couleur, 1.2);
+    :root[data-theme="light"] {
+      ${cssLight}
+    }
 
-  let miniFrameColor = frameColor;
-  if (fixContrast)
-    miniFrameColor = betterContrast(miniFrameColor, _couleur, 1.8);
-  document.querySelector('.demo-inside').style.setProperty('--frame-color', frameColor.hsl);
-  document.querySelector('.demo-inside').style.setProperty('--frame-color-mini', miniFrameColor.hsl);
-
-  // Calcul de la coloration syntaxique selon le contraste
-  const steps = ['-90', '+45', '-45', '+135'];
-  const tokenTypes = ['number', 'string', 'operator', 'keyword'];
-  steps.forEach((e, k) => {
-    let tokenColor = new Couleur('hsl(' + Math.round(couleur.h * 360) + ', 70%, 60%)');
-    tokenColor = tokenColor.change('h', steps[k]);
-    if (fixContrast)
-      tokenColor = betterContrast(tokenColor, frameColor, 5);
-    element.style.setProperty('--token-' + tokenTypes[k], tokenColor.hsl);
-  });
+    :root[data-theme="dark"] {
+      ${cssDark}
+    }
+  `;
 }
 
 
