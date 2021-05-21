@@ -47,7 +47,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
     
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0">
-    <meta name="theme-color" content="<?=($_COOKIE['resolvedTheme'] == 'dark' ? $bodyColorDark->hsl() : $bodyColor->hsl())?>">
+    <meta name="theme-color" content="<?=($_COOKIE['resolvedTheme'] == 'dark' ? $bodyColorDark->hsl() : $bodyColor->hsl())?>" data-light="<?=$bodyColor->hsl()?>" data-dark="<?=$bodyColorDark->hsl()?>">
     <meta name="color-scheme" content="light dark">
 
     <link rel="icon" type="image/png" href="/colori/icons/icon-192.png">
@@ -346,6 +346,8 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       window.addEventListener('themechange', () => {
         document.documentElement.dataset.resolvedTheme = event.detail.resolvedTheme;
         //colorInterface();
+        const meta = document.querySelector('meta[name=theme-color]');
+        meta.content = meta.dataset[event.detail.resolvedTheme];
         new Cookie('theme', event.detail.theme);
         new Cookie('resolvedTheme', event.detail.resolvedTheme);
       });

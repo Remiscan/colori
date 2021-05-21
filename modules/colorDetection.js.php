@@ -209,6 +209,7 @@ export function colorInterface(couleur = entree, fixContrast = true) {
   element.style.setProperty('--user-hue', Math.round(couleur.h * 360));
   element.style.setProperty('--user-saturation', Math.round(couleur.s * 100) + '%');
 
+  const meta = document.querySelector('meta[name=theme-color]');
   const themes = ['light', 'dark'];
   let cssLight, cssDark;
   for (const theme of themes) {
@@ -221,11 +222,14 @@ export function colorInterface(couleur = entree, fixContrast = true) {
     } else if (theme == 'dark') {
       sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 20%)`);
       bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 10%)`);
+      meta.dataset.dark = bodyColor.hsl;
     }
 
     if (fixContrast)
       [bodyColor, sectionColor] = betterContrast(bodyColor, sectionColor, 1.2, true);
     
+    if (theme == 'light')     meta.dataset.light = bodyColor.hsl;
+    else if (theme == 'dark') meta.dataset.dark = bodyColor.hsl;
     if (document.documentElement.resolvedTheme == theme)
       document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
 
