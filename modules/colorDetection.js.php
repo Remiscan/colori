@@ -23,6 +23,12 @@ export async function updateCouleur(couleur, delai = 100) {
 
   await new Promise(resolve => setTimeout(resolve, delai));
   if (lastTry != thisTry) return;
+
+  // Hide the numerical result by default
+  const conteneur = document.getElementById('saisie');
+  const input = document.getElementById('entree');
+  conteneur.classList.remove('valeur');
+  input.classList.remove('gradient', 'dark');
   
   try {
     entree = resolveColor(couleur);
@@ -30,7 +36,25 @@ export async function updateCouleur(couleur, delai = 100) {
       colorInterface(entree);
       populateColorData(entree);
     } else if (entree != null) {
-      console.log(`${couleur} == ${entree}`);
+      const valeur = document.querySelector('.entree-resultat-valeur>.valeur');
+
+      // If the result is a number, display it below the input field
+      if (typeof entree == 'number') {
+        valeur.innerHTML = entree;
+        valeur.parentElement.classList.add('h4');
+        conteneur.classList.add('valeur');
+      }
+      // If the result is an array of colors, display their gradient as the input background
+      else if (Array.isArray(entree) && entree.reduce((sum, e) => sum + (e instanceof Couleur), 0)) {
+        const gradient = `linear-gradient(to right, ${entree.map(c => c.rgb).join(', ')})`;
+        input.style.setProperty('--gradient', gradient);
+        valeur.innerHTML = gradient;
+        valeur.parentElement.classList.remove('h4');
+        conteneur.classList.add('valeur');
+        input.classList.add('gradient');
+        if (entree[0].contrastedText() == 'white') input.classList.add('dark');
+      }
+      else console.log(`${couleur} == ${entree}`);
     }
     return;
   }

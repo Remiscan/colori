@@ -737,12 +737,21 @@ input {
   border: none;
   box-sizing: border-box;
   padding: .4em .6em;
+  padding-right: calc(.6em + var(--padding-right, 0));
   font-family: 'Open Sans';
   color: var(--text-color);
   transition: color .3s ease;
   background-color: var(--input-bg-color);
   border-radius: .6rem;
   box-shadow: 0 0 0 1px var(--body-color);
+}
+
+input.gradient {
+  background-image: var(--gradient, none);
+}
+input.gradient.dark {
+  color: white;
+  text-shadow: 0 0 .1em black;
 }
 
 input:hover {
@@ -757,6 +766,35 @@ input:active, input:focus {
 
 ::placeholder {
   color: var(--input-placeholder-color);
+}
+
+.entree-resultat-valeur {
+  position: absolute;
+  bottom: 0;
+  transform: translateY(calc(100% + .3em));
+  place-self: end end;
+
+  display: flex;
+  gap: .3em;
+  
+  font-family: 'Open Sans';
+  line-height: 1em;
+  color: var(--text-color);
+  transition: color .3s ease;
+
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  max-width: 100%;
+}
+
+#saisie:not(.valeur)>.entree-resultat-valeur {
+  display: none;
+}
+
+.entree-resultat-valeur>.egal {
+  opacity: .5;
 }
 
 

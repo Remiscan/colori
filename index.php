@@ -175,11 +175,17 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
               <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
               <button class="exemple">pink.invert()</button>
               <button class="exemple">#4169E1.darken(50%)</button>
+              <button class="exemple">black.contrast(white)</button>
+              <button class="exemple">indigo.gradient(orange)</button>
               <button class="exemple">rgb(255, 127, 80).desaturate(50%).blend(red, .2)</button>
               <button class="exemple">aqua.blend(red.blend(white.darken(.8), .8), .5)</button>
             </div>
             <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
-                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <span class="entree-resultat-valeur h4">
+              <span class="egal">=</span>
+              <span class="valeur"><span>
+            </span>
           </div>
         </div>
 
@@ -304,7 +310,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       champ.addEventListener('input', event => {
         let evt = event || window.event;
         document.querySelector('.demo-conteneur').classList.remove('calced');
-        updateCouleur(evt.target.value, 50)
+        updateCouleur(evt.target.value.replace(/'/g, ''), 50)
         .catch(error => {});
       });
 
