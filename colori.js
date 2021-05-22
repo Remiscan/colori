@@ -792,6 +792,7 @@ export default class Couleur {
       if (up == 'bk') newColor = movingColor.change('bk', `+${step}%`).change('w', `-${step}%`);
       else            newColor = movingColor.change('bk', `-${step}%`).change('w', `+${step}%`);
       if (options.changeSecondColor) newRefColor = newColor.replace('l', `${initialL * 100}%`);
+      // If next step is gonna make the color black or white, stop. Continuing would loop.
       if (
         (up == 'bk' && newColor.bk > (1 - .01 * step) && newColor.w < (0 + .1 * step))
         || (up == 'w' && newColor.w > (1 - .01 * step) && newColor.bk < (0 + .1 * step))
