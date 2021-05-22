@@ -753,7 +753,16 @@ export default class Couleur {
 
   // Modifies the color (without changing its hue) to give it
   // better contrast (= closer to desiredContrast) with referenceColor
-  betterContrast(referenceColor, desiredContrast, step = 5, maxIterations = 1000) {
+  // The options argument supports these properties:
+  // - lower: if true and the contrast is higher than desired,
+  //   the color will be modified to lower the contrast
+  // - changeSecondColor: if true, the reference color will be
+  //   modified too
+  betterContrast(referenceColor, desiredContrast, step = 5, options = {}) {
+    if (typeof options.lower == 'undefined') options.lower = false;
+    if (typeof options.changeSecondColor == 'undefined') options.changeSecondColor = false;
+    if (typeof options.maxIterations == 'undefined') options.maxIterations = 1000;
+
     let movingColor = new Couleur(`${this.rgb}`);
     let refColor = Couleur.check(referenceColor);
 
@@ -764,19 +773,22 @@ export default class Couleur {
     if (contrast > desiredContrast)      direction = -1;
     else if (contrast < desiredContrast) direction = 1;
     else                                 direction = 0;
-    if (direction == 0) return movingColor;
+    if (direction < 0 && !options.lower) return this;
+    if (direction == 0) return this;
 
     // We keep going as long as contrast is still below / over desiredContrast.
     const condition =  c => (direction > 0) ? (c < desiredContrast)
                                             : (c > desiredContrast);
     let up = 'bk';
     let i = 0;
-    while (condition(contrast) && i < maxIterations) {
+    const initialL = refColor.l;
+    while (condition(contrast) && i < options.maxIterations) {
       i++;
       let newColor;
       // Let's try to raise contrast by increasing blackness and reducing whiteness.
       if (up == 'bk') newColor = movingColor.change('bk', `+${step}%`).change('w', `-${step}%`);
       else            newColor = movingColor.change('bk', `-${step}%`).change('w', `+${step}%`);
+      if (options.changeSecondColor) refColor = newColor.replace('l', `${initialL * 100}%`);
       const newContrast = newColor.contrast(refColor);
 
       // We're going the wrong way! Let's reverse blackness's and whiteness's roles.
@@ -799,7 +811,8 @@ export default class Couleur {
     }
 
     // We're done!
-    return movingColor;
+    if (options.changeSecondColor)  return [movingColor, refColor];
+    else                            return movingColor;
   }
 
   // Changes a property of the color

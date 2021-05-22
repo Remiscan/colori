@@ -45,8 +45,8 @@ class Test {
       $f
     );
     $f = str_replace(
-      ['{ scale: true }', '{ scale: false }', '{ replace: true }', '{ replace: false }'],
-      ['(object)["scale"=>true]', '(object)["scale"=>false]', '(object)["replace"=>true]', '(object)["replace"=>false]'],
+      ['{ scale: true }', '{ scale: false }', '{ replace: true }', '{ replace: false }', '{ lower: true }'],
+      ['(object)["scale"=>true]', '(object)["scale"=>false]', '(object)["replace"=>true]', '(object)["replace"=>false]', '(object)["lower"=>true]'],
       $f
     );
     $this->fonction = $f;

@@ -198,6 +198,9 @@
     "resultatAttendu": "17.094"
   }, {
     "fonction": "(new Colour('hsl(55, 85%, 80%)')).betterContrast('hsl(230, 25%, 10%)', 12, 5).hsl",
+    "resultatAttendu": "hsl(55, 85%, 80%)"
+  }, {
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).betterContrast('hsl(230, 25%, 10%)', 12, 5, { lower: true }).hsl",
     "resultatAttendu": "hsl(54, 57%, 70%)"
   }, {
     "fonction": "Colour.contrast('hsl(54, 57%, 70%)', 'hsl(230, 25%, 10%)')",
