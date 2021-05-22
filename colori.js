@@ -773,8 +773,10 @@ export default class Couleur {
     if (contrast > desiredContrast)      direction = -1;
     else if (contrast < desiredContrast) direction = 1;
     else                                 direction = 0;
-    if (direction < 0 && !options.lower) return this;
-    if (direction == 0) return this;
+    if ((direction < 0 && !options.lower) || (direction == 0)) {
+      if (options.changeSecondColor)  return [this, refColor];
+      else                            return this;
+    }
 
     // We keep going as long as contrast is still below / over desiredContrast.
     const condition =  c => (direction > 0) ? (c < desiredContrast)
@@ -785,11 +787,15 @@ export default class Couleur {
     while (condition(contrast) && i < options.maxIterations) {
       i++;
       let newColor;
-      let newRefColor;
+      let newRefColor = refColor;
       // Let's try to raise contrast by increasing blackness and reducing whiteness.
       if (up == 'bk') newColor = movingColor.change('bk', `+${step}%`).change('w', `-${step}%`);
       else            newColor = movingColor.change('bk', `-${step}%`).change('w', `+${step}%`);
       if (options.changeSecondColor) newRefColor = newColor.replace('l', `${initialL * 100}%`);
+      if (
+        (up == 'bk' && newColor.bk > (1 - .01 * step) && newColor.w < (0 + .1 * step))
+        || (up == 'w' && newColor.w > (1 - .01 * step) && newColor.bk < (0 + .1 * step))
+      ) break;
       const newContrast = newColor.contrast(newRefColor);
 
       // We're going the wrong way! Let's reverse blackness's and whiteness's roles.

@@ -1052,13 +1052,16 @@ class Couleur
     if ($contrast > $desiredContrast)     $direction = -1;
     elseif ($contrast < $desiredContrast) $direction = 1;
     else                                  $direction = 0;
-    if ($direction < 0 && $options->lower === false) return $this;
-    if ($direction == 0) return $this;
+    if (($direction < 0 && $options->lower === false) || ($direction == 0)) {
+      if ($options->changeSecondColor === true) return [$this, $refColor];
+      else                                      return $this;
+    }
 
     // We keep going as long as contrast is still below / over desiredContrast.
     $up = 'bk';
     $i = 0;
     $initialL = $refColor->l * 100;
+    $newRefColor = $refColor;
     while(($direction > 0) ? ($contrast < $desiredContrast) : ($contrast > $desiredContrast) && $i < $options->maxIterations) {
       $i++;
       // Let's try to raise contrast by increasing blackness and reducing whiteness.
