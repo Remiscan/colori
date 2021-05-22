@@ -73,8 +73,9 @@ export function colorInterface(couleur = entree, fixContrast = true) {
   const meta = document.querySelector('meta[name=theme-color]');
   const themes = ['light', 'dark'];
   let cssLight, cssDark;
+  // Let's calculate the interface colors based on the input color
   for (const theme of themes) {
-    // Calcul des couleurs du body et des sections selon le contraste de la couleur d'entrée
+    // BODY and SECTION colors
     let bodyColor, sectionColor;
     let css = '';
     if (theme == 'light') {
@@ -97,12 +98,33 @@ export function colorInterface(couleur = entree, fixContrast = true) {
       }
     }
     
+    // META THEME color
     if (theme == 'light')     meta.dataset.light = bodyColor.hsl;
     else if (theme == 'dark') meta.dataset.dark = bodyColor.hsl;
     if (document.documentElement.resolvedTheme == theme)
       document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
 
-    // Calcul de la couleur des liens
+    // H1 color
+    let h1Color;
+    if (theme == 'light')
+      h1Color = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 20%)`);
+    else if (theme == 'dark')
+      h1Color = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.3 * Math.round(couleur.s * 100)}%, 80%)`);
+
+    if (fixContrast)
+      h1Color = h1Color.betterContrast(sectionColor, 3);
+
+    // H3 color
+    let h3Color;
+    if (theme == 'light')
+      h3Color = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 30%)`);
+    else if (theme == 'dark')
+      h3Color = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.4 * Math.round(couleur.s * 100)}%, 70%)`);
+
+    if (fixContrast)
+      h3Color = h3Color.betterContrast(sectionColor, 3);
+
+    // LINK color
     let linkColor;
     if (theme == 'light')
       linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 30%)`);
@@ -110,9 +132,9 @@ export function colorInterface(couleur = entree, fixContrast = true) {
       linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.6 * Math.round(couleur.s * 100)}%, 80%)`);
 
     if (fixContrast)
-      linkColor = linkColor.betterContrast(sectionColor, 4.5);
+      linkColor = linkColor.betterContrast(sectionColor, 5);
 
-    // Calcul de la couleur du fond de la démo
+    // PREVIEW BORDER color
     let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
     const white = new Couleur('white');
     let _couleur = white.blend(`rgba(0, 0, 0, ${frameOverlay.a})`).blend(couleur);
@@ -123,15 +145,19 @@ export function colorInterface(couleur = entree, fixContrast = true) {
     let miniFrameColor = frameColor;
     if (fixContrast)
       miniFrameColor = miniFrameColor.betterContrast(_couleur, 2.5);
+
+    // Create CSS for the previous colors
     css += `
       --body-color: ${bodyColor.hsl};
       --section-color: ${sectionColor.hsl};
-      --link-color: ${linkColor.hsl};
       --frame-color: ${frameColor.hsl};
       --frame-color-mini: ${miniFrameColor.hsl};
+      --h1-color: ${h1Color.hsl};
+      --h3-color: ${h3Color.hsl};
+      --link-color: ${linkColor.hsl};
     `;
 
-    // Calcul de la coloration syntaxique selon le contraste
+    // TOKEN colors for syntax coloring
     const steps = ['-90', '+45', '-45', '+135'];
     const tokenTypes = ['number', 'string', 'operator', 'keyword'];
     steps.forEach((e, k) => {
@@ -147,6 +173,7 @@ export function colorInterface(couleur = entree, fixContrast = true) {
     else                 cssLight = css;
   }
 
+  // Let's generate the stylesheet for the interface colors
   const style = document.getElementById('theme-variables');
   style.innerHTML = `
     :root {
