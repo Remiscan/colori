@@ -1038,6 +1038,11 @@ class Couleur
 
   // Modifies the color (without changing its hue) to give it
   // better contrast (= closer to desiredContrast) with referenceColor
+  // The options argument supports these properties:
+  // - lower: if true and the contrast is higher than desired,
+  //   the color will be modified to lower the contrast
+  // - changeSecondColor: if true, the reference color will be
+  //   modified too, following the first color's saturation
   public function betterContrast($referenceColor, $desiredContrast, $step = 5, $options = null) {
     if ($options === null) $options = new stdClass();
     if (!property_exists($options, 'lower')) $options->lower = false;
@@ -1061,14 +1066,13 @@ class Couleur
     // We keep going as long as contrast is still below / over desiredContrast.
     $up = 'bk';
     $i = 0;
-    $initialL = $refColor->l * 100;
     $newRefColor = $refColor;
     while(($direction > 0) ? ($contrast < $desiredContrast) : ($contrast > $desiredContrast) && $i < $options->maxIterations) {
       $i++;
       // Let's try to raise contrast by increasing blackness and reducing whiteness.
       if ($up == 'bk')  $newColor = $movingColor->change('bk', "+$step%")->change('w', "-$step%");
       else              $newColor = $movingColor->change('bk', "-$step%")->change('w', "+$step%");
-      if ($options->changeSecondColor === true) $newRefColor = $newColor->replace('l', "$initialL%");
+      if ($options->changeSecondColor === true) $newRefColor = $refColor->replace('s', $newColor->s * 100 . '%');
       // If next step is gonna make the color black or white, stop. Continuing would loop.
       if (
         ($up == 'bk' && $newColor->bk > (1 - .01 * $step) && $newColor->w < (0 + .1 * $step))

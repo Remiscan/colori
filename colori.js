@@ -758,7 +758,7 @@ export default class Couleur {
   // - lower: if true and the contrast is higher than desired,
   //   the color will be modified to lower the contrast
   // - changeSecondColor: if true, the reference color will be
-  //   modified too
+  //   modified too, following the first color's saturation
   betterContrast(referenceColor, desiredContrast, step = 5, options = {}) {
     if (typeof options.lower == 'undefined') options.lower = false;
     if (typeof options.changeSecondColor == 'undefined') options.changeSecondColor = false;
@@ -784,7 +784,6 @@ export default class Couleur {
                                             : (c > desiredContrast);
     let up = 'bk';
     let i = 0;
-    const initialL = refColor.l;
     while (condition(contrast) && i < options.maxIterations) {
       i++;
       let newColor;
@@ -792,7 +791,7 @@ export default class Couleur {
       // Let's try to raise contrast by increasing blackness and reducing whiteness.
       if (up == 'bk') newColor = movingColor.change('bk', `+${step}%`).change('w', `-${step}%`);
       else            newColor = movingColor.change('bk', `-${step}%`).change('w', `+${step}%`);
-      if (options.changeSecondColor) newRefColor = newColor.replace('l', `${initialL * 100}%`);
+      if (options.changeSecondColor) newRefColor = refColor.replace('s', `${newColor.s * 100}%`);
       // If next step is gonna make the color black or white, stop. Continuing would loop.
       if (
         (up == 'bk' && newColor.bk > (1 - .01 * step) && newColor.w < (0 + .1 * step))
