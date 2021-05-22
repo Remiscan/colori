@@ -74,6 +74,13 @@ const methodes = [
     name: 'contrast',
     args: new RegExp(`^(.+)$`),
     argIsColor: [true]
+  }, {
+    name: 'gradient',
+    args: [
+      new RegExp(`^(.+)${vSep}(${Couleur.vNum})$`),
+      new RegExp(`^(.+)$`)
+    ],
+    argIsColor: [true, false]
   }
 ];
 
