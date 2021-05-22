@@ -1064,8 +1064,8 @@ class Couleur
       // Let's try to raise contrast by increasing blackness and reducing whiteness.
       if ($up == 'bk')  $newColor = $movingColor->change('bk', "+$step%")->change('w', "-$step%");
       else              $newColor = $movingColor->change('bk', "-$step%")->change('w', "+$step%");
-      if ($options->changeSecondColor === true) $refColor = $newColor->replace('l', "$initialL%");
-      $newContrast = self::contrast($newColor, $refColor);
+      if ($options->changeSecondColor === true) $newRefColor = $newColor->replace('l', "$initialL%");
+      $newContrast = self::contrast($newColor, $newRefColor);
 
       // We're going the wrong way! Let's reverse blackness's and whiteness's roles.
       $wrongWay =  ($direction > 0) ? ($newContrast <= $contrast)
@@ -1084,6 +1084,7 @@ class Couleur
       // We went the right way, let's keep going!
       $contrast = $newContrast;
       $movingColor = $newColor;
+      if ($options->changeSecondColor === true) $refColor = $newRefColor;
     }
 
     // We're done!

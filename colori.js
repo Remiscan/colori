@@ -785,11 +785,12 @@ export default class Couleur {
     while (condition(contrast) && i < options.maxIterations) {
       i++;
       let newColor;
+      let newRefColor;
       // Let's try to raise contrast by increasing blackness and reducing whiteness.
       if (up == 'bk') newColor = movingColor.change('bk', `+${step}%`).change('w', `-${step}%`);
       else            newColor = movingColor.change('bk', `-${step}%`).change('w', `+${step}%`);
-      if (options.changeSecondColor) refColor = newColor.replace('l', `${initialL * 100}%`);
-      const newContrast = newColor.contrast(refColor);
+      if (options.changeSecondColor) newRefColor = newColor.replace('l', `${initialL * 100}%`);
+      const newContrast = newColor.contrast(newRefColor);
 
       // We're going the wrong way! Let's reverse blackness's and whiteness's roles.
       const wrongWay =  (direction > 0) ? (newContrast <= contrast)
@@ -808,6 +809,7 @@ export default class Couleur {
       // We went the right way, let's keep going!
       contrast = newContrast;
       movingColor = newColor;
+      if (options.changeSecondColor) refColor = newRefColor;
     }
 
     // We're done!
