@@ -1041,13 +1041,14 @@ class Couleur
   // The options argument supports these properties:
   // - lower: - true will lower the contrast if it's higher than desired
   //          - false will stop if contrast is higher than desired
-  // - towards: if desiredContrast can be reached by raising both blackness
-  //            OR whiteness, then this option will be used to determine which
-  //            way to go : - null (default) to choose automatically*
-  //                        - 'black' to raise blackness
-  //                        - 'white' to raise whiteness
-  //     * blackness will be chosen if movingColor is darker than refColor,
-  //       and whiteness if it's lighter than refColor.
+  // - towards: if desiredContrast can be reached BOTH by raising blackness
+  //            or by raising whiteness, then this option will be used to
+  //            determine which way to go :
+  //            - null (default) to choose automatically*
+  //            - 'black' to raise blackness
+  //            - 'white' to raise whiteness
+  //      * blackness will be chosen if movingColor is darker than refColor,
+  //      and whiteness if it's lighter than refColor.
   // - maxIterations: the maximum number of times the color will be altered
   public function betterContrast($referenceColor, $desiredContrast, $step = 5, $options = null) {
     if ($options === null) $options = new stdClass();
