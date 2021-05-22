@@ -1057,6 +1057,11 @@ export default class Couleur {
     return [...intermediateColors, to];
   }
 
+  // Shorthand for Couleur.gradient()
+  gradient(to, steps = 5) {
+    return Couleur.gradient(this, to, steps);
+  }
+
   static get properties() {
     return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
   }
