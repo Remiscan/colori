@@ -1039,18 +1039,26 @@ class Couleur
   // Modifies the color (without changing its hue) to give it
   // better contrast (= closer to desiredContrast) with referenceColor
   // The options argument supports these properties:
-  // - lower: if true and the contrast is higher than desired,
-  //   the color will be modified to lower the contrast
+  // - lower: - true will lower the contrast if it's higher than desired
+  //          - false will stop if contrast is higher than desired
+  // - towards: if desiredContrast can be reached by raising both blackness
+  //            OR whiteness, then this option will be used to determine which
+  //            way to go : - null (default) to choose automatically*
+  //                        - 'black' to raise blackness
+  //                        - 'white' to raise whiteness
+  //     * blackness will be chosen if movingColor is darker than refColor,
+  //       and whiteness if it's lighter than refColor.
   // - maxIterations: the maximum number of times the color will be altered
   public function betterContrast($referenceColor, $desiredContrast, $step = 5, $options = null) {
     if ($options === null) $options = new stdClass();
     if (!property_exists($options, 'lower')) $options->lower = false;
     if (!property_exists($options, 'maxIterations')) $options->maxIterations = 1000;
+    if (!property_exists($options, 'towards')) $options->towards = null;
 
     $movingColor = new self($this->rgb());
     $refColor = self::check($referenceColor);
 
-    // Lets measure the initial contrast
+    // Let's measure the initial contrast
     // and decide if we want it to go up or down.
     $contrast = self::contrast($movingColor, $refColor);
     if ($contrast > $desiredContrast)     $direction = -1;
@@ -1058,40 +1066,52 @@ class Couleur
     else                                  $direction = 0;
     if (($direction < 0 && $options->lower === false) || ($direction == 0)) return $this;
 
+    // Let's measure the contrast of refColor with black and white to know if
+    // desiredContrast can be reached by blackening or whitening movingColor.
+    $contrastWhite = self::contrast($refColor, 'white');
+    $contrastBlack = self::contrast($refColor, 'black');
+    $towardsWhite = ($direction > 0) ? ($contrastWhite >= $desiredContrast)
+                                     : ($contrastWhite <= $desiredContrast);
+    $towardsBlack = ($direction > 0) ? ($contrastBlack >= $desiredContrast)
+                                     : ($contrastBlack <= $desiredContrast);
+
+    // Let's decide if we're going to raise blackness or whiteness
+    // to reach desiredContrast.
+    if ($towardsWhite && !$towardsBlack) $towards = 'white';
+    elseif ($towardsBlack && !$towardsWhite) $towards = 'black';
+    elseif (!$towardsWhite && !$towardsBlack) {
+      if ($options->towards !== null) $towards = $options->towards;
+      elseif ($contrastWhite > $contrastBlack) return new Couleur('white');
+      else                                      return new Couleur('black');
+    }
+    elseif ($towardsWhite && $towardsBlack) $towards = $options->towards;
+    if ($towards === null) {
+      if ($refColor->l < $movingColor->l) $towards = 'white';
+      elseif ($refColor->l > $movingColor->l) $towards = 'black';
+      else $towards = 'black';
+    }
+
+
     // We keep going as long as contrast is still below / over desiredContrast.
-    $up = 'bk';
     $i = 0;
     while(($direction > 0) ? ($contrast < $desiredContrast) : ($contrast > $desiredContrast) && $i < $options->maxIterations) {
       $i++;
 
       // Let's try to raise contrast by increasing blackness and reducing whiteness.
-      if ($up == 'bk')  $newColor = $movingColor->change('bk', "+$step%")->change('w', "-$step%");
-      else              $newColor = $movingColor->change('bk', "-$step%")->change('w', "+$step%");
+      if ($towards == 'white') $newColor = new Couleur('hwb(' . (360 * $movingColor->h) . ' ' . (100 * $movingColor->w + $step) . '% ' . (100 * $movingColor->bk - $step) . '%)');
+      else              $newColor = new Couleur('hwb(' . (360 * $movingColor->h) . ' ' . (100 * $movingColor->w - $step) . '% ' . (100 * $movingColor->bk + $step) . '%)');
 
       $newContrast = self::contrast($newColor, $refColor);
 
-      // Is the new color totally black (if up == 'bk') or white (if up == 'w')?
-      // i.e. Is there no way to go in this direction?
-      $noWay = ($up == 'bk' && $newColor->bk > (1 - .01 * $step) && $newColor->w < (0 + .1 * $step))
-             || ($up == 'w' && $newColor->w > (1 - .01 * $step) && $newColor->bk < (0 + .1 * $step));
-
-      // If we're going the wrong way, reverse blackness's and whiteness's roles and restart
-      $wrongWay =  ($direction > 0) ? ($newContrast <= $contrast)
-                                    : ($newContrast >= $contrast);
-      if ($wrongWay) {
-        $up = 'w';
-        continue;
-      }
-      // If there's no way to go and we're going the right way, stop
-      elseif ($noWay) {
-        break;
-      }
+      // If the new color is totally black (if up == 'bk') or white (if up == 'w'),
+      // i.e. there's no way to go, stop.
+      $noWay = ($towards == 'black' && $newColor->bk > (1 - .01 * $step) && $newColor->w < (0 + .1 * $step))
+             || ($towards == 'white' && $newColor->w > (1 - .01 * $step) && $newColor->bk < (0 + .1 * $step));
+      if ($noWay) break;
 
       // If we went the right way but overshot a little, stop
       $overshot = abs($contrast - $desiredContrast) <= abs($newContrast - $desiredContrast);
-      if ($overshot) {
-        break;
-      }
+      if ($overshot) break;
 
       // We went the right way, let's keep going!
       $contrast = $newContrast;
