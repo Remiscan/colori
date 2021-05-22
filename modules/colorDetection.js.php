@@ -140,18 +140,13 @@ export function colorInterface(couleur = entree, fixContrast = true) {
     let _couleur = white.blend(`rgba(0, 0, 0, ${frameOverlay.a})`).blend(couleur);
     let frameColor = Couleur.blend(sectionColor, frameOverlay);
     if (fixContrast)
-      frameColor = frameColor.betterContrast(_couleur, 1.2);
-
-    let miniFrameColor = frameColor;
-    if (fixContrast)
-      miniFrameColor = miniFrameColor.betterContrast(_couleur, 2.5);
+      frameColor = frameColor.betterContrast(_couleur, 2.5);
 
     // Create CSS for the previous colors
     css += `
       --body-color: ${bodyColor.hsl};
       --section-color: ${sectionColor.hsl};
       --frame-color: ${frameColor.hsl};
-      --frame-color-mini: ${miniFrameColor.hsl};
       --h1-color: ${h1Color.hsl};
       --h3-color: ${h3Color.hsl};
       --link-color: ${linkColor.hsl};

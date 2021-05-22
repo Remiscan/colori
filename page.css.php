@@ -811,7 +811,7 @@ pre[class*="language-"].format-donnee {
   height: 3rem;
   --border-size: 4px;
   align-self: stretch;
-  background-color: var(--frame-color-mini);
+  background-color: var(--frame-color);
   border-radius: .6rem;
   position: relative;
   font-size: 0;
