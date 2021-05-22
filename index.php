@@ -13,19 +13,13 @@ $r = mt_rand(0, count($namedColors) - 1);
 $startColor = new Couleur($namedColors[$r]);
 
 // Adapte l'interface (en attendant que JavaScript s'en charge)
-$sectionColorDark = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . 0.2 * round($startColor->s * 100) . '%, 20%)');
-$bodyColorDark = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . 0.2 * round($startColor->s * 100) . '%, 10%)');
-while (Couleur::contrast($sectionColorDark, $bodyColorDark) < 1.2) {
-  $bodyColorDark = $bodyColorDark->change('bk', '+5%')->change('w', '-5%');
-  $sectionColorDark = $bodyColorDark->change('l', '20%', true);
-}
-
-$sectionColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 80%)');
+$neutral = new Couleur('white');
 $bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 70%)');
-while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
-  $bodyColor = $bodyColor->change('bk', '+5%')->change('w', '-5%');
-  $sectionColor = $bodyColor->change('l', '80%', true);
-}
+$bodyColor = $bodyColor->betterContrast($neutral, 1.9);
+
+$neutral = new Couleur('black');
+$bodyColorDark = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . 0.2 * round($startColor->s * 100) . '%, 10%)');
+$bodyColorDark = $bodyColorDark->betterContrast($neutral, 1.2);
 ?>
 <!doctype html>
 <html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>"
@@ -78,12 +72,10 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       <?php ob_start();?>
       :root[data-theme="light"] {
         --body-color: <?=$bodyColor->hsl()?>;
-        --section-color: <?=$sectionColor->hsl()?>;
       }
 
       :root[data-theme="dark"] {
         --body-color: <?=$bodyColorDark->hsl()?>;
-        --section-color: <?=$sectionColorDark->hsl()?>;
       }
       <?php $body = ob_get_clean();
       require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/components/theme-selector/build-css.php';
