@@ -1041,12 +1041,10 @@ class Couleur
   // The options argument supports these properties:
   // - lower: if true and the contrast is higher than desired,
   //   the color will be modified to lower the contrast
-  // - changeSecondColor: if true, the reference color will be
-  //   modified too, following the first color's saturation
+  // - maxIterations: the maximum number of times the color will be altered
   public function betterContrast($referenceColor, $desiredContrast, $step = 5, $options = null) {
     if ($options === null) $options = new stdClass();
     if (!property_exists($options, 'lower')) $options->lower = false;
-    if (!property_exists($options, 'changeSecondColor')) $options->changeSecondColor = false;
     if (!property_exists($options, 'maxIterations')) $options->maxIterations = 1000;
 
     $movingColor = new self($this->rgb());
@@ -1058,37 +1056,38 @@ class Couleur
     if ($contrast > $desiredContrast)     $direction = -1;
     elseif ($contrast < $desiredContrast) $direction = 1;
     else                                  $direction = 0;
-    if (($direction < 0 && $options->lower === false) || ($direction == 0)) {
-      if ($options->changeSecondColor === true) return [$this, $refColor];
-      else                                      return $this;
-    }
+    if (($direction < 0 && $options->lower === false) || ($direction == 0)) return $this;
 
     // We keep going as long as contrast is still below / over desiredContrast.
     $up = 'bk';
     $i = 0;
-    $newRefColor = $refColor;
     while(($direction > 0) ? ($contrast < $desiredContrast) : ($contrast > $desiredContrast) && $i < $options->maxIterations) {
       $i++;
+
       // Let's try to raise contrast by increasing blackness and reducing whiteness.
       if ($up == 'bk')  $newColor = $movingColor->change('bk', "+$step%")->change('w', "-$step%");
       else              $newColor = $movingColor->change('bk', "-$step%")->change('w', "+$step%");
-      if ($options->changeSecondColor === true) $newRefColor = $refColor->replace('s', $newColor->s * 100 . '%');
-      // If next step is gonna make the color black or white, stop. Continuing would loop.
-      if (
-        ($up == 'bk' && $newColor->bk > (1 - .01 * $step) && $newColor->w < (0 + .1 * $step))
-        || ($up == 'w' && $newColor->w > (1 - .01 * $step) && $newColor->bk < (0 + .1 * $step))
-      ) break;
-      $newContrast = self::contrast($newColor, $newRefColor);
 
-      // We're going the wrong way! Let's reverse blackness's and whiteness's roles.
+      $newContrast = self::contrast($newColor, $refColor);
+
+      // Is the new color totally black (if up == 'bk') or white (if up == 'w')?
+      // i.e. Is there no way to go in this direction?
+      $noWay = ($up == 'bk' && $newColor->bk > (1 - .01 * $step) && $newColor->w < (0 + .1 * $step))
+             || ($up == 'w' && $newColor->w > (1 - .01 * $step) && $newColor->bk < (0 + .1 * $step));
+
+      // If we're going the wrong way, reverse blackness's and whiteness's roles and restart
       $wrongWay =  ($direction > 0) ? ($newContrast <= $contrast)
                                     : ($newContrast >= $contrast);
       if ($wrongWay) {
         $up = 'w';
         continue;
       }
+      // If there's no way to go and we're going the right way, stop
+      elseif ($noWay) {
+        break;
+      }
 
-      // We went the right way! But we overshot a little. Let's stop.
+      // If we went the right way but overshot a little, stop
       $overshot = abs($contrast - $desiredContrast) <= abs($newContrast - $desiredContrast);
       if ($overshot) {
         break;
@@ -1097,12 +1096,10 @@ class Couleur
       // We went the right way, let's keep going!
       $contrast = $newContrast;
       $movingColor = $newColor;
-      if ($options->changeSecondColor === true) $refColor = $newRefColor;
     }
 
     // We're done!
-    if ($options->changeSecondColor === true) return [$movingColor, $refColor];
-    else                                      return $movingColor;
+    return $movingColor;
   }
 
   // Changes a property of the color

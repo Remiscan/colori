@@ -85,8 +85,17 @@ export function colorInterface(couleur = entree, fixContrast = true) {
       bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 10%)`);
     }
 
-    if (fixContrast)
-      [bodyColor, sectionColor] = bodyColor.betterContrast(sectionColor, 1.3, 5, { changeSecondColor: true });
+    if (fixContrast) {
+      if (theme == 'light') {
+        const neutral = new Couleur('white');
+        bodyColor = bodyColor.betterContrast(neutral, 1.9);
+        sectionColor = sectionColor.betterContrast(neutral, 1.4);
+      } else {
+        const neutral = new Couleur('black');
+        bodyColor = bodyColor.betterContrast(neutral, 1.2);
+        sectionColor = sectionColor.betterContrast(neutral, 1.6);
+      }
+    }
     
     if (theme == 'light')     meta.dataset.light = bodyColor.hsl;
     else if (theme == 'dark') meta.dataset.dark = bodyColor.hsl;

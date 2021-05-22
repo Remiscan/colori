@@ -757,12 +757,10 @@ export default class Couleur {
   // The options argument supports these properties:
   // - lower: if true and the contrast is higher than desired,
   //   the color will be modified to lower the contrast
-  // - changeSecondColor: if true, the reference color will be
-  //   modified too, following the first color's saturation
+  // - maxIterations: the maximum number of times the color will be altered
   betterContrast(referenceColor, desiredContrast, step = 5, options = {}) {
     if (typeof options.lower == 'undefined') options.lower = false;
-    if (typeof options.changeSecondColor == 'undefined') options.changeSecondColor = false;
-    if (typeof options.maxIterations == 'undefined') options.maxIterations = 1000;
+    if (typeof options.maxIterations == 'undefined') options.maxIterations = 100;
 
     let movingColor = new Couleur(`${this.rgb}`);
     let refColor = Couleur.check(referenceColor);
@@ -774,10 +772,7 @@ export default class Couleur {
     if (contrast > desiredContrast)      direction = -1;
     else if (contrast < desiredContrast) direction = 1;
     else                                 direction = 0;
-    if ((direction < 0 && !options.lower) || (direction == 0)) {
-      if (options.changeSecondColor)  return [this, refColor];
-      else                            return this;
-    }
+    if ((direction < 0 && !options.lower) || (direction == 0)) return this;
 
     // We keep going as long as contrast is still below / over desiredContrast.
     const condition =  c => (direction > 0) ? (c < desiredContrast)
@@ -787,27 +782,31 @@ export default class Couleur {
     while (condition(contrast) && i < options.maxIterations) {
       i++;
       let newColor;
-      let newRefColor = refColor;
+
       // Let's try to raise contrast by increasing blackness and reducing whiteness.
       if (up == 'bk') newColor = movingColor.change('bk', `+${step}%`).change('w', `-${step}%`);
       else            newColor = movingColor.change('bk', `-${step}%`).change('w', `+${step}%`);
-      if (options.changeSecondColor) newRefColor = refColor.replace('s', `${newColor.s * 100}%`);
-      // If next step is gonna make the color black or white, stop. Continuing would loop.
-      if (
-        (up == 'bk' && newColor.bk > (1 - .01 * step) && newColor.w < (0 + .1 * step))
-        || (up == 'w' && newColor.w > (1 - .01 * step) && newColor.bk < (0 + .1 * step))
-      ) break;
-      const newContrast = newColor.contrast(newRefColor);
 
-      // We're going the wrong way! Let's reverse blackness's and whiteness's roles.
+      const newContrast = newColor.contrast(refColor);
+
+      // Is the new color totally black (if up == 'bk') or white (if up == 'w')?
+      // i.e. Is there no way to go in this direction?
+      const noWay = (up == 'bk' && newColor.bk == 1 && newColor.w == 0)
+                  || (up == 'w' && newColor.w == 1 && newColor.bk == 0);
+
+      // If we're going the wrong way, reverse blackness's and whiteness's roles and restart
       const wrongWay =  (direction > 0) ? (newContrast <= contrast)
                                         : (newContrast >= contrast);
       if (wrongWay) {
         up = 'w';
         continue;
       }
+      // If there's no way to go and we're going the right way, stop
+      else if (noWay) {
+        break;
+      }
 
-      // We went the right way! But we overshot a little. Let's stop.
+      // If we went the right way but overshot a little, stop
       const overshot = Math.abs(contrast - desiredContrast) <= Math.abs(newContrast - desiredContrast);
       if (overshot) {
         break;
@@ -816,12 +815,10 @@ export default class Couleur {
       // We went the right way, let's keep going!
       contrast = newContrast;
       movingColor = newColor;
-      if (options.changeSecondColor) refColor = newRefColor;
     }
 
     // We're done!
-    if (options.changeSecondColor)  return [movingColor, refColor];
-    else                            return movingColor;
+    return movingColor;
   }
 
   // Changes a property of the color
