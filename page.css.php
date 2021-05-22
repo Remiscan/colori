@@ -860,6 +860,7 @@ input:active, input:focus {
   align-items: center;
   margin-top: .6rem;
   margin-left: .6rem;
+  align-self: center;
 }
 
 pre[class*="language-"] {
@@ -878,7 +879,7 @@ pre[class*="language-"].format-donnee {
   display: none;
 }
 
-.format.couleur {
+/*.format.couleur {
   display: flex;
   width: 42px;
   --border-size: 4px;
@@ -887,10 +888,11 @@ pre[class*="language-"].format-donnee {
   border-radius: .6rem;
   position: relative;
   font-size: 0;
-  /*cursor: cell;*/
-}
+  cursor: cell;
+}*/
 
-.format.gradient {
+.format.gradient,
+.format.couleur {
   display: flex;
   flex-basis: 100%;
   height: 3rem;
@@ -900,6 +902,11 @@ pre[class*="language-"].format-donnee {
   border-radius: .6rem;
   position: relative;
   font-size: 0;
+}
+
+.format.couleur {
+  flex-basis: 3rem;
+  height: auto;
 }
 
 .format.couleur::before,
