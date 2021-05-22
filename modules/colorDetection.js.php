@@ -171,10 +171,6 @@ export function colorInterface(couleur = entree, fixContrast = true) {
 //////////////////////////////////////////////////////
 // Adds data about the selected color to the interface
 export function populateColorData(couleur) {
-  const objet = document.querySelector('#objet>pre>code');
-  objet.innerHTML = JSON.stringify(couleur, null, 2);
-  Prism.highlightElement(objet);
-
   let code;
 
   code = document.querySelector('.hex>.format-donnee>code');

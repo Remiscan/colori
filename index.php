@@ -187,12 +187,6 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
 
         <h2 class="titre-partie-docu" data-string="demo-resultats-titre"><?=$Textes->getString('demo-resultats-titre')?></h2>
 
-        <div id="apercu"></div>
-        <div class="fenetre"></div>
-        <div id="objet">
-          <pre><code class="language-javascript"></code></pre>
-        </div>
-
         <div id="donnees">
           <div class="format couleur" data-string="apercu-couleur"><?=$Textes->getString('apercu-couleur')?></div>
 
