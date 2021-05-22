@@ -764,6 +764,11 @@ input:active, input:focus {
   box-shadow: 0 0 0 2px var(--h3-color);
 }
 
+input.gradient:active, input.gradient:focus {
+  box-shadow: 0 0 0 2px var(--h3-color),
+              inset 0 0 0 2px var(--input-active-bg-color);
+}
+
 ::placeholder {
   color: var(--input-placeholder-color);
 }
