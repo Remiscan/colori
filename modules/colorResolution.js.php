@@ -73,8 +73,7 @@ const methodes = [
   }, {
     name: 'contrast',
     args: new RegExp(`^(.+)$`),
-    argIsColor: [true],
-    resultIsValue: true
+    argIsColor: [true]
   }
 ];
 
@@ -135,7 +134,8 @@ export function resolveColor(input) {
   // Si la valeur restante de l'input est une expression valide de couleur, on pourra continuer.
   // Sinon, la valeur est invalide.
   try {
-    premCouleur = new Couleur(premCouleur);
+    try { premCouleur = new Couleur(premCouleur); }
+    catch (error) { throw 'ignore'; }
 
     // On se prépare à appliquer les méthodes dans l'ordre à premCouleur
     methodesAppliquees.reverse();
@@ -153,19 +153,14 @@ export function resolveColor(input) {
       // On applique la méthode (avec ses arguments résolus)
       couleur = Couleur.prototype[method.name]
                        .call(couleur, ...method.args.map(arg => arg === 'true' ? true : arg === 'false' ? false : arg));
-      // Si le résultat de la méthode n'est pas une couleur,
-      // on l'affiche dans la console et on s'arrête là.
-      if (method.resultIsValue) {
-        console.log(`${premCouleur.name || premCouleur.hsl}.${method.name}(${method.args.map(arg => (arg instanceof Couleur) ? (arg.name || arg.hsl) : arg).join(', ')}) = ${couleur}`);
-        throw `Le résultat n'est pas une couleur`;
-      }
+      if (!couleur instanceof Couleur) break;
     }
 
     // On a notre résultat : la couleur après application de toutes les méthodes !!
     return couleur;
   }
   catch (error) {
-    // La valeur de l'input est invalide, ne rien faire.
+    if (error != 'ignore') console.error(error);
     return null;
   }
 }

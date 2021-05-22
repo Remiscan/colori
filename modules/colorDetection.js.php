@@ -26,13 +26,16 @@ export async function updateCouleur(couleur, delai = 100) {
   
   try {
     entree = resolveColor(couleur);
-    if (entree == null) return;
-
-    colorInterface(entree);
-    populateColorData(entree);
+    if (entree instanceof Couleur) {
+      colorInterface(entree);
+      populateColorData(entree);
+    } else if (entree != null) {
+      console.log(`${couleur} == ${entree}`);
+    }
+    return;
   }
   catch(error) {
-    console.error(error);
+    return console.error(error);
   }
 }
 
