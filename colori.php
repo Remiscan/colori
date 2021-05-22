@@ -848,17 +848,18 @@ class Couleur
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
     $w = $this->w;
     $bk = $this->bk;
+    $_w = $w; $_bk = $bk;
 
     if ($w + $bk > 1) {
-      $w = $w / ($w + $bk);
-      $bk = $bk / ($w + $bk);
+      $_w = $w / ($w + $bk);
+      $_bk = $bk / ($w + $bk);
     }
 
-    $v = 1 - $bk;
-    if ($bk == 1)
+    $v = 1 - $_bk;
+    if ($_bk == 1)
       $_s = 0;
     else
-      $_s = 1 - $w / $v;
+      $_s = 1 - $_w / $v;
 
     $l = $v - $v * $_s / 2;
     if ($l == 0 || $l == 1)
