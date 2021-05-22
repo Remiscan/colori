@@ -283,7 +283,7 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
       import Cookie from '/colori/modules/cookies.js.php';
       import { Traduction, getString } from '/colori/modules/traduction.js.php';
       import { makeNav } from '/colori/modules/quickNav.js.php';
-      import { updateCouleur, interpreterCouleur, colorInterface, populateColorData } from '/colori/modules/colorDetection.js.php';
+      import { updateCouleur, colorInterface, populateColorData } from '/colori/modules/colorDetection.js.php';
 
       const langSwitch = document.querySelector('.switch-js-php');
 
@@ -359,21 +359,22 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
 
         langSwitch.addEventListener('click', () => switchBetweenJsPhp(langSwitch.dataset.currentTab == 'js' ? 'php' : 'js'));
 
-        Array.from(document.querySelectorAll('#documentation-php code.language-javascript')).forEach(e => {
-          if (e.innerHTML == 'Colore') e.outerHTML = '<code class="language-php">Couleur</code>';
-        });
+        for (const element of [...document.querySelectorAll('#documentation-php code.language-javascript')]) {
+          if (element.innerHTML == 'Colore') element.outerHTML = '<code class="language-php">Couleur</code>';
+        }
 
-        Array.from(document.querySelectorAll('button.exemple')).forEach(async e => {
-          e.addEventListener('click', () => {
-            if (e.textContent == '+') {
-              Array.from(document.querySelectorAll('.inst-hidden')).forEach(e => e.classList.toggle('off'));
-            }
-            else {
-              champ.value = e.textContent;
+        for (const exemple of [...document.querySelectorAll('button.exemple')]) {
+          exemple.addEventListener('click', () => {
+            if (exemple.textContent == '+') {
+              for (const hiddenElement of [...document.querySelectorAll('.inst-hidden')]) {
+                hiddenElement.classList.toggle('off');
+              }
+            } else {
+              champ.value = exemple.textContent;
               champ.dispatchEvent(new Event('input'), { bubbles: true });
             }
-          });
-        });
+          })
+        }
 
         if (isPhp == 'true')  await switchBetweenJsPhp('php');
         else                  makeNav('js');
