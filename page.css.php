@@ -776,14 +776,13 @@ input.gradient:active, input.gradient:focus {
 .entree-resultat-valeur {
   position: absolute;
   bottom: 0;
-  transform: translateY(calc(100% + .3em));
+  transform: translateY(100%);
   place-self: end end;
 
   display: flex;
   gap: .3em;
   
   font-family: 'Open Sans';
-  line-height: 1em;
   color: var(--text-color);
   transition: color .3s ease;
 
