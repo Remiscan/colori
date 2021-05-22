@@ -746,14 +746,6 @@ input {
   box-shadow: 0 0 0 1px var(--body-color);
 }
 
-input.gradient {
-  background-image: var(--gradient, none);
-}
-input.gradient.dark {
-  color: white;
-  text-shadow: 0 0 .1em black;
-}
-
 input:hover {
   box-shadow: 0 0 0 2px var(--h3-color);
 }
@@ -764,42 +756,8 @@ input:active, input:focus {
   box-shadow: 0 0 0 2px var(--h3-color);
 }
 
-input.gradient:active, input.gradient:focus {
-  box-shadow: 0 0 0 2px var(--h3-color),
-              inset 0 0 0 2px var(--input-active-bg-color);
-}
-
 ::placeholder {
   color: var(--input-placeholder-color);
-}
-
-.entree-resultat-valeur {
-  position: absolute;
-  bottom: 0;
-  transform: translateY(100%);
-  place-self: end end;
-  padding: .1em 0;
-
-  display: flex;
-  gap: .3em;
-  
-  font-family: 'Open Sans';
-  color: var(--text-color);
-  transition: color .3s ease;
-
-  white-space: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  max-width: 100%;
-}
-
-#saisie:not(.valeur)>.entree-resultat-valeur {
-  display: none;
-}
-
-.entree-resultat-valeur>.egal {
-  opacity: .5;
 }
 
 
@@ -916,7 +874,7 @@ pre[class*="language-"].format-donnee {
   padding-left: 2rem;
 }
 
-.name:not(.oui) {
+.format.name:not(.oui) {
   display: none;
 }
 
@@ -932,7 +890,20 @@ pre[class*="language-"].format-donnee {
   /*cursor: cell;*/
 }
 
-.format.couleur::before {
+.format.gradient {
+  display: flex;
+  flex-basis: 100%;
+  height: 3rem;
+  --border-size: 4px;
+  align-self: stretch;
+  background-color: var(--frame-color-mini);
+  border-radius: .6rem;
+  position: relative;
+  font-size: 0;
+}
+
+.format.couleur::before,
+.format.gradient::before {
   content: '';
   display: block;
   width: calc(100% - 2 * var(--border-size));
@@ -948,7 +919,8 @@ pre[class*="language-"].format-donnee {
   position: absolute;
 }
 
-.format.couleur::after {
+.format.couleur::after,
+.format.gradient::after {
   content: '';
   display: block;
   width: calc(100% - 2 * var(--border-size));
@@ -958,6 +930,20 @@ pre[class*="language-"].format-donnee {
   background-color: var(--user-color);
   border-radius: .4rem;
   position: absolute;
+}
+
+.format.gradient::after {
+  background-image: var(--gradient);
+}
+
+:not(.valeur)>.format.valeur,
+:not(.gradient)>.format.gradient,
+.valeur>.format:not(.valeur):not(.gradient) {
+  display: none;
+}
+
+.format.valeur code.language-css {
+  white-space: normal;
 }
 
 

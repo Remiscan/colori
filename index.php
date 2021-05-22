@@ -182,10 +182,6 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
             </div>
             <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-            <span class="entree-resultat-valeur h4">
-              <span class="egal">=</span>
-              <span class="valeur"><span>
-            </span>
           </div>
         </div>
 
@@ -199,6 +195,12 @@ while (Couleur::contrast($sectionColor, $bodyColor) < 1.2) {
 
         <div id="donnees">
           <div class="format couleur" data-string="apercu-couleur"><?=$Textes->getString('apercu-couleur')?></div>
+
+          <div class="format gradient" data-string="apercu-gradient"><?=$Textes->getString('apercu-gradient')?></div>
+
+          <div class="format valeur">
+            <pre class="format-donnee"><code class="language-css"></code></pre>
+          </div>
 
           <div class="format hex">
             <pre class="format-donnee"><code class="language-css"></code></pre>
