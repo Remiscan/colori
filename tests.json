@@ -162,10 +162,10 @@
     "resultatAttendu": "hsla(128, 52%, 47%, 0.08)"
   }, {
     "fonction": "new Colour('lab(92% -45 9)')",
-    "resultatAttendu": { "r": 0.49682, "g": 1.0018, "b": 0.83401, "h": 0.44462, "s": 1.0072, "l": 0.74931, "w": 0.49682, "bk": -0.001805, "a": 1, "ciel": 0.92, "ciea": -45, "cieb": 9, "ciec": 45.891, "cieh": 0.46858, "name": null }
+    "resultatAttendu": { "r": 0.49682, "g": 1, "b": 0.83401, "h": 0.44502, "s": 1, "l": 0.74841, "w": 0.49682, "bk": 0, "a": 1, "ciel": 0.92, "ciea": -45, "cieb": 9, "ciec": 45.891, "cieh": 0.46858, "name": null }
   }, {
     "fonction": "new Colour('lch(92% 46 168)')",
-    "resultatAttendu": { "r": 0.4998, "g": 1.0017, "b": 0.82971, "h": 0.44289, "s": 1.0068, "l": 0.75075, "w": 0.49981, "bk": -0.0016949, "a": 1, "ciel": 0.92, "ciea": -44.995, "cieb": 9.563, "ciec": 46, "cieh": 0.46667, "name": "aquamarine" }
+    "resultatAttendu": { "r": 0.4998, "g": 1, "b": 0.82971, "h": 0.44326, "s": 1, "l": 0.7499, "w": 0.4998, "bk": 0, "a": 1, "ciel": 0.92, "ciea": -44.995, "cieb": 9.563, "ciec": 46, "cieh": 0.46667, "name": "aquamarine" }
   }, {
     "fonction": "testLab.lab",
     "resultatAttendu": "lab(92% -45 9)"

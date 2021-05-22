@@ -642,9 +642,9 @@ export default class Couleur {
     g = gamRGB(g);
     b = gamRGB(b);
 
-    this.r = Couleur.pRound(r);
-    this.g = Couleur.pRound(g);
-    this.b = Couleur.pRound(b);
+    this.r = Math.max(0, Math.min(Couleur.pRound(r), 1));
+    this.g = Math.max(0, Math.min(Couleur.pRound(g), 1));
+    this.b = Math.max(0, Math.min(Couleur.pRound(b), 1));
   }
 
   lab2lch() {

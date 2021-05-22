@@ -936,9 +936,9 @@ class Couleur
     $g = $gamRGB($g);
     $b = $gamRGB($b);
 
-    $this->r = self::pRound($r);
-    $this->g = self::pRound($g);
-    $this->b = self::pRound($b);
+    $this->r = max(0, min(self::pRound($r), 1));
+    $this->g = max(0, min(self::pRound($g), 1));
+    $this->b = max(0, min(self::pRound($b), 1));
   }
 
   private function lab2lch() {
