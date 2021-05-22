@@ -778,6 +778,7 @@ input.gradient:active, input.gradient:focus {
   bottom: 0;
   transform: translateY(100%);
   place-self: end end;
+  padding: .1em 0;
 
   display: flex;
   gap: .3em;
