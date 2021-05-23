@@ -120,7 +120,7 @@ export default class Couleur {
       this.cieb = Couleur.pRound(cieb);
       this.a = Couleur.pRound(a);
       this.lab2lch();
-      this.lab2rgb();
+      this.lch2rgb();
       this.rgb2hsl();
       this.hsl2hwb();
     }
@@ -139,7 +139,7 @@ export default class Couleur {
       this.cieh = Couleur.pRound(cieh);
       this.a = Couleur.pRound(a);
       this.lch2lab();
-      this.lab2rgb();
+      this.lch2rgb();
       this.rgb2hsl();
       this.hsl2hwb();
     }
@@ -576,18 +576,20 @@ export default class Couleur {
 
   rgb2lab() {
     // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
-    const linRGB = x => (x < 0.04045) ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+    //                   & https://drafts.csswg.org/css-color-4/utilities.js
+    //                   & https://drafts.csswg.org/css-color-4/conversions.js
+    const linRGB = x => (Math.abs(x) < 0.04045) ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((x + 0.055) / 1.055, 2.4);
     const r = linRGB(this.r);
     const g = linRGB(this.g);
     const b = linRGB(this.b);
 
-    let x = 0.4124564 * r + 0.3575761 * g + 0.1804375 * b;
-    let y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b;
-    let z = 0.0193339 * r + 0.1191920 * g + 0.9503041 * b;
+    let x = 0.41239079926595934 * r + 0.357584339383878 * g + 0.1804807884018343 * b;
+    let y = 0.21263900587151027 * r + 0.715168678767756 * g + 0.07219231536073371 * b;
+    let z = 0.01933081871559182 * r + 0.11919477979462598 * g + 0.9505321522496607 * b;
 
-    let x50 = 1.0478112 * x + 0.0228866 * y - 0.0501270 * z;
-    let y50 = 0.0295424 * x + 0.9904844 * y - 0.0170491 * z;
-    let z50 = -0.0092345 * x + 0.0150436 * y + 0.7521316 * z;
+    let x50 = 1.0479298208405488 * x + 0.022946793341019088 * y - 0.05019222954313557 * z;
+    let y50 = 0.029627815688159344 * x + 0.990434484573249 * y - 0.01707382502938514 * z;
+    let z50 = -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z;
 
     const ε = 216/24389;
     const κ = 24389/27;
@@ -609,43 +611,73 @@ export default class Couleur {
     this.cieb = Couleur.pRound(cieb);
   }
 
-  lab2rgb() {
-    // Source of the math: https://www.w3.org/TR/css-color-4/#lab-to-rgb
-    const ε = 216/24389;
-    const κ = 24389/27;
-    const w = [0.96422, 1, 0.82521];
+  lch2rgb() {
+    // Source of the math: https://css.land/lch/lch.js
+    //                   & https://drafts.csswg.org/css-color-4/utilities.js
+    //                   & https://drafts.csswg.org/css-color-4/conversions.js
+    const conversion = (ciel, ciec, cieh) => {
+      let ciea, cieb;
+      ciea = ciec * Math.cos(cieh * Math.PI / 180);
+      cieb = ciec * Math.sin(cieh * Math.PI / 180);
 
-    const l = this.ciel * 100;
+      const ε = 216/24389;
+      const κ = 24389/27;
+      const w = [0.96422, 1, 0.82521];
 
-    let f1 = (l + 16) / 116;
-    let f0 = this.ciea / 500 + f1;
-    let f2 = f1 - this.cieb / 200;
+      let f1 = (ciel + 16) / 116;
+      let f0 = ciea / 500 + f1;
+      let f2 = f1 - cieb / 200;
 
-    let x50 = (f0 ** 3 > ε) ? f0 ** 3 : (116 * f0 - 16) / κ;
-    let y50 = (l > κ * ε) ? ((l + 16) / 116) ** 3 : l / κ;
-    let z50 = (f2 ** 3 > ε) ? f2 ** 3 : (116 * f2 - 16) / κ;
+      let x50 = (f0 ** 3 > ε) ? f0 ** 3 : (116 * f0 - 16) / κ;
+      let y50 = (ciel > κ * ε) ? ((ciel + 16) / 116) ** 3 : ciel / κ;
+      let z50 = (f2 ** 3 > ε) ? f2 ** 3 : (116 * f2 - 16) / κ;
 
-    x50 = x50 * w[0];
-    y50 = y50 * w[1];
-    z50 = z50 * w[2];
+      x50 = x50 * w[0];
+      y50 = y50 * w[1];
+      z50 = z50 * w[2];
 
-    let x = 0.9555766 * x50 - 0.0230393 * y50 + 0.0631636 * z50;
-    let y = -0.0282895 * x50 + 1.0099416 * y50 + 0.0210077 * z50;
-    let z = 0.0122982 * x50 - 0.0204830 * y50 + 1.3299098 * z50;
+      let x = 0.9554734527042182 * x50 - 0.023098536874261423 * y50 + 0.0632593086610217 * z50;
+      let y = -0.028369706963208136 * x50 + 1.0099954580058226 * y50 + 0.021041398966943008 * z50;
+      let z = 0.012314001688319899 * x50 - 0.020507696433477912 * y50 + 1.3303659366080753 * z50;
 
-    let r = 3.2404542 * x - 1.5371385 * y - 0.4985341 * z;
-    let g = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z;
-    let b = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z;
+      let r = 3.2409699419045226 * x - 1.537383177570094 * y - 0.4986107602930034 * z;
+      let g = -0.9692436362808796 * x + 1.8759675015077202 * y + 0.04155505740717559 * z;
+      let b = 0.05563007969699366 * x - 0.20397695888897652 * y + 1.0569715142428786 * z;
 
-    const gamRGB = x => (x > 0.0031308) ? 1.055 * Math.pow(x, 1 / 2.4) - 0.055 : 12.92 * x;
+      const gamRGB = x => (Math.abs(x) > 0.0031308) ? (Math.sign(x) || 1) * (1.055 * Math.pow(x, 1 / 2.4) - 0.055) : 12.92 * x;
 
-    r = gamRGB(r);
-    g = gamRGB(g);
-    b = gamRGB(b);
+      r = gamRGB(r);
+      g = gamRGB(g);
+      b = gamRGB(b);
 
-    this.r = Math.max(0, Math.min(Couleur.pRound(r), 1));
-    this.g = Math.max(0, Math.min(Couleur.pRound(g), 1));
-    this.b = Math.max(0, Math.min(Couleur.pRound(b), 1));
+      return [r, g, b];
+    }
+
+    const forceIntoGamut = (ciel, ciec, cieh) => {
+      const ε1 = .000005;
+      const condition = (l, c, h) => conversion(l, c, h).reduce((sum, x) => sum && x >= (-1 * ε1) && x <= (1 + ε1), true);
+      if (condition(ciel, ciec, cieh)) return [ciel, ciec, cieh];
+
+      const ε2 = .0001;
+      let Cmin = 0;
+      let Cmax = ciec;
+      let _ciec = ciec / 2;
+
+      while (Cmax - Cmin > ε2) {
+        if (condition(ciel, _ciec, cieh)) Cmin = _ciec;
+        else Cmax = _ciec;
+        _ciec = (Cmin + Cmax) / 2;
+      }
+
+      return [ciel, _ciec, cieh];
+    }
+
+    const lch = forceIntoGamut(this.ciel * 100, this.ciec, this.cieh * 360);
+    const rgb = conversion(...lch);
+
+    this.r = Couleur.pRound(rgb[0]);
+    this.g = Couleur.pRound(rgb[1]);
+    this.b = Couleur.pRound(rgb[2]);
   }
 
   lab2lch() {

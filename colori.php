@@ -407,7 +407,7 @@ class Couleur
       $this->cieb = self::pRound($cieb);
       $this->a = self::pRound($a);
       $this->lab2lch();
-      $this->lab2rgb();
+      $this->lch2rgb();
       $this->rgb2hsl();
       $this->hsl2hwb();
     }
@@ -425,7 +425,7 @@ class Couleur
       $this->cieh = self::pRound($cieh);
       $this->a = self::pRound($a);
       $this->lch2lab();
-      $this->lab2rgb();
+      $this->lch2rgb();
       $this->rgb2hsl();
       $this->hsl2hwb();
     }
@@ -873,18 +873,23 @@ class Couleur
 
   private function rgb2lab() {
     // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
-    $linRGB = function($x) { return ($x < 0.04045) ? ($x / 12.92) : (($x + 0.055) / 1.055) ** 2.4; };
+    //                   & https://drafts.csswg.org/css-color-4/utilities.js
+    //                   & https://drafts.csswg.org/css-color-4/conversions.js
+    $linRGB = function($x) {
+      $sign = ($x < 0) ? -1 : 1;
+      return (abs($x) < 0.04045) ? ($x / 12.92) : $sign * (($x + 0.055) / 1.055) ** 2.4;
+    };
     $r = $linRGB($this->r);
     $g = $linRGB($this->g);
     $b = $linRGB($this->b);
 
-    $x = 0.4124564 * $r + 0.3575761 * $g + 0.1804375 * $b;
-    $y = 0.2126729 * $r + 0.7151522 * $g + 0.0721750 * $b;
-    $z = 0.0193339 * $r + 0.1191920 * $g + 0.9503041 * $b;
+    $x = 0.41239079926595934 * $r + 0.357584339383878 * $g + 0.1804807884018343 * $b;
+    $y = 0.21263900587151027 * $r + 0.715168678767756 * $g + 0.07219231536073371 * $b;
+    $z = 0.01933081871559182 * $r + 0.11919477979462598 * $g + 0.9505321522496607 * $b;
 
-    $x50 = 1.0478112 * $x + 0.0228866 * $y - 0.0501270 * $z;
-    $y50 = 0.0295424 * $x + 0.9904844 * $y - 0.0170491 * $z;
-    $z50 = -0.0092345 * $x + 0.0150436 * $y + 0.7521316 * $z;
+    $x50 = 1.0479298208405488 * $x + 0.022946793341019088 * $y - 0.05019222954313557 * $z;
+    $y50 = 0.029627815688159344 * $x + 0.990434484573249 * $y - 0.01707382502938514 * $z;
+    $z50 = -0.009243058152591178 * $x + 0.015055144896577895 * $y + 0.7518742899580008 * $z;
 
     $w = [0.96422, 1, 0.82521];
 
@@ -903,43 +908,79 @@ class Couleur
     $this->cieb = self::pRound($cieb);
   }
 
-  private function lab2rgb() {
-    // Source of the math: https://www.w3.org/TR/css-color-4/#lab-to-rgb
-    $ε = 216/24389;
-    $κ = 24389/27;
-    $w = [0.96422, 1, 0.82521];
+  private function lch2rgb() {
+    // Source of the math: https://css.land/lch/lch.js
+    //                   & https://drafts.csswg.org/css-color-4/utilities.js
+    //                   & https://drafts.csswg.org/css-color-4/conversions.js
+    $conversion = function($ciel, $ciec, $cieh) {
+      $ciea = $ciec * cos($cieh * pi() / 180);
+      $cieb = $ciec * sin($cieh * pi() / 180);
 
-    $l = $this->ciel * 100;
+      $ε = 216/24389;
+      $κ = 24389/27;
+      $w = [0.96422, 1, 0.82521];
 
-    $f1 = ($l + 16) / 116;
-    $f0 = $this->ciea / 500 + $f1;
-    $f2 = $f1 - $this->cieb / 200;
+      $f1 = ($ciel + 16) / 116;
+      $f0 = $ciea / 500 + $f1;
+      $f2 = $f1 - $cieb / 200;
 
-    $x50 = ($f0 ** 3 > $ε) ? $f0 ** 3 : (116 * $f0 - 16) / $κ;
-    $y50 = ($l > $κ * $ε) ? (($l + 16) / 116) ** 3 : $l / $κ;
-    $z50 = ($f2 ** 3 > $ε) ? $f2 ** 3 : (116 * $f2 - 16) / $κ;
+      $x50 = ($f0 ** 3 > $ε) ? $f0 ** 3 : (116 * $f0 - 16) / $κ;
+      $y50 = ($ciel > $κ * $ε) ? (($ciel + 16) / 116) ** 3 : $ciel / $κ;
+      $z50 = ($f2 ** 3 > $ε) ? $f2 ** 3 : (116 * $f2 - 16) / $κ;
 
-    $x50 = $x50 * $w[0];
-    $y50 = $y50 * $w[1];
-    $z50 = $z50 * $w[2];
+      $x50 = $x50 * $w[0];
+      $y50 = $y50 * $w[1];
+      $z50 = $z50 * $w[2];
 
-    $x = 0.9555766 * $x50 - 0.0230393 * $y50 + 0.0631636 * $z50;
-    $y = -0.0282895 * $x50 + 1.0099416 * $y50 + 0.0210077 * $z50;
-    $z = 0.0122982 * $x50 - 0.0204830 * $y50 + 1.3299098 * $z50;
+      $x = 0.9554734527042182 * $x50 - 0.023098536874261423 * $y50 + 0.0632593086610217 * $z50;
+      $y = -0.028369706963208136 * $x50 + 1.0099954580058226 * $y50 + 0.021041398966943008 * $z50;
+      $z = 0.012314001688319899 * $x50 - 0.020507696433477912 * $y50 + 1.3303659366080753 * $z50;
 
-    $r = 3.2404542 * $x - 1.5371385 * $y - 0.4985341 * $z;
-    $g = -0.9692660 * $x + 1.8760108 * $y + 0.0415560 * $z;
-    $b = 0.0556434 * $x - 0.2040259 * $y + 1.0572252 * $z;
+      $r = 3.2409699419045226 * $x - 1.537383177570094 * $y - 0.4986107602930034 * $z;
+      $g = -0.9692436362808796 * $x + 1.8759675015077202 * $y + 0.04155505740717559 * $z;
+      $b = 0.05563007969699366 * $x - 0.20397695888897652 * $y + 1.0569715142428786 * $z;
 
-    $gamRGB = function($x) { return ($x > 0.0031308) ? 1.055 * pow($x, 1 / 2.4) - 0.055 : 12.92 * $x; };
+      $gamRGB = function($x) {
+        $sign = ($x < 0) ? -1 : 1;
+        return (abs($x) > 0.0031308) ? $sign($s) * (1.055 * pow($x, 1 / 2.4) - 0.055) : 12.92 * $x;
+      };
 
-    $r = $gamRGB($r);
-    $g = $gamRGB($g);
-    $b = $gamRGB($b);
+      $r = $gamRGB($r);
+      $g = $gamRGB($g);
+      $b = $gamRGB($b);
 
-    $this->r = max(0, min(self::pRound($r), 1));
-    $this->g = max(0, min(self::pRound($g), 1));
-    $this->b = max(0, min(self::pRound($b), 1));
+      return [$r, $g, $b];
+    };
+
+    $forceIntoGamut = function($ciel, $ciec, $cieh) {
+      $ε1 = .000005;
+      $condition = function($l, $c, $h) {
+        return array_reduce($conversion($l, $c, $h), function($sum, $x) {
+          return ($sum && $x >= (-1 * $ε1) && $x <= (1 + $ε1));
+        });
+      };
+      if ($condition($ciel, $ciec, $cieh)) return [$ciel, $ciec, $cieh];
+
+      $ε2 = .0001;
+      $Cmin = 0;
+      $Cmax = $ciec;
+      $_ciec = $ciec / 2;
+
+      while ($Cmax - $Cmin > $ε2) {
+        if ($condition($ciel, $_ciec, $cieh)) $Cmin = $_cieh;
+        else $Cmax = $_ciec;
+        $_ciec = ($Cmin + $Cmax) / 2;
+      }
+
+      return [$ciel, $_ciec, $cieh];
+    };
+
+    $lch = $forceIntoGamut($this->ciel * 100, $this->ciec, $this->cieh * 360);
+    $rgb = $conversion(...$lch);
+
+    $this->r = self::pRound($rgb[0]);
+    $this->g = self::pRound($rgb[1]);
+    $this->b = self::pRound($rgb[2]);
   }
 
   private function lab2lch() {
