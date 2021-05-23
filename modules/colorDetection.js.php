@@ -46,6 +46,7 @@ export async function updateCouleur(couleur, delai = 100) {
         const gradient = `linear-gradient(to right, ${entree.map(c => c.name || c.rgb).join(', ')})`;
         
         colorInterface(entree[0]);
+        populateColorData(entree[0]);
         valeur.innerHTML = gradient;
         Prism.highlightElement(valeur);
         donnees.classList.add('valeur', 'gradient');
