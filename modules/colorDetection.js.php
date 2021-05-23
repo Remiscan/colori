@@ -73,7 +73,7 @@ export function colorInterface(couleur = entree, fixContrast = true) {
   let cssBoth, cssLight, cssDark;
   const meta = document.querySelector('meta[name=theme-color]');
   const frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
-  const colorPreview = (new Couleur('white')).blend(frameOverlay).blend(couleur);
+  const colorPreview = (new Couleur('white')).blend(couleur);
 
   // Calculate the colors that are the same for both light and dark themes
   const cieh = couleur.cieh * 360;
