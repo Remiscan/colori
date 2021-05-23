@@ -92,6 +92,8 @@ class Test {
       $c2Props = get_object_vars($this->resultatAttendu);
 
       foreach($c2Props as $prop => $value) {
+        $tolerance = .02;
+        if (in_array($prop, ['ciea', 'cieb', 'ciec'])) $tolerance *= 100;
         if (
           $value != $c1Props[$prop]
           && abs($value - $c1Props[$prop]) > 10 ** (-3) // fix float rounding error
@@ -100,7 +102,21 @@ class Test {
 
       return true;
     }
-    else return $resultat == $this->resultatAttendu;
+    elseif (is_array($resultat) && is_array($this->resultatAttendu)) {
+      foreach($resultat as $k => $co) {
+        if (!Couleur::same($co, $this->resultatAttendu[$k])) return false;
+      }
+      return true;
+    }
+    else {
+      try {
+        $tempResult = Couleur::same($resultat, $this->resultatAttendu);
+        return $tempResult;
+      }
+      catch (Exception $error) {}
+      catch (Error $error) {}
+      return $resultat == $this->resultatAttendu;
+    }
   }
 }
 
@@ -201,10 +217,12 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
         if (c1Props.length != c2Props.length) return false;
 
         for (var i = 0; i < c1Props.length; i++) {
+          let tolerance = .02;
           var prop = c1Props[i];
+          if (['ciea', 'cieb', 'ciec'].includes(prop)) tolerance *= 100;
           if (
             couleur1[prop] !== couleur2[prop]
-            && Math.abs(prop - c2Props[prop]) > 10 ** (-5)
+            && Math.abs(couleur1[prop] - couleur2[prop]) > tolerance
           ) return false;
         }
 
@@ -236,7 +254,12 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
           const resultat = (typeof this.resultat == 'object' && this.resultat[0] == 'Error') ? this.resultat[0] : this.resultat;
           if (Array.isArray(resultat)) return resultat.every((co, k) => co == this.resultatAttendu[k]);
           else if (typeof this.resultatAttendu === 'object') return sameColor(resultat, this.resultatAttendu);
-          else return resultat == this.resultatAttendu;
+          else {
+            let tempResult;
+            try { tempResult = Colour.same(resultat, this.resultatAttendu); }
+            catch (error) { }
+            return tempResult || resultat == this.resultatAttendu;
+          }
         }
       }
 
