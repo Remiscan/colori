@@ -64,7 +64,7 @@ export async function updateCouleur(couleur, delai = 100) {
 
 ///////////////////////
 // Colors the interface
-export function colorInterface(couleur = entree, fixContrast = true) {
+export function colorInterface(couleur = entree) {
   const element = document.documentElement;
   element.style.setProperty('--user-color', couleur.rgb);
   element.style.setProperty('--user-hue', Math.round(couleur.h * 360));
