@@ -942,7 +942,7 @@ class Couleur
 
       $gamRGB = function($x) {
         $sign = ($x < 0) ? -1 : 1;
-        return (abs($x) > 0.0031308) ? $sign($s) * (1.055 * pow($x, 1 / 2.4) - 0.055) : 12.92 * $x;
+        return (abs($x) > 0.0031308) ? $sign * (1.055 * pow($x, 1 / 2.4) - 0.055) : 12.92 * $x;
       };
 
       $r = $gamRGB($r);
@@ -952,13 +952,15 @@ class Couleur
       return [$r, $g, $b];
     };
 
-    $forceIntoGamut = function($ciel, $ciec, $cieh) {
-      $ε1 = .000005;
-      $condition = function($l, $c, $h) {
-        return array_reduce($conversion($l, $c, $h), function($sum, $x) {
+    $condition = function($l, $c, $h) use ($conversion) {
+        $ε1 = .000005;
+        $array = $conversion($l, $c, $h);
+        return array_reduce($array, function($sum, $x) {
           return ($sum && $x >= (-1 * $ε1) && $x <= (1 + $ε1));
         });
       };
+
+    $forceIntoGamut = function($ciel, $ciec, $cieh) use ($condition) {
       if ($condition($ciel, $ciec, $cieh)) return [$ciel, $ciec, $cieh];
 
       $ε2 = .0001;
