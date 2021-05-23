@@ -19,7 +19,6 @@ export default class Couleur {
     this.cieb = null;
     this.ciec = null;
     this.cieh = null;
-    this.name = null;
 
     const format = Couleur.matchSyntax(couleur.trim());
 
@@ -142,22 +141,6 @@ export default class Couleur {
       this.lch2rgb();
       this.rgb2hsl();
       this.hsl2hwb();
-    }
-
-    if (this.a == 1)
-    {
-      const allNames = Couleur.couleursNommees;
-      const hex6 = this.hex.slice(1);
-      const _name = Object.keys(allNames).find(k => (allNames[k] == hex6));
-      if (typeof _name === 'undefined')
-        this.name = null;
-      else
-        this.name = _name;
-    }
-    else
-    {
-      if (this.a == 0) this.name = 'transparent';
-      else this.name = null;
     }
   }
 
@@ -342,6 +325,30 @@ export default class Couleur {
   static pRound(_x, n = 5) {
     let x = (typeof _x == 'number') ? _x : Number(_x);
     return Number(parseFloat(x.toPrecision(n)));
+  }
+
+  // Determines if two colors are almost identical
+  static same(_couleur1, _couleur2, tolerance = .001) {
+    const couleur1 = Couleur.check(_couleur1);
+    const couleur2 = Couleur.check(_couleur2);
+
+    for(const [prop, valeur] of Object.entries(couleur1)) {
+      if (Math.abs(valeur - couleur2[prop]) > tolerance) return false;
+    }
+
+    return true;
+  }
+
+  get name() {
+    if (this.a == 1) {
+      const allNames = Couleur.couleursNommees;
+      const hex6 = this.hex.slice(1);
+      const name = Object.keys(allNames).find(k => (allNames[k] == hex6));
+      if (typeof name === 'undefined')  return null;
+      else                              return name;
+    }
+    else if (this.a == 0)               return 'transparent';
+    else                                return null;
   }
 
   get hexa() {

@@ -304,7 +304,6 @@ class Couleur
   public $cieb;
   public $ciec;
   public $cieh;
-  public $name;
   
   function __construct($couleur)
   {
@@ -428,21 +427,6 @@ class Couleur
       $this->lch2rgb();
       $this->rgb2hsl();
       $this->hsl2hwb();
-    }
-
-    if ($this->a == 1)
-    {
-      $hex6 = substr($this->hex(), 1);
-      $_name = array_search($hex6, self::COULEURS_NOMMEES);
-      if (!$_name)
-        $this->name = null;
-      else
-        $this->name = $_name;
-    }
-    else
-    {
-      if ($this->a == 0) $this->name = 'transparent';
-      else $this->name = null;
     }
   }
 
@@ -637,6 +621,29 @@ class Couleur
     $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -1 * $x) + 1) : 1;
     $precision = (int) ($n - $intDigits);
     return round($x, $precision);
+  }
+
+  // Determines if two colors are almost identical
+  public static function same($_couleur1, $_couleur2, $tolerance = .001) {
+    $couleur1 = self::check($_couleur1);
+    $couleur2 = self::check($_couleur2);
+
+    foreach(get_object_vars($couleur1) as $prop => $valeur) {
+      if (abs($valeur - $couleur2->{$prop}) > $tolerance) return false;
+    }
+
+    return true;
+  }
+
+  public function name() {
+    if ($this->a == 1) {
+      $hex6 = substr($this->hex(), 1);
+      $name = array_search($hex6, self::COULEURS_NOMMEES);
+      if (!$name)           return null;
+      else                  return $name;
+    }
+    elseif ($this->a == 0)  return 'transparent';
+    else                    return null;
   }
 
   public function hexa() {
@@ -953,7 +960,7 @@ class Couleur
     };
 
     $forceIntoGamut = function($ciel, $ciec, $cieh) use ($conversion) {
-    $condition = function($l, $c, $h) use ($conversion) {
+      $condition = function($l, $c, $h) use ($conversion) {
         $array = $conversion($l, $c, $h);
         return array_reduce($array, function($sum, $x) {
           $ε1 = .000005;

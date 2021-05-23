@@ -21,7 +21,7 @@ $version = version();
 
 class Test {
   function __construct($fonction = null, $resultatAttendu = null, $nophp = false) {
-    $exGetters = ['hexa', 'hex', 'rgba', 'rgb', 'hsla', 'hsl', 'hwba', 'hwb', 'laba', 'lab', 'lcha', 'lch', 'luminance'];
+    $exGetters = ['name', 'hexa', 'hex', 'rgba', 'rgb', 'hsla', 'hsl', 'hwba', 'hwb', 'laba', 'lab', 'lcha', 'lch', 'luminance'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $exGetters), 
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
@@ -94,7 +94,7 @@ class Test {
       foreach($c2Props as $prop => $value) {
         if (
           $value != $c1Props[$prop]
-          && abs($value - $c1Props[$prop]) > 10 ** (-5) // fix float rounding error
+          && abs($value - $c1Props[$prop]) > 10 ** (-3) // fix float rounding error
         ) return false;
       }
 
