@@ -952,15 +952,15 @@ class Couleur
       return [$r, $g, $b];
     };
 
+    $forceIntoGamut = function($ciel, $ciec, $cieh) use ($conversion) {
     $condition = function($l, $c, $h) use ($conversion) {
-        $ε1 = .000005;
         $array = $conversion($l, $c, $h);
         return array_reduce($array, function($sum, $x) {
+          $ε1 = .000005;
           return ($sum && $x >= (-1 * $ε1) && $x <= (1 + $ε1));
-        });
+        }, true);
       };
 
-    $forceIntoGamut = function($ciel, $ciec, $cieh) use ($condition) {
       if ($condition($ciel, $ciec, $cieh)) return [$ciel, $ciec, $cieh];
 
       $ε2 = .0001;
@@ -969,7 +969,7 @@ class Couleur
       $_ciec = $ciec / 2;
 
       while ($Cmax - $Cmin > $ε2) {
-        if ($condition($ciel, $_ciec, $cieh)) $Cmin = $_cieh;
+        if ($condition($ciel, $_ciec, $cieh)) $Cmin = $_ciec;
         else $Cmax = $_ciec;
         $_ciec = ($Cmin + $Cmax) / 2;
       }
