@@ -1084,16 +1084,16 @@ class Couleur
   // The options argument supports these properties:
   // - lower: - true will lower the contrast if it's higher than desired
   //          - false will stop if contrast is higher than desired
-  // - towards: if desiredContrast can be reached BOTH by raising blackness
-  //            or by raising whiteness, then this option will be used to
+  // - towards: if desiredContrast can be reached BOTH by raising or
+  //            lowering CIE lightness, then this option will be used to
   //            determine which way to go :
   //            - null (default) to choose automatically*
-  //            - 'black' to raise blackness
-  //            - 'white' to raise whiteness
-  //      * blackness will be chosen if movingColor is darker than refColor,
-  //      and whiteness if it's lighter than refColor.
+  //            - 'black' to lower CIE lightness
+  //            - 'white' to raise CIE lightness
+  //      * 'black' will be chosen if movingColor is darker than refColor,
+  //      and 'white' if it's lighter than refColor.
   // - maxIterations: the maximum number of times the color will be altered
-  public function betterContrast($referenceColor, $desiredContrast, $step = 5, $options = null) {
+  public function betterContrast($referenceColor, $desiredContrast, $step = 2, $options = null) {
     if ($options === null) $options = new stdClass();
     if (!property_exists($options, 'lower')) $options->lower = false;
     if (!property_exists($options, 'maxIterations')) $options->maxIterations = 1000;
@@ -1130,8 +1130,8 @@ class Couleur
     }
     elseif ($towardsWhite && $towardsBlack) $towards = $options->towards;
     if ($towards === null) {
-      if ($refColor->l < $movingColor->l) $towards = 'white';
-      elseif ($refColor->l > $movingColor->l) $towards = 'black';
+      if ($refColor->ciel < $movingColor->ciel) $towards = 'white';
+      elseif ($refColor->ciel > $movingColor->ciel) $towards = 'black';
       else $towards = 'black';
     }
 
@@ -1141,20 +1141,19 @@ class Couleur
     while(($direction > 0) ? ($contrast < $desiredContrast) : ($contrast > $desiredContrast) && $i < $options->maxIterations) {
       $i++;
 
-      // Let's try to raise contrast by increasing blackness and reducing whiteness.
-      if ($towards == 'white') $newColor = new Couleur('hwb(' . (360 * $movingColor->h) . ' ' . (100 * $movingColor->w + $step) . '% ' . (100 * $movingColor->bk - $step) . '%)');
-      else              $newColor = new Couleur('hwb(' . (360 * $movingColor->h) . ' ' . (100 * $movingColor->w - $step) . '% ' . (100 * $movingColor->bk + $step) . '%)');
+      // If movingColor is totally black (if towards black) or white (if towards white),
+      // i.e. there's no way to go, stop.
+      if (($towards == 'black' && $movingColor->ciel == 0) || ($towards == 'white' && $movingColor->ciel == 1))
+        break;
 
+      // Let's try to raise contrast by increasing or reducing CIE lightness.
+      $sign = ($towards == 'white') ? 1 : -1;
+      $newColor = new Couleur('lch(' . (100 * $movingColor->ciel + $sign * $step) . '% ' . $movingColor->ciec . ' ' . 360 * $movingColor->cieh . ')');
       $newContrast = self::contrast($newColor, $refColor);
 
-      // If the new color is totally black (if up == 'bk') or white (if up == 'w'),
-      // i.e. there's no way to go, stop.
-      $noWay = ($towards == 'black' && $newColor->bk > (1 - .01 * $step) && $newColor->w < (0 + .1 * $step))
-             || ($towards == 'white' && $newColor->w > (1 - .01 * $step) && $newColor->bk < (0 + .1 * $step));
-      if ($noWay) break;
-
-      // If we went the right way but overshot a little, stop
-      $overshot = abs($contrast - $desiredContrast) <= abs($newContrast - $desiredContrast);
+      // If we overshot a little, stop.
+      // (We want to overshoot when we're raising contrast, but not when we're lowering it!)
+      $overshot = (($direction < 0) && ($contrast > $desiredContrast) && ($newContrast < $desiredContrast));
       if ($overshot) break;
 
       // We went the right way, let's keep going!
