@@ -70,102 +70,69 @@ export function colorInterface(couleur = entree, fixContrast = true) {
   element.style.setProperty('--user-hue', Math.round(couleur.h * 360));
   element.style.setProperty('--user-saturation', Math.round(couleur.s * 100) + '%');
 
+  let cssBoth, cssLight, cssDark;
   const meta = document.querySelector('meta[name=theme-color]');
-  const themes = ['light', 'dark'];
-  let cssLight, cssDark;
-  // Let's calculate the interface colors based on the input color
-  for (const theme of themes) {
-    // BODY and SECTION colors
-    let bodyColor, sectionColor;
-    let css = '';
-    if (theme == 'light') {
-      sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 80%)`);
-      bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 70%)`);
-    } else if (theme == 'dark') {
-      sectionColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 20%)`);
-      bodyColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.2 * Math.round(couleur.s * 100)}%, 10%)`);
-    }
+  const frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
+  const colorPreview = (new Couleur('white')).blend(frameOverlay).blend(couleur);
 
-    if (fixContrast) {
-      if (theme == 'light') {
-        const neutral = new Couleur('white');
-        bodyColor = bodyColor.betterContrast(neutral, 1.9);
-        sectionColor = sectionColor.betterContrast(neutral, 1.4);
-      } else {
-        const neutral = new Couleur('black');
-        bodyColor = bodyColor.betterContrast(neutral, 1.2);
-        sectionColor = sectionColor.betterContrast(neutral, 1.6);
-      }
-    }
-    
-    // META THEME color
-    if (theme == 'light')     meta.dataset.light = bodyColor.hsl;
-    else if (theme == 'dark') meta.dataset.dark = bodyColor.hsl;
-    if (document.documentElement.resolvedTheme == theme)
-      document.querySelector('meta[name=theme-color]').content = bodyColor.hsl;
+  // Calculate the colors that are the same for both light and dark themes
+  const cieh = couleur.cieh * 360;
+  both: {
+    cssBoth = `
+      /* Syntax coloring colors */
+      --token-number: ${(new Couleur(`lch(80% 70 ${cieh - 90})`)).hsl};
+      --token-string: ${(new Couleur(`lch(80% 70 ${cieh + 45})`)).hsl};
+      --token-operator: ${(new Couleur(`lch(80% 70 ${cieh - 45})`)).hsl};
+      --token-keyword: ${(new Couleur(`lch(80% 70 ${cieh + 135})`)).hsl};
+    `;
+  }
 
-    // H1 color
-    let h1Color;
-    if (theme == 'light')
-      h1Color = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 20%)`);
-    else if (theme == 'dark')
-      h1Color = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.3 * Math.round(couleur.s * 100)}%, 80%)`);
-
-    if (fixContrast)
-      h1Color = h1Color.betterContrast(sectionColor, 3);
-
-    // H3 color
-    let h3Color;
-    if (theme == 'light')
-      h3Color = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 30%)`);
-    else if (theme == 'dark')
-      h3Color = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.4 * Math.round(couleur.s * 100)}%, 70%)`);
-
-    if (fixContrast)
-      h3Color = h3Color.betterContrast(sectionColor, 3);
-
-    // LINK color
-    let linkColor;
-    if (theme == 'light')
-      linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${Math.round(couleur.s * 100)}%, 30%)`);
-    else if (theme == 'dark')
-      linkColor = new Couleur(`hsl(${Math.round(couleur.h * 360)}, ${0.6 * Math.round(couleur.s * 100)}%, 80%)`);
-
-    if (fixContrast)
-      linkColor = linkColor.betterContrast(sectionColor, 5);
-
-    // PREVIEW BORDER color
-    let frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
-    const white = new Couleur('white');
-    let _couleur = white.blend(`rgba(0, 0, 0, ${frameOverlay.a})`).blend(couleur);
-    let frameColor = Couleur.blend(sectionColor, frameOverlay);
-    if (fixContrast)
-      frameColor = frameColor.betterContrast(_couleur, 2.5);
-
-    // Create CSS for the previous colors
-    css += `
+  light: {
+    const ciec = Math.min(couleur.ciec, 60);
+    const bodyColor = new Couleur(`lch(75% ${ciec} ${cieh})`);
+    meta.dataset.light = bodyColor.hsl;
+    const sectionColor = new Couleur(`lch(85% ${.6 * ciec} ${cieh})`);
+    const frameColor = sectionColor.blend(frameOverlay);
+    cssLight = `
+      /* Background colors */
       --body-color: ${bodyColor.hsl};
       --section-color: ${sectionColor.hsl};
-      --frame-color: ${frameColor.hsl};
-      --h1-color: ${h1Color.hsl};
-      --h3-color: ${h3Color.hsl};
-      --link-color: ${linkColor.hsl};
+      --frame-color: ${frameColor.betterContrast(colorPreview, 2.5).hsl};
+      /* Text colors */
+      --h1-color: ${(new Couleur(`lch(30% ${.6 * ciec} ${cieh})`)).hsl};
+      --h3-color: ${(new Couleur(`lch(45% ${ciec} ${cieh})`)).hsl};
+      --text-color: black;
+      --link-color: ${(new Couleur(`lch(30% ${ciec} ${cieh})`)).hsl};
+      --text-strong-color: ${(new Couleur(`lch(15% ${ciec} ${cieh})`)).hsl};
+      /* Input colors */
+      --input-bg-color: ${(new Couleur(`lch(95% ${.3 * ciec} ${cieh})`)).hsl};
+      --input-active-bg-color: ${(new Couleur(`lch(99% ${.1 * ciec} ${cieh})`)).hsl};
+      --input-placeholder-color: ${(new Couleur(`lch(25% ${.5 * ciec} ${cieh} / .5)`)).hsl};
     `;
+  }
 
-    // TOKEN colors for syntax coloring
-    const steps = ['-90', '+45', '-45', '+135'];
-    const tokenTypes = ['number', 'string', 'operator', 'keyword'];
-    steps.forEach((e, k) => {
-      let tokenColor = new Couleur('hsl(' + Math.round(couleur.h * 360) + ', 70%, 60%)');
-      tokenColor = tokenColor.change('h', steps[k]);
-      if (fixContrast)
-        tokenColor = tokenColor.betterContrast(frameColor, 5);
-      css += `--token-${tokenTypes[k]} : ${tokenColor.hsl};
-      `;
-    });
-
-    if (theme == 'dark') cssDark = css;
-    else                 cssLight = css;
+  dark: {
+    const ciec = Math.min(.3 * couleur.ciec, 15);
+    const bodyColor = new Couleur(`lch(8% ${.6 * ciec} ${cieh})`);
+    meta.dataset.dark = bodyColor.hsl;
+    const sectionColor = new Couleur(`lch(20% ${ciec} ${cieh})`);
+    const frameColor = sectionColor.blend(frameOverlay);
+    cssDark = `
+      /* Background colors */
+      --body-color: ${bodyColor.hsl};
+      --section-color: ${sectionColor.hsl};
+      --frame-color: ${frameColor.betterContrast(colorPreview, 2.5).hsl};
+      /* Text colors */
+      --h1-color: ${(new Couleur(`lch(80% ${ciec} ${cieh})`)).hsl};
+      --h3-color: ${(new Couleur(`lch(70% ${1.7 * ciec} ${cieh})`)).hsl};
+      --text-color: ${(new Couleur(`lch(90% ${.2 * ciec} ${cieh})`)).hsl};
+      --link-color: ${(new Couleur(`lch(80% ${1.7 * ciec} ${cieh})`)).hsl};
+      --text-strong-color: ${(new Couleur(`lch(80% ${1.7 * ciec} ${cieh})`)).hsl};
+      /* Input colors */
+      --input-bg-color: ${(new Couleur(`lch(30% ${1.5 * ciec} ${cieh})`)).hsl};
+      --input-active-bg-color: ${(new Couleur(`lch(10% ${.6 * ciec} ${cieh})`)).hsl};
+      --input-placeholder-color: ${(new Couleur(`lch(90% ${.5 * ciec} ${cieh} / .5)`)).hsl};
+    `;
   }
 
   // Let's generate the stylesheet for the interface colors
@@ -173,12 +140,7 @@ export function colorInterface(couleur = entree, fixContrast = true) {
   style.innerHTML = `
     :root {
       ${cssLight}
-    }
-
-    @media (prefers-color-scheme: light) {
-      :root {
-        ${cssLight}
-      }
+      ${cssBoth}
     }
 
     @media (prefers-color-scheme: dark) {

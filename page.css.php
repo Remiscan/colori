@@ -96,23 +96,7 @@ html {
 
 /*<?php ob_start();?>*/
 html[data-theme="light"] {
-  /* --- THEME COLORS --- */
   color-scheme: light;
-  /* Background colors */
-  --body-color: hsl(var(--user-hue), var(--user-saturation), 70%);
-  --section-color: hsl(var(--user-hue), var(--user-saturation), 80%);
-  --frame-color: rgba(0, 0, 0, .8);
-  /* Text colors */
-  --h1-color: hsl(var(--user-hue), var(--user-saturation), 20%);
-  --h3-color: hsl(var(--user-hue), var(--user-saturation), 30%);
-  --text-color: hsl(var(--user-hue), calc(0.5 * var(--user-saturation)), 0%);
-  --link-color: hsl(calc(var(--user-hue) + 180), var(--user-saturation), 30%);
-  --text-strong-color: hsl(var(--user-hue), var(--user-saturation), 20%);
-  /* Input colors */
-  --input-bg-color: hsl(var(--user-hue), var(--user-saturation), 92%);
-  --input-active-bg-color: hsl(var(--user-hue), var(--user-saturation), 98%);
-  --input-placeholder-color: hsl(var(--user-hue), calc(0.5 * var(--user-saturation)), 20%, .5);
-  --input-hover-border-color: hsl(var(--user-hue), var(--user-saturation), 30%, .5);
   /* Button colors */
   --button-bg-color: rgba(255, 255, 255, .2);
   --button-border-color: rgba(255, 255, 255, .5);
@@ -121,23 +105,7 @@ html[data-theme="light"] {
 }
 
 html[data-theme="dark"] {
-  /* --- THEME COLORS --- */
   color-scheme: dark;
-  /* Background colors */
-  --body-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 10%);
-  --section-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 20%);
-  --frame-color: rgba(0, 0, 0, .8);
-  /* Text colors */
-  --h1-color: hsl(var(--user-hue), calc(.3 * var(--user-saturation)), 80%);
-  --h3-color: hsl(var(--user-hue), calc(.4 * var(--user-saturation)), 70%);
-  --text-color: hsl(var(--user-hue), calc(.1 * var(--user-saturation)), 90%);
-  --link-color: hsl(var(--user-hue), calc(.6 * var(--user-saturation)), 80%);
-  --text-strong-color: hsl(var(--user-hue), calc(.5 * var(--user-saturation)), 80%);
-  /* Input colors */
-  --input-bg-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 32%);
-  --input-active-bg-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 10%);
-  --input-placeholder-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 90%, .5);
-  --input-hover-border-color: hsl(var(--user-hue), calc(.2 * var(--user-saturation)), 0%);
   /* Button colors */
   --button-bg-color: rgba(255, 255, 255, .1);
   --button-border-color: rgba(255, 255, 255, .3);

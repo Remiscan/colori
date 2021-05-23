@@ -13,13 +13,8 @@ $r = mt_rand(0, count($namedColors) - 1);
 $startColor = new Couleur($namedColors[$r]);
 
 // Adapte l'interface (en attendant que JavaScript s'en charge)
-$neutral = new Couleur('white');
-$bodyColor = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . round($startColor->s * 100) . '%, 70%)');
-$bodyColor = $bodyColor->betterContrast($neutral, 1.9);
-
-$neutral = new Couleur('black');
-$bodyColorDark = new Couleur('hsl(' . round($startColor->h * 360) . ', ' . 0.2 * round($startColor->s * 100) . '%, 10%)');
-$bodyColorDark = $bodyColorDark->betterContrast($neutral, 1.2);
+$bodyColor = new Couleur("lch(75% $startColor->ciec ".round($startColor->cieh * 360).")");
+$bodyColorDark = new Couleur("lch(8% ".(.6 * $startColor->ciec)." ".round($startColor->cieh * 360).")");
 ?>
 <!doctype html>
 <html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>"
