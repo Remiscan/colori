@@ -19,9 +19,9 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * $startColor->ciec)." ".round($start
 <!doctype html>
 <html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>"
       data-theme="<?=$_COOKIE['theme'] ?? 'auto'?>" data-resolved-theme="<?=$_COOKIE['resolvedTheme'] ?? 'light'?>"
-      data-start-color="<?=$startColor->name?>"
+      data-start-color="<?=$startColor->name()?>"
       style="--user-hue: <?=round($startColor->h*360)?>;
-             --user-color: <?=$startColor->name?>;
+             --user-color: <?=$startColor->name()?>;
              --user-saturation: <?=round($startColor->s*360)?>;
             ">
   <head>
