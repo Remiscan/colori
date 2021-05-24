@@ -105,7 +105,6 @@ export function colorInterface(couleur = entree) {
       --h3-color: ${(new Couleur(`lch(45% ${ciec} ${cieh})`)).hsl};
       --text-color: black;
       --link-color: ${(new Couleur(`lch(30% ${ciec} ${cieh})`)).hsl};
-      --text-strong-color: ${(new Couleur(`lch(15% ${ciec} ${cieh})`)).hsl};
       /* Input colors */
       --input-bg-color: ${(new Couleur(`lch(95% ${.3 * ciec} ${cieh})`)).hsl};
       --input-active-bg-color: ${(new Couleur(`lch(99% ${.1 * ciec} ${cieh})`)).hsl};
@@ -129,7 +128,6 @@ export function colorInterface(couleur = entree) {
       --h3-color: ${(new Couleur(`lch(70% ${1.7 * ciec} ${cieh})`)).hsl};
       --text-color: ${(new Couleur(`lch(90% ${.2 * ciec} ${cieh})`)).hsl};
       --link-color: ${(new Couleur(`lch(80% ${1.7 * ciec} ${cieh})`)).hsl};
-      --text-strong-color: ${(new Couleur(`lch(80% ${1.7 * ciec} ${cieh})`)).hsl};
       /* Input colors */
       --input-bg-color: ${(new Couleur(`lch(30% ${1.5 * ciec} ${cieh})`)).hsl};
       --input-active-bg-color: ${(new Couleur(`lch(10% ${.6 * ciec} ${cieh})`)).hsl};

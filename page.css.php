@@ -92,6 +92,7 @@ html {
   --easing-accelerate: cubic-bezier(0.4, 0.0, 1, 1);
   --h-diff: -1;
   --user-saturation: 100%; 
+  --text-strong-color: var(--h3-color);
 }
 
 /*<?php ob_start();?>*/
