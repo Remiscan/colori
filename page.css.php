@@ -969,6 +969,9 @@ a:visited {
   --color: var(--link-color);
   color: var(--color);
   font-weight: 600;
+  text-decoration: none;
+  padding: 0 .1em;
+  box-shadow: 0 0.1em 0 0 var(--color);
 }
 
 a:hover,
@@ -977,6 +980,7 @@ a:active {
   background-color: var(--color);
   color: var(--section-color);
   text-decoration: none;
+  border-radius: .2em;
 }
 
 strong, em {
