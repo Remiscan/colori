@@ -1145,7 +1145,7 @@ export default class Couleur {
   // Calculates the distance between two colors in a certain format,
   // by adding the difference between each of its properties.
   // If no format is given, return the average of the distances for all formats.
-  static distance(_couleur1, _couleur2, format = null) {
+  static distance(_couleur1, _couleur2, format = null, tolerance = .02) {
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
 
@@ -1153,20 +1153,34 @@ export default class Couleur {
     if (formats.includes(format)) {
       const properties = Couleur.propertiesOf(format);
       properties.push('a');
-      const coefficient = prop => ['ciea', 'cieb', 'ciec'].includes(prop) ? .01 : 1;
-      return Couleur.pRound(properties.reduce(
-        (sum, prop) => sum + coefficient(prop) * Math.abs(couleur1[prop] - couleur2[prop]), 0
-      ), 3);
+
+      // Let's add the difference for each property
+      const distance = properties.reduce((sum, prop) => {
+        // cieh has no effect when ciec is 0,
+        // h and s have no effect when l is 0 or 1,
+        // h has no effect when s is 0,
+        // h has no effect when bk + w is 1
+        if (
+          (prop == 'cieh' && couleur1.ciec <= tolerance && couleur2.ciec <= tolerance)
+          || (['s', 'h'].includes(prop) && couleur1.l >= 1 - tolerance && couleur2.l >= 1 - tolerance)
+          || (['s', 'h'].includes(prop) && couleur1.l <= tolerance && couleur2.l <= tolerance)
+          || (prop == 'h' && couleur1.s <= tolerance && couleur2.s <= tolerance)
+          || (prop == 'h' && couleur1.bk + couleur1.w >= 1 - tolerance && couleur2.bk + couleur2.w >= 1 - tolerance)
+        ) return sum;
+
+        // All properties are between 0 and 1, except ciea and cieb who are roughly 100 times bigger
+        const coefficient = ['ciea', 'cieb', 'ciec'].includes(prop) ? .01 : 1;
+        return sum + coefficient * Math.abs(couleur1[prop] - couleur2[prop]);
+      }, 0);
+      return Couleur.pRound(distance, 3);
     } else {
-      return formats.reduce(
-        (sum, format) => sum + Couleur.distance(couleur1, couleur2, format), 0
-      ) / formats.length;
+      return formats.reduce((sum, format) => sum + Couleur.distance(couleur1, couleur2, format), 0) / formats.length;
     }
   }
 
   // Shorthand for Couleur.distance()
-  distance(couleur2, format = null) {
-    return Couleur.distance(this, couleur2, format);
+  distance(couleur2, format = null, tolerance = .02) {
+    return Couleur.distance(this, couleur2, format, tolerance);
   }
 
 
@@ -1176,7 +1190,7 @@ export default class Couleur {
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
 
-    if (Couleur.distance(couleur1, couleur2) > tolerance) return false;
+    if (Couleur.distance(couleur1, couleur2, null, tolerance) > tolerance) return false;
     else return true;
   }
 

@@ -1414,7 +1414,7 @@ class Couleur
   // Calculates the distance between two colors in a certain format,
   // by adding the difference between each of its properties.
   // If no format is given, return the average of the distances for all formats.
-  public static function distance($_couleur1, $_couleur2, $format = null) {
+  public static function distance($_couleur1, $_couleur2, $format = null, $tolerance = .02) {
     $couleur1 = self::check($_couleur1);
     $couleur2 = self::check($_couleur2);
 
@@ -1422,10 +1422,26 @@ class Couleur
     if (in_array($format, $formats)) {
       $properties = self::propertiesOf($format);
       $properties[] = 'a';
-      $coefficient = function($prop) { return in_array($prop, ['ciea', 'cieb', 'ciec']) ? .01 : 1; };
-      return self::pRound(array_reduce($properties,
-        function($sum, $prop) use ($couleur1, $couleur2, $coefficient) { return $sum + $coefficient($prop) * abs($couleur1->{$prop} - $couleur2->{$prop}); }, 0
-      ), 3);
+
+      // Let's add the difference for each property
+      $distance = array_reduce($properties, function($sum, $prop) use ($couleur1, $couleur2, $tolerance) {
+        // cieh has no effect when ciec is 0,
+        // h and s have no effect when l is 0 or 1,
+        // h has no effect when s is 0,
+        // h has no effect when bk + w is 1
+        if (
+          ($prop == 'cieh' && $couleur1->ciec <= $tolerance && $couleur2->ciec <= $tolerance)
+          || (in_array($prop, ['s', 'h']) && $couleur1->l >= 1 - $tolerance && $couleur2->l >= 1 - $tolerance)
+          || (in_array($prop, ['s', 'h']) && $couleur1->l <= $tolerance && $couleur2->l <= $tolerance)
+          || ($prop == 'h' && $couleur1->s <= $tolerance && $couleur2->s <= $tolerance)
+          || ($prop == 'h' && $couleur1->bk + $couleur1->w >= 1 - $tolerance && $couleur2->bk + $couleur2->w >= 1 - $tolerance)
+        ) return $sum;
+
+        // All properties are between 0 and 1, except ciea and cieb who are roughly 100 times bigger
+        $coefficient = in_array($prop, ['ciea', 'cieb', 'ciec']) ? .01 : 1;
+        return $sum + $coefficient * abs($couleur1->{$prop} - $couleur2->{$prop});
+      }, 0);
+      return self::pRound($distance, 3);
     } else {
       return array_reduce($formats,
         function($sum, $format) use ($couleur1, $couleur2) { return $sum + self::distance($couleur1, $couleur2, $format); }, 0
@@ -1442,12 +1458,7 @@ class Couleur
     $couleur1 = self::check($_couleur1);
     $couleur2 = self::check($_couleur2);
 
-    foreach(get_object_vars($couleur1) as $prop => $valeur) {
-      $tempTolerance = $tolerance;
-      if (in_array($prop, ['ciea', 'cieb', 'ciec'])) $tempTolerance *= 100;
-      if (abs($valeur - $couleur2->{$prop}) > $tempTolerance) return false;
-    }
-
-    return true;
+    if (self::distance($couleur1, $couleur2, null, $tolerance) > $tolerance) return false;
+    else return true;
   }
 }
