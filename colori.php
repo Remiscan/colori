@@ -568,8 +568,14 @@ class Couleur
     if ($this->a == 1) {
       $hex6 = substr($this->hex(), 1);
       $name = array_search($hex6, self::COULEURS_NOMMEES);
-      if (!$name)           return null;
-      else                  return $name;
+      if ($name)            return $name;
+      // If this exact color doesn't have a name, check if it's close enought to one that does
+      else {
+        foreach(self::COULEURS_NOMMEES as $name => $hex) {
+          if (self::same($this, '#'.$hex)) return $name;
+        }
+      }
+      return null;
     }
     elseif ($this->a == 0)  return 'transparent';
     else                    return null;
