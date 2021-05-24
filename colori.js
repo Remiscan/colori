@@ -791,6 +791,72 @@ export default class Couleur {
   }
 
 
+  /////////////////////////////////////////////////////////////////////////////////////////////
+  // Solves the equation result = blend(background, overlay) with background OR overlay unknown
+  // - if background is unknown, this function returns the only solution
+  // - if overlay is unknown, there are multiple solutions depending on overlay.a
+  //   - if the alpha parameter is passed to the function, then it returns the only solution
+  //   - if no alpha parameter is passed, then it returns an array of solutions (which have
+  //     successive alpha values separated by alphaStep)
+  static unblend(_couleur1, _couleur2, alpha, alphaStep = .1) {
+    let couleur1 = Couleur.check(_couleur1);
+    let couleur2 = Couleur.check(_couleur2);
+
+    let result, background, overlay;
+    if (couleur1.a < 1 && couleur2.a < 1)
+      throw 'At least one of the arguments needs to be an opaque Couleur';
+    else if (couleur1.a < 1 && couleur2.a == 1) {
+      result = couleur2;
+      overlay = couleur1;
+    }
+    else if (couleur1.a == 1 && couleur2.a < 1) {
+      result = couleur1;
+      overlay = couleur2;
+    }
+    else {
+      result = couleur1;
+      background = couleur2;
+    }
+
+    // If background is the unknown color, find the unique solution
+    if (typeof background == 'undefined') {
+      const r = (result.r - overlay.a * overlay.r) / (1 - overlay.a);
+      const g = (result.g - overlay.a * overlay.g) / (1 - overlay.a);
+      const b = (result.b - overlay.a * overlay.b) / (1 - overlay.a);
+      return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b})`);
+    }
+    // If overlay is the unknown color
+    else if (typeof overlay == 'undefined') {
+      // If we know its alpha value, find the unique solution
+      if (typeof alpha == 'number' && alpha >= 0 && alpha <= 1) {
+        const r = result.r / alpha - background.r * (1 - alpha) / alpha;
+        const g = result.g / alpha - background.g * (1 - alpha) / alpha;
+        const b = result.b / alpha - background.b * (1 - alpha) / alpha;
+        return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${alpha})`);
+      }
+      // If we don't know the alpha value, return an array of solutions
+      else {
+        const solutions = [];
+        for (let a = alphaStep; a < 1; a += alphaStep) {
+          const r = Couleur.pRound(result.r / a - background.r * (1 - a) / a, 3);
+          if (r < 0 || r > 1) continue;
+          const g = Couleur.pRound(result.g / a - background.g * (1 - a) / a, 3);
+          if (g < 0 || g > 1) continue;
+          const b = Couleur.pRound(result.b / a - background.b * (1 - a) / a, 3);
+          if (b < 0 || b > 1) continue;
+          solutions.push(new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${a})`));
+        }
+        return solutions;
+      }
+    }
+  }
+
+  // Shorthand for Couleur.unblend()
+  unblend(couleur2, alpha, alphaStep = .1) {
+    return Couleur.unblend(this, couleur2, alpha, alphaStep);
+  }
+
+
   ////////////////////////////////////
   // Computes the luminance of a color
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
