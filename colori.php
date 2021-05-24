@@ -1154,8 +1154,8 @@ class Couleur
     elseif ($towardsBlack && !$towardsWhite) $towards = 'black';
     elseif (!$towardsWhite && !$towardsBlack) {
       if ($options->towards !== null) $towards = $options->towards;
-      elseif ($contrastWhite > $contrastBlack) return new Couleur('white');
-      else                                      return new Couleur('black');
+      elseif ($contrastWhite > $contrastBlack) return new self('white');
+      else                                      return new self('black');
     }
     elseif ($towardsWhite && $towardsBlack) $towards = $options->towards;
     if ($towards === null) {
@@ -1177,7 +1177,7 @@ class Couleur
 
       // Let's try to raise contrast by increasing or reducing CIE lightness.
       $sign = ($towards == 'white') ? 1 : -1;
-      $newColor = new Couleur('lch(' . (100 * $movingColor->ciel + $sign * $step) . '% ' . $movingColor->ciec . ' ' . 360 * $movingColor->cieh . ')');
+      $newColor = new self('lch(' . (100 * $movingColor->ciel + $sign * $step) . '% ' . $movingColor->ciec . ' ' . 360 * $movingColor->cieh . ')');
       $newContrast = self::contrast($newColor, $refColor);
 
       // If we overshot a little, stop.
