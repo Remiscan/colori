@@ -124,12 +124,6 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 15))." 
           document.querySelector('header>h1').innerHTML = 'colori.php';
       </script>
 
-      <div class="groupe-langages">
-        <button class="bouton-langage" data-lang="fr">Français</button>
-        <button class="bouton-langage" data-lang="en" disabled>English</button>
-        <theme-selector position="bottom" icon="reverse"></theme-selector>
-      </div>
-
       <a href="https://github.com/Remiscan/colori" target="_blank" rel="noopener" class="lien-github"
          data-label="github" aria-label="<?=$Textes->getString('github')?>">
         <span data-string="github"><?=$Textes->getString('github')?></span>
@@ -137,6 +131,12 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 15))." 
         <i class="github-logo"><svg viewBox="0 0 45 16"><use href="#github-logo" /></svg></i>
         <i class="github-cat"><svg viewBox="0 0 16 16"><use href="#github-cat" /></svg></i>
       </a>
+
+      <div class="groupe-langages">
+        <button class="bouton-langage" data-lang="fr">Français</button>
+        <button class="bouton-langage" data-lang="en" disabled>English</button>
+        <theme-selector position="bottom right" icon="reverse"></theme-selector>
+      </div>
     </header>
 
     <section id="intro" class="no-titre">

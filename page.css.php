@@ -215,7 +215,7 @@ header {
   grid-row: 1 / 2;
   grid-column: 2 / 5;
   display: grid;
-  grid-template-columns:auto 1fr auto;
+  grid-template-columns: auto 1fr [github-start] auto [github-end] 1fr [options-start] auto [options-end];
   justify-content: center;
   align-items: start;
   position: relative;
@@ -245,11 +245,14 @@ theme-selector {
   width: 1.8em;
   height: 1.8em;
   margin: .3rem;
+  --margin-right: .6rem;
+  margin-right: var(--margin-right);
   --primary-color: var(--h1-color);
   --secondary-color: var(--h1-color);
 }
 
 theme-selector>.selector {
+  right: calc(-1 * var(--margin-right));
   background-color: var(--section-color);
   box-shadow: 0 1px .2rem 1px var(--body-color);
   margin-top: .6rem;
@@ -325,8 +328,8 @@ input[type="radio"] + label>span {
 }
 
 .groupe-langages {
-  grid-column: 2 / 3;
-  grid-row: 1 / 2;
+  grid-column: options-start / options-end;
+  grid-row: 1;
   justify-self: end;
   align-self: end;
   display: flex;
@@ -367,6 +370,8 @@ input[type="radio"] + label>span {
  */
 
 .lien-github {
+  grid-column: github-start / github-end;
+  grid-row: 1;
   justify-self: end;
   align-self: center;
   display: flex;
@@ -374,7 +379,6 @@ input[type="radio"] + label>span {
   align-items: center;
   border-radius: .6rem;
   padding: .2rem;
-  margin: 0 .4rem 0 2.2rem;
   font-size: inherit;
 }
 
@@ -418,6 +422,10 @@ span[data-string=github] {
 }
 
 @media (max-width: 30rem) {
+  header {
+    grid-template-columns: auto 0 [github-start] auto [github-end] 1fr [options-start] auto [options-end];
+  }
+  
   .lien-github {
     margin: 0 .6rem;
   }
