@@ -277,6 +277,18 @@ export default class Couleur {
   /*****************************************/
 
 
+  /* GENERAL SETTER */
+
+  // Will be used by other setters
+  set(data, props, format) {
+    for (let i = 0; i < props.length; i++) {
+      this[props[i]] = Couleur.pRound(Couleur.parse(data[i], props[i]));
+    }
+    this.a = Couleur.pRound(Couleur.parse(data[3] || 1, 'a'));
+    this.compute(format);
+  }
+
+
   /* NAME */
 
   get name() {
@@ -342,19 +354,7 @@ export default class Couleur {
   /* RGB (functional) */
   
   set rgb(rgba) {
-    let r, g, b, a;
-    
-    r = Couleur.parse(rgba[0], 'r');
-    g = Couleur.parse(rgba[1], 'g');
-    b = Couleur.parse(rgba[2], 'b');
-    a = Couleur.parse(rgba[3] || 1, 'a');
-    
-    this.r = Couleur.pRound(r);
-    this.g = Couleur.pRound(g);
-    this.b = Couleur.pRound(b);
-    this.a = Couleur.pRound(a);
-
-    this.compute('rgb');
+    this.set(rgba, ['r', 'g', 'b'], 'rgb');
   }
   
   set rgba(rgba) { this.rgb = rgba; }
@@ -382,19 +382,7 @@ export default class Couleur {
   /* HSL */
 
   set hsl(hsla) {
-    let h, s, l, a;
-
-    h = Couleur.parse(hsla[0], 'h');
-    s = Couleur.parse(hsla[1], 's');
-    l = Couleur.parse(hsla[2], 's');
-    a = Couleur.parse(hsla[3] || 1, 'a');
-
-    this.h = Couleur.pRound(h);
-    this.s = Couleur.pRound(s);
-    this.l = Couleur.pRound(l);
-    this.a = Couleur.pRound(a);
-
-    this.compute('hsl');
+    this.set(hsla, ['h', 's', 'l'], 'hsl')
   }
 
   set hsla(hsla) { this.hsl = hsla; }
@@ -422,19 +410,7 @@ export default class Couleur {
   /* HWB */
 
   set hwb(hwba) {
-    let h, w, bk, a;
-
-    h = Couleur.parse(hwba[0], 'h');
-    w = Couleur.parse(hwba[1], 'w');
-    bk = Couleur.parse(hwba[2], 'bk');
-    a = Couleur.parse(hwba[3] || 1, 'a');
-
-    this.h = Couleur.pRound(h);
-    this.w = Couleur.pRound(w);
-    this.bk = Couleur.pRound(bk);
-    this.a = Couleur.pRound(a);
-
-    this.compute('hwb');
+    this.set(hwba, ['h', 'w', 'bk'], 'hwb');
   }
 
   set hwba(hwba) { this.hwb = hwba; }
@@ -462,19 +438,7 @@ export default class Couleur {
   /* LAB */
 
   set lab(laba) {
-    let ciel, ciea, cieb, a;
-
-    ciel = Couleur.parse(laba[0], 'ciel');
-    ciea = Couleur.parse(laba[1], 'ciea');
-    cieb = Couleur.parse(laba[2], 'cieb');
-    a = Couleur.parse(laba[3] || 1, 'a');
-
-    this.ciel = Couleur.pRound(ciel);
-    this.ciea = Couleur.pRound(ciea);
-    this.cieb = Couleur.pRound(cieb);
-    this.a = Couleur.pRound(a);
-
-    this.compute('lab');
+    this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab');
   }
 
   set laba(laba) { this.lab = laba; }
@@ -502,19 +466,7 @@ export default class Couleur {
   /* LCH */
 
   set lch(lcha) {
-    let ciel, ciec, cieh, a;
-
-    ciel = Couleur.parse(lcha[0], 'ciel');
-    ciec = Couleur.parse(lcha[1], 'ciec');
-    cieh = Couleur.parse(lcha[2], 'cieh');
-    a = Couleur.parse(lcha[3] || 1, 'a');
-
-    this.ciel = Couleur.pRound(ciel);
-    this.ciec = Couleur.pRound(ciec);
-    this.cieh = Couleur.pRound(cieh);
-    this.a = Couleur.pRound(a);
-
-    this.compute('lch');
+    this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch');
   }
 
   set lcha(lcha) { this.lch = lcha; }
