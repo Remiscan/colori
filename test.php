@@ -1,6 +1,7 @@
 <?php
-error_reporting(-1);
-ini_set('display_errors', 1);/**/
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 require_once 'colori.php';
 
 // Calcule la version du site
@@ -96,7 +97,7 @@ class Test {
         if (in_array($prop, ['ciea', 'cieb', 'ciec'])) $tolerance *= 100;
         if (
           $value != $c1Props[$prop]
-          && abs($value - $c1Props[$prop]) > 10 ** (-3) // fix float rounding error
+          && abs($value - $c1Props[$prop]) > $tolerance // fix float rounding error
         ) return false;
       }
 
