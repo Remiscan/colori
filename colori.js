@@ -778,11 +778,11 @@ export default class Couleur {
 
     if (alpha !== null && alpha != overlay.a) overlay = overlay.replace('a', alpha);
 
-    const r = 255 * (overlay.a * overlay.r + (1 - overlay.a) * background.r);
-    const g = 255 * (overlay.a * overlay.g + (1 - overlay.a) * background.g);
-    const b = 255 * (overlay.a * overlay.b + (1 - overlay.a) * background.b);
+    const r = overlay.a * overlay.r + (1 - overlay.a) * background.r;
+    const g = overlay.a * overlay.g + (1 - overlay.a) * background.g;
+    const b = overlay.a * overlay.b + (1 - overlay.a) * background.b;
 
-    return new Couleur(`rgb(${r}, ${g}, ${b})`);
+    return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b})`);
   }
 
   // Shorthand for Couleur.blend
