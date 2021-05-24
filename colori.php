@@ -162,9 +162,6 @@ class Couleur
   private const FORMATS = array(
     array(
       'id' => 'HEX',
-      'prefix' => '#',
-      'separator' => '',
-      'suffix' => '',
       'syntaxes' => array(
         // #abc or #ABC
         '/^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/',
@@ -173,9 +170,6 @@ class Couleur
       )
     ), array(
       'id' => 'HEXA',
-      'prefix' => '#',
-      'separator' => '',
-      'suffix' => '',
       'syntaxes' => array(
         // #abcd or #ABCD
         '/^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/',
@@ -184,9 +178,6 @@ class Couleur
       )
     ), array(
       'id' => 'RGB',
-      'prefix' => 'rgb(',
-      'separator' => ', ',
-      'suffix' => ')',
       'syntaxes' => array(
         // rgb(255, 255, 255) or rgb(255,255,255)
         '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.')\\)$/',
@@ -199,9 +190,6 @@ class Couleur
       )
     ), array(
       'id' => 'RGBA',
-      'prefix' => 'rgba(',
-      'separator' => ', ',
-      'suffix' => ')',
       'syntaxes' => array(
         // rgba(255, 255, 255, .5) or rgba(255, 255, 255, 50%) (espaces optionnels)
         '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNP.')\\)$/',
@@ -214,9 +202,6 @@ class Couleur
       )
     ), array(
       'id' => 'HSL',
-      'prefix' => 'hsl(',
-      'separator' => ', ',
-      'suffix' => ')',
       'syntaxes' => array(
         // hsl(<angle>, 100%, 100%)
         '/^hsla?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.')\\)$/',
@@ -225,9 +210,6 @@ class Couleur
       )
     ), array(
       'id' => 'HSLA',
-      'prefix' => 'hsla(',
-      'separator' => ', ',
-      'suffix' => ')',
       'syntaxes' => array(
         // hsla(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
         '/^hsla?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
@@ -236,9 +218,6 @@ class Couleur
       )
     ), array(
       'id' => 'HWB',
-      'prefix' => 'hwb(',
-      'separator' => ', ',
-      'suffix' => ')',
       'syntaxes' => array(
         // hwb(<angle>, 100%, 100%)
         '/^hwba?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.')\\)$/',
@@ -247,9 +226,6 @@ class Couleur
       )
     ), array(
       'id' => 'HWBA',
-      'prefix' => 'hwba(',
-      'separator' => ', ',
-      'suffix' => ')',
       'syntaxes' => array(
         // hwba(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
         '/^hwba?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
@@ -258,9 +234,6 @@ class Couleur
       )
     ), array(
       'id' => 'LAB',
-      'prefix' => 'lab(',
-      'separator' => ' ',
-      'suffix' => ')',
       'syntaxes' => array(
         // lab(300% 25 40)
         '/^lab\\(('.self::vPer.') ('.self::vNum.') ('.self::vNum.')\\)$/',
@@ -269,9 +242,6 @@ class Couleur
       )
     ), array(
       'id' => 'LCH',
-      'prefix' => 'lch(',
-      'separator' => ' ',
-      'suffix' => ')',
       'syntaxes' => array(
         // lch(300% 25 <angle>)
         '/^lch\\(('.self::vPer.') ('.self::vNum.') ('.self::vAng.')\\)$/',
@@ -280,9 +250,6 @@ class Couleur
       )
     ), array(
       'id' => 'NAME',
-      'prefix' => '',
-      'separator' => '',
-      'suffix' => '',
       'syntaxes' => array(
         // white or WHITE or WhiTe
         '/^[A-Za-z]+$/'

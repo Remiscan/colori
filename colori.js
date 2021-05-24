@@ -1098,9 +1098,6 @@ export default class Couleur {
     return [
       {
         id: 'HEX',
-        prefix: '#',
-        separator: '',
-        suffix: '',
         syntaxes: [
           // #abc or #ABC
           /^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/,
@@ -1109,9 +1106,6 @@ export default class Couleur {
         ]
       }, {
         id: 'HEXA',
-        prefix: '#',
-        separator: '',
-        suffix: '',
         syntaxes: [
           // #abcd or #ABCD
           /^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/,
@@ -1120,9 +1114,6 @@ export default class Couleur {
         ]
       }, {
         id: 'RGB',
-        prefix: 'rgb(',
-        separator: ', ',
-        suffix: ')',
         syntaxes: [
           // rgb(255, 255, 255) or rgb(255,255,255)
           new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum})\\)$`),
@@ -1135,9 +1126,6 @@ export default class Couleur {
         ]
       }, {
         id: 'RGBA',
-        prefix: 'rgba(',
-        separator: ', ',
-        suffix: ')',
         syntaxes: [
           // rgba(255, 255, 255, .5) or rgba(255, 255, 255, 50%) (espaces optionnels)
           new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNP})\\)$`),
@@ -1150,9 +1138,6 @@ export default class Couleur {
         ]
       }, {
         id: 'HSL',
-        prefix: 'hsl(',
-        separator: ', ',
-        suffix: ')',
         syntaxes: [
           // hsl(<angle>, 100%, 100%)
           new RegExp(`^hsla?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)$`),
@@ -1161,9 +1146,6 @@ export default class Couleur {
         ]
       }, {
         id: 'HSLA',
-        prefix: 'hsla(',
-        separator: ', ',
-        suffix: ')',
         syntaxes: [
           // hsla(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
           new RegExp(`^hsla?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
@@ -1172,9 +1154,6 @@ export default class Couleur {
         ]
       }, {
         id: 'HWB',
-        prefix: 'hwb(',
-        separator: ', ',
-        suffix: ')',
         syntaxes: [
           // hwb(<angle>, 100%, 100%)
           new RegExp(`^hwba?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)$`),
@@ -1183,9 +1162,6 @@ export default class Couleur {
         ]
       }, {
         id: 'HWBA',
-        prefix: 'hwba(',
-        separator: ', ',
-        suffix: ')',
         syntaxes: [
           // hwba(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
           new RegExp(`^hwba?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
@@ -1194,9 +1170,6 @@ export default class Couleur {
         ]
       }, {
         id: 'LAB',
-        prefix: 'lab(',
-        separator: ' ',
-        suffix: ')',
         syntaxes: [
           // lab(300% 25 40)
           new RegExp(`^lab\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vNum})\\)$`),
@@ -1205,9 +1178,6 @@ export default class Couleur {
         ]
       }, {
         id: 'LCH',
-        prefix: 'lch(',
-        separator: ' ',
-        suffix: ')',
         syntaxes: [
           // lch(300% 25 <angle>)
           new RegExp(`^lch\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vAng})\\)$`),
@@ -1216,9 +1186,6 @@ export default class Couleur {
         ]
       }, {
         id: 'NAME',
-        prefix: '',
-        separator: '',
-        suffix: '',
         syntaxes: [
           // white or WHITE or WhiTe
           /^[A-Za-z]+$/
