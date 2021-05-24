@@ -29,7 +29,7 @@ export default class Couleur {
         break;
       case 'RGB':
       case 'RGBA':
-        this.rgb =[format.data[1], format.data[2], format.data[3], format.data[4] || 1];
+        this.rgb = [format.data[1], format.data[2], format.data[3], format.data[4] || 1];
         break;
       case 'HSL':
       case 'HSLA':
@@ -46,7 +46,7 @@ export default class Couleur {
         this.lch = [format.data[1], format.data[2], format.data[3], format.data[4] || 1];
         break;
       default:
-        throw 'Invalid format';
+        throw `${couleur} is not a valid color format`;
     }
   }
 
@@ -91,7 +91,7 @@ export default class Couleur {
       }
     }
 
-    throw 'Invalid format';
+    throw `${couleur} is not a valid color format`;
   }
 
 
@@ -139,7 +139,7 @@ export default class Couleur {
     if (color instanceof Couleur) return color;
     try { return new Couleur(color); }
     catch (error) {
-      throw 'Argument should be an instance of the Couleur class, or a valid color string';
+      throw `Argument should be an instance of the Couleur class, or a valid color string ; this isn't: ${color}`;
     }
   }
 
@@ -162,7 +162,7 @@ export default class Couleur {
         if (clamp)  return Math.max(0, Math.min(n, 1));
         else        return parseFloat(n);
       }
-      else throw `Invalid alpha value: ${n}`;
+      else throw `Invalid ${type} value: ${n}`;
     }
 
     // Red, green, blue values:
@@ -180,7 +180,7 @@ export default class Couleur {
         if (clamp)  return Math.max(0, Math.min(n / 255, 1));
         else        return n / 255;
       }
-      else throw `Invalid RGB value: ${n}`;
+      else throw `Invalid ${type} value: ${n}`;
     }
 
     // Hue and CIE hue values:
@@ -216,7 +216,7 @@ export default class Couleur {
           return _n;
         } else throw `Invalid angle value: ${n}`;
       }
-      else throw `Invalid hue value: ${n}`;
+      else throw `Invalid ${type} value: ${n}`;
     }
 
     // Percentage values:
@@ -229,7 +229,7 @@ export default class Couleur {
         if (clamp)  return Math.max(0, Math.min(parseFloat(n) / 100, 1));
         else        return parseFloat(n) / 100;
       }
-      else throw `Invalid percentage value: ${n}`;
+      else throw `Invalid ${type} value: ${n}`;
     }
 
     // CIE axes values:
@@ -239,7 +239,7 @@ export default class Couleur {
       if (new RegExp('^' + Couleur.vNum + '$').test(n)) {
         return parseFloat(n);
       }
-      else throw `Invalid CIE axes value: ${n}`;
+      else throw `Invalid ${type} value: ${n}`;
     }
 
     // CIE chroma values:
@@ -251,7 +251,7 @@ export default class Couleur {
         if (clamp)  return Math.max(0, n);
         else        return parseFloat(n);
       }
-      else throw `Invalid CIE chroma value: ${n}`;
+      else throw `Invalid ${type} value: ${n}`;
     }
 
     // Arbitrary values
@@ -790,7 +790,7 @@ export default class Couleur {
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   get luminance() {
     let couleur = this;
-    if (this.a < 1) throw 'Can\'t calculate luminance of transparent color';
+    if (this.a < 1) throw `Can't calculate the luminance of a transparent color`;
 
     let arr = [couleur.r, couleur.g, couleur.b];
     for (let i = 0; i <= 2; i++) {

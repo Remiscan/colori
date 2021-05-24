@@ -310,7 +310,7 @@ class Couleur
     if ($couleur instanceof self)
       throw new Exception('Already an instance of ' . __CLASS__);
     else if (!is_string($couleur))
-      throw new Exception(__CLASS__ . ' objects can only be created from a String');
+      throw new Exception(__CLASS__ . ' objects can only be created from a String ; this is not one: ' . $couleur);
 
     $format = self::matchSyntax(trim($couleur));
 
@@ -338,7 +338,7 @@ class Couleur
         $this->setLch([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
         break;
       default:
-      throw new Exception('Invalid format');
+      throw new Exception($couleur . 'is not a valid color format');
     }
   }
 
@@ -379,7 +379,7 @@ class Couleur
       }
     }
 
-    throw new Exception('Invalid format');
+    throw new Exception($couleur . 'is not a valid color format');
   }
 
 
@@ -429,7 +429,7 @@ class Couleur
     if ($color instanceof self) return $color;
     try { return new self($color); }
     catch (Exception $error) {
-      throw new Exception('Argument should be an instance of the ' . __CLASS__ . 'class, or a valid color string');
+      throw new Exception('Argument should be an instance of the ' . __CLASS__ . 'class, or a valid color string ; this isn\'t: ' . $color);
     }
   }
 
@@ -452,7 +452,7 @@ class Couleur
         if ($clamp) return max(0, min($n, 1));
         else        return floatval($n);
       }
-      else throw new Exception("Invalid alpha value: $n");
+      else throw new Exception("Invalid $type value: $n");
     }
 
     // Red, green, blue values:
@@ -470,7 +470,7 @@ class Couleur
         if ($clamp) return max(0, min($n / 255, 1));
         else        return $n / 255;
       }
-      else throw new Exception("Invalid RGB value: $n");
+      else throw new Exception("Invalid $type value: $n");
     }
 
     // Hue and CIE hue values:
@@ -506,7 +506,7 @@ class Couleur
           return $_n;
         } else throw new Exception("Invalid angle value: $n");
       }
-      else throw new Exception("Invalid hue value: $n");
+      else throw new Exception("Invalid $type value: $n");
     }
 
     // Percentage values:
@@ -519,7 +519,7 @@ class Couleur
         if ($clamp) return max(0, min(floatval($n) / 100, 1));
         else        return floatval($n) / 100;
       }
-      else throw new Exception("Invalid percentage value: $n");
+      else throw new Exception("Invalid $type value: $n");
     }
 
     // CIE axes values:
@@ -529,7 +529,7 @@ class Couleur
       if (preg_match('/^' . self::vNum . '$/', $n)) {
         return floatval($n);
       }
-      else throw new Exception("Invalid CIE axes value: $n");
+      else throw new Exception("Invalid $type value: $n");
     }
 
     // CIE chroma values:
@@ -541,7 +541,7 @@ class Couleur
         if ($clamp) return max(0, $n);
         else        return floatval($n);
       }
-      else throw new Exception("Invalid CIE chroma value: $n");
+      else throw new Exception("Invalid $type value: $n");
     }
 
     // Arbitrary values
@@ -1078,7 +1078,7 @@ class Couleur
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   public function luminance() {
     if ($this->a < 1)
-      throw new Exception('Can\'t calculate luminance of transparent color');
+      throw new Exception('Can\'t calculate the luminance of a transparent color');
 
     $arr = array(1 * $this->r, 1 * $this->g, 1 * $this->b);
     for ($i = 0; $i <= 2; $i++) {
