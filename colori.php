@@ -310,6 +310,20 @@ class Couleur
   }
 
 
+  ////////////////////////////////////////////////////////////////////
+  // Gets the names of the properties of a color used in a certain format
+  private static function propertiesOf($format) {
+    switch($format) {
+      case 'rgb': return ['r', 'g', 'b'];
+      case 'hsl': return ['h', 's', 'l'];
+      case 'hwb': return ['h', 'w', 'bk'];
+      case 'lab': return ['ciel', 'ciea', 'cieb'];
+      case 'lch': return ['ciel', 'ciec', 'cieh'];
+      default: return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
+    }
+  }
+
+
   //////////////////////////////////////////////////////
   // Matches the user input with supported color formats
   private static function matchSyntax($couleur) {
@@ -1327,6 +1341,32 @@ class Couleur
   }
 
   // Gradient shorthand impossible
+
+
+  //////////////////////////////////////////////////////////////////
+  // Calculates the distance between two colors in a certain format,
+  // by adding the difference between each of its properties.
+  // If no format is given, return the average of the distances for all formats.
+  public static function distance($_couleur1, $_couleur2, $format = null) {
+    $couleur1 = self::check($_couleur1);
+    $couleur2 = self::check($_couleur2);
+
+    $formats = ['rgb', 'hsl', 'hwb', 'lab', 'lch'];
+    if (in_array($format, $formats)) {
+      $properties = self::propertiesOf($format);
+      $properties[] = 'a';
+      $coefficient = function($prop) { return in_array($prop, ['ciea', 'cieb', 'ciec']) ? .01 : 1; };
+      return self::pRound(array_reduce($properties,
+        function($sum, $prop) use ($couleur1, $couleur2, $coefficient) { return $sum + $coefficient($prop) * abs($couleur1->{$prop} - $couleur2->{$prop}); }, 0
+      ), 3);
+    } else {
+      return array_reduce($formats,
+        function($sum, $format) use ($couleur1, $couleur2) { return $sum + self::distance($couleur1, $couleur2, $format); }, 0
+      ) / count($formats);
+    }
+  }
+
+  // Distance shorthand impossible
 
 
   ////////////////////////////////////////////////

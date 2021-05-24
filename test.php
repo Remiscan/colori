@@ -28,7 +28,7 @@ class Test {
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
       $fonction
     );
-    $methods = ['blend', 'contrast', 'contrastedText', 'betterContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale', 'gradient'];
+    $methods = ['blend', 'contrast', 'contrastedText', 'betterContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale', 'gradient', 'distance', 'same'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $methods), 
       array_map(function($x) { return '->' . $x; }, $methods),
@@ -103,12 +103,19 @@ class Test {
 
       return true;
     }
+
     elseif (is_array($resultat) && is_array($this->resultatAttendu)) {
       foreach($resultat as $k => $co) {
         if (!Couleur::same($co, $this->resultatAttendu[$k])) return false;
       }
       return true;
     }
+
+    elseif (is_numeric($this->resultatAttendu)) {
+      if (($resultat - $this->resultatAttendu) > .02) return false;
+      else return true;
+    }
+
     else {
       try {
         $tempResult = Couleur::same($resultat, $this->resultatAttendu);
@@ -255,6 +262,10 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
           const resultat = (typeof this.resultat == 'object' && this.resultat[0] == 'Error') ? this.resultat[0] : this.resultat;
           if (Array.isArray(resultat)) return resultat.every((co, k) => co == this.resultatAttendu[k]);
           else if (typeof this.resultatAttendu === 'object') return sameColor(resultat, this.resultatAttendu);
+          else if (typeof this.resultatAttendu === 'number') {
+            if ((resultat - this.resultatAttendu) > .02) return false;
+            else return true;
+          }
           else {
             let tempResult;
             try { tempResult = Colour.same(resultat, this.resultatAttendu); }

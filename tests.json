@@ -224,5 +224,44 @@
     "fonction": "Colour.gradient('#1f005c', '#ffb56b').map(c => c.lch)",
     "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('#1f005c', '#ffb56b'))",
     "resultatAttendu": [ "lch(9% 59 305)", "lch(23% 58 329)", "lch(37% 57 353)", "lch(51% 56 17)", "lch(66% 54 41)", "lch(80% 53 65)" ]
+  }, {
+    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'rgb')",
+    "resultatAttendu": 2
+  }, {
+    "fonction": "(new Colour('rgb(255, 128, 0)')).distance('rgb(0, 128, 255)', 'rgb')",
+    "resultatAttendu": 2,
+    "nophp": "1"
+  }, {
+    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'hsl')",
+    "resultatAttendu": 0.5
+  }, {
+    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'hwb')",
+    "resultatAttendu": 0.5
+  }, {
+    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'lab')",
+    "resultatAttendu": 1.98
+  }, {
+    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'lch')",
+    "resultatAttendu": 0.89555555555
+  }, {
+    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)')",
+    "resultatAttendu": 1.17511111111
+  }, {
+    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(255, 128, 0)', 'rgb')",
+    "resultatAttendu": 0
+  }, {
+    "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(0, 128, 255)')",
+    "resultatAttendu": false
+  }, {
+    "fonction": "(new Colour('rgb(255, 128, 0)')).same('rgb(0, 128, 255)')",
+    "resultatAttendu": false,
+    "nophp": "1"
+  }, {
+    "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(255, 128, 0)')",
+    "resultatAttendu": true
+  }, {
+    "fonction": "(new Colour('rgb(255, 128, 0)')).same('rgb(255, 128, 0)')",
+    "resultatAttendu": true,
+    "nophp": "1"
   }
 ]

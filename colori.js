@@ -1069,19 +1069,48 @@ export default class Couleur {
   }
 
 
+  //////////////////////////////////////////////////////////////////
+  // Calculates the distance between two colors in a certain format,
+  // by adding the difference between each of its properties.
+  // If no format is given, return the average of the distances for all formats.
+  static distance(_couleur1, _couleur2, format = null) {
+    const couleur1 = Couleur.check(_couleur1);
+    const couleur2 = Couleur.check(_couleur2);
+
+    const formats = ['rgb', 'hsl', 'hwb', 'lab', 'lch'];
+    if (formats.includes(format)) {
+      const properties = Couleur.propertiesOf(format);
+      properties.push('a');
+      const coefficient = prop => ['ciea', 'cieb', 'ciec'].includes(prop) ? .01 : 1;
+      return Couleur.pRound(properties.reduce(
+        (sum, prop) => sum + coefficient(prop) * Math.abs(couleur1[prop] - couleur2[prop]), 0
+      ), 3);
+    } else {
+      return formats.reduce(
+        (sum, format) => sum + Couleur.distance(couleur1, couleur2, format), 0
+      ) / formats.length;
+    }
+  }
+
+  // Shorthand for Couleur.distance()
+  distance(couleur2, format = null) {
+    return Couleur.distance(this, couleur2, format);
+  }
+
+
   ///////////////////////////////////////////////////////////////////
   // Determines if two colors are identical, with a certain tolerance
   static same(_couleur1, _couleur2, tolerance = .02) {
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
 
-    for(const [prop, valeur] of Object.entries(couleur1)) {
-      let tempTolerance = tolerance;
-      if (['ciea', 'cieb', 'ciec'].includes(prop)) tempTolerance *= 100;
-      if (Math.abs(valeur - couleur2[prop]) > tempTolerance) return false;
-    }
+    if (Couleur.distance(couleur1, couleur2) > tolerance) return false;
+    else return true;
+  }
 
-    return true;
+  // Shorthand for Couleur.same()
+  same(couleur2, tolerance = .02) {
+    return Couleur.same(this, couleur2, tolerance);
   }
 
 
@@ -1090,8 +1119,19 @@ export default class Couleur {
   /* Color data */
   /**************/
 
+  static propertiesOf(format) {
+    switch(format) {
+      case 'rgb': return ['r', 'g', 'b'];
+      case 'hsl': return ['h', 's', 'l'];
+      case 'hwb': return ['h', 'w', 'bk'];
+      case 'lab': return ['ciel', 'ciea', 'cieb'];
+      case 'lch': return ['ciel', 'ciec', 'cieh'];
+      default: return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
+    }
+  }
+
   static get properties() {
-    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
+    return Couleur.propertiesOf();
   }
 
   static get formats() {
