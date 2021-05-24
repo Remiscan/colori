@@ -1047,6 +1047,7 @@ aside.nav-documentation {
 
 .nav-rapide a {
   text-decoration: none;
+  box-shadow: none;
 }
 
 .nav-documentation > input[type=checkbox] {
