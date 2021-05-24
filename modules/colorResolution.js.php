@@ -81,6 +81,20 @@ const methodes = [
       new RegExp(`^(.+)$`)
     ],
     argIsColor: [true, false]
+  }, {
+    name: 'distance',
+    args: [
+      new RegExp(`^(.+)${vSep}(.+)$`),
+      new RegExp(`^(.+)$`)
+    ],
+    argIsColor: [true, false]
+  }, {
+    name: 'same',
+    args: [
+      new RegExp(`^(.+)${vSep}(${Couleur.vNum})$`),
+      new RegExp(`^(.+)$`)
+    ],
+    argIsColor: [true, false]
   }
 ];
 

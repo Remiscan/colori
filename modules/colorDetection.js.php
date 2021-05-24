@@ -36,11 +36,12 @@ export async function updateCouleur(couleur, delai = 100) {
     } else if (entree != null) {
       const valeur = document.querySelector('.format.valeur code');
 
-      // If the result is a number, display it below the input field
-      if (typeof entree == 'number') {
+      // If the result is a number or a boolean, display it in the results
+      if (typeof entree == 'number' || typeof entree == 'boolean') {
         valeur.innerHTML = entree;
         donnees.classList.add('valeur');
       }
+
       // If the result is an array of colors, display their gradient as the input background
       else if (Array.isArray(entree) && entree.reduce((sum, e) => sum + (e instanceof Couleur), 0)) {
         const gradient = `linear-gradient(to right, ${entree.map(c => c.name || c.rgb).join(', ')})`;
@@ -53,6 +54,8 @@ export async function updateCouleur(couleur, delai = 100) {
 
         document.querySelector('.format.gradient').style.setProperty('--gradient', gradient);
       }
+
+      // If not any of these, display the results in the console
       else console.log(`${couleur} == ${entree}`);
     }
     return;
