@@ -189,7 +189,7 @@ export function resolveColor(input) {
     return couleur;
   }
   catch (error) {
-    if (error != 'ignore') console.error(error);
+    if (error != 'ignore') console.log(error);
     return null;
   }
 }

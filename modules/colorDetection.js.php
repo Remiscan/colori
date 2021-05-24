@@ -43,7 +43,7 @@ export async function updateCouleur(couleur, delai = 100) {
       }
 
       // If the result is an array of colors, display their gradient as the input background
-      else if (Array.isArray(entree) && entree.reduce((sum, e) => sum + (e instanceof Couleur), 0)) {
+      else if (Array.isArray(entree) && entree.length > 0 && entree.reduce((sum, e) => sum + (e instanceof Couleur), 0)) {
         const gradient = `linear-gradient(to right, ${entree.map(c => c.name || c.rgb).join(', ')})`;
         
         colorInterface(entree[0]);
