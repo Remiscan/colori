@@ -381,19 +381,24 @@ input[type="radio"] + label>span {
 .lien-github:link,
 .lien-github:visited {
   text-decoration: none;
+  box-shadow: none;
   color: var(--h1-color);
 }
 
 .lien-github:hover,
 .lien-github:focus,
 .lien-github:active {
-  text-decoration: underline;
-  color: var(--h1-color);
-  background-color: transparent;
+  color: var(--section-color);
 }
 
 .lien-github svg {
   fill: var(--h1-color);
+}
+
+.lien-github:hover svg,
+.lien-github:focus svg,
+.lien-github:active svg {
+  fill: var(--section-color);
 }
 
 span[data-string=github] {
