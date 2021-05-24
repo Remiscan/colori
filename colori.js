@@ -982,9 +982,9 @@ export default class Couleur {
   // Changes a property of the color
   change(propriete, valeur, options = {}) {
     const replace = (options === true) || ((typeof options.replace != 'undefined') ? options.replace : false);
-    const scale = options.scale || false;
+    const scale = (typeof options.scale != 'undefined') ? options.scale : false;
     const val = scale ? Couleur.parse(valeur) : Couleur.parse(valeur, propriete, false);
-    const changedColor = new Couleur(`${this.rgb}`);
+    const changedColor = new Couleur(this.rgb);
 
     if (['r', 'g', 'b', 'a'].includes(propriete)) {
       const rgba = [this.r, this.g, this.b, this.a];
