@@ -173,7 +173,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 15))." 
           </div>
         </div>
 
-        <h2 class="titre-partie-docu" data-string="demo-resultats-titre"><?=$Textes->getString('demo-resultats-titre')?></h2>
+        <h2 class="titre-partie-docu no-separator" data-string="demo-resultats-titre"><?=$Textes->getString('demo-resultats-titre')?></h2>
 
         <div id="donnees">
           <div class="format couleur" data-string="apercu-couleur"><?=$Textes->getString('apercu-couleur')?></div>

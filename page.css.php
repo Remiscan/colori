@@ -1120,18 +1120,20 @@ aside.nav-documentation {
   position: relative;
 }
 .titre-partie-docu {
-  margin-top: 2.4em;
+  --margin-top: 1.2em;
+  --separator-width: 100%;
+  margin-top: var(--margin-top);
 }
 
 /* Séparateur entre parties */
 .titre-partie-docu::before { 
   content: '';
   display: block;
-  width: 60px;
+  width: var(--separator-width);
   height: 4px;
   border-radius: 6px;
   position: absolute;
-  top: -1.2em;
+  top: calc(-0.5 * var(--margin-top));
   left: 50%;
   transform: translate(-50%, 50%);
   background: var(--h3-color);
@@ -1139,11 +1141,8 @@ aside.nav-documentation {
 }
 
 .titre-partie-docu.no-separator {
-  margin-top: 0;
-}
-
-.titre-partie-docu.no-separator::before {
-  display: none;
+  --margin-top: .6em;
+  --separator-width: 0;
 }
 
 
