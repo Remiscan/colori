@@ -14,7 +14,7 @@ $startColor = new Couleur($namedColors[$r]);
 
 // Adapte l'interface (en attendant que JavaScript s'en charge)
 $bodyColor = new Couleur("lch(75% $startColor->ciec ".round($startColor->cieh * 360).")");
-$bodyColorDark = new Couleur("lch(8% ".(.6 * $startColor->ciec)." ".round($startColor->cieh * 360).")");
+$bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 15))." ".round($startColor->cieh * 360).")");
 ?>
 <!doctype html>
 <html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>"
