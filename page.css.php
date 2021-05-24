@@ -987,6 +987,9 @@ a:active {
   text-decoration: none;
   border-radius: .2em;
 }
+a:focus-visible {
+  box-shadow: none;
+}
 
 strong, em {
   color: var(--text-strong-color);
