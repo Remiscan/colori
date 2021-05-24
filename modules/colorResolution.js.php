@@ -95,6 +95,14 @@ const methodes = [
       new RegExp(`^(.+)$`)
     ],
     argIsColor: [true, false]
+  }, {
+    name: 'unblend',
+    args: [
+      new RegExp(`^(.+)${vSep}(${Couleur.vNum})${vSep}(${Couleur.vNum})$`),
+      new RegExp(`^(.+)${vSep}(${Couleur.vNum})$`),
+      new RegExp(`^(.+)$`)
+    ],
+    argIsColor: [true, false, false]
   }
 ];
 

@@ -28,7 +28,7 @@ class Test {
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
       $fonction
     );
-    $methods = ['blend', 'contrast', 'contrastedText', 'betterContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale', 'gradient', 'distance', 'same'];
+    $methods = ['blend', 'contrast', 'contrastedText', 'betterContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale', 'gradient', 'distance', 'same', 'unblend'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $methods), 
       array_map(function($x) { return '->' . $x; }, $methods),
@@ -94,6 +94,13 @@ class Test {
 
       foreach($c2Props as $prop => $value) {
         $tolerance = .02;
+        if (
+          ($prop == 'cieh' && $c1Props['ciec'] <= $tolerance && $c2Props['ciec'] <= $tolerance)
+          || (in_array($prop, ['s', 'h']) && $c1Props['l'] >= 1 - $tolerance && $c2Props['l'] >= 1 - $tolerance)
+          || (in_array($prop, ['s', 'h']) && $c1Props['l'] <= $tolerance && $c2Props['l'] <= $tolerance)
+          || ($prop == 'h' && $c1Props['s'] <= $tolerance && $c2Props['s'] <= $tolerance)
+          || ($prop == 'h' && $c1Props['bk'] + $c1Props['w'] >= 1 - $tolerance && $c2Props['bk'] + $c2Props['w'] >= 1 - $tolerance)
+        ) continue;
         if (in_array($prop, ['ciea', 'cieb', 'ciec'])) $tolerance *= 100;
         if (
           $value != $c1Props[$prop]
@@ -218,6 +225,8 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
       const testChangeHue = new Colour('hsl(350, 25%, 52%)');
       const testLab = new Colour('lab(92% -45 9)');
 
+      const tolerance = .03;
+
       function sameColor(couleur1, couleur2) {
         var c1Props = Object.getOwnPropertyNames(couleur1);
         var c2Props = Object.getOwnPropertyNames(couleur2);
@@ -225,13 +234,17 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
         if (c1Props.length != c2Props.length) return false;
 
         for (var i = 0; i < c1Props.length; i++) {
-          let tolerance = .02;
+          let tempTolerance = tolerance;
           var prop = c1Props[i];
-          if (['ciea', 'cieb', 'ciec'].includes(prop)) tolerance *= 100;
           if (
-            couleur1[prop] !== couleur2[prop]
-            && Math.abs(couleur1[prop] - couleur2[prop]) > tolerance
-          ) return false;
+            (prop == 'cieh' && couleur1.ciec <= tolerance && couleur2.ciec <= tolerance)
+            || (['s', 'h'].includes(prop) && couleur1.l >= 1 - tolerance && couleur2.l >= 1 - tolerance)
+            || (['s', 'h'].includes(prop) && couleur1.l <= tolerance && couleur2.l <= tolerance)
+            || (prop == 'h' && couleur1.s <= tolerance && couleur2.s <= tolerance)
+            || (prop == 'h' && couleur1.bk + couleur1.w >= 1 - tolerance && couleur2.bk + couleur2.w >= 1 - tolerance)
+          ) continue;
+          if (['ciea', 'cieb', 'ciec'].includes(prop)) tempTolerance *= 100;
+          if (Math.abs(couleur1[prop] - couleur2[prop]) > tempTolerance) return false;
         }
 
         return true;
@@ -259,11 +272,13 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
         }
 
         validate() {
-          const resultat = (typeof this.resultat == 'object' && this.resultat[0] == 'Error') ? this.resultat[0] : this.resultat;
-          if (Array.isArray(resultat)) return resultat.every((co, k) => co == this.resultatAttendu[k]);
+          const resultat = (typeof this.resultat == 'object' && this.resultat != null && this.resultat[0] == 'Error') ? this.resultat[0]
+                                                                                                                      : this.resultat;
+          if (resultat == 'Error') return this.resultatAttendu == 'Error';
+          else if (Array.isArray(resultat)) return resultat.every((co, k) => co == this.resultatAttendu[k]);
           else if (typeof this.resultatAttendu === 'object') return sameColor(resultat, this.resultatAttendu);
           else if (typeof this.resultatAttendu === 'number') {
-            if ((resultat - this.resultatAttendu) > .02) return false;
+            if ((resultat - this.resultatAttendu) > tolerance) return false;
             else return true;
           }
           else {

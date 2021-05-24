@@ -263,5 +263,15 @@
     "fonction": "(new Colour('rgb(255, 128, 0)')).same('rgb(255, 128, 0)')",
     "resultatAttendu": true,
     "nophp": "1"
+  }, {
+    "fonction": "Colour.unblend('rgb(255, 128, 128)', 'rgba(255, 255, 255, .5)').name",
+    "resultatAttendu": "red"
+  }, {
+    "fonction": "Colour.unblend('rgb(255, 128, 128)', 'red', .5)",
+    "resultatAttendu": { "r": 1, "g": 1, "b": 1, "a": 0.5, "h": 0, "s": 0, "l": 1, "w": 1, "bk": 0, "ciel": 1, "ciea": 0, "cieb": 0, "ciec": 0, "cieh": 0 }
+  }, {
+    "fonction": "Colour.unblend('rgb(255, 128, 128)', 'red').map(c => c.hsla)",
+    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::unblend('rgb(255, 128, 128)', 'red'))",
+    "resultatAttendu": [ "hsla(0, 0%, 100%, 0.5)", "hsla(0, 100%, 92%, 0.6)", "hsla(0, 100%, 86%, 0.7)", "hsla(0, 100%, 81%, 0.8)", "hsla(0, 100%, 78%, 0.9)", "hsla(0, 100%, 75%, 1)" ]
   }
 ]
