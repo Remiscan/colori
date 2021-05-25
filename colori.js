@@ -1147,7 +1147,7 @@ export default class Couleur {
   // Calculates the distance between two colors in a certain format,
   // by adding the difference between each of its properties.
   // If no format is given, return the average of the distances for all formats.
-  static distance(_couleur1, _couleur2, format = null, tolerance = .02) {
+  static distance(_couleur1, _couleur2, format = null, tolerance = Couleur.tolerance) {
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
 
@@ -1181,14 +1181,14 @@ export default class Couleur {
   }
 
   // Shorthand for Couleur.distance()
-  distance(couleur2, format = null, tolerance = .02) {
+  distance(couleur2, format = null, tolerance = Couleur.tolerance) {
     return Couleur.distance(this, couleur2, format, tolerance);
   }
 
 
   ///////////////////////////////////////////////////////////////////
   // Determines if two colors are identical, with a certain tolerance
-  static same(_couleur1, _couleur2, tolerance = .02) {
+  static same(_couleur1, _couleur2, tolerance = Couleur.tolerance) {
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
 
@@ -1197,7 +1197,7 @@ export default class Couleur {
   }
 
   // Shorthand for Couleur.same()
-  same(couleur2, tolerance = .02) {
+  same(couleur2, tolerance = Couleur.tolerance) {
     return Couleur.same(this, couleur2, tolerance);
   }
 
@@ -1220,6 +1220,13 @@ export default class Couleur {
 
   static get properties() {
     return Couleur.propertiesOf();
+  }
+
+  // When comparing the value of a property between two colors,
+  // this is the maximum tolerated difference before they're
+  // considered different colors.
+  static get tolerance() {
+    return .02;
   }
 
   static get formats() {

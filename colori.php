@@ -257,6 +257,8 @@ class Couleur
     )
   );
   
+  private const TOLERANCE = .02;
+  
   public $r;
   public $g;
   public $b;
@@ -1414,7 +1416,7 @@ class Couleur
   // Calculates the distance between two colors in a certain format,
   // by adding the difference between each of its properties.
   // If no format is given, return the average of the distances for all formats.
-  public static function distance($_couleur1, $_couleur2, $format = null, $tolerance = .02) {
+  public static function distance($_couleur1, $_couleur2, $format = null, $tolerance = self::TOLERANCE) {
     $couleur1 = self::check($_couleur1);
     $couleur2 = self::check($_couleur2);
 
@@ -1449,12 +1451,10 @@ class Couleur
     }
   }
 
-  // Distance shorthand impossible
-
 
   ////////////////////////////////////////////////
   // Determines if two colors are almost identical
-  public static function same($_couleur1, $_couleur2, $tolerance = .02) {
+  public static function same($_couleur1, $_couleur2, $tolerance = self::TOLERANCE) {
     $couleur1 = self::check($_couleur1);
     $couleur2 = self::check($_couleur2);
 
