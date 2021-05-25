@@ -773,7 +773,7 @@ export default class Couleur {
       if (overlay.a == 0) {
         result = background;
         break calculation;
-    }
+      }
 
       const a = overlay.a + background.a * (1 - overlay.a);
       const r = (overlay.r * overlay.a + background.r * background.a * (1 - overlay.a)) / a;
@@ -813,8 +813,8 @@ export default class Couleur {
       else if (result.a == overlay.a) {
         if (Couleur.same(result, overlay))  background = new Couleur('transparent');
         else                                return null;
-    }
-    else {
+      }
+      else {
         const a = Couleur.pRound((result.a - overlay.a) / (1 - overlay.a), 3);
         const r = Couleur.pRound((result.r * result.a - overlay.r * overlay.a) / (a * (1 - overlay.a)), 3);
         const g = Couleur.pRound((result.g * result.a - overlay.g * overlay.a) / (a * (1 - overlay.a)), 3);
@@ -833,7 +833,7 @@ export default class Couleur {
   // Shorthand for Couleur.unblend()
   unblend(...couleurs) {
     return Couleur.unblend(this, ...couleurs);
-    }
+  }
 
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -854,12 +854,12 @@ export default class Couleur {
       const b = Couleur.pRound((result.b * result.a - background.b * background.a * (1 - a)) / a, 3);
       for (const x of [r, g, b]) {
         if (x < 0 - Couleur.tolerance || x > 1 + Couleur.tolerance) throw `This color doesn't exist`;
-    }
+      }
       return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${a})`);
     };
 
     // If alpha is known, we can find at most one solution
-      if (typeof alpha == 'number' && alpha >= 0 && alpha <= 1) {
+    if (typeof alpha == 'number' && alpha >= 0 && alpha <= 1) {
       if (alpha === 0) {
         if (Couleur.same(background, result)) return new Couleur('transparent');
         else                                  return null;
@@ -884,7 +884,7 @@ export default class Couleur {
         try { overlay = calculateSolution(a); }
         catch (error) { return null; }
       }
-      }
+    }
     else if (result.a == background.a) {
       if (Couleur.same(result, background))   overlay = new Couleur('transparent');
       else if (background.a < 1)              return null;
@@ -897,19 +897,19 @@ export default class Couleur {
           catch { return null; }
         }
         else {
-        for (let a = alphaStep; a < 1; a += alphaStep) {
+          for (let a = alphaStep; a < 1; a += alphaStep) {
             try {
               solutions.push(calculateSolution(a));
             } catch (error) { continue; }
-        }
+          }
           switch (solutions.length) {
             case 0:  overlay = null; break;
             case 1:  overlay = solutions[0]; break;
             default: overlay = solutions;
+          }
+        }
       }
     }
-      }
-  }
 
     if (typeof alpha == 'number') return (overlay.a == alpha) ? overlay : null;
     else                          return overlay;

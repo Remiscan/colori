@@ -256,7 +256,7 @@ class Couleur
       )
     )
   );
-  
+
   private const TOLERANCE = .02;
   
   public $r;
@@ -412,7 +412,7 @@ class Couleur
     if ($color instanceof self) return $color;
     try { return new self($color); }
     catch (Exception $error) {
-      throw new Exception('Argument should be an instance of the ' . __CLASS__ . 'class, or a valid color string ; this isn\'t: ' . $color);
+      throw new Exception('Argument should be an instance of the ' . __CLASS__ . ' class, or a valid color string ; this isn\'t: ' . $color);
     }
   }
 
@@ -1049,7 +1049,7 @@ class Couleur
 
     if (count($couleurs) == 0)  return $result;
     else                        return self::blend($result, ...$couleurs);
-    }
+  }
 
 
   ///////////////////////////////////////////////////////////////////////////////////////
@@ -1083,7 +1083,7 @@ class Couleur
         }
         $background = new self('rgb('. 255 * $r .', '. 255 * $g .', '. 255 * $b .', '. $a .')');
       }
-  }
+    }
 
     if (count($couleurs) == 0) return $background;
     else return self::unblend($background, ...$couleurs);
@@ -1116,13 +1116,13 @@ class Couleur
       if  ($alpha === 0) {
         if (self::same($background, $result)) return new self('transparent');
         else                                  return null;
-    }
+      }
       elseif ($alpha === 1)                   return $result;
       elseif ($result->a < $alpha)            return null;
       elseif ($result->a == $alpha) {
         if ($background->a > 0)               return null;
         else                                  return $result;
-    }
+      }
     }
 
     // If alpha isn't known, we can find at most one solution per possible alpha value
@@ -1136,8 +1136,8 @@ class Couleur
         if (is_numeric($alpha) && abs($a - $alpha) > self::TOLERANCE) return null;
         try { $overlay = $calculateSolution($a); }
         catch (Exception $error) { return null; }
-    }
       }
+    }
     elseif ($result->a == $background->a) {
       if (self::same($result, $background)) $overlay = new self('transparent');
       elseif ($background->a < 1)             return null;
@@ -1150,19 +1150,19 @@ class Couleur
           catch (Exception $error) { return null; }
         }
         else {
-        for ($a = $alphaStep; $a < 1; $a += $alphaStep) {
+          for ($a = $alphaStep; $a < 1; $a += $alphaStep) {
             try {
               $solutions[] = $calculateSolution($a);
             } catch (Exception $error) { continue; }
-        }
+          }
           switch (count($solutions)) {
             case 0: $overlay = null; break;
             case 1: $overlay = $solutions[0]; break;
             default: $overlay = $solutions;
           }
+        }
       }
     }
-  }
 
     if (is_numeric($alpha)) return ($overlay->a == $alpha) ? $overlay : null;
     else return $overlay;
@@ -1203,8 +1203,6 @@ class Couleur
     $Lmin = min($L1, $L2);
     return self::pRound(($Lmax + 0.05) / ($Lmin + 0.05));
   }
-
-  // Shorthand for contrast impossible
   
 
   ////////////////////////////////////////////////////////////////////////////
@@ -1454,8 +1452,6 @@ class Couleur
     $intermediateColors[] = $to;
     return $intermediateColors;
   }
-
-  // Gradient shorthand impossible
 
 
   //////////////////////////////////////////////////////////////////
