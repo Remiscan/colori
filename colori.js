@@ -21,29 +21,30 @@ export default class Couleur {
     this.cieh = null;
 
     const format = Couleur.matchSyntax(couleur.trim());
+    const isAlpha = (val, def = 1) => !!val ? val : (val == 0) ? 0 : def;
 
     switch (format.id) {
       case 'HEX':
       case 'HEXA':
-        this.hex = [format.data[1], format.data[2], format.data[3], format.data[4] || 'ff'];
+        this.hex = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')];
         break;
       case 'RGB':
       case 'RGBA':
-        this.rgb = [format.data[1], format.data[2], format.data[3], format.data[4] || 1];
+        this.rgb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
         break;
       case 'HSL':
       case 'HSLA':
-        this.hsl = [format.data[1], format.data[2], format.data[3], format.data[4] || 1];
+        this.hsl = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
         break;
       case 'HWB':
       case 'HWBA':
-        this.hwb = [format.data[1], format.data[2], format.data[3], format.data[4] || 1];
+        this.hwb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
         break;
       case 'LAB':
-        this.lab = [format.data[1], format.data[2], format.data[3], format.data[4] || 1];
+        this.lab = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
         break;
       case 'LCH':
-        this.lch = [format.data[1], format.data[2], format.data[3], format.data[4] || 1];
+        this.lch = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
         break;
       default:
         throw `${couleur} is not a valid color format`;
@@ -284,7 +285,8 @@ export default class Couleur {
     for (let i = 0; i < props.length; i++) {
       this[props[i]] = Couleur.pRound(Couleur.parse(data[i], props[i]));
     }
-    this.a = Couleur.pRound(Couleur.parse(data[3] || 1, 'a'));
+    const isAlpha = (val, def = 1) => !!val ? val : (val == 0) ? 0 : def;
+    this.a = Couleur.pRound(Couleur.parse(isAlpha(data[3]), 'a'));
     this.compute(format);
   }
 
