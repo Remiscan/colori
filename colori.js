@@ -761,101 +761,163 @@ export default class Couleur {
   /********************************/
 
 
-  /////////////////////////////////////////////////
-  // Blends a transparent color and an opaque color
-  static blend(_couleur1, _couleur2, alpha = null) {
-    let couleur1 = Couleur.check(_couleur1);
-    let couleur2 = Couleur.check(_couleur2);
+  ///////////////////////////////////////////////////////
+  // Blends colors together, in the order they were given
+  static blend(...couleurs) {
+    if (couleurs.length < 2) throw `You need at least 2 colors to blend`;
+    const background = Couleur.check(couleurs.shift());
+    const overlay = Couleur.check(couleurs.shift());
+    let result;
 
-    let background, overlay;
-    if (couleur1.a < 1 && couleur2.a < 1)
-      throw 'At least one of the arguments needs to be an opaque Couleur';
-    else if (couleur1.a < 1 && couleur2.a == 1) {
-      background = couleur2;
-      overlay = couleur1;
-    } else {
-      background = couleur1;
-      overlay = couleur2;
+    calculation: {
+      if (overlay.a == 0) {
+        result = background;
+        break calculation;
     }
 
-    if (alpha !== null && alpha != overlay.a) overlay = overlay.replace('a', alpha);
+      const a = overlay.a + background.a * (1 - overlay.a);
+      const r = (overlay.r * overlay.a + background.r * background.a * (1 - overlay.a)) / a;
+      const g = (overlay.g * overlay.a + background.g * background.a * (1 - overlay.a)) / a;
+      const b = (overlay.b * overlay.a + background.b * background.a * (1 - overlay.a)) / a;
+      result = new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${a})`);
+    }
 
-    const r = overlay.a * overlay.r + (1 - overlay.a) * background.r;
-    const g = overlay.a * overlay.g + (1 - overlay.a) * background.g;
-    const b = overlay.a * overlay.b + (1 - overlay.a) * background.b;
-
-    return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b})`);
+    if (couleurs.length == 0) return result;
+    else                      return Couleur.blend(result, ...couleurs);
   }
 
   // Shorthand for Couleur.blend
-  blend(couleur2, alpha = null) {
-    return Couleur.blend(this, couleur2, alpha);
+  blend(...couleurs) {
+    return Couleur.blend(this, ...couleurs);
   }
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////
-  // Solves the equation result = blend(background, overlay) with background OR overlay unknown
-  // - if background is unknown, this function returns the only solution
-  // - if overlay is unknown, there are multiple solutions depending on overlay.a
-  //   - if the alpha parameter is passed to the function, then it returns the only solution
-  //   - if no alpha parameter is passed, then it returns an array of solutions (which have
-  //     successive alpha values separated by alphaStep)
-  static unblend(_couleur1, _couleur2, alpha, alphaStep = .1) {
-    let couleur1 = Couleur.check(_couleur1);
-    let couleur2 = Couleur.check(_couleur2);
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Solves the equation result = blend(background, ...overlays) with background unknown.
+  // It will:
+  // - return a Couleur object if the equation has a solution
+  // - return null if the equation has no solution
+  // - throw if the equation has an infinite amount of solutions
+  static unblend(...couleurs) {
+    if (couleurs.length < 2) throw `You need at least 2 colors to unblend`;
+    const result = Couleur.check(couleurs.shift());
+    const overlay = Couleur.check(couleurs.shift());
+    let background;
 
-    let result, background, overlay;
-    if (couleur1.a < 1 && couleur2.a < 1)
-      throw 'At least one of the arguments needs to be an opaque Couleur';
-    else if (couleur1.a < 1 && couleur2.a == 1) {
-      result = couleur2;
-      overlay = couleur1;
+    if (overlay.a == 1) {
+      throw `Overlay color ${overlay.rgb} isn't transparent, so the background it was blended onto could have been any color`;
     }
-    else if (couleur1.a == 1 && couleur2.a < 1) {
-      result = couleur1;
-      overlay = couleur2;
+    else if (overlay.a == 0)                background = result;
+    else {
+      if (result.a < overlay.a)             return null;
+      else if (result.a == overlay.a) {
+        if (Couleur.same(result, overlay))  background = new Couleur('transparent');
+        else                                return null;
     }
     else {
-      result = couleur1;
-      background = couleur2;
+        const a = Couleur.pRound((result.a - overlay.a) / (1 - overlay.a), 3);
+        const r = Couleur.pRound((result.r * result.a - overlay.r * overlay.a) / (a * (1 - overlay.a)), 3);
+        const g = Couleur.pRound((result.g * result.a - overlay.g * overlay.a) / (a * (1 - overlay.a)), 3);
+        const b = Couleur.pRound((result.b * result.a - overlay.b * overlay.a) / (a * (1 - overlay.a)), 3);
+        for (const x of [r, g, b]) {
+          if (x < 0 - Couleur.tolerance || x > 1 + Couleur.tolerance) return null;
+        }
+        background = new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${a})`);
+      }
     }
 
-    // If background is the unknown color, find the unique solution
-    if (typeof background == 'undefined') {
-      const r = (result.r - overlay.a * overlay.r) / (1 - overlay.a);
-      const g = (result.g - overlay.a * overlay.g) / (1 - overlay.a);
-      const b = (result.b - overlay.a * overlay.b) / (1 - overlay.a);
-      return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b})`);
-    }
-    // If overlay is the unknown color
-    else if (typeof overlay == 'undefined') {
-      // If we know its alpha value, find the unique solution
-      if (typeof alpha == 'number' && alpha >= 0 && alpha <= 1) {
-        const r = result.r / alpha - background.r * (1 - alpha) / alpha;
-        const g = result.g / alpha - background.g * (1 - alpha) / alpha;
-        const b = result.b / alpha - background.b * (1 - alpha) / alpha;
-        return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${alpha})`);
-      }
-      // If we don't know the alpha value, return an array of solutions
-      else {
-        const solutions = [];
-        for (let a = alphaStep; a < 1; a += alphaStep) {
-          const r = Couleur.pRound(result.r / a - background.r * (1 - a) / a, 3);
-          if (r < 0 || r > 1) continue;
-          const g = Couleur.pRound(result.g / a - background.g * (1 - a) / a, 3);
-          if (g < 0 || g > 1) continue;
-          const b = Couleur.pRound(result.b / a - background.b * (1 - a) / a, 3);
-          if (b < 0 || b > 1) continue;
-          solutions.push(new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${a})`));
-        }
-        return solutions;
-      }
-    }
+    if (couleurs.length == 0) return background;
+    else                      return Couleur.unblend(background, ...couleurs);
   }
 
   // Shorthand for Couleur.unblend()
-  unblend(couleur2, alpha, alphaStep = .1) {
-    return Couleur.unblend(this, couleur2, alpha, alphaStep);
+  unblend(...couleurs) {
+    return Couleur.unblend(this, ...couleurs);
+    }
+
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Solves the equation result = blend(background, overlay) with overlay unknown.
+  // It will:
+  // - return a Couleur object if the equation has one solution
+  // - return an array of Couleur objects if the equation has a finite number of solutions
+  // - return null if the equation has no solution
+  // - throw if the equation has an infinite amount of solutions
+  static whatToBlend(_couleur1, _couleur2, alpha, alphaStep = .1) {
+    const background = Couleur.check(_couleur1);
+    const result = Couleur.check(_couleur2);
+    let overlay;
+
+    const calculateSolution = a => {
+      const r = Couleur.pRound((result.r * result.a - background.r * background.a * (1 - a)) / a, 3);
+      const g = Couleur.pRound((result.g * result.a - background.g * background.a * (1 - a)) / a, 3);
+      const b = Couleur.pRound((result.b * result.a - background.b * background.a * (1 - a)) / a, 3);
+      for (const x of [r, g, b]) {
+        if (x < 0 - Couleur.tolerance || x > 1 + Couleur.tolerance) throw `This color doesn't exist`;
+    }
+      return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${a})`);
+    };
+
+    // If alpha is known, we can find at most one solution
+      if (typeof alpha == 'number' && alpha >= 0 && alpha <= 1) {
+      if (alpha === 0) {
+        if (Couleur.same(background, result)) return new Couleur('transparent');
+        else                                  return null;
+      }           
+      else if (alpha === 1)                   return result;
+      else if (result.a < alpha)              return null;
+      else if (result.a == alpha) {
+        if (background.a > 0)                 return null;
+        else                                  return result;
+      }
+    }
+
+    // If alpha isn't known, we can find at most one solution per possible alpha value
+    if (result.a < background.a)              return null;
+    else if (result.a > background.a) {
+      if (result.a == 1)                      overlay = result;
+      else if (background.a == 0)             overlay = result;
+      // If 0 < background.a < result.a < 1, we can find a unique solution
+      else {
+        const a = Couleur.pRound((result.a - background.a) / (1 - background.a), 3);
+        if (typeof alpha == 'number' && Math.abs(a - alpha) > Couleur.tolerance) return null;
+        try { overlay = calculateSolution(a); }
+        catch (error) { return null; }
+      }
+      }
+    else if (result.a == background.a) {
+      if (Couleur.same(result, background))   overlay = new Couleur('transparent');
+      else if (background.a < 1)              return null;
+      // If both result and background are opaque, there are multiple solutions (one per alpha value).
+      // Let's calculate some of them.
+      else {
+        const solutions = [];
+        if (typeof alpha == 'number') {
+          try { overlay = calculateSolution(alpha); }
+          catch { return null; }
+        }
+        else {
+        for (let a = alphaStep; a < 1; a += alphaStep) {
+            try {
+              solutions.push(calculateSolution(a));
+            } catch (error) { continue; }
+        }
+          switch (solutions.length) {
+            case 0:  overlay = null; break;
+            case 1:  overlay = solutions[0]; break;
+            default: overlay = solutions;
+      }
+    }
+      }
+  }
+
+    if (typeof alpha == 'number') return (overlay.a == alpha) ? overlay : null;
+    else                          return overlay;
+  }
+
+  // Shorthand for Couleur.whatblend()
+  whatToBlend(couleur2, alpha, alphaStep = .1) {
+    return Couleur.whatToBlend(this, couleur2, alpha, alphaStep);
   }
 
 

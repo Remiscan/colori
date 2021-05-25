@@ -1029,98 +1029,144 @@ class Couleur
   /********************************/
 
 
-  /////////////////////////////////////////////////
-  // Blends a transparent color and an opaque color
-  public static function blend($_couleur1, $_couleur2, $alpha = null)
+  ///////////////////////////////////////////////////////
+  // Blends colors together, in the order they were given
+  public static function blend(...$couleurs)
   {
-    $couleur1 = self::check($_couleur1);
-    $couleur2 = self::check($_couleur2);
+    if (count($couleurs) < 2) throw new Exception("You need at least 2 colors to blend");
+    $background = self::check(array_shift($couleurs));
+    $overlay = self::check(array_shift($couleurs));
 
-    if ($couleur1->a < 1 && $couleur2->a < 1)
-      throw new Exception('At least one of the arguments needs to be an opaque ' . __CLASS__);
-    else if ($couleur1->a < 1 && $couleur2->a == 1) {
-      $background = $couleur2;
-      $overlay = $couleur1;
+    if ($overlay->a == 0) {
+      $result = $background;
+    } else {
+      $a = $overlay->a + $background->a * (1 - $overlay->a);
+      $r = ($overlay->r * $overlay->a + $background->r * $background->a * (1 - $overlay->a)) / $a;
+      $g = ($overlay->g * $overlay->a + $background->g * $background->a * (1 - $overlay->a)) / $a;
+      $b = ($overlay->b * $overlay->a + $background->b * $background->a * (1 - $overlay->a)) / $a;
+      $result = new self('rgb('. 255 * $r .', '. 255 * $g .', '. 255 * $b .', '. $a .')');
     }
+
+    if (count($couleurs) == 0)  return $result;
+    else                        return self::blend($result, ...$couleurs);
+    }
+
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Solves the equation result = blend(background, ...overlays) with background unknown.
+  // It will:
+  // - return a Couleur object if the equation has a solution
+  // - return null if the equation has no solution
+  // - throw if the equation has an infinite amount of solutions
+  public static function unblend(...$couleurs) {
+    if (count($couleurs) < 2) throw new Exception("You need at least 2 colors to blend");
+    $result = self::check(array_shift($couleurs));
+    $overlay = self::check(array_shift($couleurs));
+
+    if ($overlay->a == 1) {
+      throw new Exception("Overlay color ". $overlay->rgb() ." isn't transparent, so the background it was blended onto could have been any color");
+    }
+    elseif ($overlay->a == 0) $background = $result;
     else {
-      $background = $couleur1;
-      $overlay = $couleur2;
-    }
-
-    if ($alpha !== null && $alpha != $overlay->a) $overlay = $overlay.replace('a', $alpha);
-
-    // * 10 ** 5 to avoid the accumulation of precision errors
-    $r = round(10 ** 5 * 255 * ($overlay->a * $overlay->r + (1 - $overlay->a) * $background->r)) / 10 ** 5;
-    $g = round(10 ** 5 * 255 * ($overlay->a * $overlay->g + (1 - $overlay->a) * $background->g)) / 10 ** 5;
-    $b = round(10 ** 5 * 255 * ($overlay->a * $overlay->b + (1 - $overlay->a) * $background->b)) / 10 ** 5;
-
-    return new self('rgb('.$r.', '.$g.', '.$b.')');
+      if ($result->a < $overlay->a) return null;
+      elseif ($result->a == $overlay->a) {
+        if (self::same($result, $overlay)) $background = new self('transparent');
+        else return null;
+      }
+      else {
+        $a = self::pRound(($result->a - $overlay->a) / (1 - $overlay->a), 3);
+        $r = self::pRound(($result->r * $result->a - $overlay->r * $overlay->a) / ($a * (1 - $overlay->a)), 3);
+        $g = self::pRound(($result->g * $result->a - $overlay->g * $overlay->a) / ($a * (1 - $overlay->a)), 3);
+        $b = self::pRound(($result->b * $result->a - $overlay->b * $overlay->a) / ($a * (1 - $overlay->a)), 3);
+        foreach([$r, $g, $b] as $x) {
+          if ($x < 0 - self::TOLERANCE || $x > 1 + self::TOLERANCE) return null;
+        }
+        $background = new self('rgb('. 255 * $r .', '. 255 * $g .', '. 255 * $b .', '. $a .')');
+      }
   }
 
-  // Shorthand for blend impossible
+    if (count($couleurs) == 0) return $background;
+    else return self::unblend($background, ...$couleurs);
+  }
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////
-  // Solves the equation result = blend(background, overlay) with background OR overlay unknown
-  // - if background is unknown, this function returns the only solution
-  // - if overlay is unknown, there are multiple solutions depending on overlay.a
-  //   - if the alpha parameter is passed to the function, then it returns the only solution
-  //   - if no alpha parameter is passed, then it returns an array of solutions (which have
-  //     successive alpha values separated by alphaStep)
-  public static function unblend($_couleur1, $_couleur2, $alpha = null, $alphaStep = .1) {
-    $couleur1 = self::check($_couleur1);
-    $couleur2 = self::check($_couleur2);
+  ////////////////////////////////////////////////////////////////////////////////
+  // Solves the equation result = blend(background, overlay) with overlay unknown.
+  // It will:
+  // - return a Couleur object if the equation has one solution
+  // - return an array of Couleur objects if the equation has a finite number of solutions
+  // - return null if the equation has no solution
+  // - throw if the equation has an infinite amount of solutions
+  public static function whatToBlend($_couleur1, $_couleur2, $alpha = null, $alphaStep = .1) {
+    $background = self::check($_couleur1);
+    $result = self::check($_couleur2);
 
-    $result = $background = $overlay = null;
-    if ($couleur1->a < 1 && $couleur2->a < 1)
-      throw new Exception('At least one of the arguments needs to be an opaque ' . __CLASS__);
-    elseif ($couleur1->a < 1 && $couleur2->a == 1) {
-      $result = $couleur2;
-      $overlay = $couleur1;
-    }
-    elseif ($couleur1->a == 1 && $couleur2->a < 1) {
-      $result = $couleur1;
-      $overlay = $couleur2;
-    }
-    else {
-      $result = $couleur1;
-      $background = $couleur2;
-    }
-
-    // If background is the unknown color, find the unique solution
-    if ($background === null) {
-      $r = ($result->r - $overlay->a * $overlay->r) / (1 - $overlay->a);
-      $g = ($result->g - $overlay->a * $overlay->g) / (1 - $overlay->a);
-      $b = ($result->b - $overlay->a * $overlay->b) / (1 - $overlay->a);
-      return new self('rgb('. 255 * $r .', '. 255 * $g .', '. 255 * $b .')');
-    }
-    // If overlay is the unknown color
-    elseif ($overlay === null) {
-      // If we know its alpha value, find the unique solution
-      if (is_numeric($alpha) && $alpha >= 0 && $alpha <= 1) {
-        $r = $result->r / $alpha - $background->r * (1 - $alpha) / $alpha;
-        $g = $result->g / $alpha - $background->g * (1 - $alpha) / $alpha;
-        $b = $result->b / $alpha - $background->b * (1 - $alpha) / $alpha;
-        return new self('rgb('. 255 * $r .', '. 255 * $g .', '. 255 * $b .', '. $alpha .')');
+    $calculateSolution = function($a) use ($result, $background) {
+      $r = self::pRound(($result->r * $result->a - $background->r * $background->a * (1 - $a)) / $a, 3);
+      $g = self::pRound(($result->g * $result->a - $background->g * $background->a * (1 - $a)) / $a, 3);
+      $b = self::pRound(($result->b * $result->a - $background->b * $background->a * (1 - $a)) / $a, 3);
+      foreach([$r, $g, $b] as $x) {
+        if ($x < 0 - self::TOLERANCE || $x > 1 + self::TOLERANCE) throw new Exception("This color doesn't exist");
       }
-      // If we don't know the alpha value, return an array of solutions
+      return new self('rgb('. 255 * $r .', '. 255 * $g .', '. 255 * $b .', '. $a .')');
+    };
+
+    // If alpha is known, we can find at most one solution
+    if (is_numeric($alpha) && $alpha >= 0 && $alpha <= 1) {
+      if  ($alpha === 0) {
+        if (self::same($background, $result)) return new self('transparent');
+        else                                  return null;
+    }
+      elseif ($alpha === 1)                   return $result;
+      elseif ($result->a < $alpha)            return null;
+      elseif ($result->a == $alpha) {
+        if ($background->a > 0)               return null;
+        else                                  return $result;
+    }
+    }
+
+    // If alpha isn't known, we can find at most one solution per possible alpha value
+    if ($result->a < $background->a)          return null;
+    elseif ($result->a > $background->a) {
+      if ($result->a == 1)                    $overlay = $result;
+      elseif ($background->a == 0)            $overlay = $result;
+      // If 0 < background.a < result.a < 1, we can find a unique solution
+      else {
+        $a = self::pRound(($result->a - $background->a) / (1 - $background->a), 3);
+        if (is_numeric($alpha) && abs($a - $alpha) > self::TOLERANCE) return null;
+        try { $overlay = $calculateSolution($a); }
+        catch (Exception $error) { return null; }
+    }
+      }
+    elseif ($result->a == $background->a) {
+      if (self::same($result, $background)) $overlay = new self('transparent');
+      elseif ($background->a < 1)             return null;
+      // If both result and background are opaque, there are multiple solutions (one per alpha value).
+      // Let's calculate some of them.
       else {
         $solutions = [];
-        for ($a = $alphaStep; $a < 1; $a += $alphaStep) {
-          $r = self::pRound($result->r / $a - $background->r * (1 - $a) / $a, 3);
-          if ($r < 0 || $r > 1) continue;
-          $g = self::pRound($result->g / $a - $background->g * (1 - $a) / $a, 3);
-          if ($g < 0 || $g > 1) continue;
-          $b = self::pRound($result->b / $a - $background->b * (1 - $a) / $a, 3);
-          if ($b < 0 || $b > 1) continue;
-          $solutions[] = new self('rgb('. 255 * $r .', '. 255 * $g .', '. 255 * $b .', '. $a .')');
+        if (is_numeric($alpha)) {
+          try { $overlay = $calculateSolution($alpha); }
+          catch (Exception $error) { return null; }
         }
-        return $solutions;
+        else {
+        for ($a = $alphaStep; $a < 1; $a += $alphaStep) {
+            try {
+              $solutions[] = $calculateSolution($a);
+            } catch (Exception $error) { continue; }
+        }
+          switch (count($solutions)) {
+            case 0: $overlay = null; break;
+            case 1: $overlay = $solutions[0]; break;
+            default: $overlay = $solutions;
+          }
       }
     }
   }
 
-  // unblend shortand impossible
+    if (is_numeric($alpha)) return ($overlay->a == $alpha) ? $overlay : null;
+    else return $overlay;
+  }
 
 
   ////////////////////////////////////
