@@ -51,18 +51,88 @@
     "fonction": "couleur.change('l', '20%', true).rgb",
     "resultatAttendu": "rgb(24, 78, 32, 0.4)"
   }, {
-    "fonction": "Colour.blend(couleur, 'white')",
-    "resultatAttendu": { "r": 0.69098, "g": 0.88863, "b": 0.71608, "h": 0.3545, "s": 0.47016, "l": 0.78981, "w": 0.69099, "bk": 0.11137, "a": 1, "ciel": 0.857, "ciea": -23.22, "cieb": 16.064, "ciec": 28.235, "cieh": 0.40368 }
+    "fonction": "Colour.blend('red', 'white').rgb",
+    "resultatAttendu": "rgb(255, 255, 255)"
   }, {
-    "fonction": "Colour.blend(couleur, 'lolilol')",
+    "fonction": "Colour.blend('red', 'lolilol')",
     "resultatAttendu": "Error"
   }, {
-    "fonction": "Colour.blend(couleur, 'white').rgb",
-    "resultatAttendu": "rgb(176, 227, 183)"
+    "fonction": "Colour.blend('red', (new Colour('white')).replace('a', '.5')).rgb",
+    "resultatAttendu": "rgb(255, 128, 128)"
   }, {
-    "fonction": "couleur.blend('white').rgb",
+    "fonction": "(new Colour('white')).blend(couleur).rgb",
     "resultatAttendu": "rgb(176, 227, 183)",
     "nophp": "1"
+  }, {
+    "fonction": "Colour.blend('white', 'rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .5)').rgb",
+    "resultatAttendu": "rgb(128, 192, 64)"
+  }, {
+    "fonction": "Colour.blend('rgba(255, 255, 255, .3)', 'rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .5)').rgb",
+    "resultatAttendu": "rgb(100, 178, 23, 0.83)"
+  }, {
+    "fonction": "Colour.blend('rgb(25, 67, 85)', 'transparent').rgb",
+    "resultatAttendu": "rgb(25, 67, 85)"
+  }, {
+    "fonction": "Colour.unblend('red', 'white')",
+    "resultatAttendu": "Error"
+  }, {
+    "fonction": "Colour.unblend('rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .7)')",
+    "resultatAttendu": "null"
+  }, {
+    "fonction": "Colour.unblend('rgba(255, 0, 0, .5)', 'rgba(255, 0, 0, .5)').rgb",
+    "resultatAttendu": "transparent"
+  }, {
+    "fonction": "Colour.unblend('rgb(255, 128, 128)', 'rgba(255, 0, 0, .5)').rgb",
+    "resultatAttendu": "rgb(255, 255, 255)"
+  }, {
+    "fonction": "Colour.unblend('rgb(128, 192, 64)', 'rgba(0, 255, 0, .5)', 'rgba(255, 0, 0, .5)').rgb",
+    "resultatAttendu": "rgb(255, 255, 255)"
+  } , {
+    "fonction": "Colour.whatToBlend('red', 'red', 0).rgb",
+    "resultatAttendu": "transparent"
+  }, {
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 0)",
+    "resultatAttendu": "null"
+  }, {
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 1).rgb",
+    "resultatAttendu": "red"
+  }, {
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'rgb(255, 0, 0, .5)', .9)",
+    "resultatAttendu": "null"
+  }, {
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .2)', 'rgb(255, 0, 0, .9)', .9)",
+    "resultatAttendu": "null"
+  }, {
+    "fonction": "Colour.whatToBlend('transparent', 'rgb(255, 0, 0, .9)', .9).rgb",
+    "resultatAttendu": "rgb(255, 0, 0, .9)"
+  }, {
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'rgb(255, 0, 0, .5)')",
+    "resultatAttendu": "null"
+  }, {
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0)').rgb",
+    "resultatAttendu": "rgb(255, 0, 0)"
+  }, {
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, 0)', 'rgb(255, 0, 0, .5)').rgb",
+    "resultatAttendu": "rgb(255, 0, 0, .5)"
+  }, {
+    "fonction": "Colour.whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 128, 128, .75)').rgb",
+    "resultatAttendu": "rgb(255, 192, 192, 0.5)"
+  }, {
+    "fonction": "Colour.blend('rgb(255, 0, 0, .5)', 'rgb(255, 192, 192, 0.5)').rgb",
+    "resultatAttendu": "rgb(255, 128, 128, .75)"
+  }, {
+    "fonction": "Colour.whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 0, 0, .5)').rgb",
+    "resultatAttendu": "transparent"
+  }, {
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0, .5)')",
+    "resultatAttendu": "null"
+  }, {
+    "fonction": "Colour.whatToBlend('red', 'rgb(255, 128, 128)').map(c => c.hsla)",
+    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('red', 'rgb(255, 128, 128)'))",
+    "resultatAttendu": [ "hsla(0, 0%, 100%, 0.5)", "hsla(0, 100%, 92%, 0.6)", "hsla(0, 100%, 86%, 0.7)", "hsla(0, 100%, 81%, 0.8)", "hsla(0, 100%, 78%, 0.9)", "hsla(0, 100%, 75%, 1)" ]
+  }, {
+    "fonction": "Colour.whatToBlend('red', 'rgb(255, 128, 128)', .6).hsl",
+    "resultatAttendu": "hsla(0, 100%, 92%, 0.6)"
   }, {
     "fonction": "testContraste",
     "resultatAttendu": { "r": 0.09, "g": 0.10333, "b": 0.11, "h": 0.55556, "s": 0.1, "l": 0.1, "w": 0.09, "bk": 0.89, "a": 1, "ciel": 0.091301, "ciea": -1.3081, "cieb": -1.7665, "ciec": 2.1981, "cieh": 0.64856 }
@@ -263,15 +333,5 @@
     "fonction": "(new Colour('rgb(255, 128, 0)')).same('rgb(255, 128, 0)')",
     "resultatAttendu": true,
     "nophp": "1"
-  }, {
-    "fonction": "Colour.unblend('rgb(255, 128, 128)', 'rgba(255, 255, 255, .5)').name",
-    "resultatAttendu": "red"
-  }, {
-    "fonction": "Colour.unblend('rgb(255, 128, 128)', 'red', .5)",
-    "resultatAttendu": { "r": 1, "g": 1, "b": 1, "a": 0.5, "h": 0, "s": 0, "l": 1, "w": 1, "bk": 0, "ciel": 1, "ciea": 0, "cieb": 0, "ciec": 0, "cieh": 0 }
-  }, {
-    "fonction": "Colour.unblend('rgb(255, 128, 128)', 'red').map(c => c.hsla)",
-    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::unblend('rgb(255, 128, 128)', 'red'))",
-    "resultatAttendu": [ "hsla(0, 0%, 100%, 0.5)", "hsla(0, 100%, 92%, 0.6)", "hsla(0, 100%, 86%, 0.7)", "hsla(0, 100%, 81%, 0.8)", "hsla(0, 100%, 78%, 0.9)", "hsla(0, 100%, 75%, 1)" ]
   }
 ]

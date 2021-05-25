@@ -28,7 +28,7 @@ class Test {
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
       $fonction
     );
-    $methods = ['blend', 'contrast', 'contrastedText', 'betterContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale', 'gradient', 'distance', 'same', 'unblend'];
+    $methods = ['blend', 'contrast', 'contrastedText', 'betterContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'darken', 'lighten', 'desaturate', 'saturate', 'greyscale', 'grayscale', 'gradient', 'distance', 'same', 'unblend', 'whatToBlend'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $methods), 
       array_map(function($x) { return '->' . $x; }, $methods),
@@ -86,7 +86,9 @@ class Test {
       return false;
     }
 
-    if (is_a($this->resultatAttendu, 'stdClass')) {
+    if ($resultat === $this->resultatAttendu) return true;
+
+    elseif (is_a($this->resultatAttendu, 'stdClass')) {
       if ($resultat == 'Error') return false;
 
       $c1Props = get_object_vars($resultat);
@@ -130,7 +132,8 @@ class Test {
       }
       catch (Exception $error) {}
       catch (Error $error) {}
-      return $resultat == $this->resultatAttendu;
+      if ($this->resultatAttendu == 'null') return ($resultat === null);
+      return $resultat === $this->resultatAttendu;
     }
   }
 }
@@ -190,9 +193,9 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
       catch(Exception $error) {
         //continue;
       }
-      $resultat = (is_array($resultat) && $resultat[0] == 'Error') ? [$resultat[0], $resultat[1]->getMessage()] : $resultat;
+      $resultat = (is_array($resultat) && count($resultat) > 0 && $resultat[0] == 'Error') ? [$resultat[0], $resultat[1]->getMessage()] : $resultat;
       ?>
-      <div class="php <?=$test->validate() ? 'yes' : 'no'?>" style="grid-row: <?=$k+2?>">
+      <div class="php <?=$test->validate() ? 'yes' : 'no'?>" style="grid-row: <?=$k+2?>" data-validate="<?=$test->validate()?>">
         <h3 class="php" style="<?php
           if (is_array($c)) {
             try {
@@ -285,6 +288,7 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
             let tempResult;
             try { tempResult = Colour.same(resultat, this.resultatAttendu); }
             catch (error) { }
+            if (this.resultatAttendu == 'null') return (resultat === null);
             return tempResult || resultat == this.resultatAttendu;
           }
         }
@@ -330,7 +334,7 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
           else c = new Colour(test.resultatAttendu);
 
           h3.style.setProperty('background-color', c.rgba);
-          h3.style.setProperty('color', c.replace('a', 1).contrastedText());
+          h3.style.setProperty('color', c.name != 'transparent' ? c.replace('a', 1).contrastedText() : 'black');
         }
         catch(error) {console.log(error)}
         
