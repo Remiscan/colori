@@ -103,6 +103,14 @@ const methodes = [
       new RegExp(`^(.+)$`)
     ],
     argIsColor: [true, false, false]
+  }, {
+    name: 'whatToBlend',
+    args: [
+      new RegExp(`^(.+)${vSep}(${Couleur.vNum})${vSep}(${Couleur.vNum})$`),
+      new RegExp(`^(.+)${vSep}(${Couleur.vNum})$`),
+      new RegExp(`^(.+)$`)
+    ],
+    argIsColor: [true, false, false]
   }
 ];
 
@@ -174,7 +182,7 @@ export function resolveColor(input) {
       // On boucle sur les arguments de la méthode pour les résoudre si ce sont des couleurs
       for (const [i, arg] of method.args.entries()) {
         if (!!(method.argIsColor || [])[i]) {
-          try           { method.args[i] = resolveColor(arg); }
+          try           { method.args[i] = resolveColor(arg)[0]; }
           catch (error) { throw 'Couleur en argument invalide'; }
         }
       }
@@ -186,7 +194,7 @@ export function resolveColor(input) {
     }
 
     // On a notre résultat : la couleur après application de toutes les méthodes !!
-    return couleur;
+    return [couleur, methodesAppliquees[methodesAppliquees.length - 1]?.name, premCouleur.rgb];
   }
   catch (error) {
     if (error != 'ignore') console.log(error);

@@ -30,6 +30,11 @@ export async function updateCouleur(couleur, delai = 100) {
   
   try {
     entree = resolveColor(couleur);
+    let methode, input;
+    if (entree !== null && entree.length == 3) {
+      [entree, methode, input] = entree;
+    }
+
     if (entree instanceof Couleur) {
       colorInterface(entree);
       populateColorData(entree);
@@ -44,15 +49,34 @@ export async function updateCouleur(couleur, delai = 100) {
 
       // If the result is an array of colors, display their gradient as the input background
       else if (Array.isArray(entree) && entree.length > 0 && entree.reduce((sum, e) => sum + (e instanceof Couleur), 0)) {
-        const gradient = `linear-gradient(to right, ${entree.map(c => c.name || c.rgb).join(', ')})`;
-        
-        colorInterface(entree[0]);
-        populateColorData(entree[0]);
-        valeur.innerHTML = gradient;
-        Prism.highlightElement(valeur);
-        donnees.classList.add('valeur', 'gradient');
+        if (methode == 'gradient') {
+          const gradient = `linear-gradient(to right, ${entree.map(c => c.name || c.rgb).join(', ')})`;
+          
+          colorInterface(entree[0]);
+          populateColorData(entree[0]);
+          valeur.innerHTML = gradient;
+          Prism.highlightElement(valeur);
+          donnees.classList.add('valeur', 'gradient');
 
-        document.querySelector('.format.gradient').style.setProperty('--gradient', gradient);
+          document.querySelector('.format.gradient').style.setProperty('--gradient', gradient);
+
+        } else if (methode == 'whatToBlend') {
+          const gradient = `linear-gradient(to right, ${entree.map(c => c.name || c.rgb).join(', ')})`;
+          let array = `[\n`;
+          for (const c of entree) {
+            array += `  ${c.name || c.rgb},\n`
+          }
+          array += `]`;
+          
+          colorInterface(entree[0]);
+          populateColorData(entree[0]);
+          valeur.innerHTML = array;
+          Prism.highlightElement(valeur);
+          donnees.classList.add('valeur', 'gradient', 'whatToBlend');
+
+          document.querySelector('.format.gradient').style.setProperty('--bg', input);
+          document.querySelector('.format.gradient').style.setProperty('--gradient', gradient);
+        }
       }
 
       // If not any of these, display the results in the console

@@ -835,6 +835,7 @@ pre[class*="language-"].format-donnee {
 }
 
 .format.gradient::after {
+  background-color: transparent;
   background-image: var(--gradient);
 }
 
@@ -846,6 +847,33 @@ pre[class*="language-"].format-donnee {
 
 .format.valeur code.language-css {
   white-space: normal;
+}
+
+.valeur.whatToBlend>.format.valeur code {
+  white-space: pre-wrap;
+}
+.valeur.whatToBlend>.format.gradient {
+  height: 4rem;
+}
+.valeur.whatToBlend>.format.gradient::after {
+  background-image: var(--gradient),
+                    linear-gradient(to bottom, transparent 0 50%, var(--bg) 50% 100%);
+  background-position: top center, bottom center;
+  background-size: 100% 100%;
+  background-repeat-y: no-repeat;
+  animation: moveBlend linear 4s infinite alternate;
+}
+
+@keyframes moveBlend {
+  0%    { background-position: top center, bottom center; }
+  25%   { background-position: top center, bottom center; }
+  100%  { background-position: center calc(-4rem + var(--border-size)), bottom center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .valeur.whatToBlend>.format.gradient::after {
+    animation: none;
+  }
 }
 
 
