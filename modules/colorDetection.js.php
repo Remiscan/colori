@@ -126,7 +126,7 @@ export function colorInterface(couleur = entree) {
       /* Background colors */
       --body-color: ${bodyColor.hsl};
       --section-color: ${sectionColor.hsl};
-      --frame-color: ${frameColor.improveContrast(colorPreview, 2.5).hsl};
+      --frame-color: ${frameColor.improveContrast(colorPreview, 1).hsl};
       /* Text colors */
       --h1-color: ${(new Couleur(`lch(30% ${.6 * ciec} ${cieh})`)).hsl};
       --h3-color: ${(new Couleur(`lch(45% ${ciec} ${cieh})`)).hsl};
