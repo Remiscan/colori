@@ -264,16 +264,16 @@
     "fonction": "Colour.contrast('hsl(230, 25%, 10%)', 'hsl(55, 85%, 80%)')",
     "resultatAttendu": "15.511"
   }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).betterContrast('hsl(230, 25%, 10%)', 17).hsl",
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 17).hsl",
     "resultatAttendu": "hsl(53, 100%, 92%)"
   }, {
     "fonction": "Colour.contrast('hsl(53, 100%, 92%)', 'hsl(230, 25%, 10%)')",
     "resultatAttendu": "17.213"
   }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).betterContrast('hsl(230, 25%, 10%)', 12, 2).hsl",
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 12, 2).hsl",
     "resultatAttendu": "hsl(55, 85%, 80%)"
   }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).betterContrast('hsl(230, 25%, 10%)', 12, 2, { lower: true }).hsl",
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 12, 2, { lower: true }).hsl",
     "resultatAttendu": "hsl(55, 57%, 71%)"
   }, {
     "fonction": "Colour.contrast('hsl(55, 57%, 71%)', 'hsl(230, 25%, 10%)')",

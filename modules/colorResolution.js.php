@@ -64,7 +64,7 @@ const methodes = [
     ],
     argIsColor: [true, false]
   }, {
-    name: 'betterContrast',
+    name: 'improveContrast',
     args: [
       new RegExp(`^(.+)${vSep}(${Couleur.vNum})${vSep}(${Couleur.vNum})$`),
       new RegExp(`^(.+)${vSep}(${Couleur.vNum})$`)

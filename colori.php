@@ -1235,7 +1235,7 @@ class Couleur
   //      * 'black' will be chosen if movingColor is darker than refColor,
   //      and 'white' if it's lighter than refColor.
   // - maxIterations: the maximum number of times the color will be altered
-  public function betterContrast($referenceColor, $desiredContrast, $step = 2, $options = null) {
+  public function improveContrast($referenceColor, $desiredContrast, $step = 2, $options = null) {
     if ($options === null) $options = new stdClass();
     if (!isset($options->lower)) $options->lower = false;
     if (!isset($options->maxIterations)) $options->maxIterations = 1000;

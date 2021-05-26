@@ -990,7 +990,7 @@ export default class Couleur {
   //      * 'black' will be chosen if movingColor is darker than refColor,
   //      and 'white' if it's lighter than refColor.
   // - maxIterations: the maximum number of times the color will be altered
-  betterContrast(referenceColor, desiredContrast, step = 2, options = {}) {
+  improveContrast(referenceColor, desiredContrast, step = 2, options = {}) {
     if (typeof options.lower == 'undefined') options.lower = false;
     if (typeof options.maxIterations == 'undefined') options.maxIterations = 100;
     if (typeof options.towards == 'undefined') options.towards = null;
