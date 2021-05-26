@@ -271,9 +271,9 @@ Elle prend comme arguments :
 
 - ```options``` : un objet contenant les propriétés suivantes :
 
-  - ```replace``` : un booléen. Si ```true```, la valeur de ```val``` **remplacera** la valeur précédente de la propriété, au lieu de s'y additionner.
+  - ```replace``` (défaut = ```false```) : un booléen. Si ```true```, la valeur de ```val``` **remplacera** la valeur précédente de la propriété, au lieu de s'y additionner.
 
-  - ```scale``` : un booléen. Si ```true```, la valeur de ```val``` sera **multipliée** à la valeur précédente de la propriété, au lieu de s'y additionner.
+  - ```scale``` (défaut = ```false```) : un booléen. Si ```true```, la valeur de ```val``` sera **multipliée** à la valeur précédente de la propriété, au lieu de s'y additionner.
 
 Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une copie de ```color``` dont la propriété ```prop``` a été modifiée.
 
@@ -477,7 +477,7 @@ const background = Colore.unblend(result, overlay);
 ### Comment l'utiliser :
 
 ```javascript
-const result = Colore.blend(color1, color2, color3, ...);
+const result = Colore.unblend(color1, color2, color3, ...);
 ```
 
 Elle prend comme arguments :
@@ -521,11 +521,19 @@ overlay = Colore.whatToBlend(background, result)
 const overlay = Colore.whatToBlend(background, result, alpha, alphaStep);
 ```
 
-- ```background``` et ```result``` sont soit un objet de type ```Colore```, soit une chaîne de caractères dans [un format compatible](link here) avec ```new Colore()```.
+Elle prend comme arguments :
 
-- ```alpha``` est la valeur (optionnelle) d'opacité que vous souhaitez obtenir pour ```overlay```. En effet, plusieurs couleurs différentes peuvent être solutions de cette équation. Si tel est le cas, fournir cette valeur ```alpha``` permet d'obtenir une solution unique.
+- ```background``` et ```result``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
 
-- ```alphaStep``` est la valeur (optionnelle) d'écart entre l'opacité des solutions données par ```whatToBlend```, dans le cas où il en existe plusieurs. Par défaut, ```alphaStep = 0.1```.
+- ```alpha``` : un nombre, la valeur (optionnelle) d'opacité que vous souhaitez obtenir pour ```overlay```. En effet, plusieurs couleurs différentes peuvent être solutions de cette équation. Si tel est le cas, fournir cette valeur ```alpha``` permet d'obtenir une solution unique.
+
+- ```alphaStep``` (défaut = ```0.1```) : un nombre, la valeur (optionnelle) d'écart entre l'opacité des solutions données par ```whatToBlend```, dans le cas où il en existe plusieurs.
+
+>```whatToBlend``` peut aussi être utilisée comme méthode non-statique appliquée à l'objet ```background``` de type ```Colore``` :
+>
+>```javascript
+>const overlay = background.whatToBlend(result, alpha, alphaStep);
+>```
 
 ### Exemples :
 
@@ -545,17 +553,31 @@ Colore.whatToBlend('red', 'purple')
 Colore.whatToBlend('red', 'purple', 0.5).rgb == 'rgb(0, 0, 255, 0.5)'
 ```
 
-```whatToBlend``` peut aussi être utilisée comme méthode non-statique appliquée à l'objet ```background``` de type ```Colore``` : ```background.whatToBlend(result, alpha, alphaStep)```.
-
 # Comparer deux couleurs
 
 ## contrast
 
 La méthode statique ```contrast``` calcule le contraste entre deux couleurs.
 
-Elle s'utilise comme ceci : ```Colore.contrast(color1, color2)```, où chaque argument est soit un objet de type ```Colore```, soit une chaîne de caractères dans [un format compatible](link here) avec ```new Colore()```.
+### Comment l'utiliser :
 
-Le résultat est un nombre entre 1 et 21.
+```javascript
+const result = Colore.contrast(color1, color2);
+```
+
+Elle prend comme arguments :
+
+- ```color1``` et ```color2``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
+
+Elle renvoie un nombre entre 1 et 21.
+
+>```contrast``` peut aussi être utilisée comme une méthode non-statique appliquée à un objet de type ```Colore``` :
+>
+>```javascript
+>const result = color1.contrast(color2);
+>```
+
+### Exemples :
 
 ```javascript
 Colore.contrast('white', 'black') == 21
@@ -563,8 +585,6 @@ Colore.contrast('skyblue', 'darkblue') == 8.7835
 ```
 
 Pour qu'un texte soit facilement lisible sur une surface colorée, il est nécessaire que le contraste entre la couleur de cette surface et la couleur du texte soit suffisamment élevé. La méthode ```contrast``` peut par exemple être pratique pour vérifier si deux couleurs vérifient les [recommandations du WCAG](https://www.w3.org/TR/WCAG20/#visual-audio-contrast-contrast).
-
-```contrast``` peut aussi être utilisée comme une méthode non-statique appliquée à un objet de type ```Colore``` : ```color1.contrast(color2)```.
 
 ## contrastedText
 
@@ -576,7 +596,7 @@ La méthode ```contrastedText``` détermine si du texte noir ou blanc serait le 
 const result = color.contrastedText();
 ```
 
-Elle s'applique à un objet de type ```Colore``` ; dans cet exemple, il s'agit de ```color```.
+Elle s'applique à un objet de type ```Colore```, ici ```color```.
 
 Elle ne prend aucun argument.
 
@@ -608,19 +628,24 @@ Elle s'applique à un objet de type ```Colore``` ; dans cet exemple, il s'agit d
 
 Elle prend comme arguments :
 
-- un objet de type ```Colore``` ou une chaîne de caractères dans [un format compatible](link here) avec ```new Colore()```, ici ```referenceColor```, utilisé comme couleur de référence : la méthode cherche à améliorer la valeur de ```Colore.contrast(color, referenceColor)```.
+- ```referenceColor``` : un objet de type ```Colore``` ou une chaîne de caractères dans un format compatible avec ```new Colore()```, utilisé comme couleur de référence : la méthode cherche à améliorer la valeur de ```Colore.contrast(color, referenceColor)```.
 
-- un nombre, ici ```desiredContrast```, qui est la valeur de contraste que la méthode essaiera d'atteindre.
+- ```desiredContrast``` : un nombre utilisé comme la valeur de contraste que la méthode essaiera d'atteindre.
 
-- un nombre, ici ```step```, qui est la quantité qui sera ajoutée ou retirée de la luminosité CIE de ```color```. Par défaut, ```step = 2```, c'est-à-dire qu'à chaque étape, le pourcentage de luminosité CIE de ```colore``` augmente ou diminue de 2.
+- ```step``` (défaut = ```2```) : un nombre utilisé comme la quantité qui sera ajoutée ou retirée de la luminosité CIE de ```color``` ; c'est-à-dire qu'à chaque étape, ```color.ciel``` augmente ou diminue de ```step```%.
 
-- un objet ```options``` contenant les propriétés suivantes :
+- ```options``` : un objet contenant les propriétés suivantes :
 
-  - ```lower``` : peut valoir ```true``` ou ```false```. Si ```true```, alors ```improveContrast``` ne cherchera pas uniquement à augmenter le contraste s'il est inférieur à ```desiredContrast```, mais elle pourra aussi le diminuer s'il y est supérieur. Par défaut, ```lower = false```.
+  - ```lower``` (défaut = ```false```): peut prendre les valeurs suivantes : 
+    - ```false``` : ```improveContrast``` ne fera rien si ```Colore.contrast(color, referenceColor) > desiredContrast```.
+    - ```true``` : quand ```Colore.contrast(color, referenceColor) > desiredContrast```, ```color``` sera modifiée pour réduire le contraste afin qu'il se rapproche le plus possible de ```desiredContrast```.
 
-  - ```towards``` : peut valoir ```'black'``` ou ```'white'```. Détermine si ```improveContrast``` doit augmenter le contraste en éclaircissant ou en assombrissant ```color```. Par défaut, le choix est fait automatiquement.
+  - ```towards``` (défaut = ```null```) : détermine si ```improveContrast``` doit augmenter le contraste en éclaircissant ou en assombrissant ```color```. Peut prendre les valeurs suivantes :
+    - ```'black'``` : ```improveContrast``` essaiera uniquement d'améliorer le contraste et assombrissant ```color```.
+    - ```'white'``` : ```improveContrast``` essaiera uniquement d'améliorer le contraste et éclaircissant ```color```.
+    - ```null``` : ```improveContrast``` essaiera de déterminer automatiquement s'il vaut mieux assombrir ou éclaircir ```color```. Si elle n'y parvient pas, la valeur choisie sera ```'black'```.
 
-  - ```maxIterations``` : le nombre maximum de fois que ```improveContrast``` modifiera la couleur pour améliorer le contraste. Par défaut, ```improveContrast = 100```.
+  - ```maxIterations``` (défaut = ```100```) : le nombre maximum de fois que ```improveContrast``` modifiera la couleur pour améliorer le contraste.
 
 Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une copie de ```color``` à laquelle ont été appliquées les modifications de la propriété ```ciel``` telles que ```Colore.contrast(result, referenceColor) > desiredContrast```.
 
@@ -647,10 +672,85 @@ Colore.contrast(lightblue, newBlue) == 4.6554
 
 La méthode statique ```distance``` mesure à quel point deux couleurs sont différentes.
 
+### Comment l'utiliser :
+
+```javascript
+const result = Colore.distance(color1, color2, format, tolerance);
+```
+
+Elle prend comme arguments :
+
+- ```color1``` et ```color2``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
+
+- ```format``` : détermine quel format des couleurs sera utilisé pour mesurer leur distance. Peut prendre les valeurs suivantes :
+  - ```'rgb'```, ```'hsl'```, ```'hwb'```, ```'lab'``` ou ```'lch'``` : la distance entre les deux couleurs sera calculée en additionnant la différence des valeurs de chaque propriété du format choisi.
+  - ```null``` (défaut) : la distance sera calculée en faisant la moyenne des distances pour tous les formats.
+
+- ```tolerance``` (défaut = ```0.02```) : un nombre qui représente une certaine tolérance pour ignorer certaines propriétés quand elles n'ont aucun effet. Par exemple, dans le format HSL, si L = 0, alors la couleur est noire indépendament des valeurs de H et S. Pour pouvoir tenir compte de ce fait même quand des arrondis ont rendu la valeur L des couleurs légèrement supérieure à 0, la méthode ```distance``` ignore H et S quand ```color1.l < tolerance && color2.l < tolerance```.
+
+Elle renvoie un nombre positif.
+
+### Exemples :
+
+```javascript
+Colore.distance('red', 'red') == 0 // ce sont des couleurs identiques
+Colore.distance('red', 'blue') == 1.3467999999999998 // ce sont des couleurs bien différentes
+Colore.distance('hsl(200, 50%, 0%)', 'hsl(50, 35%, 0%)') == 0 // malgré des valeurs très différentes de H et S, les deux couleurs sont noires
+```
+
 ## same
 
-La méthode ```same``` détermine si deux couleurs sont identiques.
+La méthode statique ```same``` détermine si deux couleurs sont identiques.
+
+### Comment l'utiliser :
+
+```javascript
+const result = Colore.same(color1, color2, tolerance);
+```
+
+Elle prend comme arguments :
+
+- ```color1``` et ```color2``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
+
+- ```tolerance``` (défaut = ```0.02```) : un nombre qui représente la distance minimale entre deux couleurs pour qu'elles soient considérées différentes.
+
+Elle renvoie ```true``` si les couleurs sont considérées identiques, ```false``` sinon.
+
+### Exemples :
+
+```javascript
+Colore.same('red', 'red') == true // ce sont des couleurs identiques
+Colore.same('red', 'blue') == false // ce sont des couleurs différentes
+Colore.same('hsl(200, 50%, 0%)', 'hsl(50, 35%, 0%)') == true // malgré des valeurs très différentes de H et S, les deux couleurs sont noires
+Colore.same('rgb(0, 0, 255)', 'rgb(0, 0, 254)') == true // les deux couleurs sont tellement proches qu'elles sont considérées identiques
+```
 
 # Autres fonctions
 
 ## gradient
+
+La méthode statique ```gradient``` génère un dégradé entre deux couleurs qui évite la zone grise (voir [cet article](https://css-tricks.com/the-gray-dead-zone-of-gradients/)).
+
+### Comment l'utiliser :
+
+```javascript
+const result = Colore.gradient(from, to, steps);
+```
+
+Elle prend comme arguments :
+
+- ```from``` et ```to``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
+
+- ```steps``` (défaut = ```5```) : le nombre d'étapes - c'est-à-dire le nombre de couleurs qui seront calculées - pour passer de ```from``` à ```to```. Plus ce nombre est élevé, plus le dégradé sera fluide et évitera la zone grise.
+
+Elle renvoie un ```Array``` de longueur ```steps + 1``` d'objets de type ```Colore```, de la forme ```[from, color2, color3, ..., to]```.
+
+### Exemple :
+
+```javascript
+const colors = Colore.gradient('indigo', 'orange');
+
+// Pour utiliser le dégradé en CSS, plaçons les couleurs dans la syntaxe de dégradé CSS :
+const gradient = `linear-gradient(to right, ${colors.map(c => c.name || c.rgb).join(', ')})`;
+gradient == 'linear-gradient(to right, indigo, rgb(137, 0, 116), rgb(192, 0, 105), rgb(238, 42, 80), rgb(255, 109, 52), orange)' // en plaçant ceci comme valeur de background-image en CSS, le dégradé serait affiché
+```
