@@ -294,18 +294,22 @@ export default class Couleur {
   /* NAME */
 
   get name() {
+    const name = this.exactName;
+    if (name === null && this.a == 1) {
+      const allNames = Couleur.couleursNommees;
+      for (const [name, hex] of Object.entries(allNames)) {
+        if (this.same(`#${hex}`)) return name;
+      }
+    }
+    return name;
+  }
+
+  get exactName() {
     if (this.a == 1) {
       const allNames = Couleur.couleursNommees;
       const hex6 = this.hex.slice(1);
       const name = Object.keys(allNames).find(k => (allNames[k] == hex6));
-      if (typeof name !== 'undefined')  return name;
-      // If this exact color doesn't have a name, check if it's close enought to one that does
-      else {
-        for (const [name, hex] of Object.entries(allNames)) {
-          if (this.same(`#${hex}`))     return name;
-        }
-        return null;
-      }
+      return name || null;
     }
     else if (this.a == 0)               return 'transparent';
     else                                return null;

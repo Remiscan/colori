@@ -22,7 +22,7 @@ $version = version();
 
 class Test {
   function __construct($fonction = null, $resultatAttendu = null, $nophp = false) {
-    $exGetters = ['name', 'hexa', 'hex', 'rgba', 'rgb', 'hsla', 'hsl', 'hwba', 'hwb', 'laba', 'lab', 'lcha', 'lch', 'luminance'];
+    $exGetters = ['name', 'exactName', 'hexa', 'hex', 'rgba', 'rgb', 'hsla', 'hsl', 'hwba', 'hwb', 'laba', 'lab', 'lcha', 'lch', 'luminance'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $exGetters), 
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
@@ -132,7 +132,7 @@ class Test {
       }
       catch (Exception $error) {}
       catch (Error $error) {}
-      if ($this->resultatAttendu == 'null') return ($resultat === null);
+      //if ($this->resultatAttendu == null) return ($resultat === null);
       return $resultat === $this->resultatAttendu;
     }
   }
@@ -279,7 +279,7 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
                                                                                                                       : this.resultat;
           if (resultat == 'Error') return this.resultatAttendu == 'Error';
           else if (Array.isArray(resultat)) return resultat.every((co, k) => co == this.resultatAttendu[k]);
-          else if (typeof this.resultatAttendu === 'object') return sameColor(resultat, this.resultatAttendu);
+          else if (typeof this.resultatAttendu === 'object' && this.resultatAttendu !== null) return sameColor(resultat, this.resultatAttendu);
           else if (typeof this.resultatAttendu === 'number') {
             if ((resultat - this.resultatAttendu) > tolerance) return false;
             else return true;
@@ -288,7 +288,7 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
             let tempResult;
             try { tempResult = Colour.same(resultat, this.resultatAttendu); }
             catch (error) { }
-            if (this.resultatAttendu == 'null') return (resultat === null);
+            //if (this.resultatAttendu == 'null') return (resultat === null);
             return tempResult || resultat == this.resultatAttendu;
           }
         }

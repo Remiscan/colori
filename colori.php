@@ -567,17 +567,20 @@ class Couleur
   /* NAME */
 
   public function name() {
+    $name = $this->exactName();
+    if ($name === null && $this->a == 1) {
+      foreach(self::COULEURS_NOMMEES as $name => $hex) {
+        if (self::same($this, '#'.$hex)) return $name;
+      }
+    }
+    return $name;
+  }
+
+  public function exactName() {
     if ($this->a == 1) {
       $hex6 = substr($this->hex(), 1);
       $name = array_search($hex6, self::COULEURS_NOMMEES);
-      if ($name)            return $name;
-      // If this exact color doesn't have a name, check if it's close enought to one that does
-      else {
-        foreach(self::COULEURS_NOMMEES as $name => $hex) {
-          if (self::same($this, '#'.$hex)) return $name;
-        }
-      }
-      return null;
+      return $name ? $name : null;
     }
     elseif ($this->a == 0)  return 'transparent';
     else                    return null;

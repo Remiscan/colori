@@ -6,6 +6,12 @@
     "fonction": "(new Colour('fuchsia')).name",
     "resultatAttendu": "fuchsia"
   }, {
+    "fonction": "(new Colour('#ff0101')).name",
+    "resultatAttendu": "red"
+  }, {
+    "fonction": "(new Colour('#ff0101')).exactName",
+    "resultatAttendu": null
+  }, {
     "fonction": "new Colour(new Colour('fuchsia'))",
     "resultatAttendu": "Error"
   }, {
@@ -77,7 +83,7 @@
     "resultatAttendu": "Error"
   }, {
     "fonction": "Colour.unblend('rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .7)')",
-    "resultatAttendu": "null"
+    "resultatAttendu": null
   }, {
     "fonction": "Colour.unblend('rgba(255, 0, 0, .5)', 'rgba(255, 0, 0, .5)').rgb",
     "resultatAttendu": "transparent"
@@ -92,22 +98,22 @@
     "resultatAttendu": "transparent"
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 0)",
-    "resultatAttendu": "null"
+    "resultatAttendu": null
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 1).rgb",
     "resultatAttendu": "red"
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'rgb(255, 0, 0, .5)', .9)",
-    "resultatAttendu": "null"
+    "resultatAttendu": null
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .2)', 'rgb(255, 0, 0, .9)', .9)",
-    "resultatAttendu": "null"
+    "resultatAttendu": null
   }, {
     "fonction": "Colour.whatToBlend('transparent', 'rgb(255, 0, 0, .9)', .9).rgb",
     "resultatAttendu": "rgb(255, 0, 0, .9)"
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'rgb(255, 0, 0, .5)')",
-    "resultatAttendu": "null"
+    "resultatAttendu": null
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0)').rgb",
     "resultatAttendu": "rgb(255, 0, 0)"
@@ -125,7 +131,7 @@
     "resultatAttendu": "transparent"
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0, .5)')",
-    "resultatAttendu": "null"
+    "resultatAttendu": null
   }, {
     "fonction": "Colour.whatToBlend('red', 'rgb(255, 128, 128)').map(c => c.hsla)",
     "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('red', 'rgb(255, 128, 128)'))",
