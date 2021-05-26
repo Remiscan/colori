@@ -116,7 +116,7 @@ export function colorInterface(couleur = entree) {
   }
 
   dark: {
-    const ciec = Math.min(.3 * couleur.ciec, 15);
+    const ciec = Math.min(.3 * couleur.ciec, 10);
     const bodyColor = new Couleur(`lch(8% ${.6 * ciec} ${cieh})`);
     meta.dataset.dark = bodyColor.hsl;
     const sectionColor = new Couleur(`lch(20% ${ciec} ${cieh})`);
