@@ -1,3 +1,38 @@
+- [Utiliser colori.js](#utiliser-colorijs)
+- [Créer une couleur](#créer-une-couleur)
+  - [Nom](#nom)
+  - [Format RGB (hexadécimal)](#format-rgb-hexadécimal)
+  - [Format RGB (fonctionnel)](#format-rgb-fonctionnel)
+  - [Format HSL](#format-hsl)
+  - [Format HWB](#format-hwb)
+  - [Format LAB](#format-lab)
+  - [Format LCH](#format-lch)
+- [Propriétés d'une couleur](#propriétés-dune-couleur)
+  - [Propriétés précalculées](#propriétés-précalculées)
+  - [name](#name)
+  - [luminance](#luminance)
+- [Exprimer une couleur dans différents formats](#exprimer-une-couleur-dans-différents-formats)
+- [Modifier une couleur](#modifier-une-couleur)
+  - [change](#change)
+  - [replace](#replace)
+  - [scale](#scale)
+  - [greyscale / grayscale](#greyscale--grayscale)
+  - [sepia](#sepia)
+  - [complement](#complement)
+  - [negative / invert](#negative--invert)
+- [Fusionner des couleurs](#fusionner-des-couleurs)
+  - [blend](#blend)
+  - [unblend](#unblend)
+  - [whatToBlend](#whattoblend)
+- [Comparer deux couleurs](#comparer-deux-couleurs)
+  - [contrast](#contrast)
+  - [contrastedText](#contrastedtext)
+  - [improveContrast](#improvecontrast)
+  - [distance](#distance)
+  - [same](#same)
+- [Autres fonctions](#autres-fonctions)
+  - [gradient](#gradient)
+
 <!--JS-->
 # Utiliser colori.js
 
@@ -189,7 +224,7 @@ Lorsque un objet de classe ```Colore``` est créé en utilisant ```new Colore(ex
 Certaines couleurs [ont un nom selon la spécification CSS](https://drafts.csswg.org/css-color/#named-colors). Pour ces couleurs-là, le paramètre ```name``` renverra leur nom :
 
 ```javascript
-rosso.name == 'red'
+(new Colore('red')).name == 'red'
 ```
 
 Note : si une couleur n'est pas exactement égale à une couleur nommée (par exemple à cause d'un arrondi dans un calcul), la propriété ```name``` renverra quand même le nom de la couleur dont elle est proche :
@@ -219,6 +254,7 @@ rosso.luminance == 0.2126
 Les propriétés ```hex```, ```rgb```, ```hsl```, ```hwb```, ```lab``` et ```lch``` permettent de récupérer l'expression de la couleur au format correspondant :
 
 ```javascript
+const rosso = new Colore('red');
 rosso.hex == '#ff0000'
 rosso.rgb == 'rgb(255, 0, 0)'
 rosso.hsl == 'hsl(0, 100%, 50%)'
@@ -230,6 +266,7 @@ rosso.lch == 'lch(54% 107 41)'
 Les couleurs transparentes (```a < 1```) sont aussi supportées :
 
 ```javascript
+const rossoTrasparente = new Colore('rgb(255, 0, 0, 0.6)');
 rossoTrasparente.hex == '#ff000099'
 rossoTrasparente.rgb == 'rgb(255, 0, 0, 0.6)'
 rossoTrasparente.hsl == 'hsl(0, 100%, 50%, 0.6)'
@@ -241,6 +278,7 @@ rossoTrasparente.lch == 'lch(54% 107 41 / 0.6)'
 Ces propriétés masquent l'opacité quand elle est égale à 1. Les propriétés ```hexa```, ```rgba```, ```hsla```, ```hwba```, ```laba``` et ```lcha``` permettent de l'afficher dans tous les cas :
 
 ```javascript
+const rosso = new Colore('red');
 rosso.hexa == '#ff0000ff'
 rosso.rgba == 'rgb(255, 0, 0, 1)'
 rosso.hsla == 'hsl(0, 100%, 50%, 1)'
@@ -280,20 +318,22 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une copi
 ### Exemples :
 
 ```javascript
+// Prenons du rouge
+const rosso = new Colore('red');
 let nuovoColore;
 
-// Pour réduire la luminosité du rouge de 10% :
+// Réduisons la luminosité du rouge de 10% :
 nuovoColore = rosso.change('l', '-10%');
 // ce qui donne :
 rosso.hsl == 'hsl(0, 100%, 50%)'
 nuovoColore.hsl == 'hsl(0, 100%, 40%)'
 
-// Pour remplacer la luminosité du rouge par 10% :
+// Remplaçons la luminosité du rouge par 10% :
 nuovoColore = rosso.change('l', '10%', { replace: true });
 // ce qui donne :
 nuovoColore.hsl == 'hsl(0, 100%, 10%)';
 
-// Pour augmenter la luminosité du rouge de 50% de sa valeur actuelle:
+// Augmentons la luminosité du rouge de 50% de sa valeur actuelle:
 nuovoColore = rosso.change('l', '150%', { scale: true });
 // ce qui donne :
 nuovoColore.hsl == 'hsl(0, 100%, 75%)';
@@ -322,8 +362,9 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une copi
 ### Exemple :
 
 ```javascript
+const rosso = new Colore('red');
 // Pour remplacer la luminosité du rouge par 10% :
-nuovoColore = rosso.replace('l', '10%');
+const nuovoColore = rosso.replace('l', '10%');
 // ce qui donne :
 nuovoColore.hsl == 'hsl(0, 100%, 10%)';
 ```
@@ -351,18 +392,68 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une copi
 ### Exemple :
 
 ```javascript
+const rosso = new Colore('red');
 // Pour remplacer la luminosité du rouge par 10% :
-nuovoColore = rosso.scale('l', '150%');
+const nuovoColore = rosso.scale('l', '150%');
 // ce qui donne :
 nuovoColore.hsl == 'hsl(0, 100%, 75%)';
 ```
 
-## darken, lighten
-> option colorSpace qui change l (hsl) ou ciel (lab, lch)
-## desaturate, saturate
-> options colorSpace qui change s (hsl) ou ciec (lch)
 ## greyscale / grayscale
-> options colorSpace qui change s (hsl) ou ciec (lch)
+
+La méthode ```greyscale``` (ou ```grayscale```) transforme une couleur en un gris ayant la même luminosité qu'elle.
+
+### Comment l'utiliser :
+
+```javascript
+const result = color.greyscale();
+```
+
+Elle s'applique à un objet de class ```Colore```, ici ```color```.
+
+Elle ne prend aucun argument.
+
+Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une copie de ```color``` dont la saturation a été réduite à 0.
+
+### Exemple :
+
+```javascript
+// Prenons du bleu
+const blu = new Colore('blue');
+blu.hsl == 'hsl(240, 100%, 50%)'
+
+// Appliquons greyscale au bleu
+const grigio = blu.greyscale();
+grigio.hsl == 'hsl(240, 0%, 50%)'
+```
+
+## sepia
+
+La méthode ```sepa``` transforme une couleur en un ton sépia.
+
+### Comment l'utiliser :
+
+```javascript
+const result = color.sepia();
+```
+
+Elle s'applique à un objet de class ```Colore```, ici ```color```.
+
+Elle ne prend aucun argument.
+
+Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une modification de ```color``` vers les tons sépia.
+
+### Exemple :
+
+```javascript
+// Prenons du bleu
+const blu = new Colore('blue');
+blu.rgb == 'rgb(0, 0, 255)'
+
+// Appliquons greyscale au bleu
+const seppia = blu.sepia();
+seppia.rgb == 'rgb(48, 43, 33)'
+```
 
 ## complement
 
@@ -384,11 +475,12 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est la coule
 
 ```javascript
 // La couleur complémentaire du rouge est le cyan / aqua
+const rosso = new Colore('red');
 rosso.complement().name == 'aqua'
 
 // La couleur complémentaire du blanc est le blanc lui-même
-const white = new Couleur('white');
-white.complement().name == 'white'
+const bianco = new Couleur('white');
+bianco.complement().name == 'white'
 ```
 
 ## negative / invert
@@ -411,8 +503,8 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est la coule
 
 ```javascript
 // La couleur négative du blanc est le noir
-const white = new Colore('white');
-white.negative().name == 'black'
+const bianco = new Colore('white');
+bianco.negative().name == 'black'
 
 // La couleur négative du rouge est le cyan
 rosso.negative().name == 'aqua'
@@ -606,12 +698,12 @@ Elle renvoie la chaîne de caractère ```'white'``` ou ```'black'```.
 
 ```javascript
 // Sur une surface bleue ciel, le texte noir est plus lisible que le texte blanc
-const skyBlue = new Colore('skyblue');
-skyBlue.contrastedText() == 'black'
+const bluCielo = new Colore('skyblue');
+bluCielo.contrastedText() == 'black'
 
 // Sur une surface bleue foncé, le texte blanc est plus lisible que le texte noir
-const darkBlue = new Colore('darkblue');
-darkBlue.contrastedText() == 'white'
+const bluScuro = new Colore('darkblue');
+bluScuro.contrastedText() == 'white'
 ```
 
 ## improveContrast
@@ -653,19 +745,19 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une copi
 
 ```javascript
 // Prenons l'exemple d'un fond bleu clair, sur lequel on veut placer du texte bleu ciel.
-const lightblue = new Couleur('lightblue');
-const skyblue = new Couleur('skyblue');
-Colore.contrast(lightblue, skyblue) == 1.1396
+const bluChiaro = new Couleur('lightblue');
+const bluCielo = new Couleur('skyblue');
+Colore.contrast(bluChiaro, bluCielo) == 1.1396
 
 // Le contraste entre les couleurs bleu ciel et bleu clair est trop faible pour être bien lisible. Le WCAG recommande un contraste d'au moins 4.5. Modifions skyblue pour atteindre cette valeur.
-const newBlue = skyblue.improveContrast(lightblue, 4.5);
+const nuovoBlue = bluCielo.improveContrast(bluChiaro, 4.5);
 
 // On peut voir que le nouveau bleu est beaucoup plus sombre que le bleu ciel dont on est parti.
-skyblue.hsl == 'hsl(197, 71%, 73%)'
-newBlue.hsl == 'hsl(193, 100%, 24%)'
+bluCielo.hsl == 'hsl(197, 71%, 73%)'
+nuovoBlu.hsl == 'hsl(193, 100%, 24%)'
 
 // Le contraste souhaité est atteint !
-Colore.contrast(lightblue, newBlue) == 4.6554
+Colore.contrast(bluChiaro, nuovoBlue) == 4.6554
 ```
 
 ## distance
@@ -689,6 +781,12 @@ Elle prend comme arguments :
 - ```tolerance``` (défaut = ```0.02```) : un nombre qui représente une certaine tolérance pour ignorer certaines propriétés quand elles n'ont aucun effet. Par exemple, dans le format HSL, si L = 0, alors la couleur est noire indépendament des valeurs de H et S. Pour pouvoir tenir compte de ce fait même quand des arrondis ont rendu la valeur L des couleurs légèrement supérieure à 0, la méthode ```distance``` ignore H et S quand ```color1.l < tolerance && color2.l < tolerance```.
 
 Elle renvoie un nombre positif.
+
+>```distance``` peut aussi être utilisée comme une méthode non-statique appliquée à un objet de type ```Colore``` :
+>
+>```javascript
+>const result = color1.distance(color2, format, tolerance);
+>```
 
 ### Exemples :
 
@@ -715,6 +813,12 @@ Elle prend comme arguments :
 - ```tolerance``` (défaut = ```0.02```) : un nombre qui représente la distance minimale entre deux couleurs pour qu'elles soient considérées différentes.
 
 Elle renvoie ```true``` si les couleurs sont considérées identiques, ```false``` sinon.
+
+>```same``` peut aussi être utilisée comme une méthode non-statique appliquée à un objet de type ```Colore``` :
+>
+>```javascript
+>const result = color1.same(color2, tolerance);
+>```
 
 ### Exemples :
 
@@ -745,12 +849,18 @@ Elle prend comme arguments :
 
 Elle renvoie un ```Array``` de longueur ```steps + 1``` d'objets de type ```Colore```, de la forme ```[from, color2, color3, ..., to]```.
 
+>```gradient``` peut aussi être utilisée comme une méthode non-statique appliquée à un objet de type ```Colore``` :
+>
+>```javascript
+>const result = from.gradient(to, steps);
+>```
+
 ### Exemple :
 
 ```javascript
-const colors = Colore.gradient('indigo', 'orange');
+const colori = Colore.gradient('indigo', 'orange');
 
 // Pour utiliser le dégradé en CSS, plaçons les couleurs dans la syntaxe de dégradé CSS :
-const gradient = `linear-gradient(to right, ${colors.map(c => c.name || c.rgb).join(', ')})`;
-gradient == 'linear-gradient(to right, indigo, rgb(137, 0, 116), rgb(192, 0, 105), rgb(238, 42, 80), rgb(255, 109, 52), orange)' // en plaçant ceci comme valeur de background-image en CSS, le dégradé serait affiché
+const gradiente = `linear-gradient(to right, ${colori.map(c => c.name || c.rgb).join(', ')})`;
+gradiente == 'linear-gradient(to right, indigo, rgb(137, 0, 116), rgb(192, 0, 105), rgb(238, 42, 80), rgb(255, 109, 52), orange)' // en plaçant ceci comme valeur de background-image en CSS, le dégradé serait affiché
 ```
