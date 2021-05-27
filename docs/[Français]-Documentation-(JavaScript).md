@@ -33,7 +33,6 @@
 - [Autres fonctions](#autres-fonctions)
   - [gradient](#gradient)
 
-<!--JS-->
 # Utiliser colori.js
 
 Il suffit de télécharger le fichier [colori.js](https://github.com/Remiscan/colori/releases/latest/download/colori.js), puis de l'importer dans votre code JavaScript comme suit :
@@ -42,8 +41,7 @@ Il suffit de télécharger le fichier [colori.js](https://github.com/Remiscan/co
 import Colore from 'colori.js';
 ```
 
-Vous pouvez remplacer ```Colore``` par un autre nom pour nommer la classe différemment.
-<!------>
+Vous pouvez remplacer ```Colore``` par un autre nom pour nommer la classe différemment. Dans cette documentation, nous utiliserons ```Colore```, qui signifie ***couleur*** en italien. Le pluriel est ***colori***.
 
 # Créer une couleur
 
@@ -197,6 +195,7 @@ b.lch == 'lch(50% 81 20)'
 ```
 
 # Propriétés d'une couleur
+
 ## Propriétés précalculées
 
 Lorsque un objet de classe ```Colore``` est créé en utilisant ```new Colore(expression)```, 14 propriétés différentes de la couleur sont calculées. Elles correspondent à tous les paramètres des différents formats de couleurs :
@@ -318,24 +317,27 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une copi
 ### Exemples :
 
 ```javascript
-// Prenons du rouge
-const rosso = new Colore('red');
-let nuovoColore;
-
 // Réduisons la luminosité du rouge de 10% :
-nuovoColore = rosso.change('l', '-10%');
+const rosso = new Colore('red');
+const nuovoColore = rosso.change('l', '-10%');
 // ce qui donne :
 rosso.hsl == 'hsl(0, 100%, 50%)'
 nuovoColore.hsl == 'hsl(0, 100%, 40%)'
-
+```
+```javascript
 // Remplaçons la luminosité du rouge par 10% :
-nuovoColore = rosso.change('l', '10%', { replace: true });
+const rosso = new Colore('red');
+const nuovoColore = rosso.change('l', '10%', { replace: true });
 // ce qui donne :
+rosso.hsl == 'hsl(0, 100%, 50%)'
 nuovoColore.hsl == 'hsl(0, 100%, 10%)';
-
-// Augmentons la luminosité du rouge de 50% de sa valeur actuelle:
-nuovoColore = rosso.change('l', '150%', { scale: true });
+```
+```javascript
+// Augmentons la luminosité du rouge de 50% de sa valeur actuelle :
+const rosso = new Colore('red');
+const nuovoColore = rosso.change('l', '150%', { scale: true });
 // ce qui donne :
+rosso.hsl == 'hsl(0, 100%, 50%)'
 nuovoColore.hsl == 'hsl(0, 100%, 75%)';
 ```
 
@@ -362,8 +364,8 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une copi
 ### Exemple :
 
 ```javascript
+// Remplaçons la luminosité du rouge par 10% :
 const rosso = new Colore('red');
-// Pour remplacer la luminosité du rouge par 10% :
 const nuovoColore = rosso.replace('l', '10%');
 // ce qui donne :
 nuovoColore.hsl == 'hsl(0, 100%, 10%)';
@@ -392,11 +394,12 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est une copi
 ### Exemple :
 
 ```javascript
+// Augmentons la luminosité du rouge de 50% de sa valeur actuelle :
 const rosso = new Colore('red');
-// Pour remplacer la luminosité du rouge par 10% :
 const nuovoColore = rosso.scale('l', '150%');
 // ce qui donne :
-nuovoColore.hsl == 'hsl(0, 100%, 75%)';
+rosso.hsl == 'hsl(0, 100%, 50%)'
+nuovoColore.hsl == 'hsl(0, 100%, 75%)'
 ```
 
 ## greyscale / grayscale
@@ -477,7 +480,8 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est la coule
 // La couleur complémentaire du rouge est le cyan / aqua
 const rosso = new Colore('red');
 rosso.complement().name == 'aqua'
-
+```
+```javascript
 // La couleur complémentaire du blanc est le blanc lui-même
 const bianco = new Couleur('white');
 bianco.complement().name == 'white'
@@ -505,8 +509,10 @@ Elle renvoie un objet de classe ```Colore```, ici ```result```, qui est la coule
 // La couleur négative du blanc est le noir
 const bianco = new Colore('white');
 bianco.negative().name == 'black'
-
+```
+```javascript
 // La couleur négative du rouge est le cyan
+const rosso = new Colore('red');
 rosso.negative().name == 'aqua'
 ```
 
@@ -541,15 +547,18 @@ Elle renvoie un objet de type ```Colore``` qui est la couleur que l'on voit en s
 ```javascript
 // Prenons du rouge et superposons du bleu avec opacité 0.5 par-dessus
 const bluTrasparente = (new Colore('blue')).replace('a', .5);
+const result = Colore.blend('red', bluTrasparente);
 
-Colore.blend('red', bluTrasparente).name == 'purple' // Le résultat est violet, comme on s'y attend
-
-/***/
-
+// Le résultat est violet, comme on s'y attend
+result.name == 'purple' 
+```
+```javascript
 // Superposons toujours du rouge et du bleu, mais ajoutons-y du vert avec opacité 0.4
 const verdeTrasparente = (new Colore('green')).replace('a', .4);
+const result = Colore.blend('red', bluTrasparente, verdeTrasparente);
 
-Colore.blend('red', bluTrasparente, verdeTrasparente).rgb == 'rgb(77, 51, 77)' // Le résultat est un violet désaturé, presque gris
+// Le résultat est un violet désaturé, presque gris
+result.rgb == 'rgb(77, 51, 77)' 
 ```
 
 ## unblend
@@ -590,7 +599,8 @@ Elle renvoie un objet de type ```Colore``` qui est la couleur obtenur après avo
 // Avec blend, nous avons vu que fusionner du rouge et du bleu transparent donnait du violet. En toute logique, retirer le bleu transparent du violet devrait donc nous donner du rouge à nouveau.
 const bluTrasparente = (new Colore('blue')).replace('a', .5);
 
-Colore.unblend('purple', bluTrasparente).name == 'red' // C'est le cas !
+// C'est le cas !
+Colore.unblend('purple', bluTrasparente).name == 'red' 
 ```
 
 ## whatToBlend
@@ -631,8 +641,8 @@ Elle prend comme arguments :
 
 ```javascript
 // whatToBlend donne la liste des couleurs qui peuvent être superposées au rouge pour obtenir du violet :
-Colore.whatToBlend('red', 'purple')
-.map(c => c.rgb) == [
+const result = Colore.whatToBlend('red', 'purple');
+result.map(c => c.rgb) == [
   'rgb(0, 0, 255, 0.5'),
   'rgb(43, 0, 213, 0.6'),
   'rgb(74, 0, 183, 0.7)',
@@ -640,9 +650,11 @@ Colore.whatToBlend('red', 'purple')
   'rgb(114, 0, 142, 0.9)',
   'purple'
 ];
-
+```
+```javascript
 // Si on précise qu'on veut une solution d'opacité 0.5, on obtient bien du bleu d'opacité 0.5. C'est bien la valeur de bluTrasparente dans les exemples de blend et unblend !
-Colore.whatToBlend('red', 'purple', 0.5).rgb == 'rgb(0, 0, 255, 0.5)'
+const result = Colore.whatToBlend('red', 'purple', 0.5);
+result.rgb == 'rgb(0, 0, 255, 0.5)'
 ```
 
 # Comparer deux couleurs
@@ -697,11 +709,12 @@ Elle renvoie la chaîne de caractère ```'white'``` ou ```'black'```.
 ### Exemples :
 
 ```javascript
-// Sur une surface bleue ciel, le texte noir est plus lisible que le texte blanc
+// Sur une surface bleu ciel, le texte noir est plus lisible que le texte blanc
 const bluCielo = new Colore('skyblue');
 bluCielo.contrastedText() == 'black'
-
-// Sur une surface bleue foncé, le texte blanc est plus lisible que le texte noir
+```
+```javascript
+// Sur une surface bleu foncé, le texte blanc est plus lisible que le texte noir
 const bluScuro = new Colore('darkblue');
 bluScuro.contrastedText() == 'white'
 ```
@@ -791,9 +804,16 @@ Elle renvoie un nombre positif.
 ### Exemples :
 
 ```javascript
-Colore.distance('red', 'red') == 0 // ce sont des couleurs identiques
-Colore.distance('red', 'blue') == 1.3467999999999998 // ce sont des couleurs bien différentes
-Colore.distance('hsl(200, 50%, 0%)', 'hsl(50, 35%, 0%)') == 0 // malgré des valeurs très différentes de H et S, les deux couleurs sont noires
+// Ce sont des couleurs identiques
+Colore.distance('red', 'red') == 0
+```
+```javascript
+// Ce sont des couleurs bien différentes
+Colore.distance('red', 'blue') == 1.3467999999999998
+```
+```javascript
+// Malgré des valeurs très différentes de H et S, les deux couleurs sont du noir
+Colore.distance('hsl(200, 50%, 0%)', 'hsl(50, 35%, 0%)') == 0
 ```
 
 ## same
@@ -823,10 +843,20 @@ Elle renvoie ```true``` si les couleurs sont considérées identiques, ```false`
 ### Exemples :
 
 ```javascript
-Colore.same('red', 'red') == true // ce sont des couleurs identiques
-Colore.same('red', 'blue') == false // ce sont des couleurs différentes
-Colore.same('hsl(200, 50%, 0%)', 'hsl(50, 35%, 0%)') == true // malgré des valeurs très différentes de H et S, les deux couleurs sont noires
-Colore.same('rgb(0, 0, 255)', 'rgb(0, 0, 254)') == true // les deux couleurs sont tellement proches qu'elles sont considérées identiques
+// Ce sont des couleurs identiques
+Colore.same('red', 'red') == true
+```
+```javascript
+// Ce sont des couleurs différentes
+Colore.same('red', 'blue') == false 
+```
+```javascript
+// Malgré des valeurs très différentes de H et S, les deux couleurs sont du noir
+Colore.same('hsl(200, 50%, 0%)', 'hsl(50, 35%, 0%)') == true
+```
+```javascript
+// Les deux couleurs sont tellement proches qu'elles sont considérées identiques
+Colore.same('rgb(0, 0, 255)', 'rgb(0, 0, 254)') == true 
 ```
 
 # Autres fonctions
@@ -862,5 +892,7 @@ const colori = Colore.gradient('indigo', 'orange');
 
 // Pour utiliser le dégradé en CSS, plaçons les couleurs dans la syntaxe de dégradé CSS :
 const gradiente = `linear-gradient(to right, ${colori.map(c => c.name || c.rgb).join(', ')})`;
-gradiente == 'linear-gradient(to right, indigo, rgb(137, 0, 116), rgb(192, 0, 105), rgb(238, 42, 80), rgb(255, 109, 52), orange)' // en plaçant ceci comme valeur de background-image en CSS, le dégradé serait affiché
+
+// En plaçant ceci comme valeur de background-image en CSS, le dégradé serait affiché
+gradiente == 'linear-gradient(to right, indigo, rgb(137, 0, 116), rgb(192, 0, 105), rgb(238, 42, 80), rgb(255, 109, 52), orange)' 
 ```
