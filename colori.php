@@ -1389,41 +1389,17 @@ class Couleur
   }
   public function invert() { return $this->negative(); }
 
-  // options: {scale: true/false}
-  public function darken($value, $options = null) {
-    if ($options === null) $options = new stdClass();
-    $scale = ($options === true || $options === false) ? $options : (isset($options->scale) ? $options->{'scale'} : true);
-    $val = self::parse($value);
-    $val = $scale ? ($this->l * (1 - $val)) : ($this->l - $val);
-    return $this->replace('l', 100 * $val . '%');
-  }
-
-  public function lighten($value, $options = null) {
-    if ($options === null) $options = new stdClass();
-    $scale = ($options === true || $options === false) ? $options : (isset($options->scale) ? $options->{'scale'} : true);
-    $val = self::parse($value);
-    $val = $scale ? ($this->l * (1 + $val)) : ($this->l + $val);
-    return $this->replace('l', 100 * $val . '%');
-  }
-
-  public function desaturate($value, $options = null) {
-    if ($options === null) $options = new stdClass();
-    $scale = ($options === true || $options === false) ? $options : (isset($options->scale) ? $options->{'scale'} : true);
-    $val = self::parse($value);
-    $val = $scale ? ($this->s * (1 - $val)) : ($this->s - $val);
-    return $this->replace('s', 100 * $val . '%');
-  }
-
-  public function saturate($value, $options = null) {
-    if ($options === null) $options = new stdClass();
-    $scale = ($options === true || $options === false) ? $options : (isset($options->scale) ? $options->{'scale'} : true);
-    $val = self::parse($value);
-    $val = $scale ? ($this->s * (1 + $val)) : ($this->s + $val);
-    return $this->replace('s', 100 * $val . '%');
-  }
-
-  public function greyscale() { return $this->desaturate('100%'); }
+  // Transforms a color into its grey tone
+  public function greyscale() { return new self('hsl('. 360 * $this->h .', 0%, '. 100 * $this->l .'%, '. $this->a .')'); }
   public function grayscale() { return $this->greyscale(); }
+
+  // Transforms a color into its sepia tone
+  public function sepia() {
+    $r = min(0.393 * $this->r + 0.769 * $this->g + 0.189 * $this->b, 1);
+    $g = min(0.349 * $this->r + 0.686 * $this->g + 0.168 * $this->b, 1);
+    $b = min(0.272 * $this->r + 0.534 * $this->g + 0.131 * $this->b, 1);
+    return new Couleur('rgb('. 255 * $r .', '. 255 * $g .', '. 255 * $b .', '. $this->a .')');
+  }
 
 
   /////////////////////////////////////////////////////////////////////////////////////////

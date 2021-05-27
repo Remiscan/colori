@@ -1136,40 +1136,20 @@ export default class Couleur {
   complement() { return this.change('h', 180); }
 
   // Negative / inverse color
-  negative() { return new Couleur(`rgba(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
+  negative() { return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
   invert() { return this.negative(); }
 
-  // options: { scale: true/false }
-  darken(value, options = {}) {
-    const scale = (options === true || options === false) ? options : ((typeof options.scale != 'undefined') ? options.scale : true);
-    let val = Couleur.parse(value);
-    val = scale ? this.l * (1 - val) : this.l - val;
-    return this.replace('l', `${100 * val}%`);
-  }
-
-  lighten(value, options = {}) {
-    const scale = (options === true || options === false) ? options : ((typeof options.scale != 'undefined') ? options.scale : true);
-    let val = Couleur.parse(value);
-    val = scale ? this.l * (1 + val) : this.l + val;
-    return this.replace('l', `${100 * val}%`);
-  }
-
-  desaturate(value, options = {}) {
-    const scale = (options === true || options === false) ? options : ((typeof options.scale != 'undefined') ? options.scale : true);
-    let val = Couleur.parse(value);
-    val = scale ? this.s * (1 - val) : this.s - val;
-    return this.replace('s', `${100 * val}%`);
-  }
-
-  saturate(value, options = {}) {
-    const scale = (options === true || options === false) ? options : ((typeof options.scale != 'undefined') ? options.scale : true);
-    let val = Couleur.parse(value);
-    val = scale ? this.s * (1 + val) : this.s + val;
-    return this.replace('s', `${100 * val}%`);
-  }
-
-  greyscale() { return this.desaturate('100%'); }
+  // Transforms a color into its grey tone
+  greyscale() { return new Couleur(`hsl(${360 * this.h}, 0%, ${100 * this.l}%, ${this.a})`); }
   grayscale() { return this.greyscale(); }
+
+  // Transforms a color into its sepia tone
+  sepia() {
+    const r = Math.min(0.393 * this.r + 0.769 * this.g + 0.189 * this.b, 1);
+    const g = Math.min(0.349 * this.r + 0.686 * this.g + 0.168 * this.b, 1);
+    const b = Math.min(0.272 * this.r + 0.534 * this.g + 0.131 * this.b, 1);
+    return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${this.a})`);
+  }
 
 
   /////////////////////////////////////////////////////////////////////////////////////////////

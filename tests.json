@@ -168,59 +168,14 @@
     "fonction": "testChangeHue.negative().rgb",
     "resultatAttendu": "rgb(92, 153, 143)"
   }, {
-    "fonction": "testChangeHue.darken('10%').hsl",
-    "resultatAttendu": "hsl(350, 25%, 47%)"
-  }, {
-    "fonction": "testChangeHue.darken('10%', true).hsl",
-    "resultatAttendu": "hsl(350, 25%, 47%)"
-  }, {
-    "fonction": "testChangeHue.darken('10%', { scale: true }).hsl",
-    "resultatAttendu": "hsl(350, 25%, 47%)"
-  }, {
-    "fonction": "testChangeHue.darken('10%', false).hsl",
-    "resultatAttendu": "hsl(350, 25%, 42%)"
-  }, {
-    "fonction": "testChangeHue.darken('10%', { scale: false }).hsl",
-    "resultatAttendu": "hsl(350, 25%, 42%)"
-  }, {
-    "fonction": "testChangeHue.lighten('10%').hsl",
-    "resultatAttendu": "hsl(350, 25%, 57%)"
-  }, {
-    "fonction": "testChangeHue.lighten('10%', { scale: false }).hsl",
-    "resultatAttendu": "hsl(350, 25%, 62%)"
-  }, {
-    "fonction": "testChangeHue.desaturate('10%').hsl",
-    "resultatAttendu": "hsl(350, 23%, 52%)"
-  }, {
-    "fonction": "testChangeHue.desaturate('10%', false).hsl",
-    "resultatAttendu": "hsl(350, 15%, 52%)"
-  }, {
-    "fonction": "testChangeHue.desaturate(0.1).hsl",
-    "resultatAttendu": "hsl(350, 23%, 52%)"
-  }, {
-    "fonction": "testChangeHue.desaturate(.1, false).hsl",
-    "resultatAttendu": "hsl(350, 15%, 52%)"
-  }, {
-    "fonction": "testChangeHue.saturate('10%').hsl",
-    "resultatAttendu": "hsl(350, 28%, 52%)"
-  }, {
-    "fonction": "testChangeHue.saturate('10%', { scale: false }).hsl",
-    "resultatAttendu": "hsl(350, 35%, 52%)"
-  }, {
-    "fonction": "testChangeHue.saturate(0.1).hsl",
-    "resultatAttendu": "hsl(350, 28%, 52%)"
-  }, {
-    "fonction": "testChangeHue.saturate(.1, { scale: false }).hsl",
-    "resultatAttendu": "hsl(350, 35%, 52%)"
-  }, {
-    "fonction": "testChangeHue.saturate(0).hsl",
-    "resultatAttendu": "hsl(350, 25%, 52%)"
-  }, {
     "fonction": "couleur.greyscale().hsl",
     "resultatAttendu": "hsl(128, 0%, 47%, 0.4)"
   }, {
     "fonction": "couleur.grayscale().hsl",
     "resultatAttendu": "hsl(128, 0%, 47%, 0.4)"
+  }, {
+    "fonction": "couleur.sepia().rgb",
+    "resultatAttendu": "rgb(178, 159, 124, 0.4)"
   }, {
     "fonction": "couleur.replace('l', '20%').hsl",
     "resultatAttendu": "hsl(128, 52%, 20%, 0.4)"

@@ -39,22 +39,13 @@ const methodes = [
     name: 'invert',
     args: null
   }, {
-    name: 'darken',
-    args: new RegExp(vNPandOptions)
-  }, {
-    name: 'lighten',
-    args: new RegExp(vNPandOptions)
-  }, {
-    name: 'desaturate',
-    args: new RegExp(vNPandOptions)
-  }, {
-    name: 'saturate',
-    args: new RegExp(vNPandOptions)
-  }, {
     name: 'greyscale',
     args: null
   }, {
     name: 'grayscale',
+    args: null
+  }, {
+    name: 'sepia',
     args: null
   }, {
     name: 'blend',
@@ -74,6 +65,9 @@ const methodes = [
     name: 'contrast',
     args: new RegExp(`^(.+)$`),
     argIsColor: [true]
+  }, {
+    name: 'contrastedText',
+    args: null
   }, {
     name: 'gradient',
     args: [
