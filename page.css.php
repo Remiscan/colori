@@ -1007,18 +1007,18 @@ a#documentation {
 
 a:link,
 a:visited {
-  --color: var(--link-color);
-  color: var(--color);
+  color: var(--link-color);
   font-weight: 600;
   text-decoration: none;
   padding: 0 .1em;
-  box-shadow: 0 0.1em 0 0 var(--color);
+  box-shadow: 0 0.1em 0 0 var(--link-underline-color);
 }
 
 a:hover,
 a:focus,
 a:active {
-  background-color: var(--color);
+  background-color: var(--link-color);
+  box-shadow: 0 0.1em 0 0 var(--link-color);
   color: var(--section-color);
   text-decoration: none;
   border-radius: .2em;
@@ -1089,10 +1089,10 @@ aside.nav-documentation {
   margin-top: 0;
 }
 
-.nav-rapide a {
+/*.nav-rapide a {
   text-decoration: none;
   box-shadow: none;
-}
+}*/
 
 .nav-documentation > input[type=checkbox] {
   height: 0;
@@ -1266,6 +1266,15 @@ aside.nav-documentation {
 }
 
 .off {
+  display: none;
+}
+
+
+/* Sections not to display based on language and prog language */
+html[lang="fr"] [lang="en"],
+html[lang="en"] [lang="fr"],
+html[data-prog-language="js"] [data-prog-language="php"],
+html[data-prog-language="php"] [data-prog-language="js"] {
   display: none;
 }
 
