@@ -93,6 +93,7 @@ html {
   --h-diff: -1;
   --user-saturation: 100%; 
   --text-strong-color: var(--h3-color);
+  --section-padding: .9rem;
 }
 
 /*<?php ob_start();?>*/
@@ -222,6 +223,7 @@ header {
   /*z-index: 0; WHY??? */
   background: var(--section-color);
   border-radius: 0 0 .6rem .6rem;
+  padding: 0 var(--section-padding);
 }
 
 header>h1 {
@@ -232,7 +234,6 @@ header>h1 {
   transform: none;
   position: relative;
   --shadow-color: var(--body-color);
-  padding: 0 .9rem;
   text-align: center;
   --coupe: 1.2rem;
   height: auto;
@@ -245,14 +246,14 @@ theme-selector {
   width: 1.8em;
   height: 1.8em;
   margin: .3rem;
-  --margin-right: .6rem;
+  --margin-right: 0;
   margin-right: var(--margin-right);
   --primary-color: var(--h1-color);
   --secondary-color: var(--h1-color);
 }
 
 theme-selector>.selector {
-  right: calc(-1 * var(--margin-right));
+  right: calc(-1 * var(--section-padding));
   background-color: var(--section-color);
   box-shadow: 0 1px .2rem 1px var(--body-color);
   margin-top: .6rem;
@@ -468,7 +469,7 @@ footer {
 section {
   background-color: var(--section-color);
   border-radius: .6rem;
-  padding: .9rem;
+  padding: var(--section-padding);
   padding-top: 1.2rem;
   margin-top: calc(0.71625 * var(--mod) * var(--mod) * var(--mod) * var(--mod) * 1rem);
   position: relative;
@@ -497,7 +498,7 @@ section::before {
 
 section.no-titre {
   margin-top: 0;
-  padding: .9rem;
+  padding: var(--section-padding);
 }
 
 #intro,
