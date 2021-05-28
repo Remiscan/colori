@@ -1230,7 +1230,7 @@ pre[class*="language-"], :not(pre) > code[class*="language-"] {
   background-color: var(--code-color);
 }
 
-code[class*="language-"] {
+.documentation pre>code[class*="language-"] {
   font-size: .9em;
 }
 
