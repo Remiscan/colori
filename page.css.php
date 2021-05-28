@@ -770,10 +770,6 @@ input:active, input:focus {
   align-self: center;
 }
 
-pre[class*="language-"] {
-  padding: .4em .5em;
-}
-
 pre[class*="language-"].format-donnee {
   margin: 0;
 }
@@ -1200,6 +1196,26 @@ aside.nav-documentation {
  * Exemple de code avec résultat juxtaposé
  */
 
+/* Code blocks */
+pre[class*="language-"] {
+	padding: .4em .5em;
+	margin: 1em 0;
+	overflow: auto;
+	border: none;
+	border-radius: .5em;
+	box-shadow: none;
+}
+
+/* Inline code */
+:not(pre) > code[class*="language-"] {
+	padding: .05em .2em;
+	border-radius: .3em;
+	border: none;
+	box-shadow: none;
+	white-space: nowrap;
+	margin: 0 1px;
+}
+
 .example-code {
   display: grid;
   grid-template-columns: 1fr;
@@ -1226,8 +1242,12 @@ aside.nav-documentation {
   grid-column: 1 / 2;
 }
 
-pre[class*="language-"], :not(pre) > code[class*="language-"] {
+code[class*="language-"],
+pre[class*="language-"],
+:not(pre) > code[class*="language-"] {
   background-color: var(--code-color);
+  color: var(--text-color);
+  text-shadow: none;
 }
 
 .documentation pre>code[class*="language-"] {

@@ -103,29 +103,24 @@ export function colorInterface(couleur = entree) {
   const meta = document.querySelector('meta[name=theme-color]');
   const colorPreview = (new Couleur('white')).blend(couleur);
 
-  // Calculate the colors that are the same for both light and dark themes
+  // Calculate colors that are the same for both light and dark themes
   const cieh = couleur.cieh * 360;
   both: {
-    cssBoth = `
-      /* Syntax coloring colors */
-      --token-number: ${(new Couleur(`lch(80% 70 ${cieh - 90})`)).hsl};
-      --token-string: ${(new Couleur(`lch(80% 70 ${cieh + 45})`)).hsl};
-      --token-operator: ${(new Couleur(`lch(80% 70 ${cieh - 45})`)).hsl};
-      --token-keyword: ${(new Couleur(`lch(80% 70 ${cieh + 135})`)).hsl};
-    `;
+    cssBoth = ``;
   }
 
+  // Calculate colors for light theme
   light: {
     const ciec = Math.min(couleur.ciec, 60);
     const bodyColor = new Couleur(`lch(75% ${ciec} ${cieh})`);
     meta.dataset.light = bodyColor.hsl;
     const sectionColor = new Couleur(`lch(85% ${.6 * ciec} ${cieh})`);
-    const codeColor = new Couleur(`lch(8% ${.6 * Math.min(.3 * couleur.ciec, 10)} ${cieh})`);
+    const codeColor = new Couleur(`lch(90% ${.3 * ciec} ${cieh})`);
     cssLight = `
       /* Background colors */
       --body-color: ${bodyColor.hsl};
       --section-color: ${sectionColor.hsl};
-      --frame-color: ${codeColor.improveContrast(colorPreview, 1).hsl};
+      --frame-color: ${codeColor.improveContrast(colorPreview, 2.5).hsl};
       --code-color: ${codeColor.hsl};
       /* Text colors */
       --h1-color: ${(new Couleur(`lch(30% ${.6 * ciec} ${cieh})`)).hsl};
@@ -137,15 +132,21 @@ export function colorInterface(couleur = entree) {
       --input-bg-color: ${(new Couleur(`lch(95% ${.3 * ciec} ${cieh})`)).hsl};
       --input-active-bg-color: ${(new Couleur(`lch(99% ${.1 * ciec} ${cieh})`)).hsl};
       --input-placeholder-color: ${(new Couleur(`lch(25% ${.5 * ciec} ${cieh} / .5)`)).hsl};
+      /* Syntax coloring colors */
+      --token-number: ${(new Couleur(`lch(50% 70 ${cieh - 90})`)).hsl};
+      --token-string: ${(new Couleur(`lch(50% 70 ${cieh + 45})`)).hsl};
+      --token-operator: ${(new Couleur(`lch(50% 70 ${cieh - 45})`)).hsl};
+      --token-keyword: ${(new Couleur(`lch(50% 70 ${cieh + 135})`)).hsl};
     `;
   }
 
+  // Calculate colors for dark theme
   dark: {
     const ciec = Math.min(.3 * couleur.ciec, 10);
     const bodyColor = new Couleur(`lch(8% ${.6 * ciec} ${cieh})`);
     meta.dataset.dark = bodyColor.hsl;
     const sectionColor = new Couleur(`lch(20% ${ciec} ${cieh})`);
-    const codeColor = bodyColor;
+    const codeColor = new Couleur(`lch(8% ${ciec} ${cieh})`);
     cssDark = `
       /* Background colors */
       --body-color: ${bodyColor.hsl};
@@ -162,6 +163,11 @@ export function colorInterface(couleur = entree) {
       --input-bg-color: ${(new Couleur(`lch(30% ${1.5 * ciec} ${cieh})`)).hsl};
       --input-active-bg-color: ${(new Couleur(`lch(10% ${.6 * ciec} ${cieh})`)).hsl};
       --input-placeholder-color: ${(new Couleur(`lch(90% ${.5 * ciec} ${cieh} / .5)`)).hsl};
+      /* Syntax coloring colors */
+      --token-number: ${(new Couleur(`lch(80% 70 ${cieh - 90})`)).hsl};
+      --token-string: ${(new Couleur(`lch(80% 70 ${cieh + 45})`)).hsl};
+      --token-operator: ${(new Couleur(`lch(80% 70 ${cieh - 45})`)).hsl};
+      --token-keyword: ${(new Couleur(`lch(80% 70 ${cieh + 135})`)).hsl};
     `;
   }
 
