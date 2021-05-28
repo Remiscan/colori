@@ -146,7 +146,7 @@ export function colorInterface(couleur = entree) {
     const bodyColor = new Couleur(`lch(8% ${.6 * ciec} ${cieh})`);
     meta.dataset.dark = bodyColor.hsl;
     const sectionColor = new Couleur(`lch(20% ${ciec} ${cieh})`);
-    const codeColor = new Couleur(`lch(8% ${ciec} ${cieh})`);
+    const codeColor = bodyColor;
     cssDark = `
       /* Background colors */
       --body-color: ${bodyColor.hsl};
