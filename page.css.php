@@ -893,6 +893,10 @@ pre[class*="language-"].format-donnee {
     grid-template-columns: 1fr;
   }
 
+  #entree {
+    grid-row: 2;
+  }
+
   label[for=entree] {
     grid-column: 1;
   }
