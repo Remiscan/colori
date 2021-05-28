@@ -1226,6 +1226,14 @@ aside.nav-documentation {
   grid-column: 1 / 2;
 }
 
+pre[class*="language-"], :not(pre) > code[class*="language-"] {
+  background-color: var(--code-color);
+}
+
+code[class*="language-"] {
+  font-size: .9em;
+}
+
 
 /*
  * Personnalisation de la coloration syntaxique

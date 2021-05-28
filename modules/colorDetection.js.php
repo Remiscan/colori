@@ -101,7 +101,6 @@ export function colorInterface(couleur = entree) {
 
   let cssBoth, cssLight, cssDark;
   const meta = document.querySelector('meta[name=theme-color]');
-  const frameOverlay = new Couleur('rgba(0, 0, 0, .8)');
   const colorPreview = (new Couleur('white')).blend(couleur);
 
   // Calculate the colors that are the same for both light and dark themes
@@ -121,12 +120,13 @@ export function colorInterface(couleur = entree) {
     const bodyColor = new Couleur(`lch(75% ${ciec} ${cieh})`);
     meta.dataset.light = bodyColor.hsl;
     const sectionColor = new Couleur(`lch(85% ${.6 * ciec} ${cieh})`);
-    const frameColor = sectionColor.blend(frameOverlay);
+    const codeColor = new Couleur(`lch(8% ${.6 * Math.min(.3 * couleur.ciec, 10)} ${cieh})`);
     cssLight = `
       /* Background colors */
       --body-color: ${bodyColor.hsl};
       --section-color: ${sectionColor.hsl};
-      --frame-color: ${frameColor.improveContrast(colorPreview, 1).hsl};
+      --frame-color: ${codeColor.improveContrast(colorPreview, 1).hsl};
+      --code-color: ${codeColor.hsl};
       /* Text colors */
       --h1-color: ${(new Couleur(`lch(30% ${.6 * ciec} ${cieh})`)).hsl};
       --h3-color: ${(new Couleur(`lch(45% ${ciec} ${cieh})`)).hsl};
@@ -145,12 +145,13 @@ export function colorInterface(couleur = entree) {
     const bodyColor = new Couleur(`lch(8% ${.6 * ciec} ${cieh})`);
     meta.dataset.dark = bodyColor.hsl;
     const sectionColor = new Couleur(`lch(20% ${ciec} ${cieh})`);
-    const frameColor = sectionColor.blend(frameOverlay);
+    const codeColor = bodyColor;
     cssDark = `
       /* Background colors */
       --body-color: ${bodyColor.hsl};
       --section-color: ${sectionColor.hsl};
-      --frame-color: ${frameColor.improveContrast(colorPreview, 2.5).hsl};
+      --frame-color: ${codeColor.improveContrast(colorPreview, 2.5).hsl};
+      --code-color: ${codeColor.hsl};
       /* Text colors */
       --h1-color: ${(new Couleur(`lch(80% ${ciec} ${cieh})`)).hsl};
       --h3-color: ${(new Couleur(`lch(70% ${1.7 * ciec} ${cieh})`)).hsl};
