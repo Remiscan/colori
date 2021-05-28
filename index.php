@@ -133,8 +133,8 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       </a>
 
       <div class="groupe-langages">
-        <button class="bouton-langage" data-lang="fr">Français</button>
-        <button class="bouton-langage" data-lang="en" disabled>English</button>
+        <button type="button" class="bouton-langage" data-lang="fr">Français</button>
+        <button type="button" class="bouton-langage" data-lang="en" disabled>English</button>
         <theme-selector position="bottom" icon="reverse"></theme-selector>
       </div>
     </header>
@@ -153,20 +153,20 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
             <label for="entree" class="h2 titre-partie-demo" data-string="demo-input-label"><?=$Textes->getString('demo-input-label')?></label>
             <div class="exemples-saisie exemples-valeurs">
               <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
-              <button class="exemple">pink</button>
-              <button class="exemple">#4169E1</button>
-              <button class="exemple">rgb(255, 127, 80)</button>
-              <button class="exemple" data-label="more-examples" aria-label="<?=$Textes->getString('more-examples')?>">+</button>
+              <button type="button" class="exemple">pink</button>
+              <button type="button" class="exemple">#4169E1</button>
+              <button type="button" class="exemple">rgb(255, 127, 80)</button>
+              <button type="button" class="exemple" data-label="more-examples" aria-label="<?=$Textes->getString('more-examples')?>">+</button>
             </div>
             <p class="instructions-exemples-fonctions inst-hidden off" data-string="instructions-demo"><?=$Textes->getString('instructions-demo')?></p>
             <div class="exemples-saisie exemples-fonctions inst-hidden off">
               <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
-              <button class="exemple">pink.invert()</button>
-              <button class="exemple">#4169E1.darken(50%)</button>
-              <button class="exemple">black.contrast(white)</button>
-              <button class="exemple">indigo.gradient(orange)</button>
-              <button class="exemple">rgb(255, 127, 80).desaturate(50%).blend(red, .2)</button>
-              <button class="exemple">aqua.blend(red.blend(white.darken(.8), .8), .5)</button>
+              <button type="button" class="exemple">pink.invert()</button>
+              <button type="button" class="exemple">#4169E1.darken(50%)</button>
+              <button type="button" class="exemple">black.contrast(white)</button>
+              <button type="button" class="exemple">indigo.gradient(orange)</button>
+              <button type="button" class="exemple">rgb(255, 127, 80).desaturate(50%).blend(red, .2)</button>
+              <button type="button" class="exemple">aqua.blend(red.blend(white.darken(.8), .8), .5)</button>
             </div>
             <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
@@ -222,7 +222,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       <h1 data-string="titre-section-documentation"><?=$Textes->getString('titre-section-documentation')?></h1>
 
       <div class="prog-lang-changer">
-        <button class="switch-js-php" data-current-tab="js">
+        <button type="button" class="switch-js-php" data-current-tab="js">
           <span id="sw-js" class="sw-span">.js</span>
           <span id="sw-php" class="sw-span">.php</span>
         </button>
