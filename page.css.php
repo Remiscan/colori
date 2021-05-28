@@ -232,7 +232,7 @@ header>h1 {
   transform: none;
   position: relative;
   --shadow-color: var(--body-color);
-  padding: 0 1.2rem;
+  padding: 0 .9rem;
   text-align: center;
   --coupe: 1.2rem;
   height: auto;
