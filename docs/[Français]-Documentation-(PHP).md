@@ -199,7 +199,7 @@ $b->lch() == 'lch(50% 81 20)'
 
 Lorsque un objet de classe ```Colore``` est créé en utilisant ```new Colore(expression)```, 14 propriétés différentes de la couleur sont calculées. Elles correspondent à tous les paramètres des différents formats de couleurs :
 
-- Les propriétés ```r```, ```g``` et ```b``` sont les valeurs de rouge, bleu et vert de la couleur lorsqu'elle est exprimée au format ```rgb(r, g, b)```. Ces valeurs sont habituellement données entre 0 et 255 ou en pourcentages.
+- Les propriétés ```r```, ```g``` et ```b``` sont les valeurs de rouge, vert et bleu de la couleur lorsqu'elle est exprimée au format ```rgb(r, g, b)```. Ces valeurs sont habituellement données entre 0 et 255 ou en pourcentages.
 
 - La propriété ```h``` est la valeur de teinte de la couleur lorsqu'elle est exprimée au format ```hsl(h, s, l)``` ou ```hwb(h, w, bk)```. Cette valeur est un angle, habituellement donné en degrés (de 0 à 360), grades (de 0 à 400), radians (de 0 à 2π) ou tours (de 0 à 1).
 
@@ -307,9 +307,9 @@ Elle prend comme arguments :
 
 - ```$options``` : un objet contenant les propriétés suivantes :
 
-  - ```replace``` (défaut = ```false```) : un booléen. Si ```true```, la valeur de ```val``` **remplacera** la valeur précédente de la propriété, au lieu de s'y additionner.
+  - ```replace``` (défaut = ```false```) : un booléen. Si ```true```, la valeur de ```$val``` **remplacera** la valeur précédente de la propriété, au lieu de s'y additionner.
 
-  - ```scale``` (défaut = ```false```) : un booléen. Si ```true```, la valeur de ```val``` sera **multipliée** à la valeur précédente de la propriété, au lieu de s'y additionner.
+  - ```scale``` (défaut = ```false```) : un booléen. Si ```true```, la valeur de ```$val``` sera **multipliée** à la valeur précédente de la propriété, au lieu de s'y additionner.
 
 Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` dont la propriété ```$prop``` a été modifiée.
 
@@ -397,7 +397,8 @@ Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est une cop
 $rosso = new Colore('red');
 $nuovoColore = $rosso->scale('l', '150%');
 // ce qui donne :
-$nuovoColore->hsl() == 'hsl(0, 100%, 75%)';
+$rosso->hsl() == 'hsl(0, 100%, 50%)'
+$nuovoColore->hsl() == 'hsl(0, 100%, 75%)'
 ```
 
 ## greyscale / grayscale
@@ -423,14 +424,14 @@ Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est une cop
 $blu = new Colore('blue');
 $blu->hsl() == 'hsl(240, 100%, 50%)'
 
-// Appliquons greyscale au bleu
+// Appliquons sepia au bleu
 $grigio = $blu->greyscale();
 $grigio->hsl() == 'hsl(240, 0%, 50%)'
 ```
 
 ## sepia
 
-La méthode ```sepa``` transforme une couleur en un ton sépia.
+La méthode ```sepia``` transforme une couleur en un ton sépia.
 
 ### Comment l'utiliser :
 
@@ -555,7 +556,7 @@ $result->rgb() == 'rgb(77, 51, 77)'
 
 ## unblend
 
-La méthode ```blend``` permettait de résoudre l'égalité suivant pour obtenir ```result``` :
+La méthode ```blend``` permettait de résoudre l'égalité suivante pour obtenir ```$result``` :
 
 ```php
 $result = Colore::blend($background, $overlay);
@@ -577,7 +578,7 @@ Elle prend comme arguments :
 
 - un nombre arbitraire d'objets de type ```Colore``` ou de chaînes de caractères dans un format compatible avec ```new Colore()```. Chaque couleur sera retirée à la précédente.
 
-Elle renvoie un objet de type ```Colore``` qui est la couleur obtenur après avoir dé-fusionné toutes les couleurs fournies en argument une par une.
+Elle renvoie un objet de type ```Colore``` qui est la couleur obtenue après avoir dé-fusionné toutes les couleurs fournies en argument une par une.
 
 ### Exemple :
 
@@ -592,7 +593,7 @@ $result->name() == 'red'
 
 ## whatToBlend
 
-La méthode ```blend``` permettait de résoudre l'égalité suivant pour obtenir ```result``` :
+La méthode ```blend``` permettait de résoudre l'égalité suivante pour obtenir ```$result``` :
 
 ```php
 $result = Colore::blend($background, $overlay)
@@ -737,7 +738,7 @@ $bluChiaro = new Couleur('lightblue');
 $bluCielo = new Couleur('skyblue');
 Colore::contrast($bluChiaro, $bluCielo) == 1.1396
 
-// Le contraste entre les couleurs bleu ciel et bleu clair est trop faible pour être bien lisible. Le WCAG recommande un contraste d'au moins 4.5. Modifions skyblue pour atteindre cette valeur.
+// Le contraste entre les couleurs bleu ciel et bleu clair est trop faible pour être bien lisible. Le WCAG recommande un contraste d'au moins 4.5. Modifions la couleur bleu ciel pour atteindre cette valeur.
 $nuovoBlue = $bluCielo->improveContrast($bluChiaro, 4.5);
 
 // On peut voir que le nouveau bleu est beaucoup plus sombre que le bleu ciel dont on est parti.
@@ -762,7 +763,7 @@ Elle prend comme arguments :
 
 - ```$color1``` et ```$color2``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
 
-- ```$format``` : détermine quel format des couleurs sera utilisé pour mesurer leur distance. Peut prendre les valeurs suivantes :
+- ```$format``` : une chaîne de caractères, détermine quel format des couleurs sera utilisé pour mesurer leur distance. Peut prendre les valeurs suivantes :
   - ```'rgb'```, ```'hsl'```, ```'hwb'```, ```'lab'``` ou ```'lch'``` : la distance entre les deux couleurs sera calculée en additionnant la différence des valeurs de chaque propriété du format choisi.
   - ```null``` (défaut) : la distance sera calculée en faisant la moyenne des distances pour tous les formats.
 
