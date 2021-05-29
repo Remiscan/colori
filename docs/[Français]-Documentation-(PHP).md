@@ -1,12 +1,5 @@
 - [Utiliser colori.php](#utiliser-coloriphp)
 - [Créer une couleur](#créer-une-couleur)
-  - [Nom](#nom)
-  - [Format RGB (hexadécimal)](#format-rgb-hexadécimal)
-  - [Format RGB (fonctionnel)](#format-rgb-fonctionnel)
-  - [Format HSL](#format-hsl)
-  - [Format HWB](#format-hwb)
-  - [Format LAB](#format-lab)
-  - [Format LCH](#format-lch)
 - [Propriétés d'une couleur](#propriétés-dune-couleur)
   - [Propriétés précalculées](#propriétés-précalculées)
   - [name](#name)
@@ -33,6 +26,8 @@
 - [Autres fonctions](#autres-fonctions)
   - [gradient](#gradient)
 
+(Note : _**colori**_ signifie _**couleurs**_ en italien. Le singulier est _**colore**_.)
+
 # Utiliser colori.php
 
 Il suffit de télécharger le fichier [colori.php](https://github.com/Remiscan/colori/releases/latest/download/colori.php), puis de l'importer dans votre code PHP comme suit :
@@ -41,7 +36,7 @@ Il suffit de télécharger le fichier [colori.php](https://github.com/Remiscan/c
 require_once 'colori.php';
 ```
 
-Le fichier colori.php commence par ```class Couleur```. Vous pouvez remplacer ```Couleur``` par un autre nom pour nommer la classe différemment. Dans cette documentation, nous utiliserons ```Colore```, qui signifie ***couleur*** en italien. Le pluriel est ***colori***.
+Le fichier colori.php commence par ```class Couleur```. Vous pouvez remplacer ```Couleur``` par un autre nom pour nommer la classe différemment. Dans cette documentation, nous utiliserons ```Colore```.
 
 # Créer une couleur
 
@@ -71,7 +66,7 @@ $rosso == object(Colore)[1]
 
 Le paramètre à fournir en entrée de ```new Colore(parametre)``` doit être une chaîne de caractères dans un format valide selon [la spécification CSS des formats de couleurs](https://drafts.csswg.org/css-color/#colorunits).
 
-## Nom
+#### Nom
 
 Une couleur peut être créée à partir de son nom dans [la spécification CSS](https://drafts.csswg.org/css-color/#named-colors) :
 
@@ -79,7 +74,7 @@ Une couleur peut être créée à partir de son nom dans [la spécification CSS]
 $rosso = new Colore('red');
 ```
 
-## Format RGB (hexadécimal)
+#### Format RGB (hexadécimal)
 
 Une couleur peut être créée à partir de son expression au format hexadécimal, par exemple ```#FF0000``` ou ```#F00``` pour le rouge :
 
@@ -97,7 +92,7 @@ $rossoTrasparente = new Colore('#FF000099');
 $rossoTrasparente = new Colore('#F009');
 ```
 
-## Format RGB (fonctionnel)
+#### Format RGB (fonctionnel)
 
 Une couleur peut être créée à partir de son expression au format RGB, par exemple ```rgb(255, 0, 0)``` pour le rouge :
 
@@ -115,7 +110,7 @@ $rossoTrasparente = new Colore('rgb(255 0 0 / 0.6)');
 
 Vous pouvez remplacer ```rgb``` par ```rgba```, cela aura le même effet.
 
-## Format HSL
+#### Format HSL
 
 Une couleur peut être créée à partir de son expression au format HSL, par exemple ```hsl(0, 100%, 50%)``` pour le rouge :
 
@@ -133,7 +128,7 @@ $rossoTrasparente = new Colore('hsl(0 100% 50% / 0.6)');
 
 Vous pouvez remplacer ```hsl``` par ```hsla```, cela aura le même effet.
 
-## Format HWB
+#### Format HWB
 
 Une couleur peut être créée à partir de son expression au format HWB, par exemple ```hwb(0 0% 0%)``` pour le rouge :
 
@@ -145,7 +140,7 @@ $rosso = new Colore('hwb(0 0% 0%)');
 $rossoTrasparente = new Colore('hwb(0 0% 0% / 0.6)');
 ```
 
-## Format LAB
+#### Format LAB
 
 Une couleur peut être créée à partir de son expression au format LAB, par exemple ```lab(54% 81 70)``` pour le rouge :
 
@@ -169,7 +164,7 @@ $b = new Colore('rgb(232, 0, 78)')
 $b->lch() == 'lab(50% 76 28)'
 ```
 
-## Format LCH
+#### Format LCH
 
 Une couleur peut être créée à partir de son expression au format LCH, par exemple ```lch(54% 107 41)``` pour le rouge :
 

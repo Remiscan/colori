@@ -18,7 +18,7 @@
     "titre-section-documentation": "Documentation",
     "classe-nom": "Colore",
     "nav-documentation": "Navigation rapide",
-    "documentation-intro-p1": "<strong>colori.js</strong> est un module JavaScript qui convertit une couleur entre les différents formats utilisables en CSS et fournit quelques fonctions pratiques pour manipuler les couleurs (fusionner deux couleurs, calculer leur contraste, etc.).",
+    "documentation-intro-p1": "<strong>colori.<span data-prog-language=\"js\">js</span><span data-prog-language=\"php\">php</span></strong> est un module <span data-prog-language=\"js\">JavaScript</span><span data-prog-language=\"php\">PHP</span> qui convertit une couleur entre les différents formats utilisables en CSS et fournit quelques fonctions pratiques pour manipuler les couleurs (fusionner deux couleurs, calculer leur contraste, etc.).",
     "documentation-intro-p2": "(Note&nbsp;: <em><strong>colori</strong></em> signifie <em><strong>couleurs</strong></em> en italien. Le singulier est <em><strong>colore</strong></em>.)",
     "documentation-utiliser-titre": "Utiliser colori.js",
     "documentation-utiliser-p1": "Il suffit de télécharger le fichier <a href=\"https://github.com/Remiscan/colori/releases/latest/download/colori.js\" download=\"colori\">colori.js</a>, puis de l'importer dans votre code JavaScript comme suit&nbsp;:",
@@ -77,7 +77,7 @@
     "documentation-creer-p2-php": "Le paramètre à fournir en entrée de <code class=\"language-php\">new Couleur($parametre)</code> doit être une chaîne de caractères dans un format valide <a href=\"https://drafts.csswg.org/css-color/#colorunits\" target=\"_blank\" rel=\"noopener\">selon la spécification CSS des formats de couleurs</a>.",
     "documentation-formats-p1-php": "Vous pouvez récupérer la chaîne de caratères contenant l'expression de la couleur au format désiré grâce aux méthodes <code class=\"language-php\">hex()</code>, <code class=\"language-php\">rgb()</code> et <code class=\"language-php\">hsl()</code>&nbsp;:",
     "documentation-comparer-titre": "Comparer deux couleurs",
-    "syntax-highlighting-source": "Coloration syntaxique par"
+    "syntax-highlighting-source": "Cette page utilise"
   },
   "en": {
     "description-site": "JS module to manipulate colours (also available in PHP)",
@@ -97,7 +97,7 @@
     "apercu-gradient": "Gradient preview",
     "classe-nom": "Color",
     "nav-documentation": "Quick navigation",
-    "documentation-intro-p1": "<strong>colori.js</strong> is a JavaScript module to convert a color into its different CSS-supported formats and to manipulate colors with some useful functions (blend two colors, calculate their contrast, etc.).",
+    "documentation-intro-p1": "<strong>colori.<span data-prog-language=\"js\">js</span><span data-prog-language=\"php\">php</span></strong> is a <span data-prog-language=\"js\">JavaScript</span><span data-prog-language=\"php\">PHP</span> module to convert a color into its different CSS-supported formats and to manipulate colors with some useful functions (blend two colors, calculate their contrast, etc.).",
     "documentation-intro-p2": "(Note: <em><strong>colori</strong></em> means <em><strong>colors</strong></em> in Italian. The singular is <em><strong>colore</strong></em>.)",
     "documentation-utiliser-titre": "How to use colori.js",
     "documentation-utiliser-p1": "You need to download the file <a href=\"https://github.com/Remiscan/colori/releases/latest/download/colori.js\" download=\"colori\">colori.js</a>, then just import it into your JavaScript code like this:",
@@ -156,6 +156,6 @@
     "documentation-creer-p2-php": "The parameter in <code class=\"language-php\">new Couleur($parametre)</code> must be a string in a supported format <a href=\"https://drafts.csswg.org/css-color/#colorunits\" target=\"_blank\" rel=\"noopener\">according to the CSS specification about color formats</a>.",
     "documentation-formats-p1-php": "You can get the string containing the expression of the color in the desired format by using the <code class=\"language-php\">hex()</code>, <code class=\"language-php\">rgb()</code> et <code class=\"language-php\">hsl()</code> methods:",
     "documentation-comparer-titre": "Compare two colors",
-    "syntax-highlighting-source": "Syntax highlighting by"
+    "syntax-highlighting-source": "This page uses"
   }
 }

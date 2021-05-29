@@ -944,7 +944,9 @@ p, li {
   margin: 0;
 }
 
-.titre-partie-docu + p, div + p {
+.documentation h2 + p,
+.titre-partie-docu + p,
+div + p {
   margin-top: 1em;
 }
 
@@ -970,11 +972,11 @@ h2 + a.anchor-dest + p.h3 {
   margin-top: 1em;
 }
 
-p.h3 {
+.documentation h3 {
   display: flex;
 }
 
-p.h3::after {
+.documentation h3::after {
   content: '';
   display: flex;
   flex-grow: 1;
@@ -985,7 +987,7 @@ p.h3::after {
   align-self: center;
 }
 
-h2 + a.anchor-dest + p.h3::after {
+h2 + a.anchor-dest + .documenation h3::after {
   border-color: transparent;
 }
 
@@ -1056,7 +1058,7 @@ aside.nav-documentation {
   padding: .6rem;
 }
 
-.documentation>.nav-rapide {
+.documentation .nav-rapide {
   display: none;
   padding-bottom: .6rem;
   background-color: var(--section-color);
@@ -1064,7 +1066,7 @@ aside.nav-documentation {
   z-index: 2;
 }
 
-.documentation>.nav-rapide + .exemple {
+.documentation .nav-rapide + .exemple {
   display: none;
   position: sticky;
   top: .3rem;
@@ -1084,6 +1086,11 @@ aside.nav-documentation {
   padding-left: 20px;
   margin: 0;
   font-size: .9em;
+}
+
+.documentation ul {
+  padding-left: 20px;
+  margin: 0 0 1em 0;
 }
 
 .nav-rapide li + li {
@@ -1135,8 +1142,8 @@ aside.nav-documentation {
     height: auto;
   }
 
-  .documentation>.nav-rapide/*,
-  .documentation>.nav-rapide + .exemple*/ {
+  .documentation .nav-rapide/*,
+  .documentation .nav-rapide + .exemple*/ {
     display: block;
   }
 
@@ -1158,6 +1165,7 @@ aside.nav-documentation {
  * Titre de partie de documentation
  */
 
+.documentation h2,
 .titre-partie-demo,
 .titre-partie-docu {
   color: var(--h3-color);
@@ -1165,6 +1173,7 @@ aside.nav-documentation {
   display: block;
   position: relative;
 }
+.documentation h2,
 .titre-partie-docu {
   --margin-top: 1.2em;
   --separator-width: 100%;
@@ -1172,6 +1181,7 @@ aside.nav-documentation {
 }
 
 /* Séparateur entre parties */
+.documentation h2::before,
 .titre-partie-docu::before { 
   content: '';
   display: block;
@@ -1186,9 +1196,14 @@ aside.nav-documentation {
   opacity: .15;
 }
 
+.documentation h2.no-separator,
 .titre-partie-docu.no-separator {
   --margin-top: .6em;
   --separator-width: 0;
+}
+
+.documentation p:first-of-type {
+  margin-top: 0;
 }
 
 
@@ -1249,10 +1264,33 @@ pre[class*="language-"],
   background-color: var(--code-color);
   color: var(--text-color);
   text-shadow: none;
+  white-space: pre-line;
 }
 
 .documentation pre>code[class*="language-"] {
-  font-size: .9em;
+  font-size: .95em;
+}
+
+blockquote {
+  border: 1px dashed var(--h3-color);
+  border-left: none;
+  border-right: none;
+  padding: .6rem var(--section-padding);
+  margin: 0 calc(-1 * var(--section-padding));
+  background-color: var(--input-bg-color);
+}
+
+blockquote>pre:last-child,
+article>pre:last-child {
+  margin-bottom: 0;
+}
+
+li {
+  list-style-type: disclosure-closed;
+}
+
+li li {
+  list-style-type: square;
 }
 
 

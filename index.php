@@ -8,6 +8,9 @@ require_once $commonDir.'/php/getStrings.php';
 $version = version(__DIR__);
 $Textes = new Textes('colori');
 
+require_once './ext/Parsedown.php';
+$Parsedown = new Parsedown();
+
 $namedColors = array_keys(Couleur::COULEURS_NOMMEES);
 $r = mt_rand(0, count($namedColors) - 1);
 $startColor = new Couleur($namedColors[$r]);
@@ -17,8 +20,12 @@ $bodyColor = new Couleur("lch(75% $startColor->ciec ".round($startColor->cieh * 
 $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." ".round($startColor->cieh * 360).")");
 ?>
 <!doctype html>
-<html lang="fr" data-version="<?=$version?>" data-http-lang="<?=httpLanguage()?>"
-      data-theme="<?=$_COOKIE['theme'] ?? 'auto'?>" data-resolved-theme="<?=$_COOKIE['resolvedTheme'] ?? 'light'?>"
+<html lang="fr"
+      data-version="<?=$version?>"
+      data-http-lang="<?=httpLanguage()?>"
+      data-prog-language="<?=$_COOKIE['progLang'] ?? 'js'?>"
+      data-theme="<?=$_COOKIE['theme'] ?? 'auto'?>"
+      data-resolved-theme="<?=$_COOKIE['resolvedTheme'] ?? 'light'?>"
       data-start-color="<?=$startColor->name()?>"
       style="--user-hue: <?=round($startColor->h*360)?>;
              --user-color: <?=$startColor->name()?>;
@@ -117,7 +124,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
     <div class="loading" aria-hidden="true"></div>
 
     <header class="intro">
-      <h1>colori.js</h1>
+      <h1>colori.<span data-prog-language="js">js</span><span data-prog-language="php">php</span></h1>
       <script>
         const isPhp = localStorage.getItem('colori/lang-php');
         if (isPhp == 'true')
@@ -141,7 +148,6 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
 
     <section id="intro" class="no-titre">
       <p data-string="documentation-intro-p1"><?=$Textes->getString('documentation-intro-p1')?></p>
-      <p data-string="documentation-intro-p1-php" class="off"><?=$Textes->getString('documentation-intro-p1-php')?></p>
     </section>
 
     <section id="demo">
@@ -232,25 +238,37 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       <a class="exemple" href="#documentation">▲ Navigation rapide</a>
 
       <!-- DOCUMENTATION JavaScript -->
-      <article id="documentation-js">
-        <?php include 'docs/documentation-js.php'; ?>
+      <article data-prog-language="js" lang="fr">
+        <?php
+        function prepareDocumentation($docu) {
+          $docu = str_replace(['h3', 'h2', 'h1', '<code>', '<pre>'], ['h4', 'h3', 'h2', '<code class="language-javascript">', '<pre class="language-javascript">'], $docu);
+          $docu = preg_replace('/\<ul\>/', '<div class="nav-rapide"><ul>', $docu, 1);
+          $docu = preg_replace('/\<\/ul\>\n\<p\>/', '</ul></div><p>', $docu, 1);
+          return $docu;
+        }
+        
+        $docu = file_get_contents('./docs/[Français]-Documentation-(JavaScript).md');
+        echo prepareDocumentation($Parsedown->text($docu)); ?>
+      </article>
+
+      <article data-prog-language="js" lang="en">
+        <?php $docu = file_get_contents('./docs/[English]-Documentation-(JavaScript).md');
+        echo prepareDocumentation($Parsedown->text($docu)); ?>
       </article>
 
       <!-- DOCUMENTATION PHP -->
-      <article id="documentation-php" class="off">
-        <?php include 'docs/documentation-php.php'; ?>
+      <article data-prog-language="php" lang="fr">
+        <?php $docu = file_get_contents('./docs/[Français]-Documentation-(PHP).md');
+        echo prepareDocumentation($Parsedown->text($docu)); ?>
       </article>
 
-      <script>
-        if (isPhp == 'true')
-        {
-          document.getElementById('documentation-js').classList.add('off');
-          document.getElementById('documentation-php').classList.remove('off');
-        }
-      </script>
+      <article data-prog-language="php" lang="en">
+        <?php $docu = file_get_contents('./docs/[English]-Documentation-(PHP).md');
+        echo prepareDocumentation($Parsedown->text($docu)); ?>
+      </article>
     </section>
 
-    <footer><span><span data-string="syntax-highlighting-source"><?=$Textes->getString('syntax-highlighting-source')?></span> <a href="https://prismjs.com/" target="_blank" rel="noopener">prism.js</a></span></footer>
+    <footer><span><span data-string="syntax-highlighting-source"><?=$Textes->getString('syntax-highlighting-source')?></span> <a href="https://parsedown.org/" target="_blank" rel="noopener">Parsedown</a> & <a href="https://prismjs.com/" target="_blank" rel="noopener">Prism.js</a></span></footer>
 
     <!-- ▼ Fichiers cache-busted grâce à PHP -->
     <!--<?php ob_start();?>-->

@@ -34,26 +34,19 @@ champ.addEventListener('input', event => {
 // Switch between js and php version of the page
 async function switchBetweenJsPhp(language) {
   const langSwitch = document.querySelector('.switch-js-php');
+  new Cookie('progLang', language);
 
   return new Promise(resolve => {
     setTimeout(() => {
       if (language == 'php') {
         langSwitch.dataset.currentTab = 'php';
-        document.querySelector('header>h1').innerHTML = 'colori.php';
-        document.getElementById('documentation-js').classList.add('off');
-        document.getElementById('documentation-php').classList.remove('off');
-        document.getElementById('intro').querySelector('[data-string="documentation-intro-p1"]').classList.add('off');
-        document.getElementById('intro').querySelector('[data-string="documentation-intro-p1-php"]').classList.remove('off');
-      } else {
+        document.documentElement.dataset.progLanguage = 'php';
+      } 
+      else {
         langSwitch.dataset.currentTab = 'js';
-        document.querySelector('header>h1').innerHTML = 'colori.js';
-        document.getElementById('documentation-php').classList.add('off');
-        document.getElementById('documentation-js').classList.remove('off');
-        document.getElementById('intro').querySelector('[data-string="documentation-intro-p1"]').classList.remove('off');
-        document.getElementById('intro').querySelector('[data-string="documentation-intro-p1-php"]').classList.add('off');
-      }
-      localStorage.setItem('colori/lang-php', langSwitch.dataset.currentTab == 'php');
-      makeNav(langSwitch.dataset.currentTab);
+        document.documentElement.dataset.progLanguage = 'js';
+      } 
+      //makeNav(langSwitch.dataset.currentTab);
       resolve();
     }, 20);
   });
@@ -111,8 +104,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   langSwitch.addEventListener('click', () => switchBetweenJsPhp(langSwitch.dataset.currentTab == 'js' ? 'php' : 'js'));
 
   // Toggle JS or PHP version of the page based on last visit
-  if (isPhp == 'true')  await switchBetweenJsPhp('php');
-  else                  makeNav('js');
+  /*if (isPhp == 'true')  await switchBetweenJsPhp('php');
+  else                  makeNav('js');*/
 
   // Customize theme-selector
   document.querySelector('theme-selector .selector-title').classList.add('h4');

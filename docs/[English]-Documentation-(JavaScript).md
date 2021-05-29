@@ -1,15 +1,8 @@
 - [How to use colori.js](#how-to-use-colorijs)
 - [Create a color](#create-a-color)
-  - [Name](#name)
-  - [RGB format (hexadecimal)](#rgb-format-hexadecimal)
-  - [RGB format (functional)](#rgb-format-functional)
-  - [HSL format](#hsl-format)
-  - [HWB format](#hwb-format)
-  - [LAB format](#lab-format)
-  - [LCH format](#lch-format)
 - [Color properties](#color-properties)
   - [Precalculated properties](#precalculated-properties)
-  - [name](#name-1)
+  - [name](#name)
   - [luminance](#luminance)
 - [Express a color in different formats](#express-a-color-in-different-formats)
 - [Modify a color](#modify-a-color)
@@ -33,6 +26,8 @@
 - [Other functions](#other-functions)
   - [gradient](#gradient)
 
+(Note: _**colori**_ means _**colors**_ in Italian. The singular is _**colore**_.)
+
 # How to use colori.js
 
 You need to download the file [colori.js](https://github.com/Remiscan/colori/releases/latest/download/colori.js), then just import it into your JavaScript code like this:
@@ -41,7 +36,7 @@ You need to download the file [colori.js](https://github.com/Remiscan/colori/rel
 import Colore from 'colori.js';
 ```
 
-You can replace ```Colore``` by any other name you want to give to the class. In this documentation, we will be using ```Colore```, which means ***color*** in italian. The plural is ***colori***.
+You can replace ```Colore``` by any other name you want to give to the class. In this documentation, we will be using ```Colore```.
 
 # Create a color
 
@@ -72,7 +67,7 @@ rosso == {
 
 The parameter in ```new Colore(parameter)``` must be a string in a supported format according to [the CSS specification about color formats](https://drafts.csswg.org/css-color/#colorunits).
 
-## Name
+#### Name
 
 A color can be created from its name in [the CSS specification](https://drafts.csswg.org/css-color/#named-colors):
 
@@ -80,7 +75,7 @@ A color can be created from its name in [the CSS specification](https://drafts.c
 const rosso = new Colore('red');
 ```
 
-## RGB format (hexadecimal)
+#### RGB format (hexadecimal)
 
 A color can be created from its expression in hexadecimal format, for example ```#FF0000``` or ```#F00``` for red:
 
@@ -98,7 +93,7 @@ const rossoTrasparente = new Colore('#FF000099');
 const rossoTrasparente = new Colore('#F009');
 ```
 
-## RGB format (functional)
+#### RGB format (functional)
 
 A color can be created from its expression in RGB format, for example ```rgb(255, 0, 0)``` for red:
 
@@ -116,7 +111,7 @@ const rossoTrasparente = new Colore('rgb(255 0 0 / 0.6)');
 
 You can replace  ```rgb``` by ```rgba```, it won't make any difference.
 
-## HSL format
+#### HSL format
 
 A color can be created from its expression in HSL format, for example ```hsl(0, 100%, 50%)``` for red:
 
@@ -134,7 +129,7 @@ const rossoTrasparente = new Colore('hsl(0 100% 50% / 0.6)');
 
 You can replace ```hsl``` by ```hsla```, it won't make any difference.
 
-## HWB format
+#### HWB format
 
 A color can be created from its expression in HWB format, for example ```hwb(0 0% 0%)``` for red:
 
@@ -146,7 +141,7 @@ const rosso = new Colore('hwb(0 0% 0%)');
 const rossoTrasparente = new Colore('hwb(0 0% 0% / 0.6)');
 ```
 
-## LAB format
+#### LAB format
 
 A color can be created from its expression in LAB format, for example ```lab(54% 81 70)``` for red:
 
@@ -170,7 +165,7 @@ const b = new Colore('rgb(232, 0, 78)')
 b.lch == 'lab(50% 76 28)'
 ```
 
-## LCH format
+#### LCH format
 
 A color can be created from its expression in LCH format, for example ```lch(54% 107 41)``` for red:
 
