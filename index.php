@@ -240,10 +240,20 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       <!-- DOCUMENTATION JavaScript -->
       <article data-prog-language="js" lang="fr">
         <?php
+        function anchorLink($matches) {
+          $title = $matches[2];
+          $h = $matches[1];
+          $link = preg_replace('/\<code(?:.+)?\>(.+)?\<\/code\>/', '$1', $title);
+          $link = strtolower($link);
+          $link = str_replace([' ', '.', '\''], ['-', '', ''], $link);
+          return '<a id="'. $link .'"></a><h'. $h .'>'. $title .'</h'. $h .'>';
+        }
+
         function prepareDocumentation($docu) {
           $docu = str_replace(['h3', 'h2', 'h1', '<code>', '<pre>'], ['h4', 'h3', 'h2', '<code class="language-javascript">', '<pre class="language-javascript">'], $docu);
           $docu = preg_replace('/\<ul\>/', '<div class="nav-rapide"><ul>', $docu, 1);
           $docu = preg_replace('/\<\/ul\>\n\<p\>/', '</ul></div><p>', $docu, 1);
+          $docu = preg_replace_callback('/\<h(2|3)\>(.+)?\<\/h(?:2|3)\>/', 'anchorLink', $docu);
           return $docu;
         }
         
