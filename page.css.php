@@ -571,8 +571,8 @@ footer {
   height: 100%;
 }
 
-.switch-js-php[data-current-tab=js]>#sw-js,
-.switch-js-php[data-current-tab=php]>#sw-php {
+html[data-prog-language="js"] .switch-js-php>#sw-js,
+html[data-prog-language="php"] .switch-js-php>#sw-php {
   background-color: var(--section-color);
   border-radius: .6rem .6rem 0 0;
 }
@@ -972,19 +972,60 @@ h2 + a.anchor-dest + p.h3 {
   margin-top: 1em;
 }
 
+.documentation h4,
 .documentation h3 {
   display: flex;
+  gap: .3rem;
+  justify-content: baseline;
+  position: relative;
+  margin: 2.4rem 0 .6rem;
 }
 
+.documentation h4 :nth-child(2) {
+  background-color: var(--code-color);
+    color: var(--text-color);
+    text-shadow: none;
+    white-space: pre-line;
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-size: 1em;
+    text-align: left;
+    padding: .05em .2em;
+    border-radius: .3em;
+    border: none;
+    box-shadow: none;
+    margin: 0 1px;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    line-height: 1.5;
+    hyphens: none;
+}
+
+.documentation h3::before,
 .documentation h3::after {
   content: '';
   display: flex;
   flex-grow: 1;
+  width: 100%;
   height: 1px;
-  border-top: 1px dashed var(--h3-color);
-  opacity: .3;
-  margin-left: .6rem;
+  border-top: 2px solid var(--h3-color);
+  opacity: .1;
   align-self: center;
+}
+
+.documentation h3::before {
+  width: .9rem;
+}
+
+.documentation h3::after {
+}
+
+.documentation h2 + h3 {
+  margin-top: .6rem;
+}
+
+.documentation h2 + h3::after {
+  opacity: 0;
 }
 
 h2 + a.anchor-dest + .documenation h3::after {

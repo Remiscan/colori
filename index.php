@@ -228,7 +228,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       <h1 data-string="titre-section-documentation"><?=$Textes->getString('titre-section-documentation')?></h1>
 
       <div class="prog-lang-changer">
-        <button type="button" class="switch-js-php" data-current-tab="js">
+        <button type="button" class="switch-js-php">
           <span id="sw-js" class="sw-span">.js</span>
           <span id="sw-php" class="sw-span">.php</span>
         </button>

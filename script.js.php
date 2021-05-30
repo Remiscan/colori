@@ -39,11 +39,9 @@ async function switchBetweenJsPhp(language) {
   return new Promise(resolve => {
     setTimeout(() => {
       if (language == 'php') {
-        langSwitch.dataset.currentTab = 'php';
         document.documentElement.dataset.progLanguage = 'php';
       } 
       else {
-        langSwitch.dataset.currentTab = 'js';
         document.documentElement.dataset.progLanguage = 'js';
       } 
       //makeNav(langSwitch.dataset.currentTab);
@@ -101,7 +99,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Detect clicks on JS <=> PHP toggle
-  langSwitch.addEventListener('click', () => switchBetweenJsPhp(langSwitch.dataset.currentTab == 'js' ? 'php' : 'js'));
+  langSwitch.addEventListener('click', () => switchBetweenJsPhp(document.documentElement.dataset.progLanguage == 'js' ? 'php' : 'js'));
 
   // Toggle JS or PHP version of the page based on last visit
   /*if (isPhp == 'true')  await switchBetweenJsPhp('php');

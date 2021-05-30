@@ -2,29 +2,29 @@
 - [Créer une couleur](#créer-une-couleur)
 - [Propriétés d'une couleur](#propriétés-dune-couleur)
   - [Propriétés précalculées](#propriétés-précalculées)
-  - [name](#name)
-  - [luminance](#luminance)
+  - [```name```](#name)
+  - [```luminance```](#luminance)
 - [Exprimer une couleur dans différents formats](#exprimer-une-couleur-dans-différents-formats)
 - [Modifier une couleur](#modifier-une-couleur)
-  - [change](#change)
-  - [replace](#replace)
-  - [scale](#scale)
-  - [greyscale / grayscale](#greyscale--grayscale)
-  - [sepia](#sepia)
-  - [complement](#complement)
-  - [negative / invert](#negative--invert)
+  - [```change```](#change)
+  - [```replace```](#replace)
+  - [```scale```](#scale)
+  - [```greyscale``` / ```grayscale```](#greyscale--grayscale)
+  - [```sepia```](#sepia)
+  - [```complement```](#complement)
+  - [```negative``` / ```invert```](#negative--invert)
 - [Fusionner des couleurs](#fusionner-des-couleurs)
-  - [blend](#blend)
-  - [unblend](#unblend)
-  - [whatToBlend](#whattoblend)
+  - [```blend```](#blend)
+  - [```unblend```](#unblend)
+  - [```whatToBlend```](#whattoblend)
 - [Comparer deux couleurs](#comparer-deux-couleurs)
-  - [contrast](#contrast)
-  - [contrastedText](#contrastedtext)
-  - [improveContrast](#improvecontrast)
-  - [distance](#distance)
-  - [same](#same)
+  - [```contrast```](#contrast)
+  - [```contrastedText```](#contrastedtext)
+  - [```improveContrast```](#improvecontrast)
+  - [```distance```](#distance)
+  - [```same```](#same)
 - [Autres fonctions](#autres-fonctions)
-  - [gradient](#gradient)
+  - [```gradient```](#gradient)
 
 (Note : _**colori**_ signifie _**couleurs**_ en italien. Le singulier est _**colore**_.)
 
@@ -212,7 +212,7 @@ Lorsque un objet de classe ```Colore``` est créé en utilisant ```new Colore(ex
 
 - La propriété ```a``` est l'opacité de la couleur. C'est le 4ème paramètre optionnel dans chaque format de couleur vu précédemment. Cette valeur est habituellement donnée dans l'intervalle [0, 1] ou en pourcentage.
 
-## name
+## ```name```
 
 Certaines couleurs [ont un nom selon la spécification CSS](https://drafts.csswg.org/css-color/#named-colors). Pour ces couleurs-là, le paramètre ```name``` renverra leur nom :
 
@@ -234,7 +234,7 @@ La propriété ```exactName``` récupère le nom uniquement quand la couleur y c
 (new Colore('rgb(255, 0.1, 0.1)'))->exactName() == null
 ```
 
-## luminance
+## ```luminance```
 
 La propriété ```luminance``` renvoie la valeur de luminance de la couleur, [telle que définie par le W3C](https://www.w3.org/TR/WCAG20-TECHS/G18.html#G18-procedure).
 
@@ -282,7 +282,7 @@ $rosso->lcha() == 'lch(54% 107 41 / 1)'
 
 # Modifier une couleur
 
-## change
+## ```change```
 
 La méthode ```change``` permet de modifier n'importe quelle propriété d'une couleur, et renvoie un objet de classe ```Colore``` dont toutes les propriétés ont été recalculées suite à la modification.
 
@@ -335,7 +335,7 @@ $rosso->hsl() == 'hsl(0, 100%, 50%)'
 $nuovoColore->hsl() == 'hsl(0, 100%, 75%)';
 ```
 
-## replace
+## ```replace```
 
 La méthode ```replace``` est équivalente à ```change``` avec l'option ```{ replace: true }```.
 
@@ -365,7 +365,7 @@ $nuovoColore = $rosso->replace('l', '10%');
 $nuovoColore->hsl() == 'hsl(0, 100%, 10%)';
 ```
 
-## scale
+## ```scale```
 
 La méthode ```scale``` est équivalente à ```change``` avec l'option ```(object)["scale" => true]```.
 
@@ -396,7 +396,7 @@ $rosso->hsl() == 'hsl(0, 100%, 50%)'
 $nuovoColore->hsl() == 'hsl(0, 100%, 75%)'
 ```
 
-## greyscale / grayscale
+## ```greyscale``` / ```grayscale```
 
 La méthode ```greyscale``` (ou ```grayscale```) transforme une couleur en un gris ayant la même luminosité qu'elle.
 
@@ -424,7 +424,7 @@ $grigio = $blu->greyscale();
 $grigio->hsl() == 'hsl(240, 0%, 50%)'
 ```
 
-## sepia
+## ```sepia```
 
 La méthode ```sepia``` transforme une couleur en un ton sépia.
 
@@ -452,7 +452,7 @@ $seppia = $blu->sepia();
 $seppia->rgb() == 'rgb(48, 43, 33)'
 ```
 
-## complement
+## ```complement```
 
 La méthode ```complement``` calcule la couleur complémentaire.
 
@@ -481,7 +481,7 @@ $bianco = new Couleur('white');
 $bianco->complement()->name() == 'white'
 ```
 
-## negative / invert
+## ```negative``` / ```invert```
 
 La méthode ```negative``` (ou ```ìnvert```) calcule la couleur négative.
 
@@ -512,7 +512,7 @@ $rosso->negative()->name() == 'aqua'
 
 # Fusionner des couleurs
 
-## blend
+## ```blend```
 
 La méthode statique ```blend``` permet de fusionner plusieurs couleurs. En d'autres termes, elle calcule la couleur que vous verriez à l'écran si vous superposiez plusieurs couleurs.
 
@@ -549,7 +549,7 @@ $result = Colore::blend('red', $bluTrasparente, $verdeTrasparente);
 $result->rgb() == 'rgb(77, 51, 77)' 
 ```
 
-## unblend
+## ```unblend```
 
 La méthode ```blend``` permettait de résoudre l'égalité suivante pour obtenir ```$result``` :
 
@@ -586,7 +586,7 @@ $result = Colore::unblend('purple', $bluTrasparente);
 $result->name() == 'red'
 ```
 
-## whatToBlend
+## ```whatToBlend```
 
 La méthode ```blend``` permettait de résoudre l'égalité suivante pour obtenir ```$result``` :
 
@@ -636,7 +636,7 @@ $result->rgb() == 'rgb(0, 0, 255, 0.5)'
 
 # Comparer deux couleurs
 
-## contrast
+## ```contrast```
 
 La méthode statique ```contrast``` calcule le contraste entre deux couleurs.
 
@@ -661,7 +661,7 @@ Colore::contrast('skyblue', 'darkblue') == 8.7835
 
 Pour qu'un texte soit facilement lisible sur une surface colorée, il est nécessaire que le contraste entre la couleur de cette surface et la couleur du texte soit suffisamment élevé. La méthode ```contrast``` peut par exemple être pratique pour vérifier si deux couleurs vérifient les [recommandations du WCAG](https://www.w3.org/TR/WCAG20/#visual-audio-contrast-contrast).
 
-## contrastedText
+## ```contrastedText```
 
 La méthode ```contrastedText``` détermine si du texte noir ou blanc serait le plus visible sur une surface colorée.
 
@@ -690,7 +690,7 @@ $bluScuro = new Colore('darkblue');
 $bluScuro->contrastedText() == 'white'
 ```
 
-## improveContrast
+## ```improveContrast```
 
 La méthode ```improveContrast``` modifie la couleur à laquelle elle est appliquée, plus particulièrement en augmentant ou diminuant sa luminosité CIE ```ciel```, pour lui donner un meilleur contraste avec une autre couleur.
 
@@ -744,7 +744,7 @@ $nuovoBlu->hsl() == 'hsl(193, 100%, 24%)'
 Colore::contrast($bluChiaro, $nuovoBlue) == 4.6554
 ```
 
-## distance
+## ```distance```
 
 La méthode statique ```distance``` mesure à quel point deux couleurs sont différentes.
 
@@ -781,7 +781,7 @@ Colore::distance('red', 'blue') == 1.3467999999999998
 Colore::distance('hsl(200, 50%, 0%)', 'hsl(50, 35%, 0%)') == 0
 ```
 
-## same
+## ```same```
 
 La méthode statique ```same``` détermine si deux couleurs sont identiques.
 
@@ -820,7 +820,7 @@ Colore::same('rgb(0, 0, 255)', 'rgb(0, 0, 254)') == true
 
 # Autres fonctions
 
-## gradient
+## ```gradient```
 
 La méthode statique ```gradient``` génère un dégradé entre deux couleurs qui évite la zone grise (voir [cet article](https://css-tricks.com/the-gray-dead-zone-of-gradients/)).
 
