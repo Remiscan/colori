@@ -328,6 +328,22 @@ input[type="radio"] + label>span {
   margin: auto 0;
 }
 
+theme-selector>.selector>label[for="theme-light"],
+theme-selector>.selector>label[for="theme-dark"] {
+  grid-template-columns: auto 1fr auto;
+}
+
+theme-selector>.selector>label>.theme-cookie-star {
+  grid-column: 3;
+  color: var(--secondary-color);
+}
+
+theme-selector .selector-cookie-notice {
+  color: var(--secondary-color);
+  padding: .3rem .6rem .6rem;
+  hyphens: auto;
+}
+
 .groupe-langages {
   grid-column: options-start / options-end;
   grid-row: 1;

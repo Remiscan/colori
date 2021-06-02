@@ -59,8 +59,13 @@ window.addEventListener('themechange', event => {
   const meta = document.querySelector('meta[name=theme-color]');
   meta.content = meta.dataset[event.detail.resolvedTheme];
 
-  new Cookie('theme', event.detail.theme);
-  new Cookie('resolvedTheme', event.detail.resolvedTheme);
+  if (event.detail.theme != 'auto') {
+    new Cookie('theme', event.detail.theme);
+    new Cookie('resolvedTheme', event.detail.resolvedTheme);
+  } else {
+    Cookie.delete('theme');
+    Cookie.delete('resolvedTheme');
+  }
 });
 
 
@@ -107,6 +112,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Customize theme-selector
   document.querySelector('theme-selector .selector-title').classList.add('h4');
+  document.querySelector('theme-selector .selector-cookie-notice').classList.add('h6');
 
   // Remove loading screen
   document.documentElement.classList.add('loaded');
