@@ -253,6 +253,7 @@ theme-selector {
 }
 
 theme-selector>.selector {
+  min-width: 9rem;
   right: calc(-1 * var(--section-padding));
   background-color: var(--section-color);
   box-shadow: 0 1px .2rem 1px var(--body-color);
