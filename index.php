@@ -6,7 +6,9 @@ require_once $commonDir.'/php/httpLanguage.php';
 require_once $commonDir.'/php/version.php';
 require_once $commonDir.'/php/getStrings.php';
 $version = version(__DIR__);
-$Textes = new Textes('colori');
+
+$lang = $_COOKIE['lang'] ?? httpLanguage() ?? 'en';
+$Textes = new Textes('colori', $lang);
 
 require_once './ext/Parsedown.php';
 $Parsedown = new Parsedown();
