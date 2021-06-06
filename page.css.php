@@ -14,6 +14,16 @@
        url('/_common/fonts/lato/lato-v17-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
+/* fira-code-regular */
+@font-face {
+  font-family: 'Fira Code';
+  font-style: normal;
+  font-weight: 400;
+  src: local(''),
+       url('/_common/fonts/fira-code/FiraCode-Regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('/_common/fonts/fira-code/FiraCode-Regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
 html {
   font-family: system-ui, 'Roboto', Helvetica, Arial, sans-serif;
   --min-font: 1.0; /* rem */
@@ -40,7 +50,7 @@ h1, .h1 {
 h2, .h2 {
   font-size: calc(var(--mod) * var(--mod) * 1rem);
 }
-h4, .h4, p.h3 {
+h3, .h3, h4, .h4 {
   font-size: calc(var(--mod) * 1rem);
 }
 h5, .h5 {
@@ -238,6 +248,7 @@ header>h1 {
   --coupe: 1.2rem;
   height: auto;
   transform: translateY(17.7%);
+  margin-right: .9rem;
   z-index: 0;
   font-size: calc(1.2 * var(--mod) * var(--mod) * 1rem);
 }
@@ -341,7 +352,7 @@ theme-selector>.selector>label>.theme-cookie-star {
 
 theme-selector .selector-cookie-notice {
   color: var(--secondary-color);
-  padding: .3rem .6rem .6rem;
+  padding: .6rem;
   hyphens: auto;
 }
 
@@ -363,7 +374,6 @@ theme-selector .selector-cookie-notice {
   appearance: none;
   color: var(--h1-color);
   font-family: inherit;
-  font-size: inherit;
   font-weight: 600;
   font-size: .8em;
   width: fit-content;
@@ -677,9 +687,8 @@ input {
   box-sizing: border-box;
   padding: .4em .6em;
   padding-right: calc(.6em + var(--padding-right, 0));
-  font-family: 'Open Sans';
+  font-family: 'Fira Code';
   color: var(--text-color);
-  transition: color .3s ease;
   background-color: var(--input-bg-color);
   border-radius: .6rem;
   box-shadow: 0 0 0 1px var(--body-color);
@@ -731,15 +740,18 @@ input:active, input:focus {
 .instructions-exemples-fonctions,
 .exemples-fonctions {
   grid-column: 1 / 3;
-  font-size: .9em;
   margin: 0;
+}
+
+.instructions-exemples-fonctions {
+  font-size: .9em;
 }
 
 .exemple.exemple {
   -webkit-appearance: none;
   appearance: none;
-  font-family: inherit;
-  font-size: .9rem;
+  font-family: 'Fira Code';
+  font-size: .8rem;
   color: inherit;
   line-height: inherit;
   margin: 0;
@@ -964,11 +976,11 @@ p, li {
 .documentation h2 + p,
 .titre-partie-docu + p,
 div + p {
-  margin-top: 1em;
+  margin-top: 1.2em;
 }
 
 li + li {
-  margin-top: .6rem;
+  margin-top: .9em;
 }
 
 input + p {
@@ -995,12 +1007,11 @@ h2 + a.anchor-dest + p.h3 {
   gap: .3rem;
   justify-content: baseline;
   position: relative;
-  margin: 1.2rem 0 .6rem;
+  margin: 2.4em 0 1.2em;
   color: var(--h3-color);
+  font-weight: 400;
 }
 
-.documentation h4::before,
-.documentation h4::after,
 .documentation h3::before,
 .documentation h3::after {
   content: '';
@@ -1031,10 +1042,7 @@ h2 + a.anchor-dest + p.h3 {
 }
 
 .documentation h4 {
-  font-size: 1rem;
-  font-weight: 500;
-  text-shadow: 0px 1px 0 var(--code-color);
-  margin: 1.2rem 0 .6rem;
+  margin: 1.2em 0 .9em;
   gap: 0;
 }
 
@@ -1042,7 +1050,7 @@ h2 + a.anchor-dest + p.h3 {
 .documentation h2 + a:not([href]) + h4,
 .documentation h2 + a:not([href]) + h3,
 .documentation h2 + h3 {
-  margin-top: .6rem;
+  margin-top: 1.2em;
 }
 
 .documentation h2 + a:not([href]) + h3::after,
@@ -1052,12 +1060,6 @@ h2 + a.anchor-dest + p.h3 {
 
 h2 + a.anchor-dest + .documenation h3::after {
   border-color: transparent;
-}
-
-@media (max-width: 42rem) { /* Phone-like */
-  ul {
-    padding-left: 20px;
-  }
 }
 
 a#documentation {
@@ -1096,6 +1098,10 @@ a:focus-visible {
 strong, em {
   color: var(--text-strong-color);
   font-weight: 600;
+}
+
+.documentation strong {
+  color: revert;
 }
 
 
@@ -1159,13 +1165,13 @@ aside.nav-documentation>div {
 }
 
 .nav-rapide ul {
-  padding-left: 20px;
+  padding-left: 1.2em;
   margin: 0;
   font-size: .9em;
 }
 
 .documentation ul {
-  padding-left: 20px;
+  padding-left: 1.2em;
   margin: 0 0 1em 0;
 }
 
@@ -1245,14 +1251,13 @@ aside.nav-documentation>div {
 .titre-partie-demo,
 .titre-partie-docu {
   color: var(--h3-color);
-  text-shadow: 0px 1px 0 var(--code-color);
   font-family: 'Lato';
   display: block;
   position: relative;
 }
 .documentation h2,
 .titre-partie-docu {
-  --margin-top: 1.8em;
+  --margin-top: 3.6em;
   --separator-width: 100%;
   margin-top: var(--margin-top);
 }
@@ -1341,17 +1346,21 @@ pre[class*="language-"],
   background-color: var(--code-color);
   color: var(--text-color);
   text-shadow: none;
-  white-space: pre-line;
+  white-space: pre-wrap;
+  font-family: 'Fira Code';
+  font-variant-ligatures: none;
 }
 
 .documentation pre>code[class*="language-"] {
-  font-size: .95em;
+  font-size: .9em;
 }
 
 blockquote {
-  border: .4em solid var(--code-color);
+  border: .3rem solid var(--body-color);
+  border-right: none;
+  border-bottom: none;
   border-radius: .6rem;
-  padding: .4em .5em;
+  padding: .2em .6em;
   margin: 1em 0;
   overflow: auto;
   box-shadow: none;
@@ -1363,7 +1372,26 @@ article>pre:last-child {
 }
 
 li {
-  list-style-type: disclosure-closed;
+  list-style-type: none;
+  border-left: .3rem solid var(--body-color);
+  padding-left: .6rem;
+  border-radius: .3rem;
+}
+
+li:first-of-type {
+  border-radius: .6rem 0 0 .3rem;
+}
+
+li:last-of-type {
+  border-radius: .3rem 0 0 .6rem;
+}
+
+li:first-of-type:last-of-type {
+  border-radius: .6rem 0 0 .6rem;
+}
+
+li:hover {
+  border-left-color: var(--h3-color);
 }
 
 li li {
@@ -1372,6 +1400,25 @@ li li {
 
 li li li {
   list-style-type: circle;
+}
+
+li li,
+li li li {
+  border: none;
+  border-radius: 0;
+  padding-left: revert;
+}
+
+.nav-rapide li,
+.nav-rapide code[class*="language-"] {
+  all: revert;
+  font-family: inherit;
+  color: inherit;
+  line-height: 1.6em;
+}
+
+.nav-rapide li>ul {
+  margin: .3em 0;
 }
 
 
