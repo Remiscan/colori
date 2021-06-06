@@ -280,7 +280,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       </article>
     </section>
 
-    <footer><span><span data-string="syntax-highlighting-source"><?=$Textes->getString('syntax-highlighting-source')?></span> <a href="https://parsedown.org/" target="_blank" rel="noopener">Parsedown</a> & <a href="https://prismjs.com/" target="_blank" rel="noopener">Prism.js</a></span></footer>
+    <footer><span><span data-string="syntax-highlighting-source"><?=$Textes->getString('syntax-highlighting-source')?></span> <a href="https://parsedown.org/">Parsedown</a> & <a href="https://prismjs.com/">Prism.js</a></span></footer>
 
     <!-- ▼ Fichiers cache-busted grâce à PHP -->
     <!--<?php ob_start();?>-->
