@@ -1112,7 +1112,9 @@ aside.nav-documentation {
   min-width: 14em;
   max-width: 20rem;
   min-height: 2em;
-  margin-top: calc(0.71625 * var(--mod) * var(--mod) * var(--mod) * var(--mod) * 1rem + .6rem);
+  max-height: calc(100vh - .9rem - var(--margin-top));
+  --margin-top: calc(0.71625 * var(--mod) * var(--mod) * var(--mod) * var(--mod) * 1rem + .6rem);
+  margin-top: var(--margin-top);
   margin-right: .6rem;
   margin-left: .6rem;
   line-height: 1em;
@@ -1121,6 +1123,15 @@ aside.nav-documentation {
   background-color: var(--section-color);
   border-radius: .6rem;
   padding: .6rem;
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
+}
+
+aside.nav-documentation>div {
+  overflow-y: auto;
+  grid-row: 1;
+  grid-column: 1;
 }
 
 .documentation .nav-rapide {

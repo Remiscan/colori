@@ -223,7 +223,9 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       </div>
     </section>
 
-    <aside class="nav-documentation nav-rapide" data-label="nav-documentation"></aside>
+    <aside class="nav-documentation nav-rapide" data-label="nav-documentation">
+      <h1 class="titre-nav-rapide" data-string="nav-documentation"><?=$Textes->getString('nav-documentation')?></h1>
+    </aside>
 
     <section class="documentation">
       <a id="documentation" aria-hidden="true"></a>
@@ -236,8 +238,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
         </button>
       </div>
 
-      <div class="nav-rapide"></div>
-      <a class="exemple" href="#documentation">▲ Navigation rapide</a>
+      <!--<a class="exemple" href="#documentation">▲ Navigation rapide</a>-->
 
       <!-- DOCUMENTATION JavaScript -->
       <article data-prog-language="js" lang="fr">
@@ -245,9 +246,9 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
         function anchorLink($matches) {
           $title = $matches[2];
           $h = $matches[1];
-          $link = preg_replace('/\<code(?:.+)?\>(.+)?\<\/code\>/', '$1', $title);
+          $link = preg_replace(['/\<code(?:.+?)?\>/', '/\<\/code\>/'], '', $title);
           $link = strtolower($link);
-          $link = str_replace([' ', '.', '\''], ['-', '', ''], $link);
+          $link = str_replace([' ', '.', '\'', '/'], ['-', '', '', ''], $link);
           return '<a id="'. $link .'"></a><h'. $h .'>'. $title .'</h'. $h .'>';
         }
 

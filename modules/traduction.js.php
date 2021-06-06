@@ -2,7 +2,6 @@
 /*<?php ob_start();?>*/
 
 import DefTraduction from '/_common/js/traduction.js';
-import { makeNav } from './quickNav.js.php';
 
 /*<?php $imports = ob_get_clean();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
@@ -24,9 +23,6 @@ class ExtTraduction extends DefTraduction {
       document.querySelector('.nav-documentation').dataset.titre = getString('nav-documentation');
       document.querySelector('theme-selector').dataset.tolabel = getString('change-theme');
     }
-    const langSwitch = document.querySelector('.switch-js-php');
-    makeNav(langSwitch.dataset.currentTab);
-    setTimeout(() => Prism.highlightAll());
     return;
   }
 }

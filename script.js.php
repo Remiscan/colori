@@ -5,7 +5,7 @@ import Couleur from '/colori/colori.js';
 import '/_common/components/theme-selector/theme-selector.js.php';
 import Cookie from '/colori/modules/cookies.js.php';
 import { Traduction } from '/colori/modules/traduction.js.php';
-import { makeNav } from '/colori/modules/quickNav.js.php';
+import { prepareNav } from '/colori/modules/quickNav.js.php';
 import { updateCouleur } from '/colori/modules/colorDetection.js.php';
 
 /*<?php $imports = ob_get_clean();
@@ -109,6 +109,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Toggle JS or PHP version of the page based on last visit
   /*if (isPhp == 'true')  await switchBetweenJsPhp('php');
   else                  makeNav('js');*/
+  prepareNav();
 
   // Customize theme-selector
   document.querySelector('theme-selector .selector-title').classList.add('h4');
