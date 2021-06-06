@@ -170,11 +170,11 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
             <div class="exemples-saisie exemples-fonctions inst-hidden off">
               <span data-string="exemple-abbr"><?=$Textes->getString('exemple-abbr')?></span>
               <button type="button" class="exemple">pink.invert()</button>
-              <button type="button" class="exemple">#4169E1.darken(50%)</button>
+              <button type="button" class="exemple">#4169E1.scale(l, .5)</button>
               <button type="button" class="exemple">black.contrast(white)</button>
               <button type="button" class="exemple">indigo.gradient(orange)</button>
-              <button type="button" class="exemple">rgb(255, 127, 80).desaturate(50%).blend(red, .2)</button>
-              <button type="button" class="exemple">aqua.blend(red.blend(white.darken(.8), .8), .5)</button>
+              <button type="button" class="exemple">rgb(255, 127, 80).scale(s, .5).blend(red.replace(a, .2))</button>
+              <!--<button type="button" class="exemple">aqua.blend(red.replace(a, .5), white.scale(l, .2).replace(a, .8))</button>-->
             </div>
             <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
