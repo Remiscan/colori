@@ -33,9 +33,6 @@ champ.addEventListener('input', event => {
 ////////////////////////////////////////////////
 // Switch between js and php version of the page
 async function switchBetweenJsPhp(language) {
-  const langSwitch = document.querySelector('.switch-js-php');
-  new Cookie('progLang', language);
-
   return new Promise(resolve => {
     setTimeout(() => {
       if (language == 'php') {
@@ -85,6 +82,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Translate the page
   await Traduction.traduire();
+  Prism.highlightAll();
 
   // Replace Colore by Couleur in PHP documentation
   for (const element of [...document.querySelectorAll('#documentation-php code.language-javascript')]) {
