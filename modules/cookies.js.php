@@ -14,8 +14,8 @@ export default class Cookie extends DefCookie {
     super(name, value, '/colori', maxAge);
   }
 
-  static consent(bool) {
-    super.consent('/colori', bool);
+  static consent(bool, name = null) {
+    super.consent('/colori', bool, name);
   }
 
   static delete(name) {

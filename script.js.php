@@ -40,9 +40,11 @@ async function switchBetweenJsPhp(language) {
     setTimeout(() => {
       if (language == 'php') {
         document.documentElement.dataset.progLanguage = 'php';
+        //new Cookie('progLang', language);
       } 
       else {
         document.documentElement.dataset.progLanguage = 'js';
+        //Cookie.delete('progLang');
       } 
       //makeNav(langSwitch.dataset.currentTab);
       resolve();
