@@ -66,127 +66,83 @@ $rosso == object(Colore)[1]
 
 Le paramètre à fournir en entrée de ```new Colore(parametre)``` doit être une chaîne de caractères dans un format valide selon [la spécification CSS des formats de couleurs](https://drafts.csswg.org/css-color/#colorunits).
 
-#### Nom
+### Exemples :
 
-Une couleur peut être créée à partir de son nom dans [la spécification CSS](https://drafts.csswg.org/css-color/#named-colors) :
+Créons les objets ```$rosso```, représentant la couleur rouge, et ```$rossoTrasparente```, représentant la couleur rouge d'opacité 0.6, à partir de leurs expressions dans les différents formats reconnus par CSS.
 
 ```php
+// Crée la couleur à partir de son nom :
 $rosso = new Colore('red');
 ```
 
-#### Format RGB (hexadécimal)
-
-Une couleur peut être créée à partir de son expression au format hexadécimal, par exemple ```#FF0000``` ou ```#F00``` pour le rouge :
-
 ```php
+// Crée la couleur à partir de son expression au format hexadécimal :
 $rosso = new Colore('#FF0000');
-// ou
-$rosso = new Colore('#F00');
-```
-
-Pour les couleurs transparentes, vous pouvez ajouter un ou deux caractères à la fin de l'expression de la couleur. Par exemple, pour un rouge d'opacité ```0.6``` (ce qui correspond à ```9``` ou ```99``` en hexadécimal) :
-
-```php
 $rossoTrasparente = new Colore('#FF000099');
 // ou
+$rosso = new Colore('#F00');
 $rossoTrasparente = new Colore('#F009');
 ```
 
-#### Format RGB (fonctionnel)
-
-Une couleur peut être créée à partir de son expression au format RGB, par exemple ```rgb(255, 0, 0)``` pour le rouge :
-
 ```php
+// Crée la couleur à partir de son expression au format RGB :
 $rosso = new Colore('rgb(255, 0, 0)');
-// ou
-$rosso = new Colore('rgb(255 0 0)');
-
-// et avec le 4è paramètre de transparence :
-
 $rossoTrasparente = new Colore('rgb(255, 0, 0, 0.6)');
 // ou
+$rosso = new Colore('rgb(255 0 0)');
 $rossoTrasparente = new Colore('rgb(255 0 0 / 0.6)');
 ```
 
-Vous pouvez remplacer ```rgb``` par ```rgba```, cela aura le même effet.
-
-#### Format HSL
-
-Une couleur peut être créée à partir de son expression au format HSL, par exemple ```hsl(0, 100%, 50%)``` pour le rouge :
+> Vous pouvez remplacer ```rgb``` par ```rgba```, cela aura le même effet.
 
 ```php
+// Crée la couleur à partir de son expression au format HSL :
 $rosso = new Colore('hsl(0, 100%, 50%)');
-// ou
-$rosso = new Colore('hsl(0 100% 50%)');
-
-// et avec le 4è paramètre de transparence :
-
 $rossoTrasparente = new Colore('hsl(0, 100%, 50%, 0.6)');
 // ou
+$rosso = new Colore('hsl(0 100% 50%)');
 $rossoTrasparente = new Colore('hsl(0 100% 50% / 0.6)');
 ```
 
-Vous pouvez remplacer ```hsl``` par ```hsla```, cela aura le même effet.
-
-#### Format HWB
-
-Une couleur peut être créée à partir de son expression au format HWB, par exemple ```hwb(0 0% 0%)``` pour le rouge :
+> Vous pouvez remplacer ```hsl``` par ```hsla```, cela aura le même effet.
 
 ```php
+// Crée la couleur à partir de son expression au format HWB :
 $rosso = new Colore('hwb(0 0% 0%)');
-
-// et avec le 4è paramètre de transparence :
-
 $rossoTrasparente = new Colore('hwb(0 0% 0% / 0.6)');
 ```
 
-#### Format LAB
-
-Une couleur peut être créée à partir de son expression au format LAB, par exemple ```lab(54% 81 70)``` pour le rouge :
-
 ```php
+// Crée la couleur à partir de son expression au format LAB :
 $rosso = new Colore('lab(54% 81 70)');
-
-// et avec le 4è paramètre de transparence :
-
 $rossoTrasparente = new Colore('lab(54% 81 70 / 0.6)');
 ```
 
-L'espace de couleurs LAB contient des couleurs qui ne sont pas dans l'espace de couleurs sRGB, utilisé pour les formats RGB, HSL et HWB. Puisque CSS ne supporte pas encore nativement les couleurs au format LAB, passer une telle couleur à ```new Colore()``` la convertira en la couleur la plus proche dans l'espace sRGB.
-
-Pour cette raison, vous pourriez remarquer certaines contradictions, par exemple :
-
 ```php
-$a = new Colore('lab(50% 118 43)');
-$a->rgb() == 'rgb(232, 0, 78)'
-// mais :
-$b = new Colore('rgb(232, 0, 78)')
-$b->lch() == 'lab(50% 76 28)'
-```
-
-#### Format LCH
-
-Une couleur peut être créée à partir de son expression au format LCH, par exemple ```lch(54% 107 41)``` pour le rouge :
-
-```php
+// Crée la couleur à partie de son expression au format LCH :
 $rosso = new Colore('lch(54% 107 41)');
-
-// et avec le 4è paramètre de transparence :
-
 $rossoTrasparente = new Colore('lch(54% 107 41 / 0.6)');
 ```
 
-L'espace de couleurs LCH contient des couleurs qui ne sont pas dans l'espace de couleurs sRGB, utilisé pour les formats RGB, HSL et HWB. Puisque CSS ne supporte pas encore nativement les couleurs au format LCH, passer une telle couleur à ```new Colore()``` la convertira en la couleur la plus proche dans l'espace sRGB.
-
-Pour cette raison, vous pourriez remarquer certaines contradictions, par exemple :
-
-```php
-$a = new Colore('lch(50% 125 20)');
-$a->rgb() == 'rgb(232, 0, 78)'
-// mais :
-$b = new Colore('rgb(232, 0, 78)')
-$b->lch() == 'lch(50% 81 20)'
-```
+> L'espace de couleurs CIELAB (utilisé par les formats LAB et LCH) contient des couleurs qui ne sont pas dans l'espace de couleurs sRGB (utilisé par les formats RGB, HSL et HWB). Puisque CSS ne supporte pas encore nativement les couleurs au format LAB ou LCH, passer une telle couleur à ```new Colore()``` la convertira en la couleur la plus proche dans l'espace sRGB.
+>
+> Pour cette raison, vous pourriez remarquer certaines contradictions, par exemple :
+>
+>```php
+>$a = new Colore('lab(50% 118 43)');
+>$a->rgb == 'rgb(232, 0, 78)'
+>// mais :
+>$b = new Colore('rgb(232, 0, 78)')
+>$b->lab == 'lab(50% 76 28)'
+>```
+>
+>```php
+>$a = new Colore('lch(50% 125 20)');
+>$a->rgb == 'rgb(232, 0, 78)'
+>// mais :
+>$b = new Colore('rgb(232, 0, 78)')
+>$b->lch == 'lch(50% 81 20)'
+>```
 
 # Propriétés d'une couleur
 
@@ -292,9 +248,9 @@ La méthode ```change``` permet de modifier n'importe quelle propriété d'une c
 $result = $color->change($prop, $val, $options = (object)['replace' => <Boolean>, 'scale' => <Boolean>]);
 ```
 
-Elle s'applique à un objet de classe ```Colore```, ici ```$color```.
+**Elle s'applique à** un objet de classe ```Colore```, ici ```$color```.
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - ```$prop``` : une chaîne de caractères correspondant au nom de la propriété à modifier, par exemple ```'r'```, ```'g'```, ```'b'```, etc.
 
@@ -306,7 +262,7 @@ Elle prend comme arguments :
 
   - ```scale``` (défaut = ```false```) : un booléen. Si ```true```, la valeur de ```$val``` sera **multipliée** à la valeur précédente de la propriété, au lieu de s'y additionner.
 
-Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` dont la propriété ```$prop``` a été modifiée.
+**Elle renvoie** un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` dont la propriété ```$prop``` a été modifiée.
 
 ### Exemples :
 
@@ -345,15 +301,15 @@ La méthode ```replace``` est équivalente à ```change``` avec l'option ```{ re
 $result = $color->replace($prop, $val);
 ```
 
-Elle s'applique à un objet de classe ```Colore```, ici ```$color```.
+**Elle s'applique à** un objet de classe ```Colore```, ici ```$color```.
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - ```$prop``` : une chaîne de caractères correspondant au nom de la propriété à modifier, par exemple ```'r'```, ```'g'```, ```'b'```, etc.
 
 - ```$val``` : un nombre ou pourcentage correspondant à la valeur qui **remplacera** la valeur précédente de la propriété.
 
-Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` dont la propriété ```$prop``` a été remplacée.
+**Elle renvoie** un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` dont la propriété ```$prop``` a été remplacée.
 
 ### Exemple :
 
@@ -375,15 +331,15 @@ La méthode ```scale``` est équivalente à ```change``` avec l'option ```(objec
 $result = $color->scale($prop, $val);
 ```
 
-Elle s'applique à un objet de classe ```Colore```, ici ```$color```.
+**Elle s'applique à** un objet de classe ```Colore```, ici ```$color```.
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - ```$prop``` : une chaîne de caractères correspondant au nom de la propriété à modifier, par exemple ```'r'```, ```'g'```, ```'b'```, etc.
 
 - ```$val``` : un nombre ou pourcentage correspondant à la valeur qui sera **multipliée** à la valeur précédente de la propriété.
 
-Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` dont la propriété ```$prop``` a été modifiée.
+**Elle renvoie** un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` dont la propriété ```$prop``` a été modifiée.
 
 ### Exemple :
 
@@ -406,11 +362,11 @@ La méthode ```greyscale``` (ou ```grayscale```) transforme une couleur en un gr
 $result = $color->greyscale();
 ```
 
-Elle s'applique à un objet de class ```Colore```, ici ```$color```.
+**Elle s'applique à** un objet de class ```Colore```, ici ```$color```.
 
-Elle ne prend aucun argument.
+**Elle ne prend aucun argument**.
 
-Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` dont la saturation a été réduite à 0.
+**Elle renvoie** un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` dont la saturation a été réduite à 0.
 
 ### Exemple :
 
@@ -434,11 +390,11 @@ La méthode ```sepia``` transforme une couleur en un ton sépia.
 $result = $color->sepia();
 ```
 
-Elle s'applique à un objet de class ```Colore```, ici ```$color```.
+**Elle s'applique à** un objet de class ```Colore```, ici ```$color```.
 
-Elle ne prend aucun argument.
+**Elle ne prend aucun argument**.
 
-Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est une modification de ```$color``` vers les tons sépia.
+**Elle renvoie** un objet de classe ```Colore```, ici ```$result```, qui est une modification de ```$color``` vers les tons sépia.
 
 ### Exemple :
 
@@ -462,11 +418,11 @@ La méthode ```complement``` calcule la couleur complémentaire.
 $result = $color->complement();
 ```
 
-Elle s'applique à un objet de classe ```Colore```, ici ```$color```.
+**Elle s'applique à** un objet de classe ```Colore```, ici ```$color```.
 
-Elle ne prend aucun argument.
+**Elle ne prend aucun argument**.
 
-Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est la couleur complémentaire de ```$color```.
+**Elle renvoie** un objet de classe ```Colore```, ici ```$result```, qui est la couleur complémentaire de ```$color```.
 
 ### Exemples :
 
@@ -483,7 +439,7 @@ $bianco->complement()->name() == 'white'
 
 ## ```negative``` / ```invert```
 
-La méthode ```negative``` (ou ```ìnvert```) calcule la couleur négative.
+La méthode ```negative``` (ou ```invert```) calcule la couleur négative.
 
 ### Comment l'utiliser :
 
@@ -491,11 +447,11 @@ La méthode ```negative``` (ou ```ìnvert```) calcule la couleur négative.
 $result = $color->negative();
 ```
 
-Elle s'applique à un objet de classe ```Colore```, ici ```$color```.
+**Elle s'applique à** un objet de classe ```Colore```, ici ```$color```.
 
-Elle ne prend aucun argument.
+**Elle ne prend aucun argument**.
 
-Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est la couleur négative de ```$color```.
+**Elle renvoie** un objet de classe ```Colore```, ici ```$result```, qui est la couleur négative de ```$color```.
 
 ### Exemples :
 
@@ -522,11 +478,11 @@ La méthode statique ```blend``` permet de fusionner plusieurs couleurs. En d'au
 $result = Colore::blend($color1, $color2, $color3, ...);
 ```
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - un nombre arbitraire d'objets de type ```Colore``` ou de chaînes de caractères dans un format compatible avec ```new Colore()```. Chaque couleur sera superposée à la précédente.
 
-Elle renvoie un objet de type ```Colore``` qui est la couleur que l'on voit en superposant toutes les couleurs fournies en argument l'une après l'autre.
+**Elle renvoie** un objet de type ```Colore``` qui est la couleur que l'on voit en superposant toutes les couleurs fournies en argument l'une après l'autre.
 
 >Attention, si vous superposez une couleur opaque (telle que ```$color->a == 1```) à une autre couleur, alors le résultat sera cette même couleur opaque ; puisqu'elle n'est pas transparente, elle ne laisse pas entrevoir la couleur en-dessous. ```blend``` est donc principalement utile pour superposer des couleurs transparentes (telles que ```$color->a < 1```).
 
@@ -569,11 +525,11 @@ $background = Colore::unblend($result, $overlay);
 $result = Colore::unblend($color1, $color2, $color3, ...);
 ```
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - un nombre arbitraire d'objets de type ```Colore``` ou de chaînes de caractères dans un format compatible avec ```new Colore()```. Chaque couleur sera retirée à la précédente.
 
-Elle renvoie un objet de type ```Colore``` qui est la couleur obtenue après avoir dé-fusionné toutes les couleurs fournies en argument une par une.
+**Elle renvoie** un objet de type ```Colore``` qui est la couleur obtenue après avoir dé-fusionné toutes les couleurs fournies en argument une par une.
 
 ### Exemple :
 
@@ -606,7 +562,7 @@ $overlay = Colore::whatToBlend($background, $result)
 $overlay = Colore::whatToBlend($background, $result, $alpha, $alphaStep);
 ```
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - ```$background``` et ```$result``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
 
@@ -646,11 +602,11 @@ La méthode statique ```contrast``` calcule le contraste entre deux couleurs.
 $result = Colore::contrast($color1, $color2);
 ```
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - ```$color1``` et ```$color2``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
 
-Elle renvoie un nombre entre 1 et 21.
+**Elle renvoie** un nombre entre 1 et 21.
 
 ### Exemples :
 
@@ -671,11 +627,11 @@ La méthode ```contrastedText``` détermine si du texte noir ou blanc serait le 
 $result = $color->contrastedText();
 ```
 
-Elle s'applique à un objet de type ```Colore```, ici ```$color```.
+**Elle s'applique à** un objet de type ```Colore```, ici ```$color```.
 
-Elle ne prend aucun argument.
+**Elle ne prend aucun argument**.
 
-Elle renvoie la chaîne de caractère ```'white'``` ou ```'black'```.
+**Elle renvoie** la chaîne de caractère ```'white'``` ou ```'black'```.
 
 ### Exemples :
 
@@ -700,9 +656,9 @@ La méthode ```improveContrast``` modifie la couleur à laquelle elle est appliq
 $result = $color->improveContrast($referenceColor, $desiredContrast, $step, $options = (object)["lower" => <Boolean>, "towards" => <Boolean>, "maxIterations" => <Boolean>]);
 ```
 
-Elle s'applique à un objet de type ```Colore``` ; dans cet exemple, il s'agit de ```$color```.
+**Elle s'applique à** un objet de type ```Colore``` ; dans cet exemple, il s'agit de ```$color```.
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - ```$referenceColor``` : un objet de type ```Colore``` ou une chaîne de caractères dans un format compatible avec ```new Colore()```, utilisé comme couleur de référence : la méthode cherche à améliorer la valeur de ```Colore::contrast($color, $referenceColor)```.
 
@@ -723,7 +679,7 @@ Elle prend comme arguments :
 
   - ```maxIterations``` (défaut = ```100```) : le nombre maximum de fois que ```improveContrast``` modifiera la couleur pour améliorer le contraste.
 
-Elle renvoie un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` à laquelle ont été appliquées les modifications de la propriété ```ciel``` telles que ```Colore::contrast($result, $referenceColor) > $desiredContrast```.
+**Elle renvoie** un objet de classe ```Colore```, ici ```$result```, qui est une copie de ```$color``` à laquelle ont été appliquées les modifications de la propriété ```ciel``` telles que ```Colore::contrast($result, $referenceColor) > $desiredContrast```.
 
 ### Exemple :
 
@@ -754,7 +710,7 @@ La méthode statique ```distance``` mesure à quel point deux couleurs sont diff
 $result = Colore::distance($color1, $color2, $format, $tolerance);
 ```
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - ```$color1``` et ```$color2``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
 
@@ -764,7 +720,7 @@ Elle prend comme arguments :
 
 - ```$tolerance``` (défaut = ```0.02```) : un nombre qui représente une certaine tolérance pour ignorer certaines propriétés quand elles n'ont aucun effet. Par exemple, dans le format HSL, si L = 0, alors la couleur est noire indépendament des valeurs de H et S. Pour pouvoir tenir compte de ce fait même quand des arrondis ont rendu la valeur L des couleurs légèrement supérieure à 0, la méthode ```distance``` ignore H et S quand ```$color1->l < $tolerance && $color2->l < $tolerance```.
 
-Elle renvoie un nombre positif.
+**Elle renvoie** un nombre positif.
 
 ### Exemples :
 
@@ -791,13 +747,13 @@ La méthode statique ```same``` détermine si deux couleurs sont identiques.
 $result = Colore::same($color1, $color2, $tolerance);
 ```
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - ```$color1``` et ```$color2``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
 
 - ```$tolerance``` (défaut = ```0.02```) : un nombre qui représente la distance minimale entre deux couleurs pour qu'elles soient considérées différentes.
 
-Elle renvoie ```true``` si les couleurs sont considérées identiques, ```false``` sinon.
+**Elle renvoie** ```true``` si les couleurs sont considérées identiques, ```false``` sinon.
 
 ### Exemples :
 
@@ -830,13 +786,13 @@ La méthode statique ```gradient``` génère un dégradé entre deux couleurs qu
 $result = Colore::gradient($from, $to, $steps);
 ```
 
-Elle prend comme arguments :
+**Elle prend comme arguments** :
 
 - ```$from``` et ```$to``` : deux objets de type ```Colore``` ou chaînes de caractères dans un format compatible avec ```new Colore()```.
 
 - ```$steps``` (défaut = ```5```) : le nombre d'étapes - c'est-à-dire le nombre de couleurs qui seront calculées - pour passer de ```$from``` à ```$to```. Plus ce nombre est élevé, plus le dégradé sera fluide et évitera la zone grise.
 
-Elle renvoie un ```Array``` de longueur ```$steps + 1``` d'objets de type ```Colore```, de la forme ```[$from, $color2, $color3, ..., $to]```.
+**Elle renvoie** un ```Array``` de longueur ```$steps + 1``` d'objets de type ```Colore```, de la forme ```[$from, $color2, $color3, ..., $to]```.
 
 ### Exemple :
 

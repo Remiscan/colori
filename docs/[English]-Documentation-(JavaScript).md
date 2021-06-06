@@ -67,127 +67,83 @@ rosso == {
 
 The parameter in ```new Colore(parameter)``` must be a string in a supported format according to [the CSS specification about color formats](https://drafts.csswg.org/css-color/#colorunits).
 
-#### Name
+### Examples:
 
-A color can be created from its name in [the CSS specification](https://drafts.csswg.org/css-color/#named-colors):
+Let's create two ```Colore```-class objects – ```rosso```, representing the color red, and ```rossoTrasparente```, representing the color red with opacity 0.6 – from their expressions in all formats supported by CSS.
 
 ```javascript
+// Creates the color from its name:
 const rosso = new Colore('red');
 ```
 
-#### RGB format (hexadecimal)
-
-A color can be created from its expression in hexadecimal format, for example ```#FF0000``` or ```#F00``` for red:
-
 ```javascript
+// Creates the color from its hexadecimal expression:
 const rosso = new Colore('#FF0000');
-// or
-const rosso = new Colore('#F00');
-```
-
-For transparent colors, you can add one or two characters at then end of the expression. For example, to create a red with opacity ```0.6``` (which corresponds to ```9``` or ```99``` in hexadecimal format):
-
-```javascript
 const rossoTrasparente = new Colore('#FF000099');
 // or
+const rosso = new Colore('#F00');
 const rossoTrasparente = new Colore('#F009');
 ```
 
-#### RGB format (functional)
-
-A color can be created from its expression in RGB format, for example ```rgb(255, 0, 0)``` for red:
-
 ```javascript
+// Creates the color from its RGB expression:
 const rosso = new Colore('rgb(255, 0, 0)');
-// or
-const rosso = new Colore('rgb(255 0 0)');
-
-// and with the 4th parameter for opacity:
-
 const rossoTrasparente = new Colore('rgb(255, 0, 0, 0.6)');
 // or
+const rosso = new Colore('rgb(255 0 0)');
 const rossoTrasparente = new Colore('rgb(255 0 0 / 0.6)');
 ```
 
-You can replace  ```rgb``` by ```rgba```, it won't make any difference.
-
-#### HSL format
-
-A color can be created from its expression in HSL format, for example ```hsl(0, 100%, 50%)``` for red:
+> Replacing ```rgb``` by ```rgba``` works too.
 
 ```javascript
+// Creates the color from its HSL expression:
 const rosso = new Colore('hsl(0, 100%, 50%)');
-// or
-const rosso = new Colore('hsl(0 100% 50%)');
-
-// and with the 4th parameter for opacity:
-
 const rossoTrasparente = new Colore('hsl(0, 100%, 50%, 0.6)');
 // or
+const rosso = new Colore('hsl(0 100% 50%)');
 const rossoTrasparente = new Colore('hsl(0 100% 50% / 0.6)');
 ```
 
-You can replace ```hsl``` by ```hsla```, it won't make any difference.
-
-#### HWB format
-
-A color can be created from its expression in HWB format, for example ```hwb(0 0% 0%)``` for red:
+> Replacing ```hsl``` by ```hsla``` works too.
 
 ```javascript
+// Creates the color from its HWB expression:
 const rosso = new Colore('hwb(0 0% 0%)');
-
-// and with the 4th parameter for opacity:
-
 const rossoTrasparente = new Colore('hwb(0 0% 0% / 0.6)');
 ```
 
-#### LAB format
-
-A color can be created from its expression in LAB format, for example ```lab(54% 81 70)``` for red:
-
 ```javascript
+// Creates the color from its LAB expression:
 const rosso = new Colore('lab(54% 81 70)');
-
-// and with the 4th parameter for opacity:
-
 const rossoTrasparente = new Colore('lab(54% 81 70 / 0.6)');
 ```
 
-The LAB color space contains colors which are not in the sRGB color space, used for RGB, HSL and HWB formats. Since CSS doesn't natively support LAB colors yet, using such a color in ```new Colore()``` will convert it into the closest color in sRGB space.
-
-For that reason, you could notice some inconsistencies, for example:
-
 ```javascript
-const a = new Colore('lab(50% 118 43)');
-a.rgb == 'rgb(232, 0, 78)'
-// but:
-const b = new Colore('rgb(232, 0, 78)')
-b.lch == 'lab(50% 76 28)'
-```
-
-#### LCH format
-
-A color can be created from its expression in LCH format, for example ```lch(54% 107 41)``` for red:
-
-```javascript
+// Creates the color from its LCH expression:
 const rosso = new Colore('lch(54% 107 41)');
-
-// and with the 4th parameter for opacity:
-
 const rossoTrasparente = new Colore('lch(54% 107 41 / 0.6)');
 ```
 
-The LCH color space contains colors which are not in the sRGB color space, used for RGB, HSL and HWB formats. Since CSS doesn't natively support LCH colors yet, using such a color in ```new Colore()``` will convert it into the closest color in sRGB space.
-
-For that reason, you could notice some inconsistencies, for example:
-
-```javascript
-const a = new Colore('lch(50% 125 20)');
-a.rgb == 'rgb(232, 0, 78)'
-// but:
-const b = new Colore('rgb(232, 0, 78)')
-b.lch == 'lch(50% 81 20)'
-```
+> The CIELAB color space (used in LAB and LCH formats) contains colors which are not in the sRGB color space (used in RGB, HSL and HWB formats). Since CSS doesn't natively support LAB or LCH colors yet, using such a color in ```new Colore()``` will convert it into the closest color in sRGB space.
+>
+> For that reason, you could notice some inconsistencies, for example:
+>
+>```javascript
+>const a = new Colore('lab(50% 118 43)');
+>a.rgb == 'rgb(232, 0, 78)'
+>// but:
+>const b = new Colore('rgb(232, 0, 78)')
+>b.lab == 'lab(50% 76 28)'
+>```
+>
+>```javascript
+>const a = new Colore('lch(50% 125 20)');
+>a.rgb == 'rgb(232, 0, 78)'
+>// but:
+>const b = new Colore('rgb(232, 0, 78)')
+>b.lch == 'lch(50% 81 20)'
+>```
 
 # Color properties
 
@@ -293,9 +249,9 @@ The ```change``` method lets you modify any property of a color, and returns a n
 const result = color.change(prop, val, options = { replace, scale });
 ```
 
-It applies to a ```Colore```-class object – ```color``` here.
+**It applies to** a ```Colore```-class object – ```color``` here.
 
-It takes these arguments:
+**It takes these arguments**:
 
 - ```prop```: a string which contains the name of the property you want to change, for example ```'r'```, ```'g'```, ```'b'```, etc.
 
@@ -307,7 +263,7 @@ It takes these arguments:
 
   - ```scale``` (default = ```false```): a boolean. If ```true```, the value of ```val``` will **be multiplied** to the previous value of the property, instead of being added to it.
 
-It returns a ```Colore```-class object – ```result``` here – which is a copy of ```color``` with a modified ```prop``` property.
+**It returns** a ```Colore```-class object – ```result``` here – which is a copy of ```color``` with a modified ```prop``` property.
 
 ### Examples:
 
@@ -346,15 +302,15 @@ The ```replace``` method is equivalent to ```change``` with option ```{ replace:
 const result = color.replace(prop, val);
 ```
 
-It applies to a ```Colore```-class object – ```color``` here.
+**It applies to** a ```Colore```-class object – ```color``` here.
 
-It takes these arguments:
+**It takes these arguments**:
 
 - ```prop```: a string containing the name of the property you want to change, for example ```'r'```, ```'g'```, ```'b'```, etc.
 
 - ```val```: a number or percentage used as the value that will **replace** the previous value of the property.
 
-It returns a ```Colore```-class object – ```result``` here – which is a copy of ```color``` with a modified ```prop``` property.
+**It returns** a ```Colore```-class object – ```result``` here – which is a copy of ```color``` with a modified ```prop``` property.
 
 ### Example:
 
@@ -376,15 +332,15 @@ The ```scale``` method is equivalent to ```change``` with option ```{ scale: tru
 const result = color.scale(prop, val);
 ```
 
-It applies to a ```Colore```-class object – ```color``` here.
+**It applies to** a ```Colore```-class object – ```color``` here.
 
-It takes these arguments:
+**It takes these arguments**:
 
 - ```prop```: a string containing the name of the property you want to change, for example ```'r'```, ```'g'```, ```'b'```, etc.
 
 - ```val```: a number or percentage used as the value that will **be multiplied** to the previous value of the property.
 
-It returns a ```Colore```-class object – ```result``` here – which is a copy of ```color``` with a modified ```prop``` property.
+**It returns** a ```Colore```-class object – ```result``` here – which is a copy of ```color``` with a modified ```prop``` property.
 
 ### Example:
 
@@ -407,11 +363,11 @@ The ```greyscale``` (or ```grayscale```) method transforms a color into the shad
 const result = color.greyscale();
 ```
 
-It applies to a ```Colore```-class object – ```color``` here.
+**It applies to** a ```Colore```-class object – ```color``` here.
 
-It takes no argument.
+**It takes no argument**.
 
-It returns a ```Colore```-class object – ```result``` here – which is a copy of ```color``` with its saturation reduced to 0.
+**It returns** a ```Colore```-class object – ```result``` here – which is a copy of ```color``` with its saturation reduced to 0.
 
 ### Example:
 
@@ -435,11 +391,11 @@ The ```sepia``` method transforms a color into its sepia tone.
 const result = color.sepia();
 ```
 
-It applies to a ```Colore```-class object – ```color``` here.
+**It applies to** a ```Colore```-class object – ```color``` here.
 
-It takes no argument.
+**It takes no argument**.
 
-It returns a ```Colore```-class object – ```result``` here – which is a modification of ```color``` towards sepia tones.
+**It returns** a ```Colore```-class object – ```result``` here – which is a modification of ```color``` towards sepia tones.
 
 ### Example:
 
@@ -463,11 +419,11 @@ The ```complement``` method calculates the complementary.
 const result = color.complement();
 ```
 
-It applies to a ```Colore```-class object – ```color``` here.
+**It applies to** a ```Colore```-class object – ```color``` here.
 
-It takes no argument.
+**It takes no argument**.
 
-It returns a ```Colore```-class object – ```result``` here – which is the complementary color to ```color```.
+**It returns** a ```Colore```-class object – ```result``` here – which is the complementary color to ```color```.
 
 ### Examples:
 
@@ -484,7 +440,7 @@ bianco.complement().name == 'white'
 
 ## ```negative``` / ```invert```
 
-The ```negative``` (or ```ìnvert```) calculates the inverse color.
+The ```negative``` (or ```invert```) calculates the inverse color.
 
 ### How to use:
 
@@ -492,11 +448,11 @@ The ```negative``` (or ```ìnvert```) calculates the inverse color.
 const result = color.negative();
 ```
 
-It applies to a ```Colore```-class object – ```color``` here.
+**It applies to** a ```Colore```-class object – ```color``` here.
 
-It takes no argument.
+**It takes no argument**.
 
-It returns a ```Colore```-class object – ```result``` here – qui est la couleur négative de ```color```.
+**It returns** a ```Colore```-class object – ```result``` here – qui est la couleur négative de ```color```.
 
 ### Examples:
 
@@ -523,11 +479,11 @@ The static method ```blend``` can blend multiple colors. In other words, it calc
 const result = Colore.blend(color1, color2, color3, ...);
 ```
 
-It takes these arguments:
+**It takes these arguments**:
 
 - an arbitrary number of ```Colore```-class objects or strings in a format compatible with ```new Colore()```. Each color will be overlayed over the previous one.
 
-It returns a ```Colore```-class object which is the color you see after overlaying every color it took as arguments one by one.
+**It returns** a ```Colore```-class object which is the color you see after overlaying every color it took as arguments one by one.
 
 > ```blend``` can also be used as a non-static method applied to the first color:
 >
@@ -576,11 +532,11 @@ const background = Colore.unblend(result, overlay);
 const result = Colore.unblend(color1, color2, color3, ...);
 ```
 
-It takes these arguments:
+**It takes these arguments**:
 
 - an arbitrary number of ```Colore```-class objects or strings in a format compatible with ```new Colore()```. Each color will be overlayed over the previous one.
 
-It returns a ```Colore```-class object which is the color you obtain after unmixing every color it took as arguments one by one.
+**It returns** a ```Colore```-class object which is the color you obtain after unmixing every color it took as arguments one by one.
 
 >```unblend``` can also be used as a non-static method applied to the first color:
 >
@@ -618,7 +574,7 @@ overlay = Colore.whatToBlend(background, result)
 const overlay = Colore.whatToBlend(background, result, alpha, alphaStep);
 ```
 
-It takes these arguments:
+**It takes these arguments**:
 
 - ```background``` and ```result```: two ```Colore```-class objects or strings in a format compatible with ```new Colore()```.
 
@@ -664,11 +620,11 @@ The static method ```contrast``` calculates the contrast between two colors.
 const result = Colore.contrast(color1, color2);
 ```
 
-It takes these arguments:
+**It takes these arguments**:
 
 - ```color1``` and ```color2```: two ```Colore```-class objects or strings in a format compatible with ```new Colore()```.
 
-It returns a number between 1 and 21.
+**It returns** a number between 1 and 21.
 
 >```contrast``` can also be used as a non-static method applied to a ```Colore```-class object:
 >
@@ -695,11 +651,11 @@ The ```contrastedText``` method determines if black or white text would be more 
 const result = color.contrastedText();
 ```
 
-It applies to a ```Colore```-type object –```color``` here.
+**It applies to** a ```Colore```-type object –```color``` here.
 
-It takes no argument.
+**It takes no argument**.
 
-It returns the string ```'white'``` or ```'black'```.
+**It returns** the string ```'white'``` or ```'black'```.
 
 ### Examples:
 
@@ -724,9 +680,9 @@ The ```improveContrast``` method changes the color it's applied to, more specifi
 const result = color.improveContrast(referenceColor, desiredContrast, step, options = { lower, towards, maxIterations });
 ```
 
-It applies to a ```Colore```-class object – ```color``` here.
+**It applies to** a ```Colore```-class object – ```color``` here.
 
-It takes these arguments:
+**It takes these arguments**:
 
 - ```referenceColor```: a ```Colore```-class object or a string in a format compatible with ```new Colore()```, used as a reference color: the method is trying to improve the value of ```Colore.contrast(color, referenceColor)```.
 
@@ -747,7 +703,7 @@ It takes these arguments:
 
   - ```maxIterations``` (default = ```100```): the maximum number of times ```improveContrast``` will change the color to improve contrast.
 
-It returns a ```Colore```-class object – ```result``` here – which is a copy of ```color``` to which the needed modifications of its ```ciel``` property have been applied so that ```Colore.contrast(result, referenceColor) > desiredContrast```.
+**It returns** a ```Colore```-class object – ```result``` here – which is a copy of ```color``` to which the needed modifications of its ```ciel``` property have been applied so that ```Colore.contrast(result, referenceColor) > desiredContrast```.
 
 ### Example:
 
@@ -778,7 +734,7 @@ The static method ```distance``` measures how much difference there is between t
 const result = Colore.distance(color1, color2, format, tolerance);
 ```
 
-It takes these arguments:
+**It takes these arguments**:
 
 - ```color1``` and ```color2```: two ```Colore```-class objects or strings in a format compatible with ```new Colore()```.
 
@@ -788,7 +744,7 @@ It takes these arguments:
 
 - ```tolerance``` (default = ```0.02```): a number, used as a tolerance value to ignore certain color properties when they have no effect on the color. For example, in HSL format, when L = 0, the color is black no matter the value of H or S. To account for that even when some rounding errors made L slightly superior to 0, the ```distance``` method ignores H and S when ```color1.l < tolerance && color2.l < tolerance```.
 
-It returns a positive number.
+**It returns** a positive number.
 
 >```distance``` can also be used as a non-static method applied to a ```Colore```-class object:
 >
@@ -821,13 +777,13 @@ The static method ```same``` determines if two colors are the same.
 const result = Colore.same(color1, color2, tolerance);
 ```
 
-It takes these arguments:
+**It takes these arguments**:
 
 - ```color1``` and ```color2```: two ```Colore```-class objects or strings in a format compatible with ```new Colore()```.
 
 - ```tolerance``` (default = ```0.02```): a number, represents the minimal distance between two colors for them to be considered different.
 
-It returns ```true``` if the colors are considered identical, ```false``` if they are not.
+**It returns** ```true``` if the colors are considered identical, ```false``` if they are not.
 
 >```same``` can also be used as a non-static method applied to a ```Colore```-class object:
 >
@@ -866,13 +822,13 @@ The static method ```gradient``` generates a gradient between two colors that av
 const result = Colore.gradient(from, to, steps);
 ```
 
-It takes these arguments:
+**It takes these arguments**:
 
 - ```from``` and ```to```: two ```Colore```-class objects or strings in a format compatible with ```new Colore()```.
 
 - ```steps``` (default = ```5```): the number of steps – meaning the number of calculated colors – to go from ```from``` to ```to```. The higher this number, the smoother the gradient and the more it avoids the grey zone.
 
-It returns an ```Array``` of length ```steps + 1``` containing ```Colore```-class objects: ```[from, color2, color3, ..., to]```.
+**It returns** an ```Array``` of length ```steps + 1``` containing ```Colore```-class objects: ```[from, color2, color3, ..., to]```.
 
 >```gradient``` can also be used as a non-static method applied to a ```Colore```-class object:
 >
