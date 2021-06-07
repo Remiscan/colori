@@ -8,8 +8,8 @@ My main goal with **colori** is to make it easy to use for everyone. You just do
 
 **colori**'s main functions are:
 
-  - color conversion: supported formats are RGB (hexadecimal or functional), HSL, HWB, LAB and LCH. Convert any color from any of these formats to any other with ease.
-  - color manipulation:
+  - **color conversion**: supported formats are RGB (hexadecimal or functional), HSL, HWB, LAB and LCH. Convert any color from any of these formats to any other with ease.
+  - **color manipulation**:
     - blend colors together...
     - ...or unblend them!
     - calculate the contrast between two colors
