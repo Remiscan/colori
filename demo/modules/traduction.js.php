@@ -12,7 +12,7 @@ echo versionizeFiles($imports, __DIR__); ?>*/
 class ExtTraduction extends DefTraduction {
   constructor() {
     const version = document.querySelector('link#strings').dataset.version || document.documentElement.dataset.version || 0;
-    const path = `/colori/strings--${version}.json`;
+    const path = `/colori/demo/strings--${version}.json`;
     super('colori', path, 'fr');
   }
 

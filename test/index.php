@@ -2,12 +2,12 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-require_once 'colori.php';
+require_once '../colori.php';
 
 // Calcule la version du site
 function version()
 {
-  $listeFichiers = array_diff(scandir(__DIR__), array('..', '.'));
+  $listeFichiers = ['../colori.js', '../colori.php'];
   $versionFichiers = 0;
   foreach($listeFichiers as $fichier)
   {
@@ -220,7 +220,7 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
     <h2 class="js">Tests de colori.js</h2>
 
     <script type="module">
-      import Colour from './colori--<?=$version?>.js';
+      import Colour from '../colori--<?=$version?>.js';
 
       const couleur = new Colour('rgba(58, 184, 74, 0.4)');
       const couleurh = new Colour('hsla(128, 52%, 47%, 0.4)');

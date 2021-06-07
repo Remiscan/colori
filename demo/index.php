@@ -1,14 +1,14 @@
 <?php
-require_once 'colori.php';
+require_once '../colori.php';
 
-$commonDir = dirname(__DIR__, 1).'/_common';
+$commonDir = dirname(__DIR__, 2).'/_common';
 require_once $commonDir.'/php/httpLanguage.php';
 require_once $commonDir.'/php/version.php';
 require_once $commonDir.'/php/getStrings.php';
 $version = version(__DIR__);
 
 $lang = $_COOKIE['lang'] ?? httpLanguage() ?? 'en';
-$Textes = new Textes('colori', $lang);
+$Textes = new Textes('colori/demo', $lang);
 
 require_once './ext/Parsedown.php';
 $Parsedown = new Parsedown();
@@ -49,25 +49,25 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
     <meta name="theme-color" content="<?=($_COOKIE['resolvedTheme'] == 'dark' ? $bodyColorDark->hsl() : $bodyColor->hsl())?>" data-light="<?=$bodyColor->hsl()?>" data-dark="<?=$bodyColorDark->hsl()?>">
     <meta name="color-scheme" content="light dark">
 
-    <link rel="icon" type="image/png" href="/colori/icons/icon-192.png">
-    <link rel="apple-touch-icon" href="/colori/icons/apple-touch-icon.png">
-    <link rel="manifest" href="/colori/manifest.json">
+    <link rel="icon" type="image/png" href="/colori/demo/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/colori/demo/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/colori/demo/manifest.json">
 
     <!-- ▼ Fichiers cache-busted grâce à PHP -->
     <!--<?php ob_start();?>-->
 
     <link rel="preload" as="script" href="/colori/colori.js" crossorigin>
-    <link rel="preload" as="fetch" href="/colori/strings.json" crossorigin
+    <link rel="preload" as="fetch" href="/colori/demo/strings.json" crossorigin
           id="strings" data-version="<?=version(__DIR__, 'strings.json')?>">
     <!-- Préchargement des modules -->
     <link rel="modulepreload" href="/_common/js/traduction.js">
     <?php $mods = preg_filter('/(.+)\.(js\.php)/', '$1', scandir(__DIR__.'/modules'));
     foreach($mods as $mod) { ?>
-    <link rel="modulepreload" href="/colori/modules/<?=$mod?>.js.php">
+    <link rel="modulepreload" href="/colori/demo/modules/<?=$mod?>.js.php">
     <?php } ?>
 
-    <link rel="stylesheet" href="/colori/ext/prism.css">
-    <link rel="stylesheet" href="/colori/page.css.php">
+    <link rel="stylesheet" href="/colori/demo/ext/prism.css">
+    <link rel="stylesheet" href="/colori/demo/page.css.php">
 
     <!--<?php $imports = ob_get_clean();
     require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
@@ -105,7 +105,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
     </style>
 
     <noscript>
-      <link rel="stylesheet" href="/colori/style-noscript.css">
+      <link rel="stylesheet" href="/colori/demo/style-noscript.css">
     </noscript>
   </head>
 
@@ -260,23 +260,23 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
           return $docu;
         }
         
-        $docu = file_get_contents('./docs/[Français]-Documentation-(JavaScript).md');
+        $docu = file_get_contents('../wiki/[Français]-Documentation-(JavaScript).md');
         echo prepareDocumentation($Parsedown->text($docu)); ?>
       </article>
 
       <article data-prog-language="js" lang="en">
-        <?php $docu = file_get_contents('./docs/[English]-Documentation-(JavaScript).md');
+        <?php $docu = file_get_contents('../wiki/[English]-Documentation-(JavaScript).md');
         echo prepareDocumentation($Parsedown->text($docu)); ?>
       </article>
 
       <!-- DOCUMENTATION PHP -->
       <article data-prog-language="php" lang="fr">
-        <?php $docu = file_get_contents('./docs/[Français]-Documentation-(PHP).md');
+        <?php $docu = file_get_contents('../wiki/[Français]-Documentation-(PHP).md');
         echo prepareDocumentation($Parsedown->text($docu)); ?>
       </article>
 
       <article data-prog-language="php" lang="en">
-        <?php $docu = file_get_contents('./docs/[English]-Documentation-(PHP).md');
+        <?php $docu = file_get_contents('../wiki/[English]-Documentation-(PHP).md');
         echo prepareDocumentation($Parsedown->text($docu)); ?>
       </article>
     </section>
@@ -287,7 +287,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
     <!--<?php ob_start();?>-->
 
     <!-- SCRIPTS -->
-    <script src="/colori/ext/prism.js" data-manual></script>
+    <script src="/colori/demo/ext/prism.js" data-manual></script>
     <script src="/_common/js/test-support.js" id="test-support-script"></script>
     <script id="test-support-script-exe">
       TestSupport.getSupportResults([
@@ -298,7 +298,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
         { name: 'ES modules', priority: 1 }
       ]);
     </script>
-    <script src="/colori/script.js.php" type="module"></script>
+    <script src="/colori/demo/script.js.php" type="module"></script>
 
     <!--<?php $imports = ob_get_clean();
     require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';

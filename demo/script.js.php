@@ -3,10 +3,10 @@
 
 import Couleur from '/colori/colori.js';
 import '/_common/components/theme-selector/theme-selector.js.php';
-import Cookie from '/colori/modules/cookies.js.php';
-import { Traduction } from '/colori/modules/traduction.js.php';
-import { prepareNav } from '/colori/modules/quickNav.js.php';
-import { updateCouleur } from '/colori/modules/colorDetection.js.php';
+import Cookie from '/colori/demo/modules/cookies.js.php';
+import { Traduction } from '/colori/demo/modules/traduction.js.php';
+import { prepareNav } from '/colori/demo/modules/quickNav.js.php';
+import { updateCouleur } from '/colori/demo/modules/colorDetection.js.php';
 
 /*<?php $imports = ob_get_clean();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
