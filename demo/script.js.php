@@ -32,21 +32,15 @@ champ.addEventListener('input', event => {
 
 ////////////////////////////////////////////////
 // Switch between js and php version of the page
-async function switchBetweenJsPhp(language) {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      if (language == 'php') {
-        document.documentElement.dataset.progLanguage = 'php';
-        //new Cookie('progLang', language);
-      } 
-      else {
-        document.documentElement.dataset.progLanguage = 'js';
-        //Cookie.delete('progLang');
-      } 
-      //makeNav(langSwitch.dataset.currentTab);
-      resolve();
-    }, 20);
-  });
+function switchBetweenJsPhp(language) {
+  if (language == 'php') {
+    document.documentElement.dataset.progLanguage = 'php';
+    //new Cookie('progLang', language);
+  } 
+  else {
+    document.documentElement.dataset.progLanguage = 'js';
+    //Cookie.delete('progLang');
+  }
 }
 
 
@@ -82,12 +76,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Translate the page
   await Traduction.traduire();
-  Prism.highlightAll();
 
-  // Replace Colore by Couleur in PHP documentation
-  for (const element of [...document.querySelectorAll('#documentation-php code.language-javascript')]) {
-    if (element.innerHTML == 'Colore') element.outerHTML = '<code class="language-php">Couleur</code>';
-  }
+  prepareNav();
 
   // Detect clicks on example buttons
   for (const exemple of [...document.querySelectorAll('button.exemple')]) {
@@ -106,15 +96,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Detect clicks on JS <=> PHP toggle
   langSwitch.addEventListener('click', () => switchBetweenJsPhp(document.documentElement.dataset.progLanguage == 'js' ? 'php' : 'js'));
 
-  // Toggle JS or PHP version of the page based on last visit
-  /*if (isPhp == 'true')  await switchBetweenJsPhp('php');
-  else                  makeNav('js');*/
-  prepareNav();
-
   // Customize theme-selector
   document.querySelector('theme-selector .selector-title').classList.add('h4');
   document.querySelector('theme-selector .selector-cookie-notice').classList.add('h6');
 
   // Remove loading screen
   document.documentElement.classList.add('loaded');
+
+  Prism.highlightAll();
 });
