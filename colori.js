@@ -1154,17 +1154,17 @@ export default class Couleur {
 
   /////////////////////////////////////////////////////////////////////////////////////////////
   // Computes the values of intermediate colors to make a gradient that avoids the "grey zone"
-  static gradient(_from, _to, _steps = 5) {
-    const from = Couleur.check(_from);
-    const to = Couleur.check(_to);
+  static gradient(_start, _end, _steps = 5) {
+    const start = Couleur.check(_start);
+    const end = Couleur.check(_end);
     const steps = Math.min(Math.max(1, _steps), 100);
 
-    const intermediateColors = [from];
-    const stepL = (to.ciel - from.ciel) / steps;
-    const stepC = (to.ciec - from.ciec) / steps;
+    const intermediateColors = [start];
+    const stepL = (end.ciel - start.ciel) / steps;
+    const stepC = (end.ciec - start.ciec) / steps;
     // Minimize the distance to travel through hues
-    const stepHup = (360 * (to.cieh - from.cieh) % 360 + 360) % 360 / 360;
-    const stepHdown = (360 * (from.cieh - to.cieh) % 360 + 360) % 360 / 360;
+    const stepHup = (360 * (end.cieh - start.cieh) % 360 + 360) % 360 / 360;
+    const stepHdown = (360 * (start.cieh - end.cieh) % 360 + 360) % 360 / 360;
     const stepH = ((stepHup <= stepHdown) ? stepHup : (-1 * stepHdown)) / steps;
 
     for (let i = 1; i < steps; i++) {
@@ -1180,12 +1180,12 @@ export default class Couleur {
         console.error(error);
       }
     }
-    return [...intermediateColors, to];
+    return [...intermediateColors, end];
   }
 
   // Shorthand for Couleur.gradient()
-  gradient(to, steps = 5) {
-    return Couleur.gradient(this, to, steps);
+  gradient(end, steps = 5) {
+    return Couleur.gradient(this, end, steps);
   }
 
 

@@ -1404,17 +1404,17 @@ class Couleur
 
   /////////////////////////////////////////////////////////////////////////////////////////
   // Computes the values of intermediate colors to make a gradient that avoids "grey zone"
-  public static function gradient($_from, $_to, $_steps = 5) {
-    $from = self::check($_from);
-    $to = self::check($_to);
+  public static function gradient($_start, $_end, $_steps = 5) {
+    $start = self::check($_start);
+    $end = self::check($_end);
     $steps = min(max(1, $_steps), 100);
 
-    $intermediateColors = array($from);
-    $stepL = ($to->ciel - $from->ciel) / $steps;
-    $stepC = ($to->ciec - $from->ciec) / $steps;
+    $intermediateColors = array($start);
+    $stepL = ($end->ciel - $start->ciel) / $steps;
+    $stepC = ($end->ciec - $start->ciec) / $steps;
     // Minimize the distance to travel through hues
-    $stepHup = (360 * ($to->cieh - $from->cieh) % 360 + 360) % 360 / 360;
-    $stepHdown = (360 * ($from->cieh - $to->cieh) % 360 + 360) % 360 / 360;
+    $stepHup = (360 * ($end->cieh - $start->cieh) % 360 + 360) % 360 / 360;
+    $stepHdown = (360 * ($start->cieh - $end->cieh) % 360 + 360) % 360 / 360;
     $stepH = (($stepHup <= $stepHdown) ? $stepHup : (-1 * $stepHdown)) / $steps;
 
     for ($i = 1; $i < $steps; $i++) {
@@ -1428,7 +1428,7 @@ class Couleur
       $previous = $next;
     }
 
-    $intermediateColors[] = $to;
+    $intermediateColors[] = $end;
     return $intermediateColors;
   }
 
