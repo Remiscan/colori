@@ -260,23 +260,23 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
           return $docu;
         }
         
-        $docu = file_get_contents('../wiki/[Français]-Documentation-(JavaScript).md');
+        $docu = file_get_contents('../wiki/Documentation-pour-JavaScript-(Français).md');
         echo prepareDocumentation($Parsedown->text($docu)); ?>
       </article>
 
       <article data-prog-language="js" lang="en">
-        <?php $docu = file_get_contents('../wiki/[English]-Documentation-(JavaScript).md');
+        <?php $docu = file_get_contents('../wiki/Documentation-for-JavaScript-(English).md');
         echo prepareDocumentation($Parsedown->text($docu)); ?>
       </article>
 
       <!-- DOCUMENTATION PHP -->
       <article data-prog-language="php" lang="fr">
-        <?php $docu = file_get_contents('../wiki/[Français]-Documentation-(PHP).md');
+        <?php $docu = file_get_contents('../wiki/Documentation-pour-PHP-(Français).md');
         echo prepareDocumentation($Parsedown->text($docu)); ?>
       </article>
 
       <article data-prog-language="php" lang="en">
-        <?php $docu = file_get_contents('../wiki/[English]-Documentation-(PHP).md');
+        <?php $docu = file_get_contents('../wiki/Documentation-for-PHP-(English).md');
         echo prepareDocumentation($Parsedown->text($docu)); ?>
       </article>
     </section>
