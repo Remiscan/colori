@@ -732,6 +732,11 @@ input:active, input:focus {
   grid-column: 2;
 }
 
+.exemples-valeurs,
+.exemples-fonctions {
+  padding: 0 1px; /* pour éviter de couper le bord */
+}
+
 .instructions-exemples-fonctions,
 .exemples-fonctions {
   grid-column: 1 / 3;
