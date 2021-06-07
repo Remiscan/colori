@@ -3,10 +3,7 @@ JavaScript module to convert (between CSS-supported formats) and manipulate colo
 
 My main goal with **colori** is to make it easy to use for everyone. You just download the .js or .php file and import it in your code as shown in the documentation.
 
-### How to use
-
-*   [colori.js: JavaScript documentation](https://github.com/Remiscan/colori/wiki/Documentation-(JavaScript))
-*   [colori.php: PHP documentation](https://github.com/Remiscan/colori/wiki/Documentation-(PHP))
+[Check out the wiki](https://github.com/Remiscan/colori/wiki) for more info on how to use **colori**!
 
 * * *
 
