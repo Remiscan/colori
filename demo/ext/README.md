@@ -3,4 +3,4 @@
 These resources are not used in colori.js or colori.php, but on their demo/documentation page on [https://remiscan.fr/colori/](https://remiscan.fr/colori/).
 
 * [Prism](https://github.com/PrismJS/prism/): used to add syntax highlighting to code examples
-* [Turndown](https://github.com/domchristie/turndown): used to export the documentation from [https://remiscan.fr/colori/](https://remiscan.fr/colori/) and convert it to Markdown, which is then used in [the Wiki](https://github.com/Remiscan/colori/wiki)
+* [Parsedown](https://parsedown.org/): used to convert the [documentation](https://github.com/Remiscan/colori/wiki) from Markdown to HTML, to insert in on the [demo website](https://remiscan.fr/colori/)
