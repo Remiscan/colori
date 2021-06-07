@@ -438,15 +438,10 @@ span[data-string=github] {
   text-align: right;
 }
 
-.github-logo {
-  width: 3.6rem;
-  height: 1.28rem;
-}
-
 .github-cat {
-  width: 1.6rem;
-  height: 1.6rem;
-  display: none;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-right: .3rem;
 }
 
 @media (max-width: 30rem) {
