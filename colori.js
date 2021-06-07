@@ -1,24 +1,28 @@
 export default class Couleur {
+  /**
+   * Creates a new Couleur object that contains precalculated properties of the color.
+   * @param {string} couleur - Color expression in a supported format.
+   */
   constructor(couleur) {
     if (couleur instanceof Couleur)
       throw 'Already an instance of Couleur';
     else if (typeof couleur != 'string')
       throw `Couleur objects can only be created from a String ; this is not one: ${couleur}`;
 
-    this.r = null;
-    this.g = null;
-    this.b = null;
-    this.h = null;
-    this.s = null;
-    this.l = null;
-    this.w = null;
-    this.bk = null;
-    this.a = null;
-    this.ciel = null;
-    this.ciea = null;
-    this.cieb = null;
-    this.ciec = null;
-    this.cieh = null;
+    this.r = null;    // Red value
+    this.g = null;    // Green value
+    this.b = null;    // Blue value
+    this.h = null;    // Hue
+    this.s = null;    // Saturation
+    this.l = null;    // Luminosity
+    this.w = null;    // Whiteness
+    this.bk = null;   // Blackness
+    this.a = null;    // Opacity
+    this.ciel = null; // CIE lightness
+    this.ciea = null; // CIE A-axis value
+    this.cieb = null; // CIE B-axis value
+    this.ciec = null; // CIE chroma
+    this.cieh = null; // CIE hue
 
     const format = Couleur.matchSyntax(couleur.trim());
     const isAlpha = (val, def = 1) => !!val ? val : (val == 0) ? 0 : def;
@@ -52,8 +56,25 @@ export default class Couleur {
   }
 
 
-  //////////////////////////////////////////////////////
-  // Matches the user input with supported color formats
+  /* TYPE DEFINITIONS */
+
+  /**
+   * A Couleur, or a string containing the expression of a color in a supported format.
+   * Supported formats are hexadecimal, RGB, HSL, HWB, LAB and LCH.
+   * @typedef {(Couleur|string)} color
+   */
+
+  /**
+   * A precalculated property of a Couleur object.
+   * @typedef {('r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh')} colorProperty
+   */
+
+
+  /**
+   * Matches the user input with supported color formats.
+   * @param {string} couleur - Color expression in a supported format.
+   * @returns 
+   */
   static matchSyntax(couleur) {
     const tri = couleur.slice(0, 3);
     const allFormats = Couleur.formats;
@@ -96,30 +117,32 @@ export default class Couleur {
   }
 
 
-  ////////////////////////////////////////////////////////////////////
-  // Calculates all the color properties from the already defined ones
-  compute(from = null) {
-    if (from == 'rgb') {
+  /**
+   * Calculates all the color properties from the already defined ones.
+   * @param {string} knownFormat - Name of the already know format.
+   */
+  compute(knownFormat) {
+    if (knownFormat == 'rgb') {
       this.rgb2hsl();
       this.hsl2hwb();
       this.rgb2lab();
       this.lab2lch();
-    } else if (from == 'hsl') {
+    } else if (knownFormat == 'hsl') {
       this.hsl2rgb();
       this.hsl2hwb();
       this.rgb2lab();
       this.lab2lch();
-    } else if (from == 'hwb') {
+    } else if (knownFormat == 'hwb') {
       this.hwb2hsl();
       this.hsl2rgb();
       this.rgb2lab();
       this.lab2lch();
-    } else if (from == 'lab') {
+    } else if (knownFormat == 'lab') {
       this.lab2lch();
       this.lch2rgb();
       this.rgb2hsl();
       this.hsl2hwb();
-    } else if (from == 'lch') {
+    } else if (knownFormat == 'lch') {
       this.lch2lab();
       this.lch2rgb();
       this.rgb2hsl();
@@ -127,15 +150,23 @@ export default class Couleur {
     }
   }
 
-  // Returns a float precise to the nth decimal
+  /**
+   * Returns a float precise to the nth decimal.
+   * @param {(number|string)} _x - The number to round.
+   * @param {number} n - The number of decimals.
+   * @returns {number} The float precise to the nth decimal.
+   */
   static pRound(_x, n = 5) {
     let x = (typeof _x == 'number') ? _x : Number(_x);
     return Number(parseFloat(x.toPrecision(n)));
   }
 
 
-  //////////////////////////////////////////////////////////////////////////////
-  // Checks if a variable is a Couleur object, or if it can be made into one
+  /**
+   * Checks if a variable is a Couleur object, or if it can be made into one.
+   * @param {color} color
+   * @returns {Couleur}
+   */
   static check(color) {
     if (color instanceof Couleur) return color;
     try { return new Couleur(color); }
@@ -145,8 +176,13 @@ export default class Couleur {
   }
 
 
-  //////////////////////////////////////////////////////////////////////////////
-  // Parses a number / percentage / angle into the correct format to store it
+  /**
+   * Parses a number / percentage / angle into the correct format to store it.
+   * @param {(string|number)} n - The value to parse.
+   * @param {?string} type - The color parameter that has n as its value.
+   * @param {boolean} clamp - Whether the value should de clamped to an interval.
+   * @returns {number} The properly parsed number.
+   */
   static parse(n, type = null, clamp = true) {
     // Alpha values:
     // from any % or any number
@@ -280,7 +316,12 @@ export default class Couleur {
 
   /* GENERAL SETTER */
 
-  // Will be used by other setters
+  /**
+   * Will be used by other setters to calculate all color properties.
+   * @param {Array.<string|number>} data - Values to parse.
+   * @param {string[]} props - Properties the values correspond to.
+   * @param {string} format - Format (RGB, HSL, etc.) the properties come from.
+   */
   set(data, props, format) {
     for (let i = 0; i < props.length; i++) {
       this[props[i]] = Couleur.pRound(Couleur.parse(data[i], props[i]));
@@ -293,6 +334,7 @@ export default class Couleur {
 
   /* NAME */
 
+  /** @returns {?string} The approximate name of the color. */
   get name() {
     const name = this.exactName;
     if (name === null && this.a == 1) {
@@ -304,6 +346,7 @@ export default class Couleur {
     return name;
   }
 
+  /** @returns {?string} The exact name of the color. */
   get exactName() {
     if (this.a == 1) {
       const allNames = Couleur.couleursNommees;
@@ -318,9 +361,17 @@ export default class Couleur {
 
   /* RGB (hexadecimal) */
 
-  // Adds a zero before a string of length 1
+  /**
+   * Adds a zero before a string of length 1.
+   * @param {string} s - The string to pad.
+   * @returns {string} The padded string.
+   */
   static pad(s) { return (s.length < 2) ? `0${s}` : s; }
   
+  /**
+   * Calculates all properties of the color from its hexadecimal expression.
+   * @param {string[]} - The hexadecimal values of the r, g, b, a properties.
+   */
   set hex(hexa) {
     let r, g, b, a;
     
@@ -343,8 +394,10 @@ export default class Couleur {
     this.rgb = [r, g, b, a];
   }
 
+  /** Alias to the hex setter. */
   set hexa(hexa) { this.hex = hexa; }
 
+  /** @returns {string} Hexadecimal expression of the color. */
   get hex() {
     if (this.a < 1)
       return this.hexa;
@@ -354,6 +407,7 @@ export default class Couleur {
     return `#${r}${g}${b}`;
   }
 
+  /** @returns {string} Hexadecimal (+ a) expression of the color. */
   get hexa() {
     const r = Couleur.pad(Math.round(this.r * 255).toString(16));
     const g = Couleur.pad(Math.round(this.g * 255).toString(16));
@@ -365,12 +419,18 @@ export default class Couleur {
 
   /* RGB (functional) */
   
+  /**
+   * Calculates all properties of the color from its functional RGB expression.
+   * @param {Array.<string|number>} - The numerical values of the r, g, b, a properties.
+   */
   set rgb(rgba) {
     this.set(rgba, ['r', 'g', 'b'], 'rgb');
   }
   
+  /** Alias to the rgb setter. */
   set rgba(rgba) { this.rgb = rgba; }
 
+  /** @returns {string} RGB expression of the color. */
   get rgb() {
     const r = Math.round(this.r * 255);
     const g = Math.round(this.g * 255);
@@ -382,6 +442,7 @@ export default class Couleur {
       return `rgb(${r}, ${g}, ${b})`;
   }
 
+  /** @returns {string} RGBA expression of the color. */
   get rgba() {
     const r = Math.round(this.r * 255);
     const g = Math.round(this.g * 255);
@@ -393,12 +454,18 @@ export default class Couleur {
 
   /* HSL */
 
+  /**
+   * Calculates all properties of the color from its HSL expression.
+   * @param {Array.<string|number>} - The numerical values of the h, s, l, a properties.
+   */
   set hsl(hsla) {
     this.set(hsla, ['h', 's', 'l'], 'hsl')
   }
 
+  /** Alias to the hsl setter. */
   set hsla(hsla) { this.hsl = hsla; }
 
+  /** @returns {string} HSL expression of the color. */
   get hsl() {
     const h = Math.round(this.h * 360);
     const s = Math.round(this.s * 100);
@@ -410,6 +477,7 @@ export default class Couleur {
       return `hsl(${h}, ${s}%, ${l}%)`;
   }
 
+  /** @returns {string} HSLA expression of the color. */
   get hsla() {
     const h = Math.round(this.h * 360);
     const s = Math.round(this.s * 100);
@@ -421,12 +489,18 @@ export default class Couleur {
 
   /* HWB */
 
+  /**
+   * Calculates all properties of the color from its HWB expression.
+   * @param {Array.<string|number>} - The numerical values of the h, w, bk, a properties.
+   */
   set hwb(hwba) {
     this.set(hwba, ['h', 'w', 'bk'], 'hwb');
   }
 
+  /** Alias to the hwb setter. */
   set hwba(hwba) { this.hwb = hwba; }
 
+  /** @returns {string} HWB expression of the color. */
   get hwb() {
     const h = Math.round(this.h * 360);
     const w = Math.round(this.w * 100);
@@ -438,6 +512,7 @@ export default class Couleur {
       return `hwb(${h} ${w}% ${bk}%)`;
   }
 
+  /** @returns {string} HWB expression of the color, but always with the alpha value. */
   get hwba() {
     const h = Math.round(this.h * 360);
     const w = Math.round(this.w * 100);
@@ -449,12 +524,18 @@ export default class Couleur {
 
   /* LAB */
 
+  /**
+   * Calculates all properties of the color from its LAB expression.
+   * @param {Array.<string|number>} - The numerical values of the ciel, ciea, cieb, a properties.
+   */
   set lab(laba) {
     this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab');
   }
 
+  /** Alias to the lab setter. */
   set laba(laba) { this.lab = laba; }
 
+  /** @returns {string} LAB expression of the color. */
   get lab() {
     const ciel = Math.round(this.ciel * 100);
     const ciea = Math.round(this.ciea);
@@ -466,6 +547,7 @@ export default class Couleur {
       return `lab(${ciel}% ${ciea} ${cieb})`;
   }
 
+  /** @returns {string} LAB expression of the color, but always with the alpha value. */
   get laba() {
     const ciel = Math.round(this.ciel * 100);
     const ciea = Math.round(this.ciea);
@@ -477,12 +559,18 @@ export default class Couleur {
 
   /* LCH */
 
+  /**
+   * Calculates all properties of the color from its LCH expression.
+   * @param {Array.<string|number>} - The numerical values of the ciel, ciec, cieh, a properties.
+   */
   set lch(lcha) {
     this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch');
   }
 
+  /** Alias to the lch setter. */
   set lcha(lcha) { this.lch = lcha; }
 
+  /** @returns {string} LCH expression of the color. */
   get lch() {
     const ciel = Math.round(this.ciel * 100);
     const ciec = Math.round(this.ciec);
@@ -494,6 +582,7 @@ export default class Couleur {
       return `lch(${ciel}% ${ciec} ${cieh})`;
   }
 
+  /** @returns {string} LCH expression of the color, but always with the alpha value. */
   get lcha() {
     const ciel = Math.round(this.ciel * 100);
     const ciec = Math.round(this.ciec);
@@ -508,6 +597,7 @@ export default class Couleur {
   /* Conversion between color formats */
   /************************************/
 
+  /** Uses the r, g, b values to calculate the h, s, l values. */
   rgb2hsl() {
     let r = this.r;
     let g = this.g;
@@ -558,6 +648,7 @@ export default class Couleur {
   }
 
 
+  /** Uses the h, s, l values to calculate the r, g, b values. */
   hsl2rgb() {
     // source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     let h = this.h * 360;
@@ -579,6 +670,7 @@ export default class Couleur {
   }
 
 
+  /** Uses the h, s, l values to calculate the w, bk values. */
   hsl2hwb() {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
@@ -600,6 +692,7 @@ export default class Couleur {
   }
 
 
+  /** Uses the h, w, bk values to calculate the s, l values. */
   hwb2hsl() {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
@@ -630,6 +723,7 @@ export default class Couleur {
   }
 
 
+  /** Uses the r, g, b values to calulate the ciel, ciea, cieb values. */
   rgb2lab() {
     // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
     //                   & https://drafts.csswg.org/css-color-4/utilities.js
@@ -668,6 +762,7 @@ export default class Couleur {
   }
 
 
+  /** Uses the ciel, ciec, cieh values to calculate the r, g, b values. */
   lch2rgb() {
     // Source of the math: https://css.land/lch/lch.js
     //                   & https://drafts.csswg.org/css-color-4/utilities.js
@@ -738,6 +833,7 @@ export default class Couleur {
   }
 
 
+  /** Uses the ciel, ciea, cieb values to calculate the ciec, cieh values. */
   lab2lch() {
     let ciec, cieh;
     ciec = Math.sqrt(this.ciea ** 2 + this.cieb ** 2);
@@ -748,6 +844,7 @@ export default class Couleur {
   }
 
 
+  /** Uses the ciel, ciec, cieh values to calculate the ciea, cieb values. */
   lch2lab() {
     let cieh = this.cieh * 360;
     let ciea, cieb;
@@ -765,8 +862,11 @@ export default class Couleur {
   /********************************/
 
 
-  ///////////////////////////////////////////////////////
-  // Blends colors together, in the order they were given
+  /**
+   * Blends colors together, in the order they were given.
+   * @param  {...color} couleurs - Colors to blend.
+   * @returns {Couleur} The resulting color.
+   */
   static blend(...couleurs) {
     if (couleurs.length < 2) throw `You need at least 2 colors to blend`;
     const background = Couleur.check(couleurs.shift());
@@ -790,18 +890,18 @@ export default class Couleur {
     else                      return Couleur.blend(result, ...couleurs);
   }
 
-  // Shorthand for Couleur.blend
+  /** Non-static version of Couleur.blend */
   blend(...couleurs) {
     return Couleur.blend(this, ...couleurs);
   }
 
 
-  ///////////////////////////////////////////////////////////////////////////////////////
-  // Solves the equation result = blend(background, ...overlays) with background unknown.
-  // It will:
-  // - return a Couleur object if the equation has a solution
-  // - return null if the equation has no solution
-  // - throw if the equation has an infinite amount of solutions
+  /**
+   * Solves the equation result = blend(background, ...overlays) with background unknown.
+   * @param  {...color} couleurs - Colors to unblend.
+   * @returns {?Couleur} The solution to the equation, if it has one.
+   * @throws if the equation has an infinite amount of solutions.
+   */
   static unblend(...couleurs) {
     if (couleurs.length < 2) throw `You need at least 2 colors to unblend`;
     const result = Couleur.check(couleurs.shift());
@@ -834,19 +934,20 @@ export default class Couleur {
     else                      return Couleur.unblend(background, ...couleurs);
   }
 
-  // Shorthand for Couleur.unblend()
+  /** Non-static version of Couleur.unblend */
   unblend(...couleurs) {
     return Couleur.unblend(this, ...couleurs);
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////////
-  // Solves the equation result = blend(background, overlay) with overlay unknown.
-  // It will:
-  // - return a Couleur object if the equation has one solution
-  // - return an array of Couleur objects if the equation has a finite number of solutions
-  // - return null if the equation has no solution
-  // - throw if the equation has an infinite amount of solutions
+  /**
+   * Solves the equation result = blend(background, overlay) with overlay unknown.
+   * @param {color} _couleur1 - The background color.
+   * @param {color} _couleur2 - The resulting color after the supposed blend.
+   * @param {?number} alpha - The alpha value you want the solution to have.
+   * @param {?number} alphaStep - The step between the alpha values of the multiple solutions.
+   * @returns {(Couleur|Couleur[]|null)} The solution(s) to the equation.
+   */
   static whatToBlend(_couleur1, _couleur2, alpha, alphaStep = .1) {
     const background = Couleur.check(_couleur1);
     const result = Couleur.check(_couleur2);
@@ -919,14 +1020,13 @@ export default class Couleur {
     else                          return overlay;
   }
 
-  // Shorthand for Couleur.whatblend()
+  /** Non-static version of Couleur.whatToBlend */
   whatToBlend(couleur2, alpha, alphaStep = .1) {
     return Couleur.whatToBlend(this, couleur2, alpha, alphaStep);
   }
 
 
-  ////////////////////////////////////
-  // Computes the luminance of a color
+  /** @returns {number} Luminance of the color. */
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   get luminance() {
     let couleur = this;
@@ -944,8 +1044,12 @@ export default class Couleur {
   }
 
 
-  ///////////////////////////////////////////
-  // Computes the contrast between two colors
+  /**
+   * Computes the contrast between two colors.
+   * @param {color} _couleur1
+   * @param {color} _couleur2
+   * @returns {number} Contrast between the two colors.
+   */
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
   static contrast(_couleur1, _couleur2) {
     let couleur1 = Couleur.check(_couleur1);
@@ -958,14 +1062,16 @@ export default class Couleur {
     return Couleur.pRound((Lmax + 0.05) / (Lmin + 0.05));
   }
 
-  // Shorthand for Couleur.contrast
+  /** Non-static version of Couleur.contrast */
   contrast(couleur2) {
     return Couleur.contrast(this, couleur2);
   }
 
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Checks if black or white text would have better contrast with this color
+  /** 
+   * Checks if black or white text would have better contrast with {this}.
+   * @returns {('black'|'white')}
+   */
   contrastedText() {
     const L = this.luminance;
     const LB = 1; // luminance of white
@@ -979,21 +1085,20 @@ export default class Couleur {
   }
 
 
-  ///////////////////////////////////////////////////////////
-  // Modifies the color (without changing its hue) to give it
-  // better contrast (= closer to desiredContrast) with referenceColor
-  // The options argument supports these properties:
-  // - lower: - true will lower the contrast if it's higher than desired
-  //          - false will stop if contrast is higher than desired
-  // - towards: if desiredContrast can be reached BOTH by raising or
-  //            lowering CIE lightness, then this option will be used to
-  //            determine which way to go :
-  //            - null (default) to choose automatically*
-  //            - 'black' to lower CIE lightness
-  //            - 'white' to raise CIE lightness
-  //      * 'black' will be chosen if movingColor is darker than refColor,
-  //      and 'white' if it's lighter than refColor.
-  // - maxIterations: the maximum number of times the color will be altered
+  /**
+   * Modifies the CIE lightness of a color to give it better contrast with referenceColor.
+   * @param {color} referenceColor - The color whose contrast with {this} will be optimized.
+   * @param {number} desiredContrast - The contrast to reach between referenceColor and {this}.
+   * @param {number} step - The quantity that will be added to/substracted from {this.ciel} at each step.
+   * @param {Object} options
+   * @param {boolean} options.lower - Whether contrast should be lowered if it's already bigger than desiredContrast.
+   * @param {number} options.maxIterations - The maximum number of times the color will be altered.
+   * @param {('black'|'white'|null)} options.towards - 'black' if {this} should change towards black (lower its lightness),
+   *                                                   'white' if {this} should change towards white (raise its lightness),
+   *                                                   null if that choice should be made automatically (if the function
+   *                                                   can't guess, 'black' will be chosen).
+   * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) == desiredContrast.
+   */
   improveContrast(referenceColor, desiredContrast, step = 2, options = {}) {
     if (typeof options.lower == 'undefined') options.lower = false;
     if (typeof options.maxIterations == 'undefined') options.maxIterations = 100;
@@ -1070,8 +1175,15 @@ export default class Couleur {
   }
 
 
-  //////////////////////////////////
-  // Changes a property of the color
+  /**
+   * Modifies a color by changing a specific property.
+   * @param {colorProperty} propriete - The color property that will be changed.
+   * @param {(string|number)} valeur - The value that will be added to the property.
+   * @param {Object} options
+   * @param {boolean} options.replace - Whether the value should replace the previous value of the property, instead of being added to it.
+   * @param {boolean} options.scale - Whether the value should be multiplied to the previous value of the property, instead of being added to it.
+   * @returns {Couleur} The modified color.
+   */
   change(propriete, valeur, options = {}) {
     const replace = (options === true) || ((typeof options.replace != 'undefined') ? options.replace : false);
     const scale = (typeof options.scale != 'undefined') ? options.scale : false;
@@ -1122,28 +1234,40 @@ export default class Couleur {
     return changedColor;
   }
 
-  // Replaces a property of the color
+  /**
+   * Modifies a color by replacing the value of a specific property.
+   * This is an alias to change() with options.replace = true
+   * @param {colorProperty} propriete - The color property that will be changed.
+   * @param {(string|number)} valeur - The value that will replace the previous value of the property.
+   * @returns {Couleur} The modified color.
+   */
   replace(propriete, valeur) {
     return this.change(propriete, valeur, { replace: true, scale: false });
   }
 
-  // Replaces a property of the color by a percentage of its initial value
+  /**
+   * Modifies a color by scaling the value of a specific property by a percentage.
+   * This is an alias to change() with options.scale = true
+   * @param {colorProperty} propriete - The color property that will be changed.
+   * @param {(string|number)} valeur - The percentage that will be multiplied to the previous value of the property.
+   * @returns {Couleur} The modified color.
+   */
   scale(propriete, valeur) {
     return this.change(propriete, valeur, { replace: false, scale: true });
   }
 
-  // Complementary color
+  /** @returns {Couleur} The complementary color. */
   complement() { return this.change('h', 180); }
 
-  // Negative / inverse color
+  /** @returns {Couleur} The inverse color. */
   negative() { return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
   invert() { return this.negative(); }
 
-  // Transforms a color into its grey tone
+  /** @returns {Couleur} The shade of grey of the color. */
   greyscale() { return new Couleur(`hsl(${360 * this.h}, 0%, ${100 * this.l}%, ${this.a})`); }
   grayscale() { return this.greyscale(); }
 
-  // Transforms a color into its sepia tone
+  /** @returns {Couleur} The sepia tone of the color. */
   sepia() {
     const r = Math.min(0.393 * this.r + 0.769 * this.g + 0.189 * this.b, 1);
     const g = Math.min(0.349 * this.r + 0.686 * this.g + 0.168 * this.b, 1);
@@ -1152,8 +1276,13 @@ export default class Couleur {
   }
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////
-  // Computes the values of intermediate colors to make a gradient that avoids the "grey zone"
+  /**
+   * Calculates the intermediate colors a gradient should use to go from one color to another without passing through the "desaturated zone".
+   * @param {color} _start - The starting color of the gradient.
+   * @param {color} _end - The ending color of the gradient.
+   * @param {number} _steps - The number of steps in the gradient to go from start to end.
+   * @returns {Couleur[]} The array of colors in the gradient.
+   */
   static gradient(_start, _end, _steps = 5) {
     const start = Couleur.check(_start);
     const end = Couleur.check(_end);
@@ -1183,16 +1312,21 @@ export default class Couleur {
     return [...intermediateColors, end];
   }
 
-  // Shorthand for Couleur.gradient()
+  /** Non-static version of Couleur.gradient */
   gradient(end, steps = 5) {
     return Couleur.gradient(this, end, steps);
   }
 
 
-  //////////////////////////////////////////////////////////////////
-  // Calculates the distance between two colors in a certain format,
-  // by adding the difference between each of its properties.
-  // If no format is given, return the average of the distances for all formats.
+  /**
+   * Calculates the distance between two colors in a certain format, by adding the difference between each of their properties.
+   * If no format is given, calculates the average of the distances for all formats.
+   * @param {color} _couleur1 
+   * @param {color} _couleur2 
+   * @param {?string} format - The format whose properties will be used to calculate the distance.
+   * @param {number} tolerance - The tolerance value used to ignore some properties if they are close enough to value that render them useless.
+   * @returns {number} The distance between the two colors.
+   */
   static distance(_couleur1, _couleur2, format = null, tolerance = Couleur.tolerance) {
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
@@ -1226,14 +1360,19 @@ export default class Couleur {
     }
   }
 
-  // Shorthand for Couleur.distance()
+  /** Non-static version of Couleur.distance */
   distance(couleur2, format = null, tolerance = Couleur.tolerance) {
     return Couleur.distance(this, couleur2, format, tolerance);
   }
 
 
-  ///////////////////////////////////////////////////////////////////
-  // Determines if two colors are identical, with a certain tolerance
+  /**
+   * Determines if two colors are the same, with a certain tolerance.
+   * @param {color} _couleur1 
+   * @param {color} _couleur2 
+   * @param {number} tolerance - The minimum distance between the two colors to consider them different.
+   * @returns {boolean} Whether the two colors are considered the same.
+   */
   static same(_couleur1, _couleur2, tolerance = Couleur.tolerance) {
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
@@ -1242,7 +1381,7 @@ export default class Couleur {
     else return true;
   }
 
-  // Shorthand for Couleur.same()
+  /** Non-static version of Couleur.same */
   same(couleur2, tolerance = Couleur.tolerance) {
     return Couleur.same(this, couleur2, tolerance);
   }
