@@ -43,6 +43,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://remiscan.fr/colori/">
     <meta property="og:image" content="https://remiscan.fr/mon-portfolio/projets/colori/og-preview.png">
+    <link rel="canonical" href="https://remiscan.fr/colori/">
     
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0">
