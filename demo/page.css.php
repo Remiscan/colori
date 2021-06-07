@@ -917,6 +917,11 @@ pre[class*="language-"].format-donnee {
 @media (max-width: 30rem) {
   #saisie {
     grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+
+  .exemples-saisie {
+    gap: .3rem;
   }
 
   #entree {
