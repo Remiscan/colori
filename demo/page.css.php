@@ -1206,6 +1206,12 @@ aside.nav-documentation>div {
   cursor: pointer;
 }
 
+@media (max-width: 30rem) {
+  .documentation :not(.nav-rapide)>ul {
+    padding-left: .6em;
+  }
+}
+
 @media (max-width: calc(.6rem + 20rem + .6rem + 42rem + .6rem + 20rem + .6rem + 2.4rem)) {
   aside.nav-documentation {
     display: none;
@@ -1354,6 +1360,12 @@ pre[class*="language-"],
   white-space: pre-wrap;
   font-family: 'Fira Code';
   font-variant-ligatures: none;
+}
+
+@media (max-width: 42rem) {
+  pre[class*="language-"]>code[class*="language-"] {
+    white-space: pre;
+  }
 }
 
 .documentation pre>code[class*="language-"] {
