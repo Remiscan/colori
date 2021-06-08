@@ -5,7 +5,6 @@ import Couleur from '/colori/colori.js';
 import '/_common/components/theme-selector/theme-selector.js.php';
 import Cookie from '/colori/demo/modules/cookies.js.php';
 import { Traduction } from '/colori/demo/modules/traduction.js.php';
-import { prepareNav } from '/colori/demo/modules/quickNav.js.php';
 import { updateCouleur } from '/colori/demo/modules/colorDetection.js.php';
 
 /*<?php $imports = ob_get_clean();
@@ -65,19 +64,7 @@ window.addEventListener('themechange', event => {
 ///////////////
 // On page load
 window.addEventListener('DOMContentLoaded', async () => {
-  // Update interface with the random initial color
-  try {
-    initialColor = new Couleur(document.documentElement.dataset.startColor);
-    await updateCouleur(initialColor.name, 10);
-  }
-  catch(error) {
-    console.error('Erreur (couleur aléatoire)', error);
-  }
-
-  // Translate the page
   await Traduction.traduire();
-
-  prepareNav();
 
   // Detect clicks on example buttons
   for (const exemple of [...document.querySelectorAll('button.exemple')]) {
@@ -99,9 +86,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Customize theme-selector
   document.querySelector('theme-selector .selector-title').classList.add('h4');
   document.querySelector('theme-selector .selector-cookie-notice').classList.add('h6');
-
-  // Remove loading screen
-  document.documentElement.classList.add('loaded');
 
   Prism.highlightAll();
 });

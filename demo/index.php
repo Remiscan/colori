@@ -22,7 +22,7 @@ $bodyColor = new Couleur("lch(75% $startColor->ciec ".round($startColor->cieh * 
 $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." ".round($startColor->cieh * 360).")");
 ?>
 <!doctype html>
-<html lang="fr"
+<html lang="<?=$lang?>"
       data-version="<?=$version?>"
       data-http-lang="<?=httpLanguage()?>"
       data-prog-language="<?=$_COOKIE['progLang'] ?? 'js'?>"
@@ -76,12 +76,64 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
 
     <style id="theme-variables">
       <?php ob_start();?>
+      <?php
+      $cieh = $startColor->cieh * 360;
+      $colorPreview = Couleur::blend('white', $startColor);
+      /* Définition des couleurs du thème clair */
+      $ciec = min($startColor->ciec, 60);
+      $sectionColor = new Couleur('lch(85% '. (0.6 * $ciec) .' '. $cieh .')');
+      $codeColor = new Couleur('lch(90% '. (0.3 * $ciec) .' '. $cieh .')');
+      ?>
       :root[data-theme="light"] {
+        /* Background colors */
         --body-color: <?=$bodyColor->hsl()?>;
+        --section-color: <?=$sectionColor->hsl()?>;
+        --frame-color: <?=$codeColor->improveContrast($colorPreview, 2.5)->hsl()?>;
+        --code-color: <?=$codeColor->hsl()?>;
+        /* Text colors */
+        --h1-color: <?= (new Couleur('lch(30% '. (0.6 * $ciec) .' '. $cieh .')'))->hsl() ?>;
+        --h3-color: <?= (new Couleur('lch(45% '. $ciec .' '. $cieh .')'))->hsl() ?>;
+        --text-color: black;
+        --link-color: <?= (new Couleur('lch(30% '. $ciec .' '. $cieh .')'))->hsl() ?>;
+        --link-underline-color: <?= (new Couleur('lch(30% '. (2 * $ciec) .' '. $cieh .' / .5)'))->hsl() ?>;
+        /* Input colors */
+        --input-bg-color: <?= (new Couleur('lch(95% '. (0.3 * $ciec) .' '. $cieh .')'))->hsl() ?>;
+        --input-active-bg-color: <?= (new Couleur('lch(99% '. (0.1 * $ciec) .' '. $cieh .')'))->hsl() ?>;
+        --input-placeholder-color: <?= (new Couleur('lch(25% '. (0.5 * $ciec) .' '. $cieh .' / .5)'))->hsl() ?>;
+        /* Syntax coloring colors */
+        --token-number: <?= (new Couleur('lch(50% 70 '. ($cieh - 90) .')'))->hsl() ?>;
+        --token-string: <?= (new Couleur('lch(50% 70 '. ($cieh + 45) .')'))->hsl() ?>;
+        --token-operator: <?= (new Couleur('lch(50% 70 '. ($cieh - 45) .')'))->hsl() ?>;
+        --token-keyword: <?= (new Couleur('lch(50% 70 '. ($cieh + 135) .')'))->hsl() ?>;
       }
 
+      <?php
+      /* Définition des couleurs du thème sombre */
+      $ciec = min(.3 * $startColor->ciec, 10);
+      $sectionColor = new Couleur('lch(20% '. $ciec .' '. $cieh .')');
+      $codeColor = $bodyColorDark;
+      ?>
       :root[data-theme="dark"] {
+        /* Background colors */
         --body-color: <?=$bodyColorDark->hsl()?>;
+        --section-color: <?=$sectionColor->hsl()?>;
+        --frame-color: <?=$codeColor->improveContrast($colorPreview, 2.5)->hsl()?>;
+        --code-color: <?=$codeColor->hsl()?>;
+        /* Text colors */
+        --h1-color: <?= (new Couleur('lch(80% '. $ciec .' '. $cieh .')'))->hsl() ?>;
+        --h3-color: <?= (new Couleur('lch(70% '. (1.7 * $ciec) .' '. $cieh .')'))->hsl() ?>;
+        --text-color: <?= (new Couleur('lch(90% '. (0.2 * $ciec) .' '. $cieh .')'))->hsl() ?>;
+        --link-color: <?= (new Couleur('lch(80% '. (1.7 * $ciec) .' '. $cieh .')'))->hsl() ?>;
+        --link-underline-color: <?= (new Couleur('lch(80% '. (2 * 1.7 * $ciec) .' '. $cieh .' / .5)'))->hsl() ?>;
+        /* Input colors */
+        --input-bg-color: <?= (new Couleur('lch(30% '. (1.5 * $ciec) .' '. $cieh .')'))->hsl() ?>;
+        --input-active-bg-color: <?= (new Couleur('lch(10% '. (0.6 * $ciec) .' '. $cieh .')'))->hsl() ?>;
+        --input-placeholder-color: <?= (new Couleur('lch(90% '. (0.5 * $ciec) .' '. $cieh .' / .5)'))->hsl() ?>;
+        /* Syntax coloring colors */
+        --token-number: <?= (new Couleur('lch(80% 70 '. ($cieh - 90) .')'))->hsl() ?>;
+        --token-string: <?= (new Couleur('lch(80% 70 '. ($cieh + 45) .')'))->hsl() ?>;
+        --token-operator: <?= (new Couleur('lch(80% 70 '. ($cieh - 45) .')'))->hsl() ?>;
+        --token-keyword: <?= (new Couleur('lch(80% 70 '. ($cieh + 135) .')'))->hsl() ?>;
       }
       <?php $body = ob_get_clean();
       require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/components/theme-selector/build-css.php';
@@ -97,7 +149,8 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
         height: 100%;
         z-index: 1000;
         background: var(--body-color);
-        transition: opacity .15s ease;
+        transition: opacity .1s ease;
+        display: none;
       }
       .loaded .loading {
         opacity: 0;
@@ -139,8 +192,8 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       </a>
 
       <div class="groupe-langages">
-        <button type="button" class="bouton-langage" data-lang="fr">Français</button>
-        <button type="button" class="bouton-langage" data-lang="en" disabled>English</button>
+        <button type="button" class="bouton-langage" data-lang="fr" <?=($lang == 'fr' ? 'disabled' : '')?>>Français</button>
+        <button type="button" class="bouton-langage" data-lang="en" <?=($lang == 'en' ? 'disabled' : '')?>>English</button>
         <theme-selector position="bottom" icon="reverse"></theme-selector>
       </div>
     </header>
@@ -174,7 +227,8 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
               <!--<button type="button" class="exemple">aqua.blend(red.replace(a, .5), white.scale(l, .2).replace(a, .8))</button>-->
             </div>
             <input id="entree" class="h4" type="text" data-abbr="<?=$Textes->getString('exemple-abbr')?>"
-                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                   placeholder="<?=$startColor->name()?>">
           </div>
         </div>
 
@@ -190,38 +244,87 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
           </div>
 
           <div class="format hex">
-            <pre class="format-donnee"><code class="language-css"></code></pre>
+            <pre class="format-donnee language-css"><code class="language-css"><?=$startColor->hex()?></code></pre>
           </div>
 
           <div class="format rgb">
-            <pre class="format-donnee"><code class="language-css"></code></pre>
+            <pre class="format-donnee language-css"><code class="language-css"><?=$startColor->rgb()?></code></pre>
           </div>
 
           <div class="format hsl">
-            <pre class="format-donnee"><code class="language-css"></code></pre>
+            <pre class="format-donnee language-css"><code class="language-css"><?=$startColor->hsl()?></code></pre>
           </div>
 
           <div class="format hwb">
-            <pre class="format-donnee"><code class="language-css"></code></pre>
+            <pre class="format-donnee language-css"><code class="language-css"><?=$startColor->hwb()?></code></pre>
           </div>
 
           <div class="format lab">
-            <pre class="format-donnee"><code class="language-css"></code></pre>
+            <pre class="format-donnee language-css"><code class="language-css"><?=$startColor->lab()?></code></pre>
           </div>
 
           <div class="format lch">
-            <pre class="format-donnee"><code class="language-css"></code></pre>
+            <pre class="format-donnee language-css"><code class="language-css"><?=$startColor->lch()?></code></pre>
           </div>
 
-          <div class="format name">
-            <pre class="format-donnee"><code class="language-css"></code></pre>
+          <div class="format name oui">
+            <pre class="format-donnee language-css"><code class="language-css"><?=$startColor->name()?></code></pre>
           </div>
         </div>
       </div>
     </section>
 
+    <?php
+    // Préparons la DOCUMENTATION
+
+    function anchorLink($matches) {
+      $title = $matches[2];
+      $h = $matches[1];
+      $link = preg_replace(['/\<code(?:.+?)?\>/', '/\<\/code\>/'], '', $title);
+      $link = strtolower($link);
+      $link = str_replace([' ', '.', '\'', '/'], ['-', '', '', ''], $link);
+      return '<a id="'. $link .'"></a><h'. $h .'>'. $title .'</h'. $h .'>';
+    }
+
+    function prepareDocumentation($docu, $lang, $progLang) {
+      $docu = str_replace(['h3', 'h2', 'h1', '<code>', '<pre>'], ['h4', 'h3', 'h2', '<code class="language-javascript">', '<pre class="language-javascript">'], $docu);
+      $docu = preg_replace('/\<ul\>/', '<div class="nav-rapide"><ul>', $docu, 1);
+      $docu = preg_replace('/\<\/ul\>\n\<p\>/', '</ul></div><p>', $docu, 1);
+      $docu = preg_replace_callback('/\<h(2|3)\>(.+)?\<\/h(?:2|3)\>/', 'anchorLink', $docu);
+      $docu = preg_replace('/\<a id=\"(.+?)\">/', "<a id=\"$1-$lang-$progLang\">", $docu);
+      $docu = preg_replace('/\<a href=\"(.+?)\">/', "<a href=\"$1-$lang-$progLang\">", $docu);
+      return $docu;
+    }
+
+    function prepareNav($docu) {
+      $menu = preg_match('/\<div class=\"nav-rapide\"\>((?:.|\n|\r)+?)\<\/div\>/', $docu, $matches);
+      $menu = $matches[1];
+      return $menu;
+    }
+
+    $docuJsFr = file_get_contents('../wiki/Documentation-pour-JavaScript-(Français).md');
+    $docuJsFr = prepareDocumentation($Parsedown->text($docuJsFr), 'fr', 'js');
+    $quicknavJsFr = prepareNav($docuJsFr);
+
+    $docuJsEn = file_get_contents('../wiki/Documentation-for-JavaScript-(English).md');
+    $docuJsEn = prepareDocumentation($Parsedown->text($docuJsEn), 'en', 'js');
+    $quicknavJsEn = prepareNav($docuJsEn);
+
+    $docuPhpFr = file_get_contents('../wiki/Documentation-pour-PHP-(Français).md');
+    $docuPhpFr = prepareDocumentation($Parsedown->text($docuPhpFr), 'fr', 'php');
+    $quicknavPhpFr = prepareNav($docuPhpFr);
+
+    $docuPhpEn = file_get_contents('../wiki/Documentation-for-PHP-(English).md');
+    $docuPhpEn = prepareDocumentation($Parsedown->text($docuPhpEn), 'en', 'php');
+    $quicknavPhpEn = prepareNav($docuPhpEn);
+    ?>
+
     <aside class="nav-documentation nav-rapide" data-label="nav-documentation">
       <h1 class="titre-nav-rapide" data-string="nav-documentation"><?=$Textes->getString('nav-documentation')?></h1>
+      <div lang="fr" data-prog-language="js"><?=$quicknavJsFr?></div>
+      <div lang="en" data-prog-language="js"><?=$quicknavJsEn?></div>
+      <div lang="fr" data-prog-language="php"><?=$quicknavPhpFr?></div>
+      <div lang="en" data-prog-language="php"><?=$quicknavPhpEn?></div>
     </aside>
 
     <section class="documentation">
@@ -238,44 +341,11 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       <!--<a class="exemple" href="#documentation">▲ Navigation rapide</a>-->
 
       <!-- DOCUMENTATION JavaScript -->
-      <article data-prog-language="js" lang="fr">
-        <?php
-        function anchorLink($matches) {
-          $title = $matches[2];
-          $h = $matches[1];
-          $link = preg_replace(['/\<code(?:.+?)?\>/', '/\<\/code\>/'], '', $title);
-          $link = strtolower($link);
-          $link = str_replace([' ', '.', '\'', '/'], ['-', '', '', ''], $link);
-          return '<a id="'. $link .'"></a><h'. $h .'>'. $title .'</h'. $h .'>';
-        }
-
-        function prepareDocumentation($docu) {
-          $docu = str_replace(['h3', 'h2', 'h1', '<code>', '<pre>'], ['h4', 'h3', 'h2', '<code class="language-javascript">', '<pre class="language-javascript">'], $docu);
-          $docu = preg_replace('/\<ul\>/', '<div class="nav-rapide"><ul>', $docu, 1);
-          $docu = preg_replace('/\<\/ul\>\n\<p\>/', '</ul></div><p>', $docu, 1);
-          $docu = preg_replace_callback('/\<h(2|3)\>(.+)?\<\/h(?:2|3)\>/', 'anchorLink', $docu);
-          return $docu;
-        }
-        
-        $docu = file_get_contents('../wiki/Documentation-pour-JavaScript-(Français).md');
-        echo prepareDocumentation($Parsedown->text($docu)); ?>
-      </article>
-
-      <article data-prog-language="js" lang="en">
-        <?php $docu = file_get_contents('../wiki/Documentation-for-JavaScript-(English).md');
-        echo prepareDocumentation($Parsedown->text($docu)); ?>
-      </article>
-
+      <article data-prog-language="js" lang="fr"><?=$docuJsFr?></article>
+      <article data-prog-language="js" lang="en"><?=$docuJsEn?></article>
       <!-- DOCUMENTATION PHP -->
-      <article data-prog-language="php" lang="fr">
-        <?php $docu = file_get_contents('../wiki/Documentation-pour-PHP-(Français).md');
-        echo prepareDocumentation($Parsedown->text($docu)); ?>
-      </article>
-
-      <article data-prog-language="php" lang="en">
-        <?php $docu = file_get_contents('../wiki/Documentation-for-PHP-(English).md');
-        echo prepareDocumentation($Parsedown->text($docu)); ?>
-      </article>
+      <article data-prog-language="php" lang="fr"><?=$docuPhpFr?></article>
+      <article data-prog-language="php" lang="en"><?=$docuPhpEn?></article>
     </section>
 
     <footer><span><span data-string="syntax-highlighting-source"><?=$Textes->getString('syntax-highlighting-source')?></span> <a href="https://parsedown.org/">Parsedown</a> & <a href="https://prismjs.com/">Prism.js</a></span></footer>

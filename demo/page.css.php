@@ -95,7 +95,7 @@ h6, .h6 {
 html {
   width: 100%;
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: auto;
   background-color: var(--body-color);
   --easing-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
   --easing-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);

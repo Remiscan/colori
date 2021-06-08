@@ -241,6 +241,4 @@ export function populateColorData(couleur) {
 
   const champ = document.getElementById('entree');
   champ.placeholder = couleur.name || couleur.hex;
-
-  document.querySelector('.demo-conteneur').classList.add('calced');
 }
