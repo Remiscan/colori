@@ -140,24 +140,6 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       echo buildThemesStylesheet($body); ?>
     </style>
 
-    <style>
-      .loading {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 1000;
-        background: var(--body-color);
-        transition: opacity .1s ease;
-        display: none;
-      }
-      .loaded .loading {
-        opacity: 0;
-        pointer-events: none;
-      }
-    </style>
-
     <noscript>
       <link rel="stylesheet" href="/colori/demo/style-noscript.css">
     </noscript>
@@ -172,8 +154,6 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
         </g>
       </defs>
     </svg>
-
-    <div class="loading" aria-hidden="true"></div>
 
     <header class="intro">
       <h1>colori.<span data-prog-language="js">js</span><span data-prog-language="php">php</span></h1>
