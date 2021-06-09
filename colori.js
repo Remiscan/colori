@@ -1,7 +1,13 @@
+/**
+ * Colori module
+ * @author Remiscan <https://remiscan.fr>
+ * @module colori.js
+ */
 export default class Couleur {
   /**
    * Creates a new Couleur object that contains precalculated properties of the color.
-   * @param {string} couleur - Color expression in a supported format.
+   * @param {colorString} couleur - Color expression in a supported format.
+   * @throws {string} when the parameter isn't a valid color string.
    */
   constructor(couleur) {
     if (couleur instanceof Couleur)
@@ -9,20 +15,34 @@ export default class Couleur {
     else if (typeof couleur != 'string')
       throw `Couleur objects can only be created from a String ; this is not one: ${couleur}`;
 
-    this.r = null;    // Red value
-    this.g = null;    // Green value
-    this.b = null;    // Blue value
-    this.h = null;    // Hue
-    this.s = null;    // Saturation
-    this.l = null;    // Luminosity
-    this.w = null;    // Whiteness
-    this.bk = null;   // Blackness
-    this.a = null;    // Opacity
-    this.ciel = null; // CIE lightness
-    this.ciea = null; // CIE A-axis value
-    this.cieb = null; // CIE B-axis value
-    this.ciec = null; // CIE chroma
-    this.cieh = null; // CIE hue
+    /** @property {number} r - Red value (from 0 to 1) */
+    this.r = null;
+    /** @property {number} g - Green value (from 0 to 1) */
+    this.g = null;
+    /** @property {number} b - Blue value (from 0 to 1) */
+    this.b = null;
+    /** @property {number} h - Hue (from 0 to 1) */
+    this.h = null;
+    /** @property {number} s - Saturation (from 0 to 1) */
+    this.s = null;
+    /** @property {number} l - Luminosity (from 0 to 1) */
+    this.l = null;
+    /** @property {number} w - Whiteness (from 0 to 1) */
+    this.w = null;
+    /** @property {number} bk - Blackness (from 0 to 1) */
+    this.bk = null;
+    /** @property {number} a - Opacity (from 0 to 1) */
+    this.a = null;
+    /** @property {number} ciel - CIE lightness (from 0 to 1) */
+    this.ciel = null;
+    /** @property {number} ciea - CIE A-axis value (any number, usually from -160 to 160) */
+    this.ciea = null;
+    /** @property {number} cieb - CIE B-axis value (any number, usually from -160 to 160) */
+    this.cieb = null;
+    /** @property {number} ciec - CIE chroma (any number, usually from 0 to 230) */
+    this.ciec = null;
+    /** @property {number} cieh - CIE hue (from 0 to 1) */
+    this.cieh = null;
 
     const format = Couleur.matchSyntax(couleur.trim());
     const isAlpha = (val, def = 1) => !!val ? val : (val == 0) ? 0 : def;
@@ -58,10 +78,15 @@ export default class Couleur {
 
   /* TYPE DEFINITIONS */
 
-  /**
-   * A Couleur, or a string containing the expression of a color in a supported format.
+  /** 
+   * A valid color expression.
    * Supported formats are hexadecimal, RGB, HSL, HWB, LAB and LCH.
-   * @typedef {(Couleur|string)} color
+   * @typedef {string} colorString
+   */
+
+  /**
+   * A Couleur, or a valid color expression. @see colorString
+   * @typedef {(Couleur|colorString)} color
    */
 
   /**
@@ -73,7 +98,8 @@ export default class Couleur {
   /**
    * Matches the user input with supported color formats.
    * @param {string} couleur - Color expression in a supported format.
-   * @returns 
+   * @returns {Object} Recognized syntax.
+   * @throws {string} when {couleur} is not in a valid format.
    */
   static matchSyntax(couleur) {
     const tri = couleur.slice(0, 3);
@@ -1392,6 +1418,11 @@ export default class Couleur {
   /* Color data */
   /**************/
 
+  /**
+   * Gets the list of color properties used in a certain format.
+   * @param {string} format - Name of the color format.
+   * @returns {string[]} Array of color property names.
+   */
   static propertiesOf(format) {
     switch(format) {
       case 'rgb': return ['r', 'g', 'b'];
@@ -1403,17 +1434,17 @@ export default class Couleur {
     }
   }
 
+  /** @returns {string[]} Array of all color property names. */
   static get properties() {
     return Couleur.propertiesOf();
   }
 
-  // When comparing the value of a property between two colors,
-  // this is the maximum tolerated difference before they're
-  // considered different colors.
+  /** @returns {number} Tolerance value. Used for example as the maximum distance before two colors are considered different. */
   static get tolerance() {
     return .02;
   }
 
+  /** @returns {{id: string, syntaxes: RegExp[]}[]} Array of supported syntaxes. */
   static get formats() {
     return [
       {
@@ -1521,6 +1552,7 @@ export default class Couleur {
   static get vAng() { return Couleur.vNum + '(?:deg|grad|rad|turn)?'; } // angle (h)
   static get vProp() { return Couleur.properties.join('|'); } // noms des propriétés (r, g, b, etc)
 
+  /** @returns {Object} List of named colors in CSS. */
   static get couleursNommees() {
     return {
       transparent: '00000000',

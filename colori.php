@@ -1,4 +1,7 @@
 <?php
+/**
+ * @author Remiscan <contact@remiscan.fr>
+ */
 class Couleur
 {
   public const COULEURS_NOMMEES = array(
