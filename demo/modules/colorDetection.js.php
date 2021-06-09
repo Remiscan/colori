@@ -122,6 +122,7 @@ export function colorInterface(couleur = entree) {
       --section-color: ${sectionColor.hsl};
       --frame-color: ${codeColor.improveContrast(colorPreview, 2.5).hsl};
       --code-color: ${codeColor.hsl};
+      --tab-hover-color: ${sectionColor.replace('a', .7).hsl};
       /* Text colors */
       --h1-color: ${(new Couleur(`lch(30% ${.6 * ciec} ${cieh})`)).hsl};
       --h3-color: ${(new Couleur(`lch(45% ${ciec} ${cieh})`)).hsl};
@@ -153,6 +154,7 @@ export function colorInterface(couleur = entree) {
       --section-color: ${sectionColor.hsl};
       --frame-color: ${codeColor.improveContrast(colorPreview, 2.5).hsl};
       --code-color: ${codeColor.hsl};
+      --tab-hover-color: ${sectionColor.replace('a', .7).hsl};
       /* Text colors */
       --h1-color: ${(new Couleur(`lch(80% ${ciec} ${cieh})`)).hsl};
       --h3-color: ${(new Couleur(`lch(70% ${1.7 * ciec} ${cieh})`)).hsl};

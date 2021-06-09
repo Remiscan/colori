@@ -10,6 +10,8 @@ $version = version(__DIR__);
 $lang = $_COOKIE['lang'] ?? httpLanguage() ?? 'en';
 $Textes = new Textes('colori/demo', $lang);
 
+$progLanguage = $_COOKIE['prog-language'] ?? 'js';
+
 require_once './ext/Parsedown.php';
 $Parsedown = new Parsedown();
 
@@ -24,7 +26,6 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
 <!doctype html>
 <html lang="<?=$lang?>"
       data-version="<?=$version?>"
-      data-http-lang="<?=httpLanguage()?>"
       data-prog-language="<?=$_COOKIE['progLang'] ?? 'js'?>"
       data-theme="<?=$_COOKIE['theme'] ?? 'auto'?>"
       data-resolved-theme="<?=$_COOKIE['resolvedTheme'] ?? 'light'?>"
@@ -90,6 +91,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
         --section-color: <?=$sectionColor->hsl()?>;
         --frame-color: <?=$codeColor->improveContrast($colorPreview, 2.5)->hsl()?>;
         --code-color: <?=$codeColor->hsl()?>;
+        --tab-hover-color: <?=$sectionColor->replace('a', .7)->hsl()?>;
         /* Text colors */
         --h1-color: <?= (new Couleur('lch(30% '. (0.6 * $ciec) .' '. $cieh .')'))->hsl() ?>;
         --h3-color: <?= (new Couleur('lch(45% '. $ciec .' '. $cieh .')'))->hsl() ?>;
@@ -119,6 +121,7 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
         --section-color: <?=$sectionColor->hsl()?>;
         --frame-color: <?=$codeColor->improveContrast($colorPreview, 2.5)->hsl()?>;
         --code-color: <?=$codeColor->hsl()?>;
+        --tab-hover-color: <?=$sectionColor->replace('a', .7)->hsl()?>;
         /* Text colors */
         --h1-color: <?= (new Couleur('lch(80% '. $ciec .' '. $cieh .')'))->hsl() ?>;
         --h3-color: <?= (new Couleur('lch(70% '. (1.7 * $ciec) .' '. $cieh .')'))->hsl() ?>;
@@ -172,8 +175,8 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       </a>
 
       <div class="groupe-langages">
-        <button type="button" class="bouton-langage" data-lang="fr" <?=($lang == 'fr' ? 'disabled' : '')?>>Français</button>
-        <button type="button" class="bouton-langage" data-lang="en" <?=($lang == 'en' ? 'disabled' : '')?>>English</button>
+        <button type="button" class="bouton-langage" lang="fr" data-lang="fr" <?=($lang == 'fr' ? 'disabled' : '')?>>Français</button>
+        <button type="button" class="bouton-langage" lang="en" data-lang="en" <?=($lang == 'en' ? 'disabled' : '')?>>English</button>
         <theme-selector position="bottom" icon="reverse"></theme-selector>
       </div>
     </header>
@@ -311,21 +314,42 @@ $bodyColorDark = new Couleur("lch(8% ".(.6 * min(.3 * $startColor->ciec, 10))." 
       <a id="documentation" aria-hidden="true"></a>
       <h1 data-string="titre-section-documentation"><?=$Textes->getString('titre-section-documentation')?></h1>
 
-      <div class="prog-lang-changer">
-        <button type="button" class="switch-js-php">
-          <span id="sw-js" class="sw-span">.js</span>
-          <span id="sw-php" class="sw-span">.php</span>
-        </button>
-      </div>
+      <fieldset class="tabs-container prog-language-choice" role="tablist">
+        <legend data-string="prog-language-choice-label"></legend>
+
+        <input type="radio" role="tab" aria-controls="docu-js-fr" lang="fr"
+               name="prog-language-choice" id="prog-language-choice-js-fr" value="js"
+               <?= ($lang == 'fr' && $progLanguage == 'js') ? 'checked' : '' ?>
+        >
+        <label for="prog-language-choice-js-fr" lang="fr">.js</label>
+
+        <input type="radio" role="tab" aria-controls="docu-php-fr" lang="fr"
+               name="prog-language-choice" id="prog-language-choice-php-fr" value="php"
+               <?= ($lang == 'fr' && $progLanguage == 'php') ? 'checked' : '' ?>
+        >
+        <label for="prog-language-choice-php-fr" lang="fr">.php</label>
+
+        <input type="radio" role="tab" aria-controls="docu-js-en" lang="en"
+               name="prog-language-choice" id="prog-language-choice-js-en" value="js"
+               <?= ($lang == 'en' && $progLanguage == 'js') ? 'checked' : '' ?>
+        >
+        <label for="prog-language-choice-js-en" lang="en">.js</label>
+
+        <input type="radio" role="tab" aria-controls="docu-php-en" lang="en"
+               name="prog-language-choice" id="prog-language-choice-php-en" value="php"
+               <?= ($lang == 'en' && $progLanguage == 'php') ? 'checked' : '' ?>
+        >
+        <label for="prog-language-choice-php-en" lang="en">.php</label>
+      </fieldset>
 
       <!--<a class="exemple" href="#documentation">▲ Navigation rapide</a>-->
 
       <!-- DOCUMENTATION JavaScript -->
-      <article data-prog-language="js" lang="fr"><?=$docuJsFr?></article>
-      <article data-prog-language="js" lang="en"><?=$docuJsEn?></article>
+      <article data-prog-language="js" lang="fr" id="docu-js-fr"><?=$docuJsFr?></article>
+      <article data-prog-language="js" lang="en" id="docu-js-en"><?=$docuJsEn?></article>
       <!-- DOCUMENTATION PHP -->
-      <article data-prog-language="php" lang="fr"><?=$docuPhpFr?></article>
-      <article data-prog-language="php" lang="en"><?=$docuPhpEn?></article>
+      <article data-prog-language="php" lang="fr" id="docu-php-fr"><?=$docuPhpFr?></article>
+      <article data-prog-language="php" lang="en" id="docu-php-en"><?=$docuPhpEn?></article>
     </section>
 
     <footer><span><span data-string="syntax-highlighting-source"><?=$Textes->getString('syntax-highlighting-source')?></span> <a href="https://parsedown.org/">Parsedown</a> & <a href="https://prismjs.com/">Prism.js</a></span></footer>

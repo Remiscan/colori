@@ -1,7 +1,6 @@
 // ▼ ES modules cache-busted grâce à PHP
 /*<?php ob_start();?>*/
 
-import Couleur from '/colori/colori.js';
 import '/_common/components/theme-selector/theme-selector.js.php';
 import Cookie from '/colori/demo/modules/cookies.js.php';
 import { Traduction } from '/colori/demo/modules/traduction.js.php';
@@ -10,11 +9,6 @@ import { updateCouleur } from '/colori/demo/modules/colorDetection.js.php';
 /*<?php $imports = ob_get_clean();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
 echo versionizeFiles($imports, __DIR__); ?>*/
-
-
-
-const langSwitch = document.querySelector('.switch-js-php');
-let initialColor;
 
 
 
@@ -31,16 +25,24 @@ champ.addEventListener('input', event => {
 
 ////////////////////////////////////////////////
 // Switch between js and php version of the page
-function switchBetweenJsPhp(language) {
-  if (language == 'php') {
-    document.documentElement.dataset.progLanguage = 'php';
-    //new Cookie('progLang', language);
-  } 
-  else {
-    document.documentElement.dataset.progLanguage = 'js';
-    //Cookie.delete('progLang');
+const progLangSwitch = document.querySelector('fieldset.prog-language-choice');
+progLangSwitch.addEventListener('change', event => {
+  switch (event.target.value) {
+    case 'php': document.documentElement.dataset.progLanguage = 'php'; break;
+    case 'js': document.documentElement.dataset.progLanguage = 'js'; break;
   }
-}
+});
+
+
+/////////////////////
+// On language change
+window.addEventListener('langchange', event => {
+  // Check the correct prog-language-choice tab
+  const lang = event.detail.lang;
+  new Cookie('lang', lang);
+  const progLang = document.querySelector('input[name="prog-language-choice"]:checked').value;
+  document.querySelector(`#prog-language-choice-${progLang}-${lang}`).checked = true;
+});
 
 
 //////////////////
@@ -79,9 +81,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     })
   }
-
-  // Detect clicks on JS <=> PHP toggle
-  langSwitch.addEventListener('click', () => switchBetweenJsPhp(document.documentElement.dataset.progLanguage == 'js' ? 'php' : 'js'));
 
   // Customize theme-selector
   document.querySelector('theme-selector .selector-title').classList.add('h4');

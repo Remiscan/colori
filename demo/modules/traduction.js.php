@@ -18,14 +18,15 @@ class ExtTraduction extends DefTraduction {
 
   async traduire(element = document) {
     await super.traduire(element);
-    await this.initLanguageButtons();
-    if (element == document) {
-      document.querySelector('.nav-documentation').dataset.titre = getString('nav-documentation');
+    const themeSelector = document.querySelector('theme-selector');
+    if (element.contains(themeSelector)) {
       document.querySelector('theme-selector').dataset.tolabel = getString('change-theme');
     }
     return;
   }
 }
+
+
 
 export const Traduction = new ExtTraduction();
 export const getString = Traduction.getString.bind(Traduction);
