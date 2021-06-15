@@ -1,2 +1,5 @@
+*.js.php linguist-language=JavaScript
+*.css.php linguist-language=CSS
+
 test/* linguist-documentation
 demo/* linguist-documentation
