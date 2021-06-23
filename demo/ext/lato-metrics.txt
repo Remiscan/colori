@@ -1,5 +1,0 @@
-font-size: 800px
-span height: 960px = 1.2 fontsize
-capital-height: 573px = 0.71625 fontsize
-under-capital: 170px = 0.2125 fontsize = 0.177 span height
-over capital: 217px = 0.27125 fontsize = 0.226 span height
