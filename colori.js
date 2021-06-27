@@ -888,6 +888,113 @@ export default class Couleur {
   /********************************/
 
 
+  /* Color modification */
+
+
+  /**
+   * Modifies a color by changing a specific property.
+   * @param {colorProperty} propriete - The color property that will be changed.
+   * @param {(string|number)} valeur - The value that will be added to the property.
+   * @param {Object} options
+   * @param {boolean} options.replace - Whether the value should replace the previous value of the property, instead of being added to it.
+   * @param {boolean} options.scale - Whether the value should be multiplied to the previous value of the property, instead of being added to it.
+   * @returns {Couleur} The modified color.
+   */
+   change(propriete, valeur, options = {}) {
+    const replace = (options === true) || ((typeof options.replace != 'undefined') ? options.replace : false);
+    const scale = (typeof options.scale != 'undefined') ? options.scale : false;
+    const val = scale ? Couleur.parse(valeur) : Couleur.parse(valeur, propriete, false);
+    const changedColor = new Couleur(this.rgb);
+
+    if (['r', 'g', 'b', 'a'].includes(propriete)) {
+      const rgba = [this.r, this.g, this.b, this.a];
+      switch (propriete) {
+        case 'r': rgba[0] = replace ? val : scale ? this.r * val : this.r + val; break;
+        case 'g': rgba[1] = replace ? val : scale ? this.g * val : this.g + val; break;
+        case 'b': rgba[2] = replace ? val : scale ? this.b * val : this.b + val; break;
+        case 'a': rgba[3] = replace ? val : scale ? this.a * val : this.a + val; break;
+      }
+      changedColor.rgb = [255 * rgba[0], 255 * rgba[1], 255 * rgba[2], rgba[3]];
+    } else if (['h', 's', 'l'].includes(propriete)) {
+      const hsla = [this.h, this.s, this.l, this.a];
+      switch (propriete) {
+        case 'h': hsla[0] = replace ? val : scale ? this.h * val : this.h + val; break;
+        case 's': hsla[1] = replace ? val : scale ? this.s * val : this.s + val; break;
+        case 'l': hsla[2] = replace ? val : scale ? this.l * val : this.l + val; break;
+      }
+      changedColor.hsl = [360 * hsla[0], `${100 * hsla[1]}%`, `${100 * hsla[2]}%`, hsla[3]];
+    } else if (['w', 'bk'].includes(propriete)) {
+      const hwba = [this.h, this.w, this.bk, this.a];
+      switch (propriete) {
+        case 'w': hwba[1] = replace ? val : scale ? this.w * val : this.w + val; break;
+        case 'bk': hwba[2] = replace ? val : scale ? this.bk * val : this.bk + val; break;
+      }
+      changedColor.hwb = [360 * hwba[0], `${100 * hwba[1]}%`, `${100 * hwba[2]}%`, hwba[3]];
+    } else if (['ciel', 'ciea', 'cieb'].includes(propriete)) {
+      const laba = [this.ciel, this.ciea, this.cieb, this.a];
+      switch (propriete) {
+        case 'ciel': laba[0] = replace ? val : scale ? this.ciel * val : this.ciel + val; break;
+        case 'ciea': laba[1] = replace ? val : scale ? this.ciea * val : this.ciea + val; break;
+        case 'cieb': laba[2] = replace ? val : scale ? this.cieb * val : this.cieb + val; break;
+      }
+      changedColor.lab = [`${100 * laba[0]}%`, laba[1], laba[2], laba[3]];
+    } else if (['ciec', 'cieh'].includes(propriete)) {
+      const lcha = [this.ciel, this.ciec, this.cieh, this.a];
+      switch (propriete) {
+        case 'ciec': lcha[1] = replace ? val : scale ? this.ciec * val : this.ciec + val; break;
+        case 'cieh': lcha[2] = replace ? val : scale ? this.cieh * val : this.cieh + val; break;
+      }
+      changedColor.lch = [`${100 * lcha[0]}%`, lcha[1], 360 * lcha[2], lcha[3]];
+    }
+
+    return changedColor;
+  }
+
+  /**
+   * Modifies a color by replacing the value of a specific property.
+   * This is an alias to change() with options.replace = true
+   * @param {colorProperty} propriete - The color property that will be changed.
+   * @param {(string|number)} valeur - The value that will replace the previous value of the property.
+   * @returns {Couleur} The modified color.
+   */
+  replace(propriete, valeur) {
+    return this.change(propriete, valeur, { replace: true, scale: false });
+  }
+
+  /**
+   * Modifies a color by scaling the value of a specific property by a percentage.
+   * This is an alias to change() with options.scale = true
+   * @param {colorProperty} propriete - The color property that will be changed.
+   * @param {(string|number)} valeur - The percentage that will be multiplied to the previous value of the property.
+   * @returns {Couleur} The modified color.
+   */
+  scale(propriete, valeur) {
+    return this.change(propriete, valeur, { replace: false, scale: true });
+  }
+
+  /** @returns {Couleur} The complementary color. */
+  complement() { return this.change('h', 180); }
+
+  /** @returns {Couleur} The inverse color. */
+  negative() { return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
+  invert() { return this.negative(); }
+
+  /** @returns {Couleur} The shade of grey of the color. */
+  greyscale() { return new Couleur(`hsl(${360 * this.h}, 0%, ${100 * this.l}%, ${this.a})`); }
+  grayscale() { return this.greyscale(); }
+
+  /** @returns {Couleur} The sepia tone of the color. */
+  sepia() {
+    const r = Math.min(0.393 * this.r + 0.769 * this.g + 0.189 * this.b, 1);
+    const g = Math.min(0.349 * this.r + 0.686 * this.g + 0.168 * this.b, 1);
+    const b = Math.min(0.272 * this.r + 0.534 * this.g + 0.131 * this.b, 1);
+    return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${this.a})`);
+  }
+
+
+  /* Color blending */
+
+
   /**
    * Blends colors together, in the order they were given.
    * @param  {...color} couleurs - Colors to blend.
@@ -1052,6 +1159,9 @@ export default class Couleur {
   }
 
 
+  /* Color comparison */
+
+
   /** @returns {number} Luminance of the color. */
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   get luminance() {
@@ -1202,149 +1312,6 @@ export default class Couleur {
 
 
   /**
-   * Modifies a color by changing a specific property.
-   * @param {colorProperty} propriete - The color property that will be changed.
-   * @param {(string|number)} valeur - The value that will be added to the property.
-   * @param {Object} options
-   * @param {boolean} options.replace - Whether the value should replace the previous value of the property, instead of being added to it.
-   * @param {boolean} options.scale - Whether the value should be multiplied to the previous value of the property, instead of being added to it.
-   * @returns {Couleur} The modified color.
-   */
-  change(propriete, valeur, options = {}) {
-    const replace = (options === true) || ((typeof options.replace != 'undefined') ? options.replace : false);
-    const scale = (typeof options.scale != 'undefined') ? options.scale : false;
-    const val = scale ? Couleur.parse(valeur) : Couleur.parse(valeur, propriete, false);
-    const changedColor = new Couleur(this.rgb);
-
-    if (['r', 'g', 'b', 'a'].includes(propriete)) {
-      const rgba = [this.r, this.g, this.b, this.a];
-      switch (propriete) {
-        case 'r': rgba[0] = replace ? val : scale ? this.r * val : this.r + val; break;
-        case 'g': rgba[1] = replace ? val : scale ? this.g * val : this.g + val; break;
-        case 'b': rgba[2] = replace ? val : scale ? this.b * val : this.b + val; break;
-        case 'a': rgba[3] = replace ? val : scale ? this.a * val : this.a + val; break;
-      }
-      changedColor.rgb = [255 * rgba[0], 255 * rgba[1], 255 * rgba[2], rgba[3]];
-    } else if (['h', 's', 'l'].includes(propriete)) {
-      const hsla = [this.h, this.s, this.l, this.a];
-      switch (propriete) {
-        case 'h': hsla[0] = replace ? val : scale ? this.h * val : this.h + val; break;
-        case 's': hsla[1] = replace ? val : scale ? this.s * val : this.s + val; break;
-        case 'l': hsla[2] = replace ? val : scale ? this.l * val : this.l + val; break;
-      }
-      changedColor.hsl = [360 * hsla[0], `${100 * hsla[1]}%`, `${100 * hsla[2]}%`, hsla[3]];
-    } else if (['w', 'bk'].includes(propriete)) {
-      const hwba = [this.h, this.w, this.bk, this.a];
-      switch (propriete) {
-        case 'w': hwba[1] = replace ? val : scale ? this.w * val : this.w + val; break;
-        case 'bk': hwba[2] = replace ? val : scale ? this.bk * val : this.bk + val; break;
-      }
-      changedColor.hwb = [360 * hwba[0], `${100 * hwba[1]}%`, `${100 * hwba[2]}%`, hwba[3]];
-    } else if (['ciel', 'ciea', 'cieb'].includes(propriete)) {
-      const laba = [this.ciel, this.ciea, this.cieb, this.a];
-      switch (propriete) {
-        case 'ciel': laba[0] = replace ? val : scale ? this.ciel * val : this.ciel + val; break;
-        case 'ciea': laba[1] = replace ? val : scale ? this.ciea * val : this.ciea + val; break;
-        case 'cieb': laba[2] = replace ? val : scale ? this.cieb * val : this.cieb + val; break;
-      }
-      changedColor.lab = [`${100 * laba[0]}%`, laba[1], laba[2], laba[3]];
-    } else if (['ciec', 'cieh'].includes(propriete)) {
-      const lcha = [this.ciel, this.ciec, this.cieh, this.a];
-      switch (propriete) {
-        case 'ciec': lcha[1] = replace ? val : scale ? this.ciec * val : this.ciec + val; break;
-        case 'cieh': lcha[2] = replace ? val : scale ? this.cieh * val : this.cieh + val; break;
-      }
-      changedColor.lch = [`${100 * lcha[0]}%`, lcha[1], 360 * lcha[2], lcha[3]];
-    }
-
-    return changedColor;
-  }
-
-  /**
-   * Modifies a color by replacing the value of a specific property.
-   * This is an alias to change() with options.replace = true
-   * @param {colorProperty} propriete - The color property that will be changed.
-   * @param {(string|number)} valeur - The value that will replace the previous value of the property.
-   * @returns {Couleur} The modified color.
-   */
-  replace(propriete, valeur) {
-    return this.change(propriete, valeur, { replace: true, scale: false });
-  }
-
-  /**
-   * Modifies a color by scaling the value of a specific property by a percentage.
-   * This is an alias to change() with options.scale = true
-   * @param {colorProperty} propriete - The color property that will be changed.
-   * @param {(string|number)} valeur - The percentage that will be multiplied to the previous value of the property.
-   * @returns {Couleur} The modified color.
-   */
-  scale(propriete, valeur) {
-    return this.change(propriete, valeur, { replace: false, scale: true });
-  }
-
-  /** @returns {Couleur} The complementary color. */
-  complement() { return this.change('h', 180); }
-
-  /** @returns {Couleur} The inverse color. */
-  negative() { return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
-  invert() { return this.negative(); }
-
-  /** @returns {Couleur} The shade of grey of the color. */
-  greyscale() { return new Couleur(`hsl(${360 * this.h}, 0%, ${100 * this.l}%, ${this.a})`); }
-  grayscale() { return this.greyscale(); }
-
-  /** @returns {Couleur} The sepia tone of the color. */
-  sepia() {
-    const r = Math.min(0.393 * this.r + 0.769 * this.g + 0.189 * this.b, 1);
-    const g = Math.min(0.349 * this.r + 0.686 * this.g + 0.168 * this.b, 1);
-    const b = Math.min(0.272 * this.r + 0.534 * this.g + 0.131 * this.b, 1);
-    return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${this.a})`);
-  }
-
-
-  /**
-   * Calculates the intermediate colors a gradient should use to go from one color to another without passing through the "desaturated zone".
-   * @param {color} _start - The starting color of the gradient.
-   * @param {color} _end - The ending color of the gradient.
-   * @param {number} _steps - The number of steps in the gradient to go from start to end.
-   * @returns {Couleur[]} The array of colors in the gradient.
-   */
-  static gradient(_start, _end, _steps = 5) {
-    const start = Couleur.check(_start);
-    const end = Couleur.check(_end);
-    const steps = Math.min(Math.max(1, _steps), 100);
-
-    const intermediateColors = [start];
-    const stepL = (end.ciel - start.ciel) / steps;
-    const stepC = (end.ciec - start.ciec) / steps;
-    // Minimize the distance to travel through hues
-    const stepHup = (360 * (end.cieh - start.cieh) % 360 + 360) % 360 / 360;
-    const stepHdown = (360 * (start.cieh - end.cieh) % 360 + 360) % 360 / 360;
-    const stepH = ((stepHup <= stepHdown) ? stepHup : (-1 * stepHdown)) / steps;
-
-    for (let i = 1; i < steps; i++) {
-      let previous = intermediateColors[i - 1];
-      const L = previous.ciel + stepL;
-      const C = previous.ciec + stepC;
-      const H = previous.cieh + stepH;
-      try {
-        const next = new Couleur(`lch(${L * 100}% ${C} ${H * 360})`);
-        intermediateColors.push(next);
-        previous = next;
-      } catch(error) {
-        console.error(error);
-      }
-    }
-    return [...intermediateColors, end];
-  }
-
-  /** Non-static version of Couleur.gradient */
-  gradient(end, steps = 5) {
-    return Couleur.gradient(this, end, steps);
-  }
-
-
-  /**
    * Calculates the distance between two colors in a certain format, by adding the difference between each of their properties.
    * If no format is given, calculates the average of the distances for all formats.
    * @param {color} _couleur1 
@@ -1353,7 +1320,7 @@ export default class Couleur {
    * @param {number} tolerance - The tolerance value used to ignore some properties if they are close enough to value that render them useless.
    * @returns {number} The distance between the two colors.
    */
-  static distance(_couleur1, _couleur2, format = null, tolerance = Couleur.tolerance) {
+   static distance(_couleur1, _couleur2, format = null, tolerance = Couleur.tolerance) {
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
 
@@ -1410,6 +1377,51 @@ export default class Couleur {
   /** Non-static version of Couleur.same */
   same(couleur2, tolerance = Couleur.tolerance) {
     return Couleur.same(this, couleur2, tolerance);
+  }
+
+
+  /* Other functions */
+
+
+  /**
+   * Calculates the intermediate colors a gradient should use to go from one color to another without passing through the "desaturated zone".
+   * @param {color} _start - The starting color of the gradient.
+   * @param {color} _end - The ending color of the gradient.
+   * @param {number} _steps - The number of steps in the gradient to go from start to end.
+   * @returns {Couleur[]} The array of colors in the gradient.
+   */
+  static gradient(_start, _end, _steps = 5) {
+    const start = Couleur.check(_start);
+    const end = Couleur.check(_end);
+    const steps = Math.min(Math.max(1, _steps), 100);
+
+    const intermediateColors = [start];
+    const stepL = (end.ciel - start.ciel) / steps;
+    const stepC = (end.ciec - start.ciec) / steps;
+    // Minimize the distance to travel through hues
+    const stepHup = (360 * (end.cieh - start.cieh) % 360 + 360) % 360 / 360;
+    const stepHdown = (360 * (start.cieh - end.cieh) % 360 + 360) % 360 / 360;
+    const stepH = ((stepHup <= stepHdown) ? stepHup : (-1 * stepHdown)) / steps;
+
+    for (let i = 1; i < steps; i++) {
+      let previous = intermediateColors[i - 1];
+      const L = previous.ciel + stepL;
+      const C = previous.ciec + stepC;
+      const H = previous.cieh + stepH;
+      try {
+        const next = new Couleur(`lch(${L * 100}% ${C} ${H * 360})`);
+        intermediateColors.push(next);
+        previous = next;
+      } catch(error) {
+        console.error(error);
+      }
+    }
+    return [...intermediateColors, end];
+  }
+
+  /** Non-static version of Couleur.gradient */
+  gradient(end, steps = 5) {
+    return Couleur.gradient(this, end, steps);
   }
 
 
@@ -1554,156 +1566,6 @@ export default class Couleur {
 
   /** @returns {Object} List of named colors in CSS. */
   static get couleursNommees() {
-    return {
-      transparent: '00000000',
-      aliceblue: 'f0f8ff',
-      antiquewhite: 'faebd7',
-      aqua: '00ffff',
-      aquamarine: '7fffd4',
-      azure: 'f0ffff',
-      beige: 'f5f5dc',
-      bisque: 'ffe4c4',
-      black: '000000',
-      blanchedalmond: 'ffebcd',
-      blue: '0000ff',
-      blueviolet: '8a2be2',
-      brown: 'a52a2a',
-      burlywood: 'deb887',
-      cadetblue: '5f9ea0',
-      chartreuse: '7fff00',
-      chocolate: 'd2691e',
-      coral: 'ff7f50',
-      cornflowerblue: '6495ed',
-      cornsilk: 'fff8dc',
-      crimson: 'dc143c',
-      cyan: '00ffff',
-      darkblue: '00008b',
-      darkcyan: '008b8b',
-      darkgoldenrod: 'b8860b',
-      darkgray: 'a9a9a9',
-      darkgrey: 'a9a9a9',
-      darkgreen: '006400',
-      darkkhaki: 'bdb76b',
-      darkmagenta: '8b008b',
-      darkolivegreen: '556b2f',
-      darkorange: 'ff8c00',
-      darkorchid: '9932cc',
-      darkred: '8b0000',
-      darksalmon: 'e9967a',
-      darkseagreen: '8fbc8f',
-      darkslateblue: '483d8b',
-      darkslategray: '2f4f4f',
-      darkslategrey: '2f4f4f',
-      darkturquoise: '00ced1',
-      darkviolet: '9400d3',
-      deeppink: 'ff1493',
-      deepskyblue: '00bfff',
-      dimgray: '696969',
-      dimgrey: '696969',
-      dodgerblue: '1e90ff',
-      firebrick: 'b22222',
-      floralwhite: 'fffaf0',
-      forestgreen: '228b22',
-      fuchsia: 'ff00ff',
-      gainsboro: 'dcdcdc',
-      ghostwhite: 'f8f8ff',
-      gold: 'ffd700',
-      goldenrod: 'daa520',
-      gray: '808080',
-      grey: '808080',
-      green: '008000',
-      greenyellow: 'adff2f',
-      honeydew: 'f0fff0',
-      hotpink: 'ff69b4',
-      indianred: 'cd5c5c',
-      indigo: '4b0082',
-      ivory: 'fffff0',
-      khaki: 'f0e68c',
-      lavender: 'e6e6fa',
-      lavenderblush: 'fff0f5',
-      lawngreen: '7cfc00',
-      lemonchiffon: 'fffacd',
-      lightblue: 'add8e6',
-      lightcoral: 'f08080',
-      lightcyan: 'e0ffff',
-      lightgoldenrodyellow: 'fafad2',
-      lightgray: 'd3d3d3',
-      lightgrey: 'd3d3d3',
-      lightgreen: '90ee90',
-      lightpink: 'ffb6c1',
-      lightsalmon: 'ffa07a',
-      lightseagreen: '20b2aa',
-      lightskyblue: '87cefa',
-      lightslategray: '778899',
-      lightslategrey: '778899',
-      lightsteelblue: 'b0c4de',
-      lightyellow: 'ffffe0',
-      lime: '00ff00',
-      limegreen: '32cd32',
-      linen: 'faf0e6',
-      magenta: 'ff00ff',
-      maroon: '800000',
-      mediumaquamarine: '66cdaa',
-      mediumblue: '0000cd',
-      mediumorchid: 'ba55d3',
-      mediumpurple: '9370d8',
-      mediumseagreen: '3cb371',
-      mediumslateblue: '7b68ee',
-      mediumspringgreen: '00fa9a',
-      mediumturquoise: '48d1cc',
-      mediumvioletred: 'c71585',
-      midnightblue: '191970',
-      mintcream: 'f5fffa',
-      mistyrose: 'ffe4e1',
-      moccasin: 'ffe4b5',
-      navajowhite: 'ffdead',
-      navy: '000080',
-      oldlace: 'fdf5e6',
-      olive: '808000',
-      olivedrab: '6b8e23',
-      orange: 'ffa500',
-      orangered: 'ff4500',
-      orchid: 'da70d6',
-      palegoldenrod: 'eee8aa',
-      palegreen: '98fb98',
-      paleturquoise: 'afeeee',
-      palevioletred: 'd87093',
-      papayawhip: 'ffefd5',
-      peachpuff: 'ffdab9',
-      peru: 'cd853f',
-      pink: 'ffc0cb',
-      plum: 'dda0dd',
-      powderblue: 'b0e0e6',
-      purple: '800080',
-      rebeccapurple: '663399',
-      red: 'ff0000',
-      rosybrown: 'bc8f8f',
-      royalblue: '4169e1',
-      saddlebrown: '8b4513',
-      salmon: 'fa8072',
-      sandybrown: 'f4a460',
-      seagreen: '2e8b57',
-      seashell: 'fff5ee',
-      sienna: 'a0522d',
-      silver: 'c0c0c0',
-      skyblue: '87ceeb',
-      slateblue: '6a5acd',
-      slategray: '708090',
-      slategrey: '708090',
-      snow: 'fffafa',
-      springgreen: '00ff7f',
-      steelblue: '4682b4',
-      tan: 'd2b48c',
-      teal: '008080',
-      thistle: 'd8bfd8',
-      tomato: 'ff6347',
-      turquoise: '40e0d0',
-      violet: 'ee82ee',
-      wheat: 'f5deb3',
-      white: 'ffffff',
-      whitesmoke: 'f5f5f5',
-      yellow: 'ffff00',
-      yellowgreen: '9acd32'
-    };
+    return { transparent: '00000000', aliceblue: 'f0f8ff', antiquewhite: 'faebd7', aqua: '00ffff', aquamarine: '7fffd4', azure: 'f0ffff', beige: 'f5f5dc', bisque: 'ffe4c4', black: '000000', blanchedalmond: 'ffebcd', blue: '0000ff', blueviolet: '8a2be2', brown: 'a52a2a', burlywood: 'deb887', cadetblue: '5f9ea0', chartreuse: '7fff00', chocolate: 'd2691e', coral: 'ff7f50', cornflowerblue: '6495ed', cornsilk: 'fff8dc', crimson: 'dc143c', cyan: '00ffff', darkblue: '00008b', darkcyan: '008b8b', darkgoldenrod: 'b8860b', darkgray: 'a9a9a9', darkgrey: 'a9a9a9', darkgreen: '006400', darkkhaki: 'bdb76b', darkmagenta: '8b008b', darkolivegreen: '556b2f', darkorange: 'ff8c00', darkorchid: '9932cc', darkred: '8b0000', darksalmon: 'e9967a', darkseagreen: '8fbc8f', darkslateblue: '483d8b', darkslategray: '2f4f4f', darkslategrey: '2f4f4f', darkturquoise: '00ced1', darkviolet: '9400d3', deeppink: 'ff1493', deepskyblue: '00bfff', dimgray: '696969', dimgrey: '696969', dodgerblue: '1e90ff', firebrick: 'b22222', floralwhite: 'fffaf0', forestgreen: '228b22', fuchsia: 'ff00ff', gainsboro: 'dcdcdc', ghostwhite: 'f8f8ff', gold: 'ffd700', goldenrod: 'daa520', gray: '808080', grey: '808080', green: '008000', greenyellow: 'adff2f', honeydew: 'f0fff0', hotpink: 'ff69b4', indianred: 'cd5c5c', indigo: '4b0082', ivory: 'fffff0', khaki: 'f0e68c', lavender: 'e6e6fa', lavenderblush: 'fff0f5', lawngreen: '7cfc00', lemonchiffon: 'fffacd', lightblue: 'add8e6', lightcoral: 'f08080', lightcyan: 'e0ffff', lightgoldenrodyellow: 'fafad2', lightgray: 'd3d3d3', lightgrey: 'd3d3d3', lightgreen: '90ee90', lightpink: 'ffb6c1', lightsalmon: 'ffa07a', lightseagreen: '20b2aa', lightskyblue: '87cefa', lightslategray: '778899', lightslategrey: '778899', lightsteelblue: 'b0c4de', lightyellow: 'ffffe0', lime: '00ff00', limegreen: '32cd32', linen: 'faf0e6', magenta: 'ff00ff', maroon: '800000', mediumaquamarine: '66cdaa', mediumblue: '0000cd', mediumorchid: 'ba55d3', mediumpurple: '9370d8', mediumseagreen: '3cb371', mediumslateblue: '7b68ee', mediumspringgreen: '00fa9a', mediumturquoise: '48d1cc', mediumvioletred: 'c71585', midnightblue: '191970', mintcream: 'f5fffa', mistyrose: 'ffe4e1', moccasin: 'ffe4b5', navajowhite: 'ffdead', navy: '000080', oldlace: 'fdf5e6', olive: '808000', olivedrab: '6b8e23', orange: 'ffa500', orangered: 'ff4500', orchid: 'da70d6', palegoldenrod: 'eee8aa', palegreen: '98fb98', paleturquoise: 'afeeee', palevioletred: 'd87093', papayawhip: 'ffefd5', peachpuff: 'ffdab9', peru: 'cd853f', pink: 'ffc0cb', plum: 'dda0dd', powderblue: 'b0e0e6', purple: '800080', rebeccapurple: '663399', red: 'ff0000', rosybrown: 'bc8f8f', royalblue: '4169e1', saddlebrown: '8b4513', salmon: 'fa8072', sandybrown: 'f4a460', seagreen: '2e8b57', seashell: 'fff5ee', sienna: 'a0522d', silver: 'c0c0c0', skyblue: '87ceeb', slateblue: '6a5acd', slategray: '708090', slategrey: '708090', snow: 'fffafa', springgreen: '00ff7f', steelblue: '4682b4', tan: 'd2b48c', teal: '008080', thistle: 'd8bfd8', tomato: 'ff6347', turquoise: '40e0d0', violet: 'ee82ee', wheat: 'f5deb3', white: 'ffffff', whitesmoke: 'f5f5f5', yellow: 'ffff00', yellowgreen: '9acd32' };
   }
 }
