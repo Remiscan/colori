@@ -1388,28 +1388,44 @@ export default class Couleur {
    * @param {color} _start - The starting color of the gradient.
    * @param {color} _end - The ending color of the gradient.
    * @param {number} _steps - The number of steps in the gradient to go from start to end.
+   * @param {string} format - The format whose properties will be used to compute the gradient.
    * @returns {Couleur[]} The array of colors in the gradient.
    */
-  static gradient(_start, _end, _steps = 5) {
+  static gradient(_start, _end, _steps = 5, format = 'lch') {
     const start = Couleur.check(_start);
     const end = Couleur.check(_end);
     const steps = Math.min(Math.max(1, _steps), 100);
+    const props = [...Couleur.propertiesOf(format), 'a'];
+    const stepList = props.map(prop => {
+      let step;
+      switch (prop) {
+        case 'h':
+        case 'cieh':
+          // Minimize the distance to travel through hues
+          const stepUp = (360 * (end[prop] - start[prop]) % 360 + 360) % 360 / 360;
+          const stepDown = (360 * (start[prop] - end[prop]) % 360 + 360) % 360 / 360;
+          step = ((stepUp <= stepDown) ? stepUp : (-1 * stepDown)) / steps;
+          break;
+        default:
+          step = (end[prop] - start[prop]) / steps;
+      }
+      return step;
+    });
 
     const intermediateColors = [start];
-    const stepL = (end.ciel - start.ciel) / steps;
-    const stepC = (end.ciec - start.ciec) / steps;
-    // Minimize the distance to travel through hues
-    const stepHup = (360 * (end.cieh - start.cieh) % 360 + 360) % 360 / 360;
-    const stepHdown = (360 * (start.cieh - end.cieh) % 360 + 360) % 360 / 360;
-    const stepH = ((stepHup <= stepHdown) ? stepHup : (-1 * stepHdown)) / steps;
-
     for (let i = 1; i < steps; i++) {
       let previous = intermediateColors[i - 1];
-      const L = previous.ciel + stepL;
-      const C = previous.ciec + stepC;
-      const H = previous.cieh + stepH;
+      const vals = props.map((prop, k) => previous[prop] + stepList[k]);
+      let expr;
+      switch (format) {
+        case 'rgb': expr = `rgb(${vals[0] * 255}, ${vals[1] * 255}, ${vals[2] * 255}, ${vals[3]})`; break;
+        case 'hsl': expr = `hsl(${vals[0] * 360}, ${vals[1] * 100}%, ${vals[2] * 100}%, ${vals[3]})`; break;
+        case 'hwb': expr = `hwb(${vals[0] * 360} ${vals[1] * 100}% ${vals[2] * 100}% / ${vals[3]})`; break;
+        case 'lab': expr = `lab(${vals[0] * 100}% ${vals[1]} ${vals[2]} / ${vals[3]})`; break;
+        case 'lch': expr = `lch(${vals[0] * 100}% ${vals[1]} ${vals[2] * 360} / ${vals[3]})`; break;
+      }
       try {
-        const next = new Couleur(`lch(${L * 100}% ${C} ${H * 360})`);
+        const next = new Couleur(expr);
         intermediateColors.push(next);
         previous = next;
       } catch(error) {
@@ -1420,8 +1436,8 @@ export default class Couleur {
   }
 
   /** Non-static version of Couleur.gradient */
-  gradient(end, steps = 5) {
-    return Couleur.gradient(this, end, steps);
+  gradient(end, steps = 5, format = 'lch') {
+    return Couleur.gradient(this, end, steps, format);
   }
 
 

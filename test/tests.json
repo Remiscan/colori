@@ -256,6 +256,10 @@
     "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('#1f005c', '#ffb56b'))",
     "resultatAttendu": [ "lch(9% 59 305)", "lch(23% 58 329)", "lch(37% 57 353)", "lch(51% 56 17)", "lch(66% 54 41)", "lch(80% 53 65)" ]
   }, {
+    "fonction": "Colour.gradient('lightgreen', 'blue', 5, 'hsl').map(c => c.hsl)",
+    "fonctionphp": "array_map(function($c) { return $c->hsl(); }, Couleur::gradient('lightgreen', 'blue', 5, 'hsl'))",
+    "resultatAttendu": [ "hsl(120, 73%, 75%)", "hsl(144, 79%, 70%)", "hsl(168, 84%, 65%)", "hsl(192, 89%, 60%)", "hsl(216, 95%, 55%)", "hsl(240, 100%, 50%)" ]
+  }, {
     "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'rgb')",
     "resultatAttendu": 2
   }, {

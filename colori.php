@@ -1320,26 +1320,42 @@ class Couleur
 
   /////////////////////////////////////////////////////////////////////////////////////////
   // Computes the values of intermediate colors to make a gradient that avoids "grey zone"
-  public static function gradient($_start, $_end, $_steps = 5) {
+  public static function gradient($_start, $_end, $_steps = 5, $format = 'lch') {
     $start = self::check($_start);
     $end = self::check($_end);
     $steps = min(max(1, $_steps), 100);
+    $props = self::propertiesOf($format);
+    $props[] = 'a';
+    $stepList = array_map(function($prop) use ($start, $end, $steps) {
+      switch ($prop) {
+        case 'h':
+        case 'cieh':
+          // Minimize the distance to travel through hues
+          $stepUp = (360 * ($end->{$prop} - $start->{$prop}) % 360 + 360) % 360 / 360;
+          $stepDown = (360 * ($start->{$prop} - $end->{$prop}) % 360 + 360) % 360 / 360;
+          $step = (($stepUp <= $stepDown) ? $stepUp : (-1 * $stepDown)) / $steps;
+          break;
+        default:
+          $step = ($end->{$prop} - $start->{$prop}) / $steps;
+      }
+      return $step;
+    }, $props);
 
     $intermediateColors = array($start);
-    $stepL = ($end->ciel - $start->ciel) / $steps;
-    $stepC = ($end->ciec - $start->ciec) / $steps;
-    // Minimize the distance to travel through hues
-    $stepHup = (360 * ($end->cieh - $start->cieh) % 360 + 360) % 360 / 360;
-    $stepHdown = (360 * ($start->cieh - $end->cieh) % 360 + 360) % 360 / 360;
-    $stepH = (($stepHup <= $stepHdown) ? $stepHup : (-1 * $stepHdown)) / $steps;
-
     for ($i = 1; $i < $steps; $i++) {
       $previous = $intermediateColors[$i - 1];
-      $L = $previous->ciel + $stepL;
-      $C = $previous->ciec + $stepC;
-      $H = $previous->cieh + $stepH;
+      $vals = array_map(function($prop, $k) use ($previous, $stepList) {
+        return $previous->{$prop} + $stepList[$k];
+      }, $props, array_keys($props));
+      switch ($format) {
+        case 'rgb': $expr = 'rgb(' . ($vals[0] * 255) .', ' . ($vals[1] * 255) .', ' . ($vals[2] * 255) .', ' . ($vals[3]) .')'; break;
+        case 'hsl': $expr = 'hsl(' . ($vals[0] * 360) .', ' . ($vals[1] * 100) .'%, ' . ($vals[2] * 100) .'%, ' . ($vals[3]) .')'; break;
+        case 'hwb': $expr = 'hwb(' . ($vals[0] * 360) .' ' . ($vals[1] * 100) .'% ' . ($vals[2] * 100) .'% / ' . ($vals[3]) .')'; break;
+        case 'lab': $expr = 'lab(' . ($vals[0] * 100) .'% ' . ($vals[1]) .' ' . ($vals[2]) .' / ' . ($vals[3]) .')'; break;
+        case 'lch': $expr = 'lch(' . ($vals[0] * 100) .'% ' . ($vals[1]) .' ' . ($vals[2] * 360) .' / ' . ($vals[3]) .')'; break;
+      }
 
-      $next = new self('lch('. $L * 100 .'% '. $C .' '. $H * 360 .')');
+      $next = new self($expr);
       $intermediateColors[] = $next;
       $previous = $next;
     }
