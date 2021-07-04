@@ -1097,12 +1097,12 @@ export default class Couleur {
     };
 
     // If alpha is known, we can find at most one solution
-    if (typeof alpha == 'number' && alpha >= 0 && alpha <= 1) {
-      if (alpha === 0) {
+    if (!isNaN(alpha) && alpha >= 0 && alpha <= 1) {
+      if (alpha == 0) {
         if (Couleur.same(background, result)) return new Couleur('transparent');
         else                                  return null;
       }           
-      else if (alpha === 1)                   return result;
+      else if (alpha == 1)                   return result;
       else if (result.a < alpha)              return null;
       else if (result.a == alpha) {
         if (background.a > 0)                 return null;
@@ -1118,7 +1118,7 @@ export default class Couleur {
       // If 0 < background.a < result.a < 1, we can find a unique solution
       else {
         const a = Couleur.pRound((result.a - background.a) / (1 - background.a), 3);
-        if (typeof alpha == 'number' && Math.abs(a - alpha) > Couleur.tolerance) return null;
+        if (!isNaN(alpha) && Math.abs(a - alpha) > Couleur.tolerance) return null;
         try { overlay = calculateSolution(a); }
         catch (error) { return null; }
       }
@@ -1130,7 +1130,7 @@ export default class Couleur {
       // Let's calculate some of them.
       else {
         const solutions = [];
-        if (typeof alpha == 'number') {
+        if (!isNaN(alpha)) {
           try { overlay = calculateSolution(alpha); }
           catch { return null; }
         }
@@ -1149,7 +1149,7 @@ export default class Couleur {
       }
     }
 
-    if (typeof alpha == 'number') return (overlay.a == alpha) ? overlay : null;
+    if (!isNaN(alpha)) return (overlay.a == alpha) ? overlay : null;
     else                          return overlay;
   }
 
