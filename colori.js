@@ -362,14 +362,16 @@ export default class Couleur {
 
   /** @returns {?string} The approximate name of the color. */
   get name() {
-    const name = this.exactName;
-    if (name === null && this.a == 1) {
+    if (this.a == 1) {
       const allNames = Couleur.couleursNommees;
+      const [r, g, b] = [255 * this.r, 255 * this.g, 255 * this.b];
+      const tolerance = 255 * Couleur.tolerance;
       for (const [name, hex] of Object.entries(allNames)) {
-        if (this.same(`#${hex}`)) return name;
+        const [r2, g2, b2] = [parseInt(`${hex[0]}${hex[1]}`, 16), parseInt(`${hex[2]}${hex[3]}`, 16), parseInt(`${hex[4]}${hex[5]}`, 16)];
+        if (Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) < tolerance) return name;
       }
     }
-    return name;
+    return null;
   }
 
   /** @returns {?string} The exact name of the color. */

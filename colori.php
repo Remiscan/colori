@@ -420,13 +420,16 @@ class Couleur
   /* NAME */
 
   public function name() {
-    $name = $this->exactName();
-    if ($name === null && $this->a == 1) {
-      foreach(self::COULEURS_NOMMEES as $name => $hex) {
-        if (self::same($this, '#'.$hex)) return $name;
+    if ($this->a == 1) {
+      $allNames = self::COULEURS_NOMMEES;
+      [$r, $g, $b] = [255 * $this->r, 255 * $this->g, 255 * $this->b];
+      $tolerance = 255 * self::TOLERANCE;
+      foreach($allNames as $name => $hex) {
+        [$r2, $g2, $b2] = [intval(hexdec($hex[0].$hex[1])), intval(hexdec($hex[2].$hex[3])), intval(hexdec($hex[4].$hex[5]))];
+        if (abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b) < $tolerance) return $name;
       }
     }
-    return $name;
+    return null;
   }
 
   public function exactName() {
