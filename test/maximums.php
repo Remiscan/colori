@@ -18,13 +18,50 @@ $version = version();
 
 <body>
 
-<div class="maximums">{"s":1,"l":1,"w":1,"bk":1,"ciel":1,"ciea":93.55,"cieb":93.397,"ciec":131.2}</div>
-<div class="duree">99159</div>
+<pre class="maximums">{
+  "s": {
+    "value": 1,
+    "color": "hsl(0, 100%, 0%)"
+  },
+  "l": {
+    "value": 1,
+    "color": "hsl(0, 0%, 100%)"
+  },
+  "w": {
+    "value": 1,
+    "color": "hsl(0, 0%, 100%)"
+  },
+  "bk": {
+    "value": 1,
+    "color": "hsl(0, 0%, 0%)"
+  },
+  "ciel": {
+    "value": 1,
+    "color": "hsl(0, 0%, 100%)"
+  },
+  "ciea": {
+    "value": 93.55,
+    "color": "hsl(300, 100%, 50%)"
+  },
+  "cieb": {
+    "value": 93.397,
+    "color": "hsl(60, 100%, 50%)"
+  },
+  "ciec": {
+    "value": 131.2,
+    "color": "hsl(240, 100%, 50%)"
+  }
+}</pre>
+<div class="duree">3682561 colors checked in 94764 ms</div>
 
 <script type="module">
   import Couleur from '../colori--<?=$version?>.js';
 
-  const max = { s: 0, l: 0, w: 0, bk: 0, ciel: 0, ciea: 0, cieb: 0, ciec: 0 };
+  const props = ['s', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec'];
+  const max = {};
+  for (const prop of props) {
+    max[prop] = { minValue: 0, minColor: null, maxValue: 0, maxColor: null };
+  }
   let compteur = 0;
   const start = Date.now();
 
@@ -33,8 +70,15 @@ $version = version();
       for (let l = 0; l <= 100; l++) {
         const couleur = new Couleur(`hsl(${h}, ${s}%, ${l}%)`);
         compteur++;
-        for (const prop of Object.keys(max)) {
-          max[prop] = Math.max(max[prop], couleur[prop]);
+        for (const prop of props) {
+          if (couleur[prop] > max[prop].maxValue) {
+            max[prop].maxValue = couleur[prop];
+            max[prop].maxColor = couleur.hsl;
+          }
+          else if (couleur[prop] < max[prop].minValue) {
+            max[prop].minValue = couleur[prop];
+            max[prop].minColor = couleur.hsl;
+          }
         }
       }
     }
@@ -42,6 +86,6 @@ $version = version();
 
   const end = Date.now();
 
-  document.querySelector('.maximums').innerHTML = JSON.stringify(max);
-  document.querySelector('.duree').innerHTML = end - start;
+  document.querySelector('.maximums').innerHTML = JSON.stringify(max, null, 2);
+  document.querySelector('.duree').innerHTML = `${compteur} colors checked in ${end - start} ms`;
 </script>
