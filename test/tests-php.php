@@ -60,7 +60,7 @@ class Test {
   public function validate() {
     try {
       $resultat = $this->resultat();
-      $resultat = (is_array($resultat) && $resultat[0] == 'Error') ? $resultat[0] : $resultat;
+      $resultat = (is_array($resultat) && $resultat[0] === 'Error') ? $resultat[0] : $resultat;
     } catch(ParseError $error) {
       return false;
     }
@@ -107,7 +107,7 @@ class Test {
   public function populate() {
     $validation = $this->validate();
     $resultat = $this->resultat();
-    if (is_array($resultat) && $resultat[0] == 'Error') $resultat[1] = htmlspecialchars($resultat[1]);
+    if (is_array($resultat) && $resultat[0] === 'Error') $resultat[1] = htmlspecialchars($resultat[1]);
     $titre = $this->nom();
 
     $class = $validation ? 'yes' : 'no';

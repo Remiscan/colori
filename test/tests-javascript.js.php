@@ -36,7 +36,7 @@ export default class Test {
 
   // Checks if the test results fit the expected results
   validate() {
-    const resultat = (typeof this.resultat == 'object' && this.resultat != null && this.resultat[0] == 'Error') ? this.resultat[0]
+    const resultat = (typeof this.resultat === 'object' && this.resultat !== null && this.resultat[0] === 'Error') ? this.resultat[0]
                                                                                                                 : this.resultat;
     
     // If result is an error, check if we expected one
