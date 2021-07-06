@@ -1220,42 +1220,109 @@ export default class Couleur {
   /** @returns {number} Luminance of the color. */
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   get luminance() {
-    let couleur = this;
-    if (this.a < 1) throw `Can't calculate the luminance of a transparent color`;
-
-    let arr = [couleur.r, couleur.g, couleur.b];
-    for (let i = 0; i <= 2; i++) {
-      let e = arr[i];
-      if (e <= 0.03928) e = e / 12.92;
-      else              e = Math.pow((e + 0.055) / 1.055, 2.4);
-      arr[i] = e;
-    }
-
-    return Couleur.pRound(0.2126 * arr[0] + 0.7152 * arr[1] + 0.0722 * arr[2]);
+    if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
+    let rgb = Couleur.gamRGB_linRGB([this.r, this.g, this.b]);
+    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
   }
 
 
   /**
-   * Computes the contrast between two colors.
+   * Computes the contrast between two colors as defined by WCAG2.
    * @param {color} _couleur1
    * @param {color} _couleur2
-   * @returns {number} Contrast between the two colors.
+   * @returns {number} Contrast between the two colors, in [1, 21].
    */
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
-  static contrast(_couleur1, _couleur2) {
-    let couleur1 = Couleur.check(_couleur1);
-    let couleur2 = Couleur.check(_couleur2);
+  static WCAG2contrast(_couleur1, _couleur2) {
+    const couleur1 = Couleur.check(_couleur1);
+    const couleur2 = Couleur.check(_couleur2);
 
     const L1 = couleur1.luminance;
     const L2 = couleur2.luminance;
     const Lmax = Math.max(L1, L2);
     const Lmin = Math.min(L1, L2);
-    return Couleur.pRound((Lmax + 0.05) / (Lmin + 0.05));
+    return (Lmax + 0.05) / (Lmin + 0.05);
+  }
+
+
+  /**
+   * Computes the SAPC/APCA contrast between two colors as defined by WCAG3.
+   * @param {color} _text
+   * @param {color} _background
+   * @returns {number} Contrast between the two colors.
+   */
+  // (Source of the math: https://github.com/Myndex/SAPC-APCA)
+  static APCAcontrast(_text, _background) {
+    const background = Couleur.check(_background);
+    if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
+
+    // If the text is transparent, blend it to the background to get its actual visible color
+    let text = Couleur.check(_text);
+    if (text.a < 1) text = background.blend(text);
+
+    const rgbText = [text.r, text.g, text.b];
+    const rgbBack = [background.r, background.g, background.b];
+
+    // 1. Compute luminances
+    const coeffs = [0.2126729, 0.7151522, 0.0721750];
+    const gamma = 2.4;
+    const luminance = rgb => rgb.reduce((sum, v, i) => sum + Math.pow(v, gamma) * coeffs[i], 0);
+    let [Ltext, Lback] = [rgbText, rgbBack].map(rgb => luminance(rgb));
+
+    // 2. Clamp luminances
+    const blackClampTrigger = 0.03;
+    const blackClampPow = 1.45;
+    [Ltext, Lback] = [Ltext, Lback].map(L => L > blackClampTrigger ? L : L + Math.pow(blackClampTrigger - L, blackClampPow));
+
+    const δLmin = 0.0005;
+    if (Math.abs(Ltext - Lback) < δLmin) return 0;
+
+    // 3. Compute contrast
+    let result;
+    const scale = 1.25;
+    const compute = (Lback, Ltext, powBack, powText) => (Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * scale;
+    const lowClip = 0.001, lowTrigger = 0.078, lowOffset = 0.06;
+    // for dark text on light background
+    if (Lback > Ltext) {
+      const powBack = 0.55, powText = 0.58;
+      const SAPC = compute(Lback, Ltext, powBack, powText);
+      result = (SAPC < lowClip) ? 0
+             : (SAPC < lowTrigger) ? SAPC * (1 - lowOffset / lowTrigger)
+             : SAPC - lowOffset;
+    }
+    // for light text on dark background
+    else {
+      const powBack = 0.62, powText = 0.57;
+      const SAPC = compute(Lback, Ltext, powBack, powText);
+      result = (SAPC > -lowClip) ? 0
+             : (SAPC > -lowTrigger) ? SAPC * (1 - lowOffset / lowTrigger)
+             : SAPC + lowOffset;
+    }
+
+    return result * 100;
+  }
+
+
+  /**
+   * Computes the contrast between two colors as defined by WCAG2 or 3.
+   * @param {color} text
+   * @param {color} background
+   * @param {string} method - Whether to use the new APCA or the old WCAG2 method.
+   * @returns {number} Contrast between the two colors.
+   */
+  static contrast(text, background, method = 'WCAG2') {
+    switch (method.toLowerCase()) {
+      case 'wcag3': case 'sapc': case 'apca':
+        return Couleur.APCAcontrast(text, background);
+      default:
+        return Couleur.WCAG2contrast(text, background);
+    }
+    
   }
 
   /** Non-static version of Couleur.contrast */
-  contrast(couleur2) {
-    return Couleur.contrast(this, couleur2);
+  contrast(background, method = 'WCAG2') {
+    return Couleur.contrast(this, background, method);
   }
 
 
