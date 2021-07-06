@@ -21,28 +21,8 @@ export default class Couleur {
     this.g = null;
     /** @property {number} b - Blue value (from 0 to 1) */
     this.b = null;
-    /** @property {number} h - Hue (from 0 to 1) */
-    this.h = null;
-    /** @property {number} s - Saturation (from 0 to 1) */
-    this.s = null;
-    /** @property {number} l - Luminosity (from 0 to 1) */
-    this.l = null;
-    /** @property {number} w - Whiteness (from 0 to 1) */
-    this.w = null;
-    /** @property {number} bk - Blackness (from 0 to 1) */
-    this.bk = null;
     /** @property {number} a - Opacity (from 0 to 1) */
     this.a = null;
-    /** @property {number} ciel - CIE lightness (from 0 to 1) */
-    this.ciel = null;
-    /** @property {number} ciea - CIE A-axis value (any number, usually from -160 to 160) */
-    this.ciea = null;
-    /** @property {number} cieb - CIE B-axis value (any number, usually from -160 to 160) */
-    this.cieb = null;
-    /** @property {number} ciec - CIE chroma (any number, usually from 0 to 230) */
-    this.ciec = null;
-    /** @property {number} cieh - CIE hue (from 0 to 1) */
-    this.cieh = null;
 
     const format = Couleur.matchSyntax(couleur.trim());
     const isAlpha = (val, def = 1) => !!val ? val : (val == 0) ? 0 : def;
@@ -147,33 +127,22 @@ export default class Couleur {
    * Calculates all the color properties from the already defined ones.
    * @param {string} knownFormat - Name of the already know format.
    */
-  compute(knownFormat) {
-    if (knownFormat == 'rgb') {
-      this.rgb2hsl();
-      this.hsl2hwb();
-      this.rgb2lab();
-      this.lab2lch();
-    } else if (knownFormat == 'hsl') {
-      this.hsl2rgb();
-      this.hsl2hwb();
-      this.rgb2lab();
-      this.lab2lch();
-    } else if (knownFormat == 'hwb') {
-      this.hwb2hsl();
-      this.hsl2rgb();
-      this.rgb2lab();
-      this.lab2lch();
-    } else if (knownFormat == 'lab') {
-      this.lab2lch();
-      this.lch2rgb();
-      this.rgb2hsl();
-      this.hsl2hwb();
-    } else if (knownFormat == 'lch') {
-      this.lch2lab();
-      this.lch2rgb();
-      this.rgb2hsl();
-      this.hsl2hwb();
+  compute(knownFormat, values, clamp = Couleur.mustClampToSRGB) {
+    let rgb;
+    switch (knownFormat) {
+      case 'rgb': rgb = values; break;
+      case 'hsl': rgb = Couleur.hsl2rgb(values); break;
+      case 'hwb': rgb = Couleur.hsl2rgb(Couleur.hwb2hsl(values)); break;
+      case 'lab':
+        if (clamp) rgb = Couleur.clampToSRGB(Couleur.lab2rgb(values));
+        else       rgb = Couleur.lab2rgb(values);
+        break;
+      case 'lch':
+        if (clamp) rgb = Couleur.clampToSRGB(Couleur.lab2rgb(Couleur.lch2lab(values)));
+        else       rgv = Couleur.lab2rgb(Couleur.lch2lab(values));
+        break;
     }
+    [this.r, this.g, this.b] = rgb.map(v => Couleur.pRound(v));
   }
 
   /**
@@ -249,34 +218,34 @@ export default class Couleur {
     // Hue and CIE hue values:
     // from any angle or any number
     // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
-    // to [0, 1]
+    // to [0, 360]
     else if(['h', 'cieh'].includes(type)) {
       let _n = parseFloat(n);
       // If n is a number
       if (new RegExp('^' + Couleur.vNum + '$').test(n)) {
         while (_n < 0) _n += 360;
         while (_n > 360) _n -= 360;
-        return _n / 360;
+        return _n;
       }
       // If n is an angle
       if ((new RegExp('^' + Couleur.vAng + '$').test(n))) {
         if (String(n).slice(-3) == 'deg') {
           while (_n < 0) _n += 360;
           while (_n > 360) _n -= 360;
-          return _n / 360;
+          return _n;
         } else if (String(n).slice(-4) == 'grad') {
           while (_n < 0) _n += 400;
           while (_n > 400) _n -= 400;
-          return _n / 400;
+          return _n * 360 / 400;
         } else if (String(n).slice(-3) == 'rad') {
           _n = _n * 180 / Math.PI;
           while (_n < 0) _n += 360;
           while (_n > 360) _n -= 360;
-          return _n / 360;
+          return _n;
         } else if (String(n).slice(-4) == 'turn') {
           while (_n < 0) _n += 1;
           while (_n > 1) _n -= 1;
-          return _n;
+          return _n * 360;
         } else throw `Invalid angle value: ${n}`;
       }
       else throw `Invalid ${type} value: ${n}`;
@@ -349,12 +318,62 @@ export default class Couleur {
    * @param {string} format - Format (RGB, HSL, etc.) the properties come from.
    */
   set(data, props, format) {
-    for (let i = 0; i < props.length; i++) {
-      this[props[i]] = Couleur.pRound(Couleur.parse(data[i], props[i]));
-    }
+    const values = props.map((p, i) => Couleur.parse(data[i], p));
     const isAlpha = (val, def = 1) => !!val ? val : (val == 0) ? 0 : def;
     this.a = Couleur.pRound(Couleur.parse(isAlpha(data[3]), 'a'));
-    this.compute(format);
+    this.compute(format, values);
+  }
+
+
+  /* GENERAL GETTER */
+
+  /** Gets the CSS expression of a color. */
+  static expr(format, values, round = true) {
+    const a = round ? Math.round(100 * values[3]) / 100 : values[3];
+    switch (format) {
+      case 'rgb': {
+        const [r, g, b] = values.map(v => round ? Math.round(255 * v) : 255 * v);
+        if (a == 1) return `rgb(${r}, ${g}, ${b})`;
+        else        return `rgb(${r}, ${g}, ${b}, ${a})`;
+      }
+      case 'rgba': {
+        const [r, g, b] = values.map(v => round ? Math.round(255 * v) : 255 * v);
+        return `rgba(${r}, ${g}, ${b}, ${a})`;
+      }
+      case 'hsl': {
+        const h = round ? Math.round(values[0]) : values[0];
+        const [x, s, l] = values.map(v => round ? Math.round(100 * v) : 100 * v);
+        if (a == 1) return `hsl(${h}, ${s}%, ${l}%)`;
+        else        return `hsl(${h}, ${s}%, ${l}%, ${a})`;
+      }
+      case 'hsla': {
+        const h = round ? Math.round(values[0]) : values[0];
+        const [x, s, l] = values.map(v => round ? Math.round(100 * v) : 100 * v);
+        return `hsla(${h}, ${s}%, ${l}%, ${a})`;
+      }
+      case 'hwb': {
+        const h = round ? Math.round(values[0]) : values[0];
+        const [x, w, bk] = values.map(v => round ? Math.round(100 * v) : 100 * v);
+        if (a == 1) return `hwb(${h} ${w}% ${bk}%)`;
+      }
+      case 'hwba': {
+        const h = round ? Math.round(values[0]) : values[0];
+        const [x, w, bk] = values.map(v => round ? Math.round(100 * v) : 100 * v);
+        return `hwb(${h} ${w}% ${bk}% / ${a})`;
+      }
+      case 'lab':
+      case 'lch': {
+        const ciel = round ? Math.round(100 * values[0]) : 100 * values[0];
+        const [x, cie1, cie2] = values.map(v => round ? Math.round(v) : v);
+        if (a == 1) return `${format}(${ciel}% ${cie1} ${cie2})`;
+      }
+      case 'laba':
+      case 'lcha': {
+        const ciel = round ? Math.round(100 * values[0]) : 100 * values[0];
+        const [x, cie1, cie2] = values.map(v => round ? Math.round(v) : v);
+        return `${format.substring(0, 3)}(${ciel}% ${cie1} ${cie2} / ${a})`;
+      }
+    }
   }
 
 
@@ -460,23 +479,12 @@ export default class Couleur {
 
   /** @returns {string} RGB expression of the color. */
   get rgb() {
-    const r = Math.round(this.r * 255);
-    const g = Math.round(this.g * 255);
-    const b = Math.round(this.b * 255);
-    const a = Math.round(this.a * 100) / 100;
-    if (this.a < 1)
-      return `rgb(${r}, ${g}, ${b}, ${a})`;
-    else
-      return `rgb(${r}, ${g}, ${b})`;
+    return Couleur.expr('rgb', [this.r, this.g, this.b, this.a]);
   }
 
   /** @returns {string} RGBA expression of the color. */
   get rgba() {
-    const r = Math.round(this.r * 255);
-    const g = Math.round(this.g * 255);
-    const b = Math.round(this.b * 255);
-    const a = Math.round(this.a * 100) / 100;
-    return `rgba(${r}, ${g}, ${b}, ${a})`;
+    return Couleur.expr('rgba', [this.r, this.g, this.b, this.a]);
   }
 
 
@@ -495,23 +503,14 @@ export default class Couleur {
 
   /** @returns {string} HSL expression of the color. */
   get hsl() {
-    const h = Math.round(this.h * 360);
-    const s = Math.round(this.s * 100);
-    const l = Math.round(this.l * 100);
-    const a = Math.round(this.a * 100) / 100;
-    if (this.a < 1)
-      return `hsl(${h}, ${s}%, ${l}%, ${a})`;
-    else
-      return `hsl(${h}, ${s}%, ${l}%)`;
+    const hsl = Couleur.rgb2hsl([this.r, this.g, this.b]);
+    return Couleur.expr('hsl', [...hsl, this.a]);
   }
 
   /** @returns {string} HSLA expression of the color. */
   get hsla() {
-    const h = Math.round(this.h * 360);
-    const s = Math.round(this.s * 100);
-    const l = Math.round(this.l * 100);
-    const a = Math.round(this.a * 100) / 100;
-    return `hsla(${h}, ${s}%, ${l}%, ${a})`;
+    const hsl = Couleur.rgb2hsl([this.r, this.g, this.b]);
+    return Couleur.expr('hsla', [...hsl, this.a]);
   }
 
 
@@ -530,23 +529,13 @@ export default class Couleur {
 
   /** @returns {string} HWB expression of the color. */
   get hwb() {
-    const h = Math.round(this.h * 360);
-    const w = Math.round(this.w * 100);
-    const bk = Math.round(this.bk * 100);
-    const a = Math.round(this.a * 100) / 100;
-    if (this.a < 1)
-      return `hwb(${h} ${w}% ${bk}% / ${a})`;
-    else
-      return `hwb(${h} ${w}% ${bk}%)`;
+    const hwb = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
+    return Couleur.expr('hwb', [...hwb, this.a]);
   }
 
   /** @returns {string} HWB expression of the color, but always with the alpha value. */
   get hwba() {
-    const h = Math.round(this.h * 360);
-    const w = Math.round(this.w * 100);
-    const bk = Math.round(this.bk * 100);
-    const a = Math.round(this.a * 100) / 100;
-    return `hwb(${h} ${w}% ${bk}% / ${a})`;
+    return Couleur.expr('hwba', [...hwb, this.a]);
   }
 
 
@@ -565,23 +554,14 @@ export default class Couleur {
 
   /** @returns {string} LAB expression of the color. */
   get lab() {
-    const ciel = Math.round(this.ciel * 100);
-    const ciea = Math.round(this.ciea);
-    const cieb = Math.round(this.cieb);
-    const a = Math.round(this.a * 100) / 100;
-    if (this.a < 1)
-      return `lab(${ciel}% ${ciea} ${cieb} / ${a})`;
-    else
-      return `lab(${ciel}% ${ciea} ${cieb})`;
+    const lab = Couleur.rgb2lab([this.r, this.g, this.b]);
+    return Couleur.expr('lab', [...lab, this.a]);
   }
 
   /** @returns {string} LAB expression of the color, but always with the alpha value. */
   get laba() {
-    const ciel = Math.round(this.ciel * 100);
-    const ciea = Math.round(this.ciea);
-    const cieb = Math.round(this.cieb);
-    const a = Math.round(this.a * 100) / 100;
-    return `lab(${ciel}% ${ciea} ${cieb} / ${a})`;
+    const lab = Couleur.rgb2lab([this.r, this.g, this.b]);
+    return Couleur.expr('laba', [...lab, this.a]);
   }
 
 
@@ -600,24 +580,85 @@ export default class Couleur {
 
   /** @returns {string} LCH expression of the color. */
   get lch() {
-    const ciel = Math.round(this.ciel * 100);
-    const ciec = Math.round(this.ciec);
-    const cieh = Math.round(this.cieh * 360);
-    const a = Math.round(this.a * 100) / 100;
-    if (this.a < 1)
-      return `lch(${ciel}% ${ciec} ${cieh} / ${a})`;
-    else
-      return `lch(${ciel}% ${ciec} ${cieh})`;
+    const lch = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
+    return Couleur.expr('lch', [...lch, this.a]);
   }
 
   /** @returns {string} LCH expression of the color, but always with the alpha value. */
   get lcha() {
-    const ciel = Math.round(this.ciel * 100);
-    const ciec = Math.round(this.ciec);
-    const cieh = Math.round(this.cieh * 360);
-    const a = Math.round(this.a * 100) / 100;
-    return `lch(${ciel}% ${ciec} ${cieh} / ${a})`;
+    const lch = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
+    return Couleur.expr('lcha', [...lch, this.a]);
   }
+
+
+
+  /********************************************/
+  /* Setters and getters for color properties */
+  /********************************************/
+
+  set h(val) {
+    const [x, s, l] = Couleur.rgb2hsl([this.r, this.g, this.b]);
+    this.hsl = [val, s, l, this.a];
+  }
+
+  set s(val) {
+    const [h, x, l] = Couleur.rgb2hsl([this.r, this.g, this.b]);
+    this.hsl = [h, val, l, this.a];
+  }
+
+  set l(val) {
+    const [h, s, x] = Couleur.rgb2hsl([this.r, this.g, this.b]);
+    this.hsl = [h, s, val, this.a];
+  }
+
+  get h() { return Couleur.rgb2hsl([this.r, this.g, this.b])[0]; }
+  get s() { return Couleur.rgb2hsl([this.r, this.g, this.b])[1]; }
+  get l() { return Couleur.rgb2hsl([this.r, this.g, this.b])[2]; }
+
+  set w(val) {
+    const [h, x, bk] = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
+    this.hwb = [h, val, bk, this.a];
+  }
+
+  set bk(val) {
+    const [h, w, x] = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
+    this.hwb = [h, w, val, this.a];
+  }
+
+  get w() { return Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]))[1]; }
+  get bk() { return Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]))[2]; }
+
+  set ciel(val) {
+    const [x, ciea, cieb] = Couleur.rgb2lab([this.r, this.g, this.b]);
+    this.lab = [val, ciea, cieb, this.a];
+  }
+
+  set ciea(val) {
+    const [ciel, x, cieb] = Couleur.rgb2lab([this.r, this.g, this.b]);
+    this.lab = [ciel, val, cieb, this.a];
+  }
+
+  set cieb(val) {
+    const [ciel, ciea, x] = Couleur.rgb2lab([this.r, this.g, this.b]);
+    this.lab = [ciel, ciea, val, this.a];
+  }
+
+  get ciel() { return Couleur.rgb2lab([this.r, this.g, this.b])[0]; }
+  get ciea() { return Couleur.rgb2lab([this.r, this.g, this.b])[1]; }
+  get cieb() { return Couleur.rgb2lab([this.r, this.g, this.b])[2]; }
+
+  set ciec(val) {
+    const [ciel, x, cieh] = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
+    this.lch = [ciel, val, cieh, this.a];
+  }
+
+  set cieh(val) {
+    const [ciel, ciec, x] = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
+    this.lch = [ciel, ciec, val, this.a];
+  }
+
+  get ciec() { return Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]))[1]; }
+  get cieh() { return Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]))[2]; }
 
 
 
@@ -625,262 +666,266 @@ export default class Couleur {
   /* Conversion between color formats */
   /************************************/
 
-  /** Uses the r, g, b values to calculate the h, s, l values. */
-  rgb2hsl() {
-    let r = this.r;
-    let g = this.g;
-    let b = this.b;
 
-    let h, s, l;
+  /* Utility functions for conversion */
+  // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
+  //                   & https://drafts.csswg.org/css-color-4/utilities.js
+  //                   & https://drafts.csswg.org/css-color-4/conversions.js
+
+  static gamRGB_linRGB(rgb) {
+    return rgb.map(x => (Math.abs(x) < 0.04045) ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4));
+  }
+
+  static linRGB_gamRGB(rgb) {
+    return rgb.map(x => (Math.abs(x) > 0.0031308) ? (Math.sign(x) || 1) * (1.055 * Math.pow(Math.abs(x), 1 / 2.4) - 0.055) : 12.92 * x);
+  }
+
+  static linRGB_d65XYZ(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.41239079926595934 * r + 0.357584339383878 * g + 0.1804807884018343 * b,
+      0.21263900587151027 * r + 0.715168678767756 * g + 0.07219231536073371 * b,
+      0.01933081871559182 * r + 0.11919477979462598 * g + 0.9505321522496607 * b
+    ];
+  }
+
+  static d65XYZ_linRGB(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      3.2409699419045226 * x - 1.537383177570094 * y - 0.4986107602930034 * z,
+      -0.9692436362808796 * x + 1.8759675015077202 * y + 0.04155505740717559 * z,
+      0.05563007969699366 * x - 0.20397695888897652 * y + 1.0569715142428786 * z
+    ];
+  }
+
+  static d65XYZ_d50XYZ(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      1.0479298208405488 * x + 0.022946793341019088 * y - 0.05019222954313557 * z,
+      0.029627815688159344 * x + 0.990434484573249 * y - 0.01707382502938514 * z,
+      -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z
+    ];
+  }
+
+  static d50XYZ_d65XYZ(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      0.9554734527042182 * x - 0.023098536874261423 * y + 0.0632593086610217 * z,
+      -0.028369706963208136 * x + 1.0099954580058226 * y + 0.021041398966943008 * z,
+      0.012314001688319899 * x - 0.020507696433477912 * y + 1.3303659366080753 * z
+    ];
+  }
+
+  static d50XYZ_LAB(xyz) {
+    const ε = 216/24389;
+    const κ = 24389/27;
+    const w = [0.96422, 1, 0.82521];
+
+    const [x, y, z] = xyz.map((v, k) => v / w[k]);
+    const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
+    const [f0, f1, f2] = [x, y, z].map(v => f(v));
+    return [
+      (116 * f1 - 16) / 100,
+      500 * (f0 - f1),
+      200 * (f1 - f2)
+    ];
+  }
+
+  static LAB_d50XYZ(lab) {
+    const ε = 216/24389;
+    const κ = 24389/27;
+    const w = [0.96422, 1, 0.82521];
+
+    let [ciel, ciea, cieb] = lab;
+    ciel = 100 * ciel;
+    const f1 = (ciel + 16) / 116;
+    const f0 = ciea / 500 + f1;
+    const f2 = f1 - cieb / 200;
+
+    const x = (f0 ** 3 > ε) ? f0 ** 3 : (116 * f0 - 16) / κ;
+    const y = (ciel > κ * ε) ? ((ciel + 16) / 116) ** 3 : ciel / κ;
+    const z = (f2 ** 3 > ε) ? f2 ** 3 : (116 * f2 - 16) / κ;
+    return [x, y, z].map((v, k) => v * w[k]);
+  }
+
+  /** Checks if the color is in sRGB space, i.e. its r, g and b values of the color are all in [0, 1] */
+  static inSRGB(rgb) {
+    const ε = .00001;
+    return rgb.reduce((sum, v) => sum && v > (0 - ε) && v < (1 + ε), true);
+  }
+
+  inSRGB() {
+    return Couleur.inSRGB([this.r, this.g, this.b]);
+  }
+
+  /** Clamps a color to sRGB space by clamping its chroma */
+  static clampToSRGB(rgb) {
+    // Source of the math: https://css.land/lch/lch.js
+    if (Couleur.inSRGB(rgb)) return rgb;
+    let lch = Couleur.lab2lch(Couleur.rgb2lab(rgb));
+
+    const τ = .0001;
+    let Cmin = 0;
+    let Cmax = lch[1];
+    lch[1] = lch[1] / 2;
+
+    const condition = lch => Couleur.inSRGB(Couleur.lab2rgb(Couleur.lch2lab(lch)));
+    while (Cmax - Cmin > τ) {
+      if (condition(lch)) Cmin = lch[1];
+      else                Cmax = lch[1];
+      lch[1] = (Cmin + Cmax) / 2;
+    }
+
+    return Couleur.lab2rgb(Couleur.lch2lab(lch));
+  }
+
+  clampToSRGB() {
+    this.rgb = Couleur.clampToSRGB([this.r, this.g, this.b]);
+  }
+
+
+  /* Actual conversion functions */
+
+
+  /** Uses the r, g, b values to calculate the h, s, l values. */
+  static rgb2hsl(rgb) {
+    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
+    const [r, g, b] = rgb; // all in [0, 1]
 
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     const chroma = max - min;
 
-    // Luminosity (l)
-    l = (max + min) / 2;
+    const l = (max + min) / 2;
 
-    // If chroma == 0, the color is grey
-    if (chroma == 0)
-      h = 0;
-    // If not, we calculate the hue h
-    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
-    else
-    {
+    let h;
+    if (chroma == 0) h = 0;
+    else {
       switch (max) {
-        case r:
-          h = (g - b) / chroma;
-          break;
-        case g:
-          h = (b - r) / chroma + 2;
-          break;
-        case b:
-          h = (r - g) / chroma + 4;
-          break;
+        case r: h = (g - b) / chroma; break;
+        case g: h = (b - r) / chroma + 2; break;
+        case b: h = (r - g) / chroma + 4; break;
       }
       h = 60 * h;
-      if (h < 0)
-        h += 360;
+      if (h < 0) h += 360;
     }
 
-    if (l == 0 || l == 1)
-      s = 0;
-    else if (l <= 0.5)
-      s = chroma / (2 * l);
-    else
-      s = chroma / (2 - 2 * l);
+    let s;
+    if (l == 0 || l == 1) s = 0;
+    else if (l <= 0.5)    s = chroma / (2 * l);
+    else                  s = chroma / (2 - 2 * l);
 
-    this.h = Couleur.pRound(h / 360);
-    this.s = Couleur.pRound(s);
-    this.l = Couleur.pRound(l);
+    return [h, s, l]; // h in [0, 360], s & l in [0, 1]
   }
 
 
   /** Uses the h, s, l values to calculate the r, g, b values. */
-  hsl2rgb() {
+  static hsl2rgb(hsl) {
     // source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
-    let h = this.h * 360;
-    let s = this.s;
-    let l = this.l;
-    let r, g, b;
+    const h = hsl[0]; // h in [0, 360]
+    const s = hsl[1]; // s & l in [0, 1]
+    const l = hsl[2];
 
     const m = s * Math.min(l, 1 - l);
     const k = n => (n + h / 30) % 12;
     const f = n => l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
 
-    r = f(0);
-    g = f(8);
-    b = f(4);
+    const r = f(0);
+    const g = f(8);
+    const b = f(4);
 
-    this.r = Couleur.pRound(r);
-    this.g = Couleur.pRound(g);
-    this.b = Couleur.pRound(b);
+    return [r, g, b]; // all in [0, 1]
   }
 
 
   /** Uses the h, s, l values to calculate the w, bk values. */
-  hsl2hwb() {
+  static hsl2hwb(hsl) {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
-    let s = this.s;
-    let l = this.l;
-    let _s, v, w, bk;
+    const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
 
-    v = l + s * Math.min(l, 1 - l);
-    if (v == 0)
-      _s = 0;
-    else
-      _s = 2 - 2 * l / v;
+    let _s;
+    const v = l + s * Math.min(l, 1 - l);
+    if (v == 0) _s = 0;
+    else        _s = 2 - 2 * l / v;
 
-    w = (1 - _s) * v;
-    bk = 1 - v;
+    const w = (1 - _s) * v;
+    const bk = 1 - v;
 
-    this.w = Couleur.pRound(w);
-    this.bk = Couleur.pRound(bk);
+    return [h, w, bk]; // h in [0, 360], w & bk in [0, 1]
   }
 
 
   /** Uses the h, w, bk values to calculate the s, l values. */
-  hwb2hsl() {
+  static hwb2hsl(hwb) {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
-    let w = this.w;
-    let bk = this.bk;
-    let _s, v, s, l;
-    let _w = w, _bk = bk;
+    const [h, w, bk] = hwb; // h in [0, 360], w & bk in [0, 1]
 
+    let _w = w, _bk = bk;
     if (w + bk > 1) {
       _w = w / (w + bk);
       _bk = bk / (w + bk);
     }
 
-    v = 1 - _bk;
-    if (_bk == 1)
-      _s = 0;
-    else
-      _s = 1 - _w / v;
+    let _s;
+    const v = 1 - _bk;
+    if (_bk == 1) _s = 0;
+    else          _s = 1 - _w / v;
 
-    l = v - v * _s / 2;
-    if (l == 0 || l == 1)
-      s = 0;
-    else
-      s = (v - l) / Math.min(l, 1 - l);
+    let s;
+    const l = v - v * _s / 2;
+    if (l == 0 || l == 1) s = 0;
+    else                  s = (v - l) / Math.min(l, 1 - l);
 
-    this.s = Couleur.pRound(s);
-    this.l = Couleur.pRound(l);
+    return [h, s, l]; // h in [0, 360], s & l in [0, 1]
   }
 
 
   /** Uses the r, g, b values to calulate the ciel, ciea, cieb values. */
-  rgb2lab() {
+  static rgb2lab(rgb) {
     // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
     //                   & https://drafts.csswg.org/css-color-4/utilities.js
     //                   & https://drafts.csswg.org/css-color-4/conversions.js
-    const linRGB = x => (Math.abs(x) < 0.04045) ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((x + 0.055) / 1.055, 2.4);
-    const r = linRGB(this.r);
-    const g = linRGB(this.g);
-    const b = linRGB(this.b);
 
-    let x = 0.41239079926595934 * r + 0.357584339383878 * g + 0.1804807884018343 * b;
-    let y = 0.21263900587151027 * r + 0.715168678767756 * g + 0.07219231536073371 * b;
-    let z = 0.01933081871559182 * r + 0.11919477979462598 * g + 0.9505321522496607 * b;
-
-    let x50 = 1.0479298208405488 * x + 0.022946793341019088 * y - 0.05019222954313557 * z;
-    let y50 = 0.029627815688159344 * x + 0.990434484573249 * y - 0.01707382502938514 * z;
-    let z50 = -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z;
-
-    const ε = 216/24389;
-    const κ = 24389/27;
-    const w = [0.96422, 1, 0.82521];
-
-    x = x50 / w[0];
-    y = y50 / w[1];
-    z = z50 / w[2];
-
-    const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
-
-    let ciel, ciea, cieb;
-    ciel = (116 * f(y) - 16) / 100;
-    ciea = 500 * (f(x) - f(y));
-    cieb = 200 * (f(y) - f(z));
-
-    this.ciel = Couleur.pRound(ciel);
-    this.ciea = Couleur.pRound(ciea);
-    this.cieb = Couleur.pRound(cieb);
+    // Takes r, g & b in [0, 1]
+    // Returns ciel in [0, 1], ciea as any number
+    return Couleur.d50XYZ_LAB(Couleur.d65XYZ_d50XYZ(Couleur.linRGB_d65XYZ(Couleur.gamRGB_linRGB(rgb))));
   }
 
 
-  /** Uses the ciel, ciec, cieh values to calculate the r, g, b values. */
-  lch2rgb() {
-    // Source of the math: https://css.land/lch/lch.js
+  /** Uses the ciel, ciea, cieb values to calculate the r, g, b values. */
+  static lab2rgb(lab) {
+    // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
     //                   & https://drafts.csswg.org/css-color-4/utilities.js
     //                   & https://drafts.csswg.org/css-color-4/conversions.js
-    const conversion = (ciel, ciec, cieh) => {
-      let ciea, cieb;
-      ciea = ciec * Math.cos(cieh * Math.PI / 180);
-      cieb = ciec * Math.sin(cieh * Math.PI / 180);
+    //                   & https://css.land/lch/lch.js
 
-      const ε = 216/24389;
-      const κ = 24389/27;
-      const w = [0.96422, 1, 0.82521];
+    // If the color isn't part of the sRGB color space, let's find the closest color that is
 
-      let f1 = (ciel + 16) / 116;
-      let f0 = ciea / 500 + f1;
-      let f2 = f1 - cieb / 200;
-
-      let x50 = (f0 ** 3 > ε) ? f0 ** 3 : (116 * f0 - 16) / κ;
-      let y50 = (ciel > κ * ε) ? ((ciel + 16) / 116) ** 3 : ciel / κ;
-      let z50 = (f2 ** 3 > ε) ? f2 ** 3 : (116 * f2 - 16) / κ;
-
-      x50 = x50 * w[0];
-      y50 = y50 * w[1];
-      z50 = z50 * w[2];
-
-      let x = 0.9554734527042182 * x50 - 0.023098536874261423 * y50 + 0.0632593086610217 * z50;
-      let y = -0.028369706963208136 * x50 + 1.0099954580058226 * y50 + 0.021041398966943008 * z50;
-      let z = 0.012314001688319899 * x50 - 0.020507696433477912 * y50 + 1.3303659366080753 * z50;
-
-      let r = 3.2409699419045226 * x - 1.537383177570094 * y - 0.4986107602930034 * z;
-      let g = -0.9692436362808796 * x + 1.8759675015077202 * y + 0.04155505740717559 * z;
-      let b = 0.05563007969699366 * x - 0.20397695888897652 * y + 1.0569715142428786 * z;
-
-      const gamRGB = x => (Math.abs(x) > 0.0031308) ? (Math.sign(x) || 1) * (1.055 * Math.pow(x, 1 / 2.4) - 0.055) : 12.92 * x;
-
-      r = gamRGB(r);
-      g = gamRGB(g);
-      b = gamRGB(b);
-
-      return [r, g, b];
-    }
-
-    const forceIntoGamut = (ciel, ciec, cieh) => {
-      const ε1 = .000005;
-      const condition = (l, c, h) => conversion(l, c, h).reduce((sum, x) => sum && x >= (-1 * ε1) && x <= (1 + ε1), true);
-      if (condition(ciel, ciec, cieh)) return [ciel, ciec, cieh];
-
-      const ε2 = .0001;
-      let Cmin = 0;
-      let Cmax = ciec;
-      let _ciec = ciec / 2;
-
-      while (Cmax - Cmin > ε2) {
-        if (condition(ciel, _ciec, cieh)) Cmin = _ciec;
-        else Cmax = _ciec;
-        _ciec = (Cmin + Cmax) / 2;
-      }
-
-      return [ciel, _ciec, cieh];
-    }
-
-    const lch = forceIntoGamut(this.ciel * 100, this.ciec, this.cieh * 360);
-    const rgb = conversion(...lch);
-
-    this.r = Couleur.pRound(rgb[0]);
-    this.g = Couleur.pRound(rgb[1]);
-    this.b = Couleur.pRound(rgb[2]);
+    // Takes ciel in [0, 1], ciea & cieb as any number
+    // Returns r, g & b in [0, 1]
+    return Couleur.linRGB_gamRGB(Couleur.d65XYZ_linRGB(Couleur.d50XYZ_d65XYZ(Couleur.LAB_d50XYZ(lab))));
   }
 
 
   /** Uses the ciel, ciea, cieb values to calculate the ciec, cieh values. */
-  lab2lch() {
-    let ciec, cieh;
-    ciec = Math.sqrt(this.ciea ** 2 + this.cieb ** 2);
-    cieh = Couleur.parse(Math.atan2(this.cieb, this.ciea) * 180 / Math.PI, 'cieh');
+  static lab2lch(lab) {
+    const [ciel, ciea, cieb] = lab;
+    const ciec = Math.sqrt(ciea ** 2 + cieb ** 2);
+    const cieh = Couleur.parse(Math.atan2(cieb, ciea) * 180 / Math.PI, 'cieh');
 
-    this.ciec = Couleur.pRound(ciec);
-    this.cieh = Couleur.pRound(cieh);
+    return [ciel, ciec, cieh];
   }
 
 
   /** Uses the ciel, ciec, cieh values to calculate the ciea, cieb values. */
-  lch2lab() {
-    let cieh = this.cieh * 360;
-    let ciea, cieb;
-    ciea = this.ciec * Math.cos(cieh * Math.PI / 180);
-    cieb = this.ciec * Math.sin(cieh * Math.PI / 180);
+  static lch2lab(lch) {
+    const [ciel, ciec, cieh] = lch;
+    const ciea = ciec * Math.cos(cieh * Math.PI / 180);
+    const cieb = ciec * Math.sin(cieh * Math.PI / 180);
 
-    this.ciea = Couleur.pRound(ciea);
-    this.cieb = Couleur.pRound(cieb);
+    return [ciel, ciea, cieb];
   }
 
 
@@ -917,36 +962,44 @@ export default class Couleur {
         case 'a': rgba[3] = replace ? val : scale ? this.a * val : this.a + val; break;
       }
       changedColor.rgb = [255 * rgba[0], 255 * rgba[1], 255 * rgba[2], rgba[3]];
-    } else if (['h', 's', 'l'].includes(propriete)) {
-      const hsla = [this.h, this.s, this.l, this.a];
+    }
+
+    else if (['h', 's', 'l'].includes(propriete)) {
+      const hsl = Couleur.rgb2hsl([this.r, this.g, this.b]);
       switch (propriete) {
-        case 'h': hsla[0] = replace ? val : scale ? this.h * val : this.h + val; break;
-        case 's': hsla[1] = replace ? val : scale ? this.s * val : this.s + val; break;
-        case 'l': hsla[2] = replace ? val : scale ? this.l * val : this.l + val; break;
+        case 'h': hsl[0] = replace ? val : scale ? hsl[0] * val : hsl[0] + val; break;
+        case 's': hsl[1] = replace ? val : scale ? hsl[1] * val : hsl[1] + val; break;
+        case 'l': hsl[2] = replace ? val : scale ? hsl[2] * val : hsl[2] + val; break;
       }
-      changedColor.hsl = [360 * hsla[0], `${100 * hsla[1]}%`, `${100 * hsla[2]}%`, hsla[3]];
-    } else if (['w', 'bk'].includes(propriete)) {
-      const hwba = [this.h, this.w, this.bk, this.a];
+      changedColor.hsl = [hsl[0], `${100 * hsl[1]}%`, `${100 * hsl[2]}%`, this.a];
+    }
+
+    else if (['w', 'bk'].includes(propriete)) {
+      const hwb = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
       switch (propriete) {
-        case 'w': hwba[1] = replace ? val : scale ? this.w * val : this.w + val; break;
-        case 'bk': hwba[2] = replace ? val : scale ? this.bk * val : this.bk + val; break;
+        case 'w': hwb[1] = replace ? val : scale ? hwb[1] * val : hwb[1] + val; break;
+        case 'bk': hwb[2] = replace ? val : scale ? hwb[2] * val : hwb[2] + val; break;
       }
-      changedColor.hwb = [360 * hwba[0], `${100 * hwba[1]}%`, `${100 * hwba[2]}%`, hwba[3]];
-    } else if (['ciel', 'ciea', 'cieb'].includes(propriete)) {
-      const laba = [this.ciel, this.ciea, this.cieb, this.a];
+      changedColor.hwb = [hwb[0], `${100 * hwb[1]}%`, `${100 * hwb[2]}%`, this.a];
+    }
+
+    else if (['ciel', 'ciea', 'cieb'].includes(propriete)) {
+      const lab = Couleur.rgb2lab([this.r, this.g, this.b]);
       switch (propriete) {
-        case 'ciel': laba[0] = replace ? val : scale ? this.ciel * val : this.ciel + val; break;
-        case 'ciea': laba[1] = replace ? val : scale ? this.ciea * val : this.ciea + val; break;
-        case 'cieb': laba[2] = replace ? val : scale ? this.cieb * val : this.cieb + val; break;
+        case 'ciel': lab[0] = replace ? val : scale ? lab[0] * val : lab[0] + val; break;
+        case 'ciea': lab[1] = replace ? val : scale ? lab[1] * val : lab[1] + val; break;
+        case 'cieb': lab[2] = replace ? val : scale ? lab[2] * val : lab[2] + val; break;
       }
-      changedColor.lab = [`${100 * laba[0]}%`, laba[1], laba[2], laba[3]];
-    } else if (['ciec', 'cieh'].includes(propriete)) {
-      const lcha = [this.ciel, this.ciec, this.cieh, this.a];
+      changedColor.lab = [`${100 * lab[0]}%`, lab[1], lab[2], this.a];
+    }
+
+    else if (['ciec', 'cieh'].includes(propriete)) {
+      const lch = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
       switch (propriete) {
-        case 'ciec': lcha[1] = replace ? val : scale ? this.ciec * val : this.ciec + val; break;
-        case 'cieh': lcha[2] = replace ? val : scale ? this.cieh * val : this.cieh + val; break;
+        case 'ciec': lch[1] = replace ? val : scale ? lch[1] * val : lch[1] + val; break;
+        case 'cieh': lch[2] = replace ? val : scale ? lch[2] * val : lch[2] + val; break;
       }
-      changedColor.lch = [`${100 * lcha[0]}%`, lcha[1], 360 * lcha[2], lcha[3]];
+      changedColor.lch = [`${100 * lch[0]}%`, lch[1], lch[2], this.a];
     }
 
     return changedColor;
@@ -982,7 +1035,7 @@ export default class Couleur {
   invert() { return this.negative(); }
 
   /** @returns {Couleur} The shade of grey of the color. */
-  greyscale() { return new Couleur(`hsl(${360 * this.h}, 0%, ${100 * this.l}%, ${this.a})`); }
+  greyscale() { return new Couleur(`hsl(${this.h}, 0%, ${100 * this.l}%, ${this.a})`); }
   grayscale() { return this.greyscale(); }
 
   /** @returns {Couleur} The sepia tone of the color. */
@@ -1018,7 +1071,7 @@ export default class Couleur {
       const r = (overlay.r * overlay.a + background.r * background.a * (1 - overlay.a)) / a;
       const g = (overlay.g * overlay.a + background.g * background.a * (1 - overlay.a)) / a;
       const b = (overlay.b * overlay.a + background.b * background.a * (1 - overlay.a)) / a;
-      result = new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${a})`);
+      result = new Couleur(Couleur.expr('rgb', [r, g, b, a]));
     }
 
     if (couleurs.length == 0) return result;
@@ -1061,7 +1114,7 @@ export default class Couleur {
         for (const x of [r, g, b]) {
           if (x < 0 - Couleur.tolerance || x > 1 + Couleur.tolerance) return null;
         }
-        background = new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${a})`);
+        background = new Couleur(Couleur.expr('rgb', [r, g, b, a]));
       }
     }
 
@@ -1095,7 +1148,7 @@ export default class Couleur {
       for (const x of [r, g, b]) {
         if (x < 0 - Couleur.tolerance || x > 1 + Couleur.tolerance) throw `This color doesn't exist`;
       }
-      return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${a})`);
+      return new Couleur(Couleur.expr('rgb', [r, g, b, a]));
     };
 
     // If alpha is known, we can find at most one solution
@@ -1295,7 +1348,7 @@ export default class Couleur {
 
       // Let's try to raise contrast by increasing or reducing CIE lightness.
       const sign = (towards == 'white') ? 1 : -1;
-      newColor = new Couleur(`lch(${100 * movingColor.ciel + sign * step}% ${movingColor.ciec} ${360 * movingColor.cieh})`);
+      newColor = new Couleur(`lch(${100 * movingColor.ciel + sign * step}% ${movingColor.ciec} ${movingColor.cieh})`);
       const newContrast = newColor.contrast(refColor);
 
       // If we overshot a little, stop.
@@ -1318,61 +1371,31 @@ export default class Couleur {
    * If no format is given, calculates the average of the distances for all formats.
    * @param {color} _couleur1 
    * @param {color} _couleur2 
-   * @param {?string} format - The format whose properties will be used to calculate the distance.
-   * @param {number} tolerance - The tolerance value used to ignore some properties if they are close enough to value that render them useless.
    * @returns {number} The distance between the two colors.
    */
-   static distance(_couleur1, _couleur2, format = null, tolerance = Couleur.tolerance) {
+   static distance(_couleur1, _couleur2) {
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
 
-    const formats = ['rgb', 'hsl', 'hwb', 'lab', 'lch'];
-    if (formats.includes(format)) {
-      const properties = Couleur.propertiesOf(format);
-      properties.push('a');
-
-      // Let's add the difference for each property
-      const distance = properties.reduce((sum, prop) => {
-        // cieh has no effect when ciec is 0,
-        // h and s have no effect when l is 0 or 1,
-        // h has no effect when s is 0,
-        // h has no effect when bk + w is 1
-        if (
-          (prop == 'cieh' && couleur1.ciec <= tolerance && couleur2.ciec <= tolerance)
-          || (['s', 'h'].includes(prop) && couleur1.l >= 1 - tolerance && couleur2.l >= 1 - tolerance)
-          || (['s', 'h'].includes(prop) && couleur1.l <= tolerance && couleur2.l <= tolerance)
-          || (prop == 'h' && couleur1.s <= tolerance && couleur2.s <= tolerance)
-          || (prop == 'h' && couleur1.bk + couleur1.w >= 1 - tolerance && couleur2.bk + couleur2.w >= 1 - tolerance)
-        ) return sum;
-
-        // All properties are between 0 and 1, except ciea and cieb who are roughly 100 times bigger
-        const coefficient = ['ciea', 'cieb', 'ciec'].includes(prop) ? .01 : 1;
-        return sum + coefficient * Math.abs(couleur1[prop] - couleur2[prop]);
-      }, 0);
-      return Couleur.pRound(distance, 3);
-    } else {
-      return formats.reduce((sum, format) => sum + Couleur.distance(couleur1, couleur2, format), 0) / formats.length;
-    }
+    const dist = ['r', 'g', 'b'].reduce((sum, prop) => sum + Math.abs(couleur1[prop] - couleur2[prop]), 0);
+    return Couleur.pRound(dist, 3);
   }
 
   /** Non-static version of Couleur.distance */
-  distance(couleur2, format = null, tolerance = Couleur.tolerance) {
-    return Couleur.distance(this, couleur2, format, tolerance);
+  distance(couleur2) {
+    return Couleur.distance(this, couleur2);
   }
 
 
   /**
    * Determines if two colors are the same, with a certain tolerance.
-   * @param {color} _couleur1 
-   * @param {color} _couleur2 
+   * @param {color} couleur1 
+   * @param {color} couleur2 
    * @param {number} tolerance - The minimum distance between the two colors to consider them different.
    * @returns {boolean} Whether the two colors are considered the same.
    */
-  static same(_couleur1, _couleur2, tolerance = Couleur.tolerance) {
-    const couleur1 = Couleur.check(_couleur1);
-    const couleur2 = Couleur.check(_couleur2);
-
-    if (Couleur.distance(couleur1, couleur2, null, tolerance) > tolerance) return false;
+  static same(couleur1, couleur2, tolerance = Couleur.tolerance) {
+    if (Couleur.distance(couleur1, couleur2) > tolerance) return false;
     else return true;
   }
 
@@ -1398,14 +1421,16 @@ export default class Couleur {
     const end = Couleur.check(_end);
     const steps = Math.min(Math.max(1, _steps), 100);
     const props = [...Couleur.propertiesOf(format), 'a'];
+
+    // Calculate by how much each property will be changed at each steap
     const stepList = props.map(prop => {
       let step;
       switch (prop) {
         case 'h':
         case 'cieh':
           // Minimize the distance to travel through hues
-          const stepUp = (360 * (end[prop] - start[prop]) % 360 + 360) % 360 / 360;
-          const stepDown = (360 * (start[prop] - end[prop]) % 360 + 360) % 360 / 360;
+          const stepUp = ((end[prop] - start[prop]) % 360 + 360) % 360;
+          const stepDown = ((start[prop] - end[prop]) % 360 + 360) % 360;
           step = ((stepUp <= stepDown) ? stepUp : (-1 * stepDown)) / steps;
           break;
         default:
@@ -1414,27 +1439,16 @@ export default class Couleur {
       return step;
     });
 
-    const intermediateColors = [start];
+    // Calculate all colors of the gradient
+    const intermediateColors = [props.map(prop => start[prop])];
     for (let i = 1; i < steps; i++) {
       let previous = intermediateColors[i - 1];
-      const vals = props.map((prop, k) => previous[prop] + stepList[k]);
-      let expr;
-      switch (format) {
-        case 'rgb': expr = `rgb(${vals[0] * 255}, ${vals[1] * 255}, ${vals[2] * 255}, ${vals[3]})`; break;
-        case 'hsl': expr = `hsl(${vals[0] * 360}, ${vals[1] * 100}%, ${vals[2] * 100}%, ${vals[3]})`; break;
-        case 'hwb': expr = `hwb(${vals[0] * 360} ${vals[1] * 100}% ${vals[2] * 100}% / ${vals[3]})`; break;
-        case 'lab': expr = `lab(${vals[0] * 100}% ${vals[1]} ${vals[2]} / ${vals[3]})`; break;
-        case 'lch': expr = `lch(${vals[0] * 100}% ${vals[1]} ${vals[2] * 360} / ${vals[3]})`; break;
-      }
-      try {
-        const next = new Couleur(expr);
-        intermediateColors.push(next);
-        previous = next;
-      } catch(error) {
-        console.error(error);
-      }
+      const next = previous.map((prop, k) => prop + stepList[k]);
+      intermediateColors.push(next);
+      previous = next;
     }
-    return [...intermediateColors, end];
+
+    return [...intermediateColors.map(c => new Couleur(Couleur.expr(format, c))), end];
   }
 
   /** Non-static version of Couleur.gradient */
@@ -1472,6 +1486,11 @@ export default class Couleur {
   /** @returns {number} Tolerance value. Used for example as the maximum distance before two colors are considered different. */
   static get tolerance() {
     return .02;
+  }
+
+  /** @returns {boolean} Whether colors should be clamped to sRGB space. */
+  static get mustClampToSRGB() {
+    return true;
   }
 
   /** @returns {{id: string, syntaxes: RegExp[]}[]} Array of supported syntaxes. */

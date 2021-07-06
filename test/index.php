@@ -237,17 +237,9 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
         if (c1Props.length != c2Props.length) return false;
 
         for (var i = 0; i < c1Props.length; i++) {
-          let tempTolerance = tolerance;
           var prop = c1Props[i];
-          if (
-            (prop == 'cieh' && couleur1.ciec <= tolerance && couleur2.ciec <= tolerance)
-            || (['s', 'h'].includes(prop) && couleur1.l >= 1 - tolerance && couleur2.l >= 1 - tolerance)
-            || (['s', 'h'].includes(prop) && couleur1.l <= tolerance && couleur2.l <= tolerance)
-            || (prop == 'h' && couleur1.s <= tolerance && couleur2.s <= tolerance)
-            || (prop == 'h' && couleur1.bk + couleur1.w >= 1 - tolerance && couleur2.bk + couleur2.w >= 1 - tolerance)
-          ) continue;
-          if (['ciea', 'cieb', 'ciec'].includes(prop)) tempTolerance *= 100;
-          if (Math.abs(couleur1[prop] - couleur2[prop]) > tempTolerance) return false;
+          if (!['r', 'g', 'b'].includes(prop)) continue;
+          if (Math.abs(couleur1[prop] - couleur2[prop]) > tolerance) return false;
         }
 
         return true;
@@ -278,7 +270,7 @@ $tests = array_map(function($test) { return new Test($test->fonctionphp ?? $test
           const resultat = (typeof this.resultat == 'object' && this.resultat != null && this.resultat[0] == 'Error') ? this.resultat[0]
                                                                                                                       : this.resultat;
           if (resultat == 'Error') return this.resultatAttendu == 'Error';
-          else if (Array.isArray(resultat)) return resultat.every((co, k) => co == this.resultatAttendu[k]);
+          else if (Array.isArray(resultat)) return resultat.every((co, k) => Colour.same(co, this.resultatAttendu[k]));
           else if (typeof this.resultatAttendu === 'object' && this.resultatAttendu !== null) return sameColor(resultat, this.resultatAttendu);
           else if (typeof this.resultatAttendu === 'number') {
             if ((resultat - this.resultatAttendu) > tolerance) return false;

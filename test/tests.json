@@ -1,7 +1,7 @@
 [
   {
     "fonction": "new Colour('fuchsia')",
-    "resultatAttendu": { "r": 1, "g": 0, "b": 1, "h": 0.83333, "s": 1, "l": 0.5, "w": 0, "bk": 0, "a": 1, "ciel": 0.60169, "ciea": 93.551, "cieb": -60.493, "ciec": 111.41, "cieh": 0.90864 }
+    "resultatAttendu": { "r": 1, "g": 0, "b": 1, "a": 1 }
   }, {
     "fonction": "(new Colour('fuchsia')).name",
     "resultatAttendu": "fuchsia"
@@ -16,22 +16,22 @@
     "resultatAttendu": "Error"
   }, {
     "fonction": "new Colour('#e5b')",
-    "resultatAttendu": { "r": 0.93333, "g": 0.33333, "b": 0.73333, "h": 0.88889, "s": 0.81817, "l": 0.63333, "w": 0.33333, "bk": 0.066672, "a": 1, "ciel": 0.6038, "ciea": 66.748, "cieb": -22.152, "ciec": 70.328, "cieh": 0.949 }
+    "resultatAttendu": {"r": 0.93333, "g": 0.33333, "b": 0.73333, "a": 1 }
   }, {
     "fonction": "new Colour('#e5bd')",
-    "resultatAttendu": { "r": 0.93333, "g": 0.33333, "b": 0.73333, "h": 0.88889, "s": 0.81817, "l": 0.63333, "w": 0.33333, "bk": 0.066672, "a": 0.86667, "ciel": 0.6038, "ciea": 66.748, "cieb": -22.152, "ciec": 70.328, "cieh": 0.949 }
+    "resultatAttendu": {"r": 0.93333, "g": 0.33333, "b": 0.73333, "a": 0.86667 }
   }, {
     "fonction": "new Colour('#e5b32c')",
-    "resultatAttendu": { "r": 0.89804, "g": 0.70196, "b": 0.17255, "h": 0.12162, "s": 0.78059, "l": 0.53529, "w": 0.17254, "bk": 0.10196, "a": 1, "ciel": 0.76009, "ciea": 10.107, "cieb": 69.661, "ciec": 70.39, "cieh": 0.22707 }
+    "resultatAttendu": {"r": 0.89804, "g": 0.70196, "b": 0.17255, "a": 1 }
   }, {
     "fonction": "new Colour('#e5b32cbd')",
-    "resultatAttendu": { "r": 0.89804, "g": 0.70196, "b": 0.17255, "h": 0.12162, "s": 0.78059, "l": 0.53529, "w": 0.17254, "bk": 0.10196, "a": 0.74118, "ciel": 0.76009, "ciea": 10.107, "cieb": 69.661, "ciec": 70.39, "cieh": 0.22707 }
+    "resultatAttendu": {"r": 0.89804, "g": 0.70196, "b": 0.17255, "a": 0.74118 }
   }, {
     "fonction": "new Colour('rgba(58, 184, 74, 0.4)')",
-    "resultatAttendu": { "r": 0.22745, "g": 0.72157, "b": 0.2902, "h": 0.3545, "s": 0.52066, "l": 0.47451, "w": 0.22745, "bk": 0.27843, "a": 0.4, "ciel": 0.66304, "ciea": -52.573, "cieb": 44.262, "ciec": 68.724, "cieh": 0.38863 }
+    "resultatAttendu": {"r": 0.22745, "g": 0.72157, "b": 0.2902, "a": 0.4 }
   }, {
     "fonction": "new Colour('hsla(128, 52%, 47%, 0.4)')",
-    "resultatAttendu": { "r": 0.2256, "g": 0.7144, "b": 0.29079, "h": 0.35556, "s": 0.52, "l": 0.47, "w": 0.2256, "bk": 0.2856, "a": 0.4, "ciel": 0.65709, "ciea": -52.061, "cieb": 43.519, "ciec": 67.855, "cieh": 0.38919 }
+    "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
   }, {
     "fonction": "couleur.hex",
     "resultatAttendu": "#3ab84a66"
@@ -52,10 +52,10 @@
     "resultatAttendu": "lch(66% 69 140 / 0.4)"
   }, {
     "fonction": "couleur.change('l', '20%', { replace: true })",
-    "resultatAttendu": { "r": 0.096, "g": 0.304, "b": 0.12374, "h": 0.35556, "s": 0.52, "l": 0.2, "w": 0.096, "bk": 0.696, "a": 0.4, "ciel": 0.28613, "ciea": -26.585, "cieb": 21.548, "ciec": 34.221, "cieh": 0.39159 }
+    "resultatAttendu": {"r": 0.096, "g": 0.304, "b": 0.12374, "a": 0.4 }
   }, {
     "fonction": "couleur.change('l', '20%', true).rgb",
-    "resultatAttendu": "rgb(24, 78, 32, 0.4)"
+    "resultatAttendu": "rgb(24, 78, 31, 0.4)"
   }, {
     "fonction": "Colour.blend('red', 'white').rgb",
     "resultatAttendu": "rgb(255, 255, 255)"
@@ -71,7 +71,7 @@
     "nophp": "1"
   }, {
     "fonction": "Colour.blend('white', 'rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .5)').rgb",
-    "resultatAttendu": "rgb(128, 192, 64)"
+    "resultatAttendu": "rgb(128, 191, 64)"
   }, {
     "fonction": "Colour.blend('rgba(255, 255, 255, .3)', 'rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .5)').rgb",
     "resultatAttendu": "rgb(100, 178, 23, 0.83)"
@@ -141,7 +141,7 @@
     "resultatAttendu": "hsla(0, 100%, 92%, 0.6)"
   }, {
     "fonction": "testContraste",
-    "resultatAttendu": { "r": 0.09, "g": 0.10333, "b": 0.11, "h": 0.55556, "s": 0.1, "l": 0.1, "w": 0.09, "bk": 0.89, "a": 1, "ciel": 0.091301, "ciea": -1.3081, "cieb": -1.7665, "ciec": 2.1981, "cieh": 0.64856 }
+    "resultatAttendu": {"r": 0.09, "g": 0.10333, "b": 0.11, "a": 1 }
   }, {
     "fonction": "testContraste.rgb",
     "resultatAttendu": "rgb(23, 26, 28)"
@@ -196,10 +196,10 @@
     "resultatAttendu": "hsla(128, 52%, 47%, 0.08)"
   }, {
     "fonction": "new Colour('lab(92% -45 9)')",
-    "resultatAttendu": { "r": 0.5102, "g": 1, "b": 0.83587, "h": 0.44415, "s": 1, "l": 0.7551, "w": 0.5102, "bk": 0, "a": 1, "ciel": 0.92, "ciea": -45, "cieb": 9, "ciec": 45.891, "cieh": 0.46858 }
+    "resultatAttendu": {"r": 0.5102, "g": 1, "b": 0.83587, "a": 1 }
   }, {
     "fonction": "new Colour('lch(92% 46 168)')",
-    "resultatAttendu": { "r": 0.51239, "g": 1, "b": 0.8316, "h": 0.44244, "s": 1, "l": 0.75619, "w": 0.51238, "bk": 0, "a": 1, "ciel": 0.92, "ciea": -44.995, "cieb": 9.563, "ciec": 46, "cieh": 0.46667 }
+    "resultatAttendu": {"r": 0.51239, "g": 1, "b": 0.8316, "a": 1 }
   }, {
     "fonction": "testLab.lab",
     "resultatAttendu": "lab(92% -45 9)"
@@ -260,30 +260,12 @@
     "fonctionphp": "array_map(function($c) { return $c->hsl(); }, Couleur::gradient('lightgreen', 'blue', 5, 'hsl'))",
     "resultatAttendu": [ "hsl(120, 73%, 75%)", "hsl(144, 79%, 70%)", "hsl(168, 84%, 65%)", "hsl(192, 89%, 60%)", "hsl(216, 95%, 55%)", "hsl(240, 100%, 50%)" ]
   }, {
-    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'rgb')",
+    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)')",
     "resultatAttendu": 2
   }, {
-    "fonction": "(new Colour('rgb(255, 128, 0)')).distance('rgb(0, 128, 255)', 'rgb')",
+    "fonction": "(new Colour('rgb(255, 128, 0)')).distance('rgb(0, 128, 255)')",
     "resultatAttendu": 2,
     "nophp": "1"
-  }, {
-    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'hsl')",
-    "resultatAttendu": 0.5
-  }, {
-    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'hwb')",
-    "resultatAttendu": 0.5
-  }, {
-    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'lab')",
-    "resultatAttendu": 1.98
-  }, {
-    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)', 'lch')",
-    "resultatAttendu": 0.89555555555
-  }, {
-    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)')",
-    "resultatAttendu": 1.17511111111
-  }, {
-    "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(255, 128, 0)', 'rgb')",
-    "resultatAttendu": 0
   }, {
     "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(0, 128, 255)')",
     "resultatAttendu": false
