@@ -40,8 +40,8 @@ export default class Test {
                                                                                                                 : this.resultat;
     
     // If result is an error, check if we expected one
-    if (resultat == 'Error')
-      return this.resultatAttendu == 'Error';
+    if (resultat === 'Error')
+      return this.resultatAttendu === 'Error';
 
     // If result is an array of colors, check if they're all the same
     else if (Array.isArray(resultat))

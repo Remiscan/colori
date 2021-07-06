@@ -66,8 +66,8 @@ class Test {
     }
 
     // If result is an error, check if we expected one
-    if ($resultat == 'Error')
-        return $this->resultatAttendu == 'Error';
+    if ($resultat === 'Error')
+      return $this->resultatAttendu === 'Error';
 
     // If result is an array of colors, check if they're all the same
     elseif (is_array($resultat)) {
@@ -82,7 +82,7 @@ class Test {
       return self::sameColorObject($resultat, $this->resultatAttendu);
 
     // If expected result is a number, check if it's close enough to the result
-    elseif (is_numeric($this->resultatAttendu)) {
+    elseif (is_float($this->resultatAttendu) || is_int($this->resultatAttendu)) {
       if (abs($resultat - $this->resultatAttendu) > self::TOLERANCE) return false;
       else return true;
     }
