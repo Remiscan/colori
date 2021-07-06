@@ -327,7 +327,13 @@ export default class Couleur {
 
   /* GENERAL GETTER */
 
-  /** Gets the CSS expression of a color. */
+  /**
+   * Gets the CSS expression of a color.
+   * @param {string} format - The format of the expression.
+   * @param {number[]} values - The values of the color's properties.
+   * @param {boolean} round - Whether to round the values in the expression.
+   * @returns {string} The expression of the color in the requested format.
+   */
   static expr(format, values, round = true) {
     const a = round ? Math.round(100 * values[3]) / 100 : values[3];
     switch (format) {
@@ -596,68 +602,124 @@ export default class Couleur {
   /* Setters and getters for color properties */
   /********************************************/
 
+  /**
+   * Recalculates the r, g, b properties of the color after modifying its hue (h) property.
+   * @param {number|string} val - The unparsed new value of h as a number or angle.
+   */
   set h(val) {
     const [x, s, l] = Couleur.rgb2hsl([this.r, this.g, this.b]);
     this.hsl = [val, s, l, this.a];
   }
 
+  /**
+   * Recalculates the r, g, b properties of the color after modifying its saturation (s) property.
+   * @param {string} val - The unparsed new value of s as a percentage.
+   */
   set s(val) {
     const [h, x, l] = Couleur.rgb2hsl([this.r, this.g, this.b]);
     this.hsl = [h, val, l, this.a];
   }
 
+  /**
+   * Recalculates the r, g, b properties of the color after modifying its luminosity (l) property.
+   * @param {string} val - The unparsed new value of l as a percentage.
+   */
   set l(val) {
     const [h, s, x] = Couleur.rgb2hsl([this.r, this.g, this.b]);
     this.hsl = [h, s, val, this.a];
   }
 
-  get h() { return Couleur.rgb2hsl([this.r, this.g, this.b])[0]; }
-  get s() { return Couleur.rgb2hsl([this.r, this.g, this.b])[1]; }
-  get l() { return Couleur.rgb2hsl([this.r, this.g, this.b])[2]; }
-
+  /**
+   * Recalculates the r, g, b properties of the color after modifying its whiteness (w) property.
+   * @param {string} val - The unparsed new value of w as a percentage.
+   */
   set w(val) {
     const [h, x, bk] = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
     this.hwb = [h, val, bk, this.a];
   }
 
+  /**
+   * Recalculates the r, g, b properties of the color after modifying its blackness (bk) property.
+   * @param {string} val - The unparsed new value of bk as a percentage.
+   */
   set bk(val) {
     const [h, w, x] = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
     this.hwb = [h, w, val, this.a];
   }
 
-  get w() { return Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]))[1]; }
-  get bk() { return Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]))[2]; }
-
+  /**
+   * Recalculates the r, g, b properties of the color after modifying its CIE lightness (ciel) property.
+   * @param {string} val - The unparsed new value of ciel as a percentage.
+   */
   set ciel(val) {
     const [x, ciea, cieb] = Couleur.rgb2lab([this.r, this.g, this.b]);
     this.lab = [val, ciea, cieb, this.a];
   }
 
+  /**
+   * Recalculates the r, g, b properties of the color after modifying its CIE A-axis (ciea) property.
+   * @param {number} val - The unparsed new value of ciea.
+   */
   set ciea(val) {
     const [ciel, x, cieb] = Couleur.rgb2lab([this.r, this.g, this.b]);
     this.lab = [ciel, val, cieb, this.a];
   }
 
+  /**
+   * Recalculates the r, g, b properties of the color after modifying its CIE B-axis (cieb) property.
+   * @param {number} val - The unparsed new value of cieb.
+   */
   set cieb(val) {
     const [ciel, ciea, x] = Couleur.rgb2lab([this.r, this.g, this.b]);
     this.lab = [ciel, ciea, val, this.a];
   }
 
-  get ciel() { return Couleur.rgb2lab([this.r, this.g, this.b])[0]; }
-  get ciea() { return Couleur.rgb2lab([this.r, this.g, this.b])[1]; }
-  get cieb() { return Couleur.rgb2lab([this.r, this.g, this.b])[2]; }
-
+  /**
+   * Recalculates the r, g, b properties of the color after modifying its CIE chroma (ciec) property.
+   * @param {number} val - The unparsed new value of ciec.
+   */
   set ciec(val) {
     const [ciel, x, cieh] = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
     this.lch = [ciel, val, cieh, this.a];
   }
 
+  /**
+   * Recalculates the r, g, b properties of the color after modifying its CIE hue (cieh) property.
+   * @param {number|string} val - The unparsed new value of cieh as a number or angle.
+   */
   set cieh(val) {
     const [ciel, ciec, x] = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
     this.lch = [ciel, ciec, val, this.a];
   }
 
+  /** @returns {number} Gets the parsed value of the hue (h) property, in [0, 360]. */
+  get h() { return Couleur.rgb2hsl([this.r, this.g, this.b])[0]; }
+
+  /** @returns {number} Gets the parsed value of the saturation (s) property, in [0, 1]. */
+  get s() { return Couleur.rgb2hsl([this.r, this.g, this.b])[1]; }
+
+  /** @returns {number} Gets the parsed value of the luminosity (l) property, in [0, 1]. */
+  get l() { return Couleur.rgb2hsl([this.r, this.g, this.b])[2]; }
+
+  /** @returns {number} Gets the parsed value of the whiteness (w) property, in [0, 1]. */
+  get w() { return Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]))[1]; }
+
+  /** @returns {number} Gets the parsed value of the blackness (bk) property, in [0, 1]. */
+  get bk() { return Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]))[2]; }
+
+  /** @returns {number} Gets the parsed value of the CIE lightness (ciel) property, in [0, 1]. */
+  get ciel() { return Couleur.rgb2lab([this.r, this.g, this.b])[0]; }
+
+  /** @returns {number} Gets the parsed value of the CIE A-axie (ciea) property, unbounded. */
+  get ciea() { return Couleur.rgb2lab([this.r, this.g, this.b])[1]; }
+
+  /** @returns {number} Gets the parsed value of the CIE B-axis (cieb) property, unbounded. */
+  get cieb() { return Couleur.rgb2lab([this.r, this.g, this.b])[2]; }
+
+  /** @returns {number} Gets the parsed value of the CIE chroma (ciec) property, in [0, +Inf]. */
   get ciec() { return Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]))[1]; }
+
+  /** @returns {number} Gets the parsed value of the CIE hue (cieh) property, in [0, 360]. */
   get cieh() { return Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]))[2]; }
 
 
@@ -748,17 +810,26 @@ export default class Couleur {
     return [x, y, z].map((v, k) => v * w[k]);
   }
 
-  /** Checks if the color is in sRGB space, i.e. its r, g and b values of the color are all in [0, 1] */
+  /**
+   * Checks whether the given r, g and b values would make a color in sRGB space.
+   * @param {number[]} rgb - Array of parsed r, g and b values.
+   * @returns {boolean} Whether r, g and b are all in [0, 1].
+   */
   static inSRGB(rgb) {
     const ε = .00001;
     return rgb.reduce((sum, v) => sum && v > (0 - ε) && v < (1 + ε), true);
   }
 
+  /** @returns {boolean} Whether the color is in sRGB space, i.e. whether its r, g and b values are all in [0, 1]. */
   inSRGB() {
     return Couleur.inSRGB([this.r, this.g, this.b]);
   }
 
-  /** Clamps a color to sRGB space by clamping its chroma */
+  /**
+   * Clamps parsed r, g and b values to sRGB space by clamping their chroma.
+   * @param {number[]} rgb - Array of parsed r, g and b values.
+   * @returns {number[]} The array of clamped r, g and b values.
+   */
   static clampToSRGB(rgb) {
     // Source of the math: https://css.land/lch/lch.js
     if (Couleur.inSRGB(rgb)) return rgb;
@@ -779,6 +850,7 @@ export default class Couleur {
     return Couleur.lab2rgb(Couleur.lch2lab(lch));
   }
 
+  /** @returns {Couleur} The closest color that's in sRGB space. */
   clampToSRGB() {
     this.rgb = Couleur.clampToSRGB([this.r, this.g, this.b]);
   }
@@ -787,7 +859,11 @@ export default class Couleur {
   /* Actual conversion functions */
 
 
-  /** Uses the r, g, b values to calculate the h, s, l values. */
+  /**
+   * Converts r, g, b values into h, s, l values.
+   * @param {number[]} rgb - Array of parsed r, g, b values.
+   * @returns {number[]} Array of parsed h, s, l values.
+   */
   static rgb2hsl(rgb) {
     // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
     const [r, g, b] = rgb; // all in [0, 1]
@@ -819,7 +895,11 @@ export default class Couleur {
   }
 
 
-  /** Uses the h, s, l values to calculate the r, g, b values. */
+  /**
+   * Converts h, s, l values into r, g, b values.
+   * @param {number[]} hsl - Array of parsed h, s, l values.
+   * @returns {number[]} Array of parsed r, g, b values.
+   */
   static hsl2rgb(hsl) {
     // source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     const h = hsl[0]; // h in [0, 360]
@@ -838,7 +918,11 @@ export default class Couleur {
   }
 
 
-  /** Uses the h, s, l values to calculate the w, bk values. */
+  /**
+   * Converts h, s, l values into h, w, bk values.
+   * @param {number[]} hsl - Array of parsed h, s, l values.
+   * @returns {number[]} Array of parsed h, w, bk values.
+   */
   static hsl2hwb(hsl) {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
@@ -856,7 +940,11 @@ export default class Couleur {
   }
 
 
-  /** Uses the h, w, bk values to calculate the s, l values. */
+  /**
+   * Converts h, w, bk values into h, s, l values.
+   * @param {number[]} hwb - Array of parsed h, w, bk values.
+   * @returns {number[]} Array of parsed h, s, l values.
+   */
   static hwb2hsl(hwb) {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
@@ -882,7 +970,11 @@ export default class Couleur {
   }
 
 
-  /** Uses the r, g, b values to calulate the ciel, ciea, cieb values. */
+  /**
+   * Converts r, g, b values into ciel, ciea, cieb values.
+   * @param {number[]} rgb - Array of parsed r, g, b values.
+   * @returns {number[]} Array of parsed ciel, ciea, cieb values.
+   */
   static rgb2lab(rgb) {
     // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
     //                   & https://drafts.csswg.org/css-color-4/utilities.js
@@ -894,7 +986,11 @@ export default class Couleur {
   }
 
 
-  /** Uses the ciel, ciea, cieb values to calculate the r, g, b values. */
+  /**
+   * Converts ciel, ciea, cieb values into r, g, b values.
+   * @param {number[]} lab - Array of parsed ciel, ciea, cieb values.
+   * @returns {number[]} Array of parsed r, g, b values.
+   */
   static lab2rgb(lab) {
     // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
     //                   & https://drafts.csswg.org/css-color-4/utilities.js
@@ -909,7 +1005,11 @@ export default class Couleur {
   }
 
 
-  /** Uses the ciel, ciea, cieb values to calculate the ciec, cieh values. */
+  /**
+   * Converts ciel, ciea, cieb values into ciel, ciec, cieh values.
+   * @param {number[]} lab - Array of parsed ciel, ciea, cieb values.
+   * @returns {number[]} Array of parsed ciel, ciec, cieh values.
+   */
   static lab2lch(lab) {
     const [ciel, ciea, cieb] = lab;
     const ciec = Math.sqrt(ciea ** 2 + cieb ** 2);
@@ -919,7 +1019,11 @@ export default class Couleur {
   }
 
 
-  /** Uses the ciel, ciec, cieh values to calculate the ciea, cieb values. */
+  /**
+   * Converts ciel, ciec, cieh values into ciel, ciea, ciea values.
+   * @param {number[]} lab - Array of parsed ciel, ciec, cieh values.
+   * @returns {number[]} Array of parsed ciel, ciea, cieb values.
+   */
   static lch2lab(lch) {
     const [ciel, ciec, cieh] = lch;
     const ciea = ciec * Math.cos(cieh * Math.PI / 180);
