@@ -25,7 +25,7 @@ export default class Couleur {
     this.a = null;
 
     const format = Couleur.matchSyntax(couleur.trim());
-    const isAlpha = (val, def = 1) => !!val ? val : (val == 0) ? 0 : def;
+    const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
 
     switch (format.id) {
       case 'HEX':
@@ -86,17 +86,17 @@ export default class Couleur {
     const allFormats = Couleur.formats;
     let formats;
 
-    if (tri.slice(0, 1) == '#')
+    if (tri.slice(0, 1) === '#')
       formats = [allFormats[0], allFormats[1]];
-    else if (tri == 'rgb')
+    else if (tri === 'rgb')
       formats = [allFormats[2], allFormats[3]];
-    else if (tri == 'hsl')
+    else if (tri === 'hsl')
       formats = [allFormats[4], allFormats[5]];
-    else if (tri == 'hwb')
+    else if (tri === 'hwb')
       formats = [allFormats[6], allFormats[7]];
-    else if (tri == 'lab')
+    else if (tri === 'lab')
       formats = [allFormats[8]];
-    else if (tri == 'lch')
+    else if (tri === 'lch')
       formats = [allFormats[9]];
     else
       formats = [allFormats[10]];
@@ -105,7 +105,7 @@ export default class Couleur {
       for (const [k, syntaxe] of format.syntaxes.entries()) {
         const result = couleur.match(syntaxe);
         if (result != null && result[0] === couleur) {
-          if (format.id == 'NAME') {
+          if (format.id === 'NAME') {
             const allNames = Couleur.couleursNommees;
             if (couleur.toLowerCase() in allNames)
               return Couleur.matchSyntax('#' + allNames[couleur.toLowerCase()]);
@@ -139,11 +139,12 @@ export default class Couleur {
         break;
       case 'lch':
         if (clamp) rgb = Couleur.clampToSRGB(Couleur.lab2rgb(Couleur.lch2lab(values)));
-        else       rgv = Couleur.lab2rgb(Couleur.lch2lab(values));
+        else       rgb = Couleur.lab2rgb(Couleur.lch2lab(values));
         break;
     }
     [this.r, this.g, this.b] = rgb.map(v => Couleur.pRound(v));
   }
+
 
   /**
    * Returns a float precise to the nth decimal.
@@ -152,7 +153,7 @@ export default class Couleur {
    * @returns {number} The float precise to the nth decimal.
    */
   static pRound(_x, n = 5) {
-    let x = (typeof _x == 'number') ? _x : Number(_x);
+    let x = (typeof _x === 'number') ? _x : Number(_x);
     return Number(parseFloat(x.toPrecision(n)));
   }
 
@@ -183,7 +184,7 @@ export default class Couleur {
     // from any % or any number
     // clamped to [0, 100]% or [0, 1]
     // to [0, 1]
-    if (type == 'a') {
+    if (type === 'a') {
       // If n is a percentage
       if (new RegExp('^' + Couleur.vPer + '$').test(n)) {
         if (clamp)  return Math.max(0, Math.min(parseFloat(n) / 100, 1));
@@ -229,20 +230,20 @@ export default class Couleur {
       }
       // If n is an angle
       if ((new RegExp('^' + Couleur.vAng + '$').test(n))) {
-        if (String(n).slice(-3) == 'deg') {
+        if (String(n).slice(-3) === 'deg') {
           while (_n < 0) _n += 360;
           while (_n > 360) _n -= 360;
           return _n;
-        } else if (String(n).slice(-4) == 'grad') {
+        } else if (String(n).slice(-4) === 'grad') {
           while (_n < 0) _n += 400;
           while (_n > 400) _n -= 400;
           return _n * 360 / 400;
-        } else if (String(n).slice(-3) == 'rad') {
+        } else if (String(n).slice(-3) === 'rad') {
           _n = _n * 180 / Math.PI;
           while (_n < 0) _n += 360;
           while (_n > 360) _n -= 360;
           return _n;
-        } else if (String(n).slice(-4) == 'turn') {
+        } else if (String(n).slice(-4) === 'turn') {
           while (_n < 0) _n += 1;
           while (_n > 1) _n -= 1;
           return _n * 360;
@@ -277,7 +278,7 @@ export default class Couleur {
     // CIE chroma values:
     // from any number
     // clamped to [0, +Inf[
-    else if (type == 'ciec') {
+    else if (type === 'ciec') {
       // If n is a number
       if (new RegExp('^' + Couleur.vNum + '$').test(n)) {
         if (clamp)  return Math.max(0, n);
@@ -303,6 +304,27 @@ export default class Couleur {
   }
 
 
+  /**
+   * Unparses a value to the format that would be used in a CSS expression.
+   * @param {string} prop - Name of the property that has the value.
+   * @param {number} value - Value to unparse.
+   * @param {boolean} round - Whether to round the unparsed value.
+   * @returns {string} The unparsed value, ready to insert in a CSS expression.
+   */
+  static unparse(prop, value, round = true) {
+    switch (prop) {
+      case 'r': case 'g': case 'b':
+        return round ? `${Math.round(255 * value)}` : `${255 * value}`;
+      case 's': case 'l': case 'w': case 'bk': case 'ciel':
+        return round ? `${Math.round(100 * value)}%` : `${100 * value}%`;
+      case 'a':
+        return round ? `${Math.round(100 * value) / 100}` : `${value}`;
+      default:
+        return round ? `${Math.round(value)}` : `${value}`;
+    }
+  }
+
+
 
   /*****************************************/
   /* Setters and getters for color formats */
@@ -319,7 +341,7 @@ export default class Couleur {
    */
   set(data, props, format) {
     const values = props.map((p, i) => Couleur.parse(data[i], p));
-    const isAlpha = (val, def = 1) => !!val ? val : (val == 0) ? 0 : def;
+    const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
     this.a = Couleur.pRound(Couleur.parse(isAlpha(data[3]), 'a'));
     this.compute(format, values);
   }
@@ -335,49 +357,22 @@ export default class Couleur {
    * @returns {string} The expression of the color in the requested format.
    */
   static expr(format, values, round = true) {
-    const a = round ? Math.round(100 * values[3]) / 100 : values[3];
+    const props = Couleur.propertiesOf(format);
+    const a = Couleur.unparse('a', values[3], round);
+    const [x, y, z] = props.map((p, k) => Couleur.unparse(p, values[k], round));
+
     switch (format) {
-      case 'rgb': {
-        const [r, g, b] = values.map(v => round ? Math.round(255 * v) : 255 * v);
-        if (a == 1) return `rgb(${r}, ${g}, ${b})`;
-        else        return `rgb(${r}, ${g}, ${b}, ${a})`;
+      case 'rgb': case 'rgba': case 'hsl': case 'hsla': {
+        if ((format.length > 3 && format.slice(-1) === 'a') || a < 1)
+          return `${format}(${x}, ${y}, ${z}, ${a})`;
+        else
+          return `${format}(${x}, ${y}, ${z})`;
       }
-      case 'rgba': {
-        const [r, g, b] = values.map(v => round ? Math.round(255 * v) : 255 * v);
-        return `rgba(${r}, ${g}, ${b}, ${a})`;
-      }
-      case 'hsl': {
-        const h = round ? Math.round(values[0]) : values[0];
-        const [x, s, l] = values.map(v => round ? Math.round(100 * v) : 100 * v);
-        if (a == 1) return `hsl(${h}, ${s}%, ${l}%)`;
-        else        return `hsl(${h}, ${s}%, ${l}%, ${a})`;
-      }
-      case 'hsla': {
-        const h = round ? Math.round(values[0]) : values[0];
-        const [x, s, l] = values.map(v => round ? Math.round(100 * v) : 100 * v);
-        return `hsla(${h}, ${s}%, ${l}%, ${a})`;
-      }
-      case 'hwb': {
-        const h = round ? Math.round(values[0]) : values[0];
-        const [x, w, bk] = values.map(v => round ? Math.round(100 * v) : 100 * v);
-        if (a == 1) return `hwb(${h} ${w}% ${bk}%)`;
-      }
-      case 'hwba': {
-        const h = round ? Math.round(values[0]) : values[0];
-        const [x, w, bk] = values.map(v => round ? Math.round(100 * v) : 100 * v);
-        return `hwb(${h} ${w}% ${bk}% / ${a})`;
-      }
-      case 'lab':
-      case 'lch': {
-        const ciel = round ? Math.round(100 * values[0]) : 100 * values[0];
-        const [x, cie1, cie2] = values.map(v => round ? Math.round(v) : v);
-        if (a == 1) return `${format}(${ciel}% ${cie1} ${cie2})`;
-      }
-      case 'laba':
-      case 'lcha': {
-        const ciel = round ? Math.round(100 * values[0]) : 100 * values[0];
-        const [x, cie1, cie2] = values.map(v => round ? Math.round(v) : v);
-        return `${format.substring(0, 3)}(${ciel}% ${cie1} ${cie2} / ${a})`;
+      default: {
+        if ((format.length > 3 && format.slice(-1) === 'a') || a < 1)
+          return `${format}(${x} ${y} ${z} / ${a})`;
+        else
+          return `${format}(${x} ${y} ${z})`;
       }
     }
   }
@@ -387,7 +382,7 @@ export default class Couleur {
 
   /** @returns {?string} The approximate name of the color. */
   get name() {
-    if (this.a == 1) {
+    if (this.a === 1) {
       const allNames = Couleur.couleursNommees;
       const [r, g, b] = [255 * this.r, 255 * this.g, 255 * this.b];
       const tolerance = 255 * Couleur.tolerance;
@@ -401,14 +396,14 @@ export default class Couleur {
 
   /** @returns {?string} The exact name of the color. */
   get exactName() {
-    if (this.a == 1) {
+    if (this.a === 1) {
       const allNames = Couleur.couleursNommees;
       const hex6 = this.hex.slice(1);
-      const name = Object.keys(allNames).find(k => (allNames[k] == hex6));
+      const name = Object.keys(allNames).find(k => (allNames[k] === hex6));
       return name || null;
     }
-    else if (this.a == 0)               return 'transparent';
-    else                                return null;
+    else if (this.a === 0) return 'transparent';
+    else                   return null;
   }
 
 
@@ -429,19 +424,19 @@ export default class Couleur {
     let r, g, b, a;
     
     r = hexa[0];
-    r = (r.length == 1) ? r.repeat(2) : r;
+    r = (r.length === 1) ? r.repeat(2) : r;
     r = parseInt(r, 16);
     
     g = hexa[1];
-    g = (g.length == 1) ? g.repeat(2) : g;
+    g = (g.length === 1) ? g.repeat(2) : g;
     g = parseInt(g, 16);
     
     b = hexa[2];
-    b = (b.length == 1) ? b.repeat(2) : b;
+    b = (b.length === 1) ? b.repeat(2) : b;
     b = parseInt(b, 16);
     
     a = hexa[3] || 'ff';
-    a = (a.length == 1) ? a.repeat(2) : a;
+    a = (a.length === 1) ? a.repeat(2) : a;
     a = parseInt(a, 16) / 255;
 
     this.rgb = [r, g, b, a];
@@ -604,92 +599,92 @@ export default class Couleur {
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its hue (h) property.
-   * @param {number|string} val - The unparsed new value of h as a number or angle.
+   * @param {number|string} val - The parsed new value of h as a number or angle.
    */
   set h(val) {
     const [x, s, l] = Couleur.rgb2hsl([this.r, this.g, this.b]);
-    this.hsl = [val, s, l, this.a];
+    this.hsl = [val, s, l, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its saturation (s) property.
-   * @param {string} val - The unparsed new value of s as a percentage.
+   * @param {string} val - The parsed new value of s as a percentage.
    */
   set s(val) {
     const [h, x, l] = Couleur.rgb2hsl([this.r, this.g, this.b]);
-    this.hsl = [h, val, l, this.a];
+    this.hsl = [h, val, l, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its luminosity (l) property.
-   * @param {string} val - The unparsed new value of l as a percentage.
+   * @param {string} val - The parsed new value of l as a percentage.
    */
   set l(val) {
     const [h, s, x] = Couleur.rgb2hsl([this.r, this.g, this.b]);
-    this.hsl = [h, s, val, this.a];
+    this.hsl = [h, s, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its whiteness (w) property.
-   * @param {string} val - The unparsed new value of w as a percentage.
+   * @param {string} val - The parsed new value of w as a percentage.
    */
   set w(val) {
     const [h, x, bk] = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
-    this.hwb = [h, val, bk, this.a];
+    this.hwb = [h, val, bk, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hwb'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its blackness (bk) property.
-   * @param {string} val - The unparsed new value of bk as a percentage.
+   * @param {string} val - The parsed new value of bk as a percentage.
    */
   set bk(val) {
     const [h, w, x] = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
-    this.hwb = [h, w, val, this.a];
+    this.hwb = [h, w, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hwb'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its CIE lightness (ciel) property.
-   * @param {string} val - The unparsed new value of ciel as a percentage.
+   * @param {string} val - The parsed new value of ciel as a percentage.
    */
   set ciel(val) {
     const [x, ciea, cieb] = Couleur.rgb2lab([this.r, this.g, this.b]);
-    this.lab = [val, ciea, cieb, this.a];
+    this.lab = [val, ciea, cieb, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its CIE A-axis (ciea) property.
-   * @param {number} val - The unparsed new value of ciea.
+   * @param {number} val - The parsed new value of ciea.
    */
   set ciea(val) {
     const [ciel, x, cieb] = Couleur.rgb2lab([this.r, this.g, this.b]);
-    this.lab = [ciel, val, cieb, this.a];
+    this.lab = [ciel, val, cieb, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lab'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its CIE B-axis (cieb) property.
-   * @param {number} val - The unparsed new value of cieb.
+   * @param {number} val - The parsed new value of cieb.
    */
   set cieb(val) {
     const [ciel, ciea, x] = Couleur.rgb2lab([this.r, this.g, this.b]);
-    this.lab = [ciel, ciea, val, this.a];
+    this.lab = [ciel, ciea, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lab'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its CIE chroma (ciec) property.
-   * @param {number} val - The unparsed new value of ciec.
+   * @param {number} val - The parsed new value of ciec.
    */
   set ciec(val) {
     const [ciel, x, cieh] = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
-    this.lch = [ciel, val, cieh, this.a];
+    this.lch = [ciel, val, cieh, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its CIE hue (cieh) property.
-   * @param {number|string} val - The unparsed new value of cieh as a number or angle.
+   * @param {number|string} val - The parsed new value of cieh as a number or angle.
    */
   set cieh(val) {
     const [ciel, ciec, x] = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
-    this.lch = [ciel, ciec, val, this.a];
+    this.lch = [ciel, ciec, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
   }
 
   /** @returns {number} Gets the parsed value of the hue (h) property, in [0, 360]. */
@@ -875,7 +870,7 @@ export default class Couleur {
     const l = (max + min) / 2;
 
     let h;
-    if (chroma == 0) h = 0;
+    if (chroma === 0) h = 0;
     else {
       switch (max) {
         case r: h = (g - b) / chroma; break;
@@ -887,9 +882,9 @@ export default class Couleur {
     }
 
     let s;
-    if (l == 0 || l == 1) s = 0;
-    else if (l <= 0.5)    s = chroma / (2 * l);
-    else                  s = chroma / (2 - 2 * l);
+    if (l === 0 || l === 1) s = 0;
+    else if (l <= 0.5)      s = chroma / (2 * l);
+    else                    s = chroma / (2 - 2 * l);
 
     return [h, s, l]; // h in [0, 360], s & l in [0, 1]
   }
@@ -930,8 +925,8 @@ export default class Couleur {
 
     let _s;
     const v = l + s * Math.min(l, 1 - l);
-    if (v == 0) _s = 0;
-    else        _s = 2 - 2 * l / v;
+    if (v === 0) _s = 0;
+    else         _s = 2 - 2 * l / v;
 
     const w = (1 - _s) * v;
     const bk = 1 - v;
@@ -958,13 +953,13 @@ export default class Couleur {
 
     let _s;
     const v = 1 - _bk;
-    if (_bk == 1) _s = 0;
-    else          _s = 1 - _w / v;
+    if (_bk === 1) _s = 0;
+    else           _s = 1 - _w / v;
 
     let s;
     const l = v - v * _s / 2;
-    if (l == 0 || l == 1) s = 0;
-    else                  s = (v - l) / Math.min(l, 1 - l);
+    if (l === 0 || l === 1) s = 0;
+    else                    s = (v - l) / Math.min(l, 1 - l);
 
     return [h, s, l]; // h in [0, 360], s & l in [0, 1]
   }
@@ -1057,55 +1052,9 @@ export default class Couleur {
     const val = scale ? Couleur.parse(valeur) : Couleur.parse(valeur, propriete, false);
     const changedColor = new Couleur(this.rgb);
 
-    if (['r', 'g', 'b', 'a'].includes(propriete)) {
-      const rgba = [this.r, this.g, this.b, this.a];
-      switch (propriete) {
-        case 'r': rgba[0] = replace ? val : scale ? this.r * val : this.r + val; break;
-        case 'g': rgba[1] = replace ? val : scale ? this.g * val : this.g + val; break;
-        case 'b': rgba[2] = replace ? val : scale ? this.b * val : this.b + val; break;
-        case 'a': rgba[3] = replace ? val : scale ? this.a * val : this.a + val; break;
-      }
-      changedColor.rgb = [255 * rgba[0], 255 * rgba[1], 255 * rgba[2], rgba[3]];
-    }
-
-    else if (['h', 's', 'l'].includes(propriete)) {
-      const hsl = Couleur.rgb2hsl([this.r, this.g, this.b]);
-      switch (propriete) {
-        case 'h': hsl[0] = replace ? val : scale ? hsl[0] * val : hsl[0] + val; break;
-        case 's': hsl[1] = replace ? val : scale ? hsl[1] * val : hsl[1] + val; break;
-        case 'l': hsl[2] = replace ? val : scale ? hsl[2] * val : hsl[2] + val; break;
-      }
-      changedColor.hsl = [hsl[0], `${100 * hsl[1]}%`, `${100 * hsl[2]}%`, this.a];
-    }
-
-    else if (['w', 'bk'].includes(propriete)) {
-      const hwb = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
-      switch (propriete) {
-        case 'w': hwb[1] = replace ? val : scale ? hwb[1] * val : hwb[1] + val; break;
-        case 'bk': hwb[2] = replace ? val : scale ? hwb[2] * val : hwb[2] + val; break;
-      }
-      changedColor.hwb = [hwb[0], `${100 * hwb[1]}%`, `${100 * hwb[2]}%`, this.a];
-    }
-
-    else if (['ciel', 'ciea', 'cieb'].includes(propriete)) {
-      const lab = Couleur.rgb2lab([this.r, this.g, this.b]);
-      switch (propriete) {
-        case 'ciel': lab[0] = replace ? val : scale ? lab[0] * val : lab[0] + val; break;
-        case 'ciea': lab[1] = replace ? val : scale ? lab[1] * val : lab[1] + val; break;
-        case 'cieb': lab[2] = replace ? val : scale ? lab[2] * val : lab[2] + val; break;
-      }
-      changedColor.lab = [`${100 * lab[0]}%`, lab[1], lab[2], this.a];
-    }
-
-    else if (['ciec', 'cieh'].includes(propriete)) {
-      const lch = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
-      switch (propriete) {
-        case 'ciec': lch[1] = replace ? val : scale ? lch[1] * val : lch[1] + val; break;
-        case 'cieh': lch[2] = replace ? val : scale ? lch[2] * val : lch[2] + val; break;
-      }
-      changedColor.lch = [`${100 * lch[0]}%`, lch[1], lch[2], this.a];
-    }
-
+    const oldVal = this[propriete];
+    const newVal = replace ? val : scale ? oldVal * val : oldVal + val;
+    changedColor[propriete] = newVal;
     return changedColor;
   }
 
@@ -1139,7 +1088,7 @@ export default class Couleur {
   invert() { return this.negative(); }
 
   /** @returns {Couleur} The shade of grey of the color. */
-  greyscale() { return new Couleur(`hsl(${this.h}, 0%, ${100 * this.l}%, ${this.a})`); }
+  greyscale() { return this.replace('s', '0%'); }
   grayscale() { return this.greyscale(); }
 
   /** @returns {Couleur} The sepia tone of the color. */
@@ -1166,7 +1115,7 @@ export default class Couleur {
     let result;
 
     calculation: {
-      if (overlay.a == 0) {
+      if (overlay.a === 0) {
         result = background;
         break calculation;
       }
@@ -1178,8 +1127,8 @@ export default class Couleur {
       result = new Couleur(Couleur.expr('rgb', [r, g, b, a]));
     }
 
-    if (couleurs.length == 0) return result;
-    else                      return Couleur.blend(result, ...couleurs);
+    if (couleurs.length === 0) return result;
+    else                       return Couleur.blend(result, ...couleurs);
   }
 
   /** Non-static version of Couleur.blend */
@@ -1200,13 +1149,13 @@ export default class Couleur {
     const overlay = Couleur.check(couleurs.shift());
     let background;
 
-    if (overlay.a == 1) {
+    if (overlay.a === 1) {
       throw `Overlay color ${overlay.rgb} isn't transparent, so the background it was blended onto could have been any color`;
     }
-    else if (overlay.a == 0)                background = result;
+    else if (overlay.a === 0)               background = result;
     else {
       if (result.a < overlay.a)             return null;
-      else if (result.a == overlay.a) {
+      else if (result.a === overlay.a) {
         if (Couleur.same(result, overlay))  background = new Couleur('transparent');
         else                                return null;
       }
@@ -1222,8 +1171,8 @@ export default class Couleur {
       }
     }
 
-    if (couleurs.length == 0) return background;
-    else                      return Couleur.unblend(background, ...couleurs);
+    if (couleurs.length === 0) return background;
+    else                       return Couleur.unblend(background, ...couleurs);
   }
 
   /** Non-static version of Couleur.unblend */
@@ -1257,13 +1206,13 @@ export default class Couleur {
 
     // If alpha is known, we can find at most one solution
     if (!isNaN(alpha) && alpha >= 0 && alpha <= 1) {
-      if (alpha == 0) {
+      if (alpha === 0) {
         if (Couleur.same(background, result)) return new Couleur('transparent');
         else                                  return null;
       }           
-      else if (alpha == 1)                   return result;
+      else if (alpha === 1)                   return result;
       else if (result.a < alpha)              return null;
-      else if (result.a == alpha) {
+      else if (result.a === alpha) {
         if (background.a > 0)                 return null;
         else                                  return result;
       }
@@ -1272,8 +1221,8 @@ export default class Couleur {
     // If alpha isn't known, we can find at most one solution per possible alpha value
     if (result.a < background.a)              return null;
     else if (result.a > background.a) {
-      if (result.a == 1)                      overlay = result;
-      else if (background.a == 0)             overlay = result;
+      if (result.a === 1)                     overlay = result;
+      else if (background.a === 0)            overlay = result;
       // If 0 < background.a < result.a < 1, we can find a unique solution
       else {
         const a = Couleur.pRound((result.a - background.a) / (1 - background.a), 3);
@@ -1282,7 +1231,7 @@ export default class Couleur {
         catch (error) { return null; }
       }
     }
-    else if (result.a == background.a) {
+    else if (result.a === background.a) {
       if (Couleur.same(result, background))   overlay = new Couleur('transparent');
       else if (background.a < 1)              return null;
       // If both result and background are opaque, there are multiple solutions (one per alpha value).
@@ -1308,8 +1257,8 @@ export default class Couleur {
       }
     }
 
-    if (!isNaN(alpha)) return (overlay.a == alpha) ? overlay : null;
-    else                          return overlay;
+    if (!isNaN(alpha)) return (overlay.a === alpha) ? overlay : null;
+    else               return overlay;
   }
 
   /** Non-static version of Couleur.whatToBlend */
@@ -1459,12 +1408,12 @@ export default class Couleur {
    *                                                   'white' if {this} should change towards white (raise its lightness),
    *                                                   null if that choice should be made automatically (if the function
    *                                                   can't guess, 'black' will be chosen).
-   * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) == desiredContrast.
+   * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
    */
   improveContrast(referenceColor, desiredContrast, step = 2, options = {}) {
-    if (typeof options.lower == 'undefined') options.lower = false;
-    if (typeof options.maxIterations == 'undefined') options.maxIterations = 100;
-    if (typeof options.towards == 'undefined') options.towards = null;
+    if (typeof options.lower === 'undefined') options.lower = false;
+    if (typeof options.maxIterations === 'undefined') options.maxIterations = 100;
+    if (typeof options.towards === 'undefined') options.towards = null;
 
     let movingColor = new Couleur(`${this.rgb}`);
     let refColor = Couleur.check(referenceColor);
@@ -1476,7 +1425,7 @@ export default class Couleur {
     if (contrast > desiredContrast)      direction = -1;
     else if (contrast < desiredContrast) direction = 1;
     else                                 direction = 0;
-    if ((direction < 0 && !options.lower) || (direction == 0)) return this;
+    if ((direction < 0 && !options.lower) || (direction === 0)) return this;
 
     // Let's measure the contrast of refColor with black and white to know if
     // desiredContrast can be reached by blackening or whitening movingColor.
@@ -1514,11 +1463,11 @@ export default class Couleur {
 
       // If movingColor is totally black (if towards black) or white (if towards white),
       // i.e. there's no way to go, stop.
-      if ((towards == 'black' && movingColor.ciel == 0) || (towards == 'white' && movingColor.ciel == 1))
+      if ((towards === 'black' && movingColor.ciel === 0) || (towards === 'white' && movingColor.ciel === 1))
         break;
 
       // Let's try to raise contrast by increasing or reducing CIE lightness.
-      const sign = (towards == 'white') ? 1 : -1;
+      const sign = (towards === 'white') ? 1 : -1;
       newColor = new Couleur(`lch(${100 * movingColor.ciel + sign * step}% ${movingColor.ciec} ${movingColor.cieh})`);
       const newContrast = newColor.contrast(refColor);
 
@@ -1602,7 +1551,7 @@ export default class Couleur {
           // Minimize the distance to travel through hues
           const stepUp = ((end[prop] - start[prop]) % 360 + 360) % 360;
           const stepDown = ((start[prop] - end[prop]) % 360 + 360) % 360;
-          step = ((stepUp <= stepDown) ? stepUp : (-1 * stepDown)) / steps;
+          step = ((stepUp <= stepDown) ? stepUp : -stepDown) / steps;
           break;
         default:
           step = (end[prop] - start[prop]) / steps;
@@ -1640,11 +1589,11 @@ export default class Couleur {
    */
   static propertiesOf(format) {
     switch(format) {
-      case 'rgb': return ['r', 'g', 'b'];
-      case 'hsl': return ['h', 's', 'l'];
-      case 'hwb': return ['h', 'w', 'bk'];
-      case 'lab': return ['ciel', 'ciea', 'cieb'];
-      case 'lch': return ['ciel', 'ciec', 'cieh'];
+      case 'rgb': case 'rgba': return ['r', 'g', 'b'];
+      case 'hsl': case 'hsla': return ['h', 's', 'l'];
+      case 'hwb': case 'hwba': return ['h', 'w', 'bk'];
+      case 'lab': case 'laba': return ['ciel', 'ciea', 'cieb'];
+      case 'lch': case 'lcha': return ['ciel', 'ciec', 'cieh'];
       default: return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
     }
   }
