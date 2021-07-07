@@ -69,10 +69,19 @@ class Test {
     if ($resultat === 'Error')
       return $this->resultatAttendu === 'Error';
 
-    // If result is an array of colors, check if they're all the same
+    // If result is an array
     elseif (is_array($resultat)) {
-      foreach($resultat as $k => $c) {
-        if (!Couleur::same($c, $this->resultatAttendu[$k])) return false;
+      $res = true;
+      try {
+        // If the array contains colors / color strings, check if they're all the same
+        foreach($resultat as $k => $c) {
+          $res = $res && (Couleur::same($c, $this->resultatAttendu[$k]));
+        }
+      } catch (Exception $e) {
+        // If not, just compare them
+        foreach($resultat as $k => $e) {
+          $res = $res && ($e === $this->resultatAttendu[$k]);
+        }
       }
       return true;
     }

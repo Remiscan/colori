@@ -43,9 +43,18 @@ export default class Test {
     if (resultat === 'Error')
       return this.resultatAttendu === 'Error';
 
-    // If result is an array of colors, check if they're all the same
-    else if (Array.isArray(resultat))
-      return resultat.every((co, k) => Colour.same(co, this.resultatAttendu[k]));
+    // If result is an array
+    else if (Array.isArray(resultat)) {
+      let res = false;
+      try {
+        // If the array contains colors / color strings, check if they're all the same
+        res = resultat.every((co, k) => Colour.same(co, this.resultatAttendu[k]));
+      } catch (error) {
+        // If not, just compare them
+        res = resultat.every((e, k) => e === this.resultatAttendu[k]);
+      }
+      return res;
+    }
     
     // If expected result is an object, check if it has the same properties and values as the result
     else if (typeof this.resultatAttendu === 'object' && this.resultatAttendu !== null)
@@ -59,10 +68,10 @@ export default class Test {
 
     // Else, try to make colors from the result and expected result and check if they're the same
     else {
-      let tempResult;
-      try { tempResult = Colour.same(resultat, this.resultatAttendu); }
-      catch (error) { }
-      return tempResult || resultat === this.resultatAttendu;
+      let res = false;
+      try { res = Colour.same(resultat, this.resultatAttendu); }
+      catch (error) { res = resultat === this.resultatAttendu; }
+      return res;
     }
   }
 
@@ -105,9 +114,11 @@ export default class Test {
     try {
       if (resultat instanceof Colour) backgroundColor = resultat;
       else if (Array.isArray(resultat)) {
-        const gradient = `linear-gradient(to right, ${resultat.map(c => (new Colour(c)).rgb).join(', ')})`;
-        h3.style.setProperty('--gradient', gradient);
-        backgroundColor = new Colour(resultat[0]);
+        try {
+          const gradient = `linear-gradient(to right, ${resultat.map(c => (new Colour(c)).rgb).join(', ')})`;
+          h3.style.setProperty('--gradient', gradient);
+          backgroundColor = new Colour(resultat[0]);
+        } catch (error) {}
       }
       else if (typeof this.resultatAttendu === 'string') backgroundColor = new Colour(this.resultatAttendu);
   
