@@ -160,11 +160,11 @@
     "fonction": "(new Colour('hsl(350, 25%, 52%)')).negative().rgb",
     "resultatAttendu": "rgb(92, 153, 143)"
   }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).greyscale().hsl",
-    "resultatAttendu": "hsl(128, 0%, 47%, 0.4)"
+    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).greyscale().rgb",
+    "resultatAttendu": "rgb(91, 91, 91, 0.4)"
   }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).grayscale().hsl",
-    "resultatAttendu": "hsl(128, 0%, 47%, 0.4)"
+    "fonction": "(new Colour('rgba(58, 184, 74)')).grayscale().rgb",
+    "resultatAttendu": "rgb(91, 91, 91)"
   }, {
     "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).sepia().rgb",
     "resultatAttendu": "rgb(178, 159, 124, 0.4)"
