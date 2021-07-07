@@ -1185,14 +1185,12 @@ class Couleur
   /** Checks if black or white text would have better contrast with {this}. */
   public function contrastedText() {
     $L = $this->luminance();
-    $LB = 1; // luminance of white
-    $LN = 0; // luminance of black
+    $Lblack = 0; $Lwhite = 1;
     $contrastes = array(
-      ($L + 0.05) / ($LN + 0.05), // contrast between this and black
-      ($LB + 0.05) / ($L + 0.05)  // contrast between white and this
+      ($L + 0.05) / ($Lblack + 0.05),
+      ($Lwhite + 0.05) / ($L + 0.05)
     );
-    if ($contrastes[0] > $contrastes[1])  return 'black'; // if contrast is higher with black
-    else                                  return 'white';
+    return ($contrastes[0] > $contrastes[1]) ? 'black' : 'white';
   }
 
 

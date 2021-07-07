@@ -1394,14 +1394,12 @@ export default class Couleur {
    */
   contrastedText() {
     const L = this.luminance;
-    const LB = 1; // luminance of white
-    const LN = 0; // luminance of black
+    const Lblack = 0, Lwhite = 1;
     const contrastes = [
-      (L + 0.05) / (LN + 0.05), // contrast between this and black
-      (LB + 0.05) / (L + 0.05)  // contrast between white and this
+      (L + 0.05) / (Lblack + 0.05),
+      (Lwhite + 0.05) / (L + 0.05)
     ];
-    if (contrastes[0] > contrastes[1])  return 'black'; // if contrast is higher with black
-    else                                return 'white';
+    return (contrastes[0] > contrastes[1]) ? 'black' : 'white';
   }
 
 
