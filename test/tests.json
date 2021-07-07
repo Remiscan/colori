@@ -66,10 +66,6 @@
     "fonction": "Colour.blend('red', (new Colour('white')).replace('a', '.5')).rgb",
     "resultatAttendu": "rgb(255, 128, 128)"
   }, {
-    "fonction": "(new Colour('white')).blend('rgba(58, 184, 74, 0.4)').rgb",
-    "resultatAttendu": "rgb(176, 227, 183)",
-    "nophp": "1"
-  }, {
     "fonction": "Colour.blend('white', 'rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .5)').rgb",
     "resultatAttendu": "rgb(128, 191, 64)"
   }, {
@@ -154,10 +150,6 @@
   }, {
     "fonction": "Colour.contrast('hsl(200, 10%, 10%)', 'lolilol')",
     "resultatAttendu": "Error"
-  }, {
-    "fonction": "(new Colour('hsl(200, 10%, 10%)')).contrast('rgb(58, 184, 74)')",
-    "resultatAttendu": 6.7566,
-    "nophp": "1"
   }, {
     "fonction": "(new Colour('hsl(200, 10%, 10%)')).contrastedText()",
     "resultatAttendu": "white"
@@ -263,23 +255,11 @@
     "fonction": "Colour.distance('rgb(255, 128, 0)', 'rgb(0, 128, 255)')",
     "resultatAttendu": 2
   }, {
-    "fonction": "(new Colour('rgb(255, 128, 0)')).distance('rgb(0, 128, 255)')",
-    "resultatAttendu": 2,
-    "nophp": "1"
-  }, {
     "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(0, 128, 255)')",
     "resultatAttendu": false
   }, {
-    "fonction": "(new Colour('rgb(255, 128, 0)')).same('rgb(0, 128, 255)')",
-    "resultatAttendu": false,
-    "nophp": "1"
-  }, {
     "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(255, 128, 0)')",
     "resultatAttendu": true
-  }, {
-    "fonction": "(new Colour('rgb(255, 128, 0)')).same('rgb(255, 128, 0)')",
-    "resultatAttendu": true,
-    "nophp": "1"
   }, {
     "fonction": "Colour.APCAcontrast('#888', '#fff')",
     "resultatAttendu": 66.89346308821438

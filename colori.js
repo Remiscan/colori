@@ -1190,11 +1190,6 @@ export default class Couleur {
     else                       return Couleur.unblend(background, ...couleurs);
   }
 
-  /** Non-static version of Couleur.unblend */
-  unblend(...couleurs) {
-    return Couleur.unblend(this, ...couleurs);
-  }
-
 
   /**
    * Solves the equation mix = blend(background, overlay) with overlay unknown.
@@ -1274,11 +1269,6 @@ export default class Couleur {
 
     if (!isNaN(alpha)) return (overlay.a === alpha) ? overlay : null;
     else               return overlay;
-  }
-
-  /** Non-static version of Couleur.whatToBlend */
-  whatToBlend(couleur2, alpha, alphaStep = .1) {
-    return Couleur.whatToBlend(this, couleur2, alpha, alphaStep);
   }
 
 
@@ -1512,11 +1502,6 @@ export default class Couleur {
     return dist;
   }
 
-  /** Non-static version of Couleur.distance */
-  distance(couleur2) {
-    return Couleur.distance(this, couleur2);
-  }
-
 
   /**
    * Determines if two colors are the same, with a certain tolerance.
@@ -1575,11 +1560,6 @@ export default class Couleur {
     }
 
     return [...intermediateColors.map(c => new Couleur(Couleur.expr(format, c))), end];
-  }
-
-  /** Non-static version of Couleur.gradient */
-  gradient(end, steps = 5, format = 'lch') {
-    return Couleur.gradient(this, end, steps, format);
   }
 
 
