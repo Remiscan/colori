@@ -724,6 +724,14 @@ export default class Couleur {
   /** @returns {number} Gets the parsed value of the CIE hue (cieh) property, in [0, 360]. */
   get cieh() { return Couleur.lab2lch(Couleur.rgb2lab(this.values))[2]; }
 
+  /** @returns {number} Luminance of the color. */
+  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
+  get luminance() {
+    if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
+    let rgb = Couleur.gamRGB_linRGB(this.values);
+    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+  }
+
 
 
   /************************************/
@@ -1093,7 +1101,10 @@ export default class Couleur {
   invert() { return this.negative(); }
 
   /** @returns {Couleur} The shade of grey of the color. */
-  greyscale() { return this.replace('s', '0%'); }
+  greyscale() {
+    const L = 255 * this.replace('a', 1).luminance;
+    return new Couleur(`rgb(${L}, ${L}, ${L}, ${this.a})`);
+  }
   grayscale() { return this.greyscale(); }
 
   /** @returns {Couleur} The sepia tone of the color. */
@@ -1273,15 +1284,6 @@ export default class Couleur {
 
 
   /* Color comparison */
-
-
-  /** @returns {number} Luminance of the color. */
-  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
-  get luminance() {
-    if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
-    let rgb = Couleur.gamRGB_linRGB(this.values);
-    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
-  }
 
 
   /**

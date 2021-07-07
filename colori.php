@@ -637,6 +637,14 @@ class Couleur
 
   public function cieh() { return self::lab2lch(self::rgb2lab($this->values()))[2]; }
 
+  /** Luminance of the color. */
+  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
+  public function luminance() {
+    if ($this->a < 1) throw new Exception('The luminance of a transparent color would be meaningless');
+    $rgb = self::gamRGB_linRGB($this->values());
+    return 0.2126 * $rgb[0] + 0.7152 * $rgb[1] + 0.0722 * $rgb[2];
+  }
+
 
 
   /************************************/
@@ -940,7 +948,11 @@ class Couleur
   public function invert() { return $this->negative(); }
 
   /** The shade of grey of the color. */
-  public function greyscale() { return $this->replace('s', '0%'); }
+  public function greyscale() {
+    $L = 255 * $this->replace('a', 1)->luminance();
+    $a = $this->a;
+    return new self("rgb(${L}, ${L}, ${L}, ${a})");
+  }
   public function grayscale() { return $this->greyscale(); }
 
   /** The sepia tone of the color. */
@@ -1084,15 +1096,6 @@ class Couleur
 
 
   /* Color comparison */
-
-
-  /** Luminance of the color. */
-  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
-  public function luminance() {
-    if ($this->a < 1) throw new Exception('The luminance of a transparent color would be meaningless');
-    $rgb = self::gamRGB_linRGB($this->values());
-    return 0.2126 * $rgb[0] + 0.7152 * $rgb[1] + 0.0722 * $rgb[2];
-  }
 
 
   /** Computes the contrast between two colors as defined by WCAG2. */
