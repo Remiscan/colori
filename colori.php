@@ -1200,13 +1200,14 @@ class Couleur
     if (!isset($options->lower)) $options->lower = false;
     if (!isset($options->maxIterations)) $options->maxIterations = 1000;
     if (!isset($options->towards)) $options->towards = null;
+    if (!isset($options->contrastMethod)) $options->contrastMethod = 'WCAG2';
 
     $movingColor = new self($this->rgb());
     $refColor = self::check($referenceColor);
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    $contrast = self::contrast($movingColor, $refColor);
+    $contrast = self::contrast($movingColor, $refColor, $options->contrastMethod);
     if ($contrast > $desiredContrast)     $direction = -1;
     elseif ($contrast < $desiredContrast) $direction = 1;
     else                                  $direction = 0;
@@ -1214,8 +1215,8 @@ class Couleur
 
     // Let's measure the contrast of refColor with black and white to know if
     // desiredContrast can be reached by blackening or whitening movingColor.
-    $contrastWhite = self::contrast($refColor, 'white');
-    $contrastBlack = self::contrast($refColor, 'black');
+    $contrastWhite = self::contrast($refColor, 'white', $options->contrastMethod);
+    $contrastBlack = self::contrast($refColor, 'black', $options->contrastMethod);
     $towardsWhite = ($direction > 0) ? ($contrastWhite >= $desiredContrast)
                                      : ($contrastWhite <= $desiredContrast);
     $towardsBlack = ($direction > 0) ? ($contrastBlack >= $desiredContrast)
@@ -1251,7 +1252,7 @@ class Couleur
       // Let's try to raise contrast by increasing or reducing CIE lightness.
       $sign = ($towards === 'white') ? 1 : -1;
       $newColor = $movingColor->replace('ciel', self::unparse('ciel', $movingColor->ciel() + $sign * .01 * $step));
-      $newContrast = self::contrast($newColor, $refColor);
+      $newContrast = self::contrast($newColor, $refColor, $options->contrastMethod);
 
       // If we overshot a little, stop.
       // (We want to overshoot when we're raising contrast, but not when we're lowering it!)

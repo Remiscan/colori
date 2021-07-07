@@ -1409,25 +1409,27 @@ export default class Couleur {
    * @param {number} desiredContrast - The contrast to reach between referenceColor and {this}.
    * @param {number} step - The quantity that will be added to/substracted from {this.ciel} at each step.
    * @param {Object} options
-   * @param {boolean} options.lower - Whether contrast should be lowered if it's already bigger than desiredContrast.
-   * @param {number} options.maxIterations - The maximum number of times the color will be altered.
-   * @param {('black'|'white'|null)} options.towards - 'black' if {this} should change towards black (lower its lightness),
+   * @param {boolean?} options.lower - Whether contrast should be lowered if it's already bigger than desiredContrast.
+   * @param {number?} options.maxIterations - The maximum number of times the color will be altered.
+   * @param {('black'|'white')?} options.towards - 'black' if {this} should change towards black (lower its lightness),
    *                                                   'white' if {this} should change towards white (raise its lightness),
    *                                                   null if that choice should be made automatically (if the function
    *                                                   can't guess, 'black' will be chosen).
+   * @param {string?} options.contrastMethod - The method to use to compute the contrast. 'WCAG2' by default.
    * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
    */
   improveContrast(referenceColor, desiredContrast, step = 2, options = {}) {
     if (typeof options.lower === 'undefined') options.lower = false;
     if (typeof options.maxIterations === 'undefined') options.maxIterations = 100;
     if (typeof options.towards === 'undefined') options.towards = null;
+    if (typeof options.contrastMethod === 'undefined') options.contrastMethod = 'WCAG2';
 
     let movingColor = new Couleur(`${this.rgb}`);
     let refColor = Couleur.check(referenceColor);
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    let contrast = movingColor.contrast(refColor);
+    let contrast = movingColor.contrast(refColor, options.contrastMethod);
     let direction;
     if (contrast > desiredContrast)      direction = -1;
     else if (contrast < desiredContrast) direction = 1;
@@ -1436,8 +1438,8 @@ export default class Couleur {
 
     // Let's measure the contrast of refColor with black and white to know if
     // desiredContrast can be reached by blackening or whitening movingColor.
-    const contrastWhite = refColor.contrast('white');
-    const contrastBlack = refColor.contrast('black');
+    const contrastWhite = refColor.contrast('white', options.contrastMethod);
+    const contrastBlack = refColor.contrast('black', options.contrastMethod);
     const towardsWhite = (direction > 0) ? contrastWhite >= desiredContrast
                                          : contrastWhite <= desiredContrast;
     const towardsBlack = (direction > 0) ? contrastBlack >= desiredContrast
@@ -1476,7 +1478,7 @@ export default class Couleur {
       // Let's try to raise contrast by increasing or reducing CIE lightness.
       const sign = (towards === 'white') ? 1 : -1;
       newColor = movingColor.replace('ciel', Couleur.unparse('ciel', movingColor.ciel + sign * .01 * step));
-      const newContrast = newColor.contrast(refColor);
+      const newContrast = newColor.contrast(refColor, options.contrastMethod);
 
       // If we overshot a little, stop.
       // (We want to overshoot when we're raising contrast, but not when we're lowering it!)
