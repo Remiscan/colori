@@ -378,6 +378,12 @@ export default class Couleur {
   }
 
 
+  /* ALL VALUES (r, g, b) */
+
+  /** @returns {number[]} The array of r, g, b values of the color. */
+  get values() { return [this.r, this.g, this.b]; }
+
+
   /* NAME */
 
   /** @returns {?string} The approximate name of the color. */
@@ -480,12 +486,12 @@ export default class Couleur {
 
   /** @returns {string} RGB expression of the color. */
   get rgb() {
-    return Couleur.expr('rgb', [this.r, this.g, this.b, this.a]);
+    return Couleur.expr('rgb', [...this.values, this.a]);
   }
 
   /** @returns {string} RGBA expression of the color. */
   get rgba() {
-    return Couleur.expr('rgba', [this.r, this.g, this.b, this.a]);
+    return Couleur.expr('rgba', [...this.values, this.a]);
   }
 
 
@@ -504,13 +510,13 @@ export default class Couleur {
 
   /** @returns {string} HSL expression of the color. */
   get hsl() {
-    const hsl = Couleur.rgb2hsl([this.r, this.g, this.b]);
+    const hsl = Couleur.rgb2hsl(this.values);
     return Couleur.expr('hsl', [...hsl, this.a]);
   }
 
   /** @returns {string} HSLA expression of the color. */
   get hsla() {
-    const hsl = Couleur.rgb2hsl([this.r, this.g, this.b]);
+    const hsl = Couleur.rgb2hsl(this.values);
     return Couleur.expr('hsla', [...hsl, this.a]);
   }
 
@@ -530,7 +536,7 @@ export default class Couleur {
 
   /** @returns {string} HWB expression of the color. */
   get hwb() {
-    const hwb = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
+    const hwb = Couleur.hsl2hwb(Couleur.rgb2hsl(this.values));
     return Couleur.expr('hwb', [...hwb, this.a]);
   }
 
@@ -555,13 +561,13 @@ export default class Couleur {
 
   /** @returns {string} LAB expression of the color. */
   get lab() {
-    const lab = Couleur.rgb2lab([this.r, this.g, this.b]);
+    const lab = Couleur.rgb2lab(this.values);
     return Couleur.expr('lab', [...lab, this.a]);
   }
 
   /** @returns {string} LAB expression of the color, but always with the alpha value. */
   get laba() {
-    const lab = Couleur.rgb2lab([this.r, this.g, this.b]);
+    const lab = Couleur.rgb2lab(this.values);
     return Couleur.expr('laba', [...lab, this.a]);
   }
 
@@ -581,13 +587,13 @@ export default class Couleur {
 
   /** @returns {string} LCH expression of the color. */
   get lch() {
-    const lch = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
+    const lch = Couleur.lab2lch(Couleur.rgb2lab(this.values));
     return Couleur.expr('lch', [...lch, this.a]);
   }
 
   /** @returns {string} LCH expression of the color, but always with the alpha value. */
   get lcha() {
-    const lch = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
+    const lch = Couleur.lab2lch(Couleur.rgb2lab(this.values));
     return Couleur.expr('lcha', [...lch, this.a]);
   }
 
@@ -597,57 +603,58 @@ export default class Couleur {
   /* Setters and getters for color properties */
   /********************************************/
 
+  
   /**
    * Recalculates the r, g, b properties of the color after modifying its hue (h) property.
-   * @param {number|string} val - The parsed new value of h as a number or angle.
+   * @param {number} val - The parsed new value of h.
    */
   set h(val) {
-    const [x, s, l] = Couleur.rgb2hsl([this.r, this.g, this.b]);
+    const [x, s, l] = Couleur.rgb2hsl(this.values);
     this.hsl = [val, s, l, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its saturation (s) property.
-   * @param {string} val - The parsed new value of s as a percentage.
+   * @param {number} val - The parsed new value of s.
    */
   set s(val) {
-    const [h, x, l] = Couleur.rgb2hsl([this.r, this.g, this.b]);
+    const [h, x, l] = Couleur.rgb2hsl(this.values);
     this.hsl = [h, val, l, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its luminosity (l) property.
-   * @param {string} val - The parsed new value of l as a percentage.
+   * @param {number} val - The parsed new value of l.
    */
   set l(val) {
-    const [h, s, x] = Couleur.rgb2hsl([this.r, this.g, this.b]);
+    const [h, s, x] = Couleur.rgb2hsl(this.values);
     this.hsl = [h, s, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its whiteness (w) property.
-   * @param {string} val - The parsed new value of w as a percentage.
+   * @param {number} val - The parsed new value of w.
    */
   set w(val) {
-    const [h, x, bk] = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
+    const [h, x, bk] = Couleur.hsl2hwb(Couleur.rgb2hsl(this.values));
     this.hwb = [h, val, bk, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hwb'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its blackness (bk) property.
-   * @param {string} val - The parsed new value of bk as a percentage.
+   * @param {number} val - The parsed new value of bk.
    */
   set bk(val) {
-    const [h, w, x] = Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]));
+    const [h, w, x] = Couleur.hsl2hwb(Couleur.rgb2hsl(this.values));
     this.hwb = [h, w, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hwb'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its CIE lightness (ciel) property.
-   * @param {string} val - The parsed new value of ciel as a percentage.
+   * @param {number} val - The parsed new value of ciel.
    */
   set ciel(val) {
-    const [x, ciea, cieb] = Couleur.rgb2lab([this.r, this.g, this.b]);
+    const [x, ciea, cieb] = Couleur.rgb2lab(this.values);
     this.lab = [val, ciea, cieb, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
   }
 
@@ -656,7 +663,7 @@ export default class Couleur {
    * @param {number} val - The parsed new value of ciea.
    */
   set ciea(val) {
-    const [ciel, x, cieb] = Couleur.rgb2lab([this.r, this.g, this.b]);
+    const [ciel, x, cieb] = Couleur.rgb2lab(this.values);
     this.lab = [ciel, val, cieb, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lab'), 'a'][k], v));
   }
 
@@ -665,7 +672,7 @@ export default class Couleur {
    * @param {number} val - The parsed new value of cieb.
    */
   set cieb(val) {
-    const [ciel, ciea, x] = Couleur.rgb2lab([this.r, this.g, this.b]);
+    const [ciel, ciea, x] = Couleur.rgb2lab(this.values);
     this.lab = [ciel, ciea, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lab'), 'a'][k], v));
   }
 
@@ -674,48 +681,48 @@ export default class Couleur {
    * @param {number} val - The parsed new value of ciec.
    */
   set ciec(val) {
-    const [ciel, x, cieh] = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
+    const [ciel, x, cieh] = Couleur.lab2lch(Couleur.rgb2lab(this.values));
     this.lch = [ciel, val, cieh, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
   }
 
   /**
    * Recalculates the r, g, b properties of the color after modifying its CIE hue (cieh) property.
-   * @param {number|string} val - The parsed new value of cieh as a number or angle.
+   * @param {number} val - The parsed new value of cieh.
    */
   set cieh(val) {
-    const [ciel, ciec, x] = Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]));
+    const [ciel, ciec, x] = Couleur.lab2lch(Couleur.rgb2lab(this.values));
     this.lch = [ciel, ciec, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
   }
 
   /** @returns {number} Gets the parsed value of the hue (h) property, in [0, 360]. */
-  get h() { return Couleur.rgb2hsl([this.r, this.g, this.b])[0]; }
+  get h() { return Couleur.rgb2hsl(this.values)[0]; }
 
   /** @returns {number} Gets the parsed value of the saturation (s) property, in [0, 1]. */
-  get s() { return Couleur.rgb2hsl([this.r, this.g, this.b])[1]; }
+  get s() { return Couleur.rgb2hsl(this.values)[1]; }
 
   /** @returns {number} Gets the parsed value of the luminosity (l) property, in [0, 1]. */
-  get l() { return Couleur.rgb2hsl([this.r, this.g, this.b])[2]; }
+  get l() { return Couleur.rgb2hsl(this.values)[2]; }
 
   /** @returns {number} Gets the parsed value of the whiteness (w) property, in [0, 1]. */
-  get w() { return Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]))[1]; }
+  get w() { return Couleur.hsl2hwb(Couleur.rgb2hsl(this.values))[1]; }
 
   /** @returns {number} Gets the parsed value of the blackness (bk) property, in [0, 1]. */
-  get bk() { return Couleur.hsl2hwb(Couleur.rgb2hsl([this.r, this.g, this.b]))[2]; }
+  get bk() { return Couleur.hsl2hwb(Couleur.rgb2hsl(this.values))[2]; }
 
   /** @returns {number} Gets the parsed value of the CIE lightness (ciel) property, in [0, 1]. */
-  get ciel() { return Couleur.rgb2lab([this.r, this.g, this.b])[0]; }
+  get ciel() { return Couleur.rgb2lab(this.values)[0]; }
 
   /** @returns {number} Gets the parsed value of the CIE A-axie (ciea) property, unbounded. */
-  get ciea() { return Couleur.rgb2lab([this.r, this.g, this.b])[1]; }
+  get ciea() { return Couleur.rgb2lab(this.values)[1]; }
 
   /** @returns {number} Gets the parsed value of the CIE B-axis (cieb) property, unbounded. */
-  get cieb() { return Couleur.rgb2lab([this.r, this.g, this.b])[2]; }
+  get cieb() { return Couleur.rgb2lab(this.values)[2]; }
 
   /** @returns {number} Gets the parsed value of the CIE chroma (ciec) property, in [0, +Inf]. */
-  get ciec() { return Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]))[1]; }
+  get ciec() { return Couleur.lab2lch(Couleur.rgb2lab(this.values))[1]; }
 
   /** @returns {number} Gets the parsed value of the CIE hue (cieh) property, in [0, 360]. */
-  get cieh() { return Couleur.lab2lch(Couleur.rgb2lab([this.r, this.g, this.b]))[2]; }
+  get cieh() { return Couleur.lab2lch(Couleur.rgb2lab(this.values))[2]; }
 
 
 
@@ -817,7 +824,7 @@ export default class Couleur {
 
   /** @returns {boolean} Whether the color is in sRGB space, i.e. whether its r, g and b values are all in [0, 1]. */
   inSRGB() {
-    return Couleur.inSRGB([this.r, this.g, this.b]);
+    return Couleur.inSRGB(this.values);
   }
 
   /**
@@ -847,7 +854,7 @@ export default class Couleur {
 
   /** @returns {Couleur} The closest color that's in sRGB space. */
   clampToSRGB() {
-    this.rgb = Couleur.clampToSRGB([this.r, this.g, this.b]);
+    this.rgb = Couleur.clampToSRGB(this.values);
   }
 
 
@@ -897,9 +904,7 @@ export default class Couleur {
    */
   static hsl2rgb(hsl) {
     // source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
-    const h = hsl[0]; // h in [0, 360]
-    const s = hsl[1]; // s & l in [0, 1]
-    const l = hsl[2];
+    const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
 
     const m = s * Math.min(l, 1 - l);
     const k = n => (n + h / 30) % 12;
@@ -1274,7 +1279,7 @@ export default class Couleur {
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   get luminance() {
     if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
-    let rgb = Couleur.gamRGB_linRGB([this.r, this.g, this.b]);
+    let rgb = Couleur.gamRGB_linRGB(this.values);
     return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
   }
 
@@ -1334,21 +1339,23 @@ export default class Couleur {
     let result;
     const scale = 1.25;
     const compute = (Lback, Ltext, powBack, powText) => (Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * scale;
-    const lowClip = 0.001, lowTrigger = 0.078, lowOffset = 0.06;
+    const lowClip = 0.001, lowTrigger = 0.078, lowOffset = 0.06, invLowTrigger = 12.82051282051282;
+
     // for dark text on light background
     if (Lback > Ltext) {
       const powBack = 0.55, powText = 0.58;
       const SAPC = compute(Lback, Ltext, powBack, powText);
       result = (SAPC < lowClip) ? 0
-             : (SAPC < lowTrigger) ? SAPC * (1 - lowOffset / lowTrigger)
+             : (SAPC < lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
              : SAPC - lowOffset;
     }
+
     // for light text on dark background
     else {
       const powBack = 0.62, powText = 0.57;
       const SAPC = compute(Lback, Ltext, powBack, powText);
       result = (SAPC > -lowClip) ? 0
-             : (SAPC > -lowTrigger) ? SAPC * (1 - lowOffset / lowTrigger)
+             : (SAPC > -lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
              : SAPC + lowOffset;
     }
 
@@ -1425,7 +1432,7 @@ export default class Couleur {
     if (contrast > desiredContrast)      direction = -1;
     else if (contrast < desiredContrast) direction = 1;
     else                                 direction = 0;
-    if ((direction < 0 && !options.lower) || (direction === 0)) return this;
+    if ((direction < 0 && options.lower === false) || (direction === 0)) return this;
 
     // Let's measure the contrast of refColor with black and white to know if
     // desiredContrast can be reached by blackening or whitening movingColor.
@@ -1498,7 +1505,7 @@ export default class Couleur {
     const couleur2 = Couleur.check(_couleur2);
 
     const dist = ['r', 'g', 'b'].reduce((sum, prop) => sum + Math.abs(couleur1[prop] - couleur2[prop]), 0);
-    return Couleur.pRound(dist, 3);
+    return dist;
   }
 
   /** Non-static version of Couleur.distance */
