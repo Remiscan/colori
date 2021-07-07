@@ -5,7 +5,9 @@
  */
 export default class Couleur {
   /**
-   * Creates a new Couleur object that contains precalculated properties of the color.
+   * Creates a new Couleur object that contains r, g, b, a properties of the color.
+   * These properties will take their values from sRGB color space, even if they're out of bounds.
+   * (This means values <0 or >1 can be stored — they can be clamped to a specific color space when needed.)
    * @param {colorString} couleur - Color expression in a supported format.
    * @throws {string} when the parameter isn't a valid color string.
    */
@@ -41,7 +43,6 @@ export default class Couleur {
         this.hsl = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
         break;
       case 'HWB':
-      case 'HWBA':
         this.hwb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
         break;
       case 'LAB':
@@ -84,38 +85,31 @@ export default class Couleur {
   static matchSyntax(couleur) {
     const tri = couleur.slice(0, 3);
     const allFormats = Couleur.formats;
-    let formats;
+    
+    // Predetermine the format, to save regex-matching time
+    let format;
+    if (tri.slice(0, 1) === '#') format = allFormats[0];
+    else if (tri === 'rgb')      format = allFormats[1];
+    else if (tri === 'hsl')      format = allFormats[2];
+    else if (tri === 'hwb')      format = allFormats[3];
+    else if (tri === 'lab')      format = allFormats[4];
+    else if (tri === 'lch')      format = allFormats[5];
+    else                         format = allFormats[6];
 
-    if (tri.slice(0, 1) === '#')
-      formats = [allFormats[0], allFormats[1]];
-    else if (tri === 'rgb')
-      formats = [allFormats[2], allFormats[3]];
-    else if (tri === 'hsl')
-      formats = [allFormats[4], allFormats[5]];
-    else if (tri === 'hwb')
-      formats = [allFormats[6], allFormats[7]];
-    else if (tri === 'lab')
-      formats = [allFormats[8]];
-    else if (tri === 'lch')
-      formats = [allFormats[9]];
-    else
-      formats = [allFormats[10]];
-
-    for (const format of formats) {
-      for (const [k, syntaxe] of format.syntaxes.entries()) {
-        const result = couleur.match(syntaxe);
-        if (result != null && result[0] === couleur) {
-          if (format.id === 'NAME') {
-            const allNames = Couleur.couleursNommees;
-            if (couleur.toLowerCase() in allNames)
-              return Couleur.matchSyntax('#' + allNames[couleur.toLowerCase()]);
-          }
-          return {
-            id: format.id,
-            syntaxe: k,
-            data: result
-          };
+    // Check if the given string matches any color syntax
+    for (const [k, syntaxe] of format.syntaxes.entries()) {
+      const result = couleur.match(syntaxe);
+      if (result != null && result[0] === couleur) {
+        if (format.id === 'NAME') {
+          const allNames = Couleur.couleursNommees;
+          const name = couleur.toLowerCase();
+          if (name in allNames) return Couleur.matchSyntax('#' + allNames[name]);
         }
+        return {
+          id: format.id,
+          syntaxe: k,
+          data: result
+        };
       }
     }
 
@@ -127,20 +121,14 @@ export default class Couleur {
    * Calculates all the color properties from the already defined ones.
    * @param {string} knownFormat - Name of the already know format.
    */
-  compute(knownFormat, values, clamp = Couleur.mustClampToSRGB) {
+  compute(knownFormat, values) {
     let rgb;
     switch (knownFormat) {
       case 'rgb': rgb = values; break;
       case 'hsl': rgb = Couleur.hsl2rgb(values); break;
       case 'hwb': rgb = Couleur.hsl2rgb(Couleur.hwb2hsl(values)); break;
-      case 'lab':
-        if (clamp) rgb = Couleur.clampToSRGB(Couleur.lab2rgb(values));
-        else       rgb = Couleur.lab2rgb(values);
-        break;
-      case 'lch':
-        if (clamp) rgb = Couleur.clampToSRGB(Couleur.lab2rgb(Couleur.lch2lab(values)));
-        else       rgb = Couleur.lab2rgb(Couleur.lch2lab(values));
-        break;
+      case 'lab': rgb = Couleur.lab2rgb(values); break;
+      case 'lch': rgb = Couleur.lab2rgb(Couleur.lch2lab(values)); break;
     }
     [this.r, this.g, this.b] = rgb.map(v => Couleur.pRound(v));
   }
@@ -176,10 +164,14 @@ export default class Couleur {
    * Parses a number / percentage / angle into the correct format to store it.
    * @param {(string|number)} n - The value to parse.
    * @param {?string} type - The color parameter that has n as its value.
-   * @param {boolean} clamp - Whether the value should de clamped to an interval.
+   * @param {object} options
+   * @param {boolean} options.clamp - Whether the value should de clamped to its sRGB interval.
    * @returns {number} The properly parsed number.
    */
-  static parse(n, type = null, clamp = true) {
+  static parse(n, type = null, options = {}) {
+    if (typeof options.clamp === 'undefined') options.clamp = true;
+    const clamp = options.clamp;
+
     // Alpha values:
     // from any % or any number
     // clamped to [0, 100]% or [0, 1]
@@ -308,10 +300,14 @@ export default class Couleur {
    * Unparses a value to the format that would be used in a CSS expression.
    * @param {string} prop - Name of the property that has the value.
    * @param {number} value - Value to unparse.
-   * @param {boolean} round - Whether to round the unparsed value.
+   * @param {object} options
+   * @param {boolean} options.round - Whether to round the unparsed value.
    * @returns {string} The unparsed value, ready to insert in a CSS expression.
    */
-  static unparse(prop, value, round = true) {
+  static unparse(prop, value, options = {}) {
+    if (typeof options.round === 'undefined') options.round = true;
+    const round = options.round;
+
     switch (prop) {
       case 'r': case 'g': case 'b':
         return round ? `${Math.round(255 * value)}` : `${255 * value}`;
@@ -353,14 +349,19 @@ export default class Couleur {
    * Gets the CSS expression of a color.
    * @param {string} format - The format of the expression.
    * @param {number[]} values - The values of the color's properties.
-   * @param {boolean} round - Whether to round the values in the expression.
+   * @param {object?} options
+   * @param {boolean} options.round - Whether to round the values in the expression.
+   * @param {string} options.clamp - Which color space the values should be clamped to.
    * @returns {string} The expression of the color in the requested format.
    */
-  static expr(format, values, round = true) {
-    const props = Couleur.propertiesOf(format);
-    const a = Couleur.unparse('a', values[3], round);
-    const [x, y, z] = props.map((p, k) => Couleur.unparse(p, values[k], round));
+  static expr(format, values, options = {}) {
+    if (typeof options.round === 'undefined') options.round = true;
 
+    const props = Couleur.propertiesOf(format);
+    const a = Couleur.unparse('a', values[3], { round: options.round });
+    const [x, y, z] = props.map((p, k) => Couleur.unparse(p, values[k], { round: options.round }));
+
+    // Let's create the expression string
     switch (format) {
       case 'rgb': case 'rgba': case 'hsl': case 'hsla': {
         if ((format.length > 3 && format.slice(-1) === 'a') || a < 1)
@@ -486,12 +487,14 @@ export default class Couleur {
 
   /** @returns {string} RGB expression of the color. */
   get rgb() {
-    return Couleur.expr('rgb', this.values);
+    const values = Couleur.clampToColorSpace('srgb', this.values.slice(0, 3));
+    return Couleur.expr('rgb', [...values, this.a]);
   }
 
   /** @returns {string} RGBA expression of the color. */
   get rgba() {
-    return Couleur.expr('rgba', this.values);
+    const values = Couleur.clampToColorSpace('srgb', this.values.slice(0, 3));
+    return Couleur.expr('rgba', [...values, this.a]);
   }
 
 
@@ -510,13 +513,13 @@ export default class Couleur {
 
   /** @returns {string} HSL expression of the color. */
   get hsl() {
-    const hsl = Couleur.rgb2hsl(this.values);
+    const hsl = Couleur.rgb2hsl(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3)));
     return Couleur.expr('hsl', [...hsl, this.a]);
   }
 
   /** @returns {string} HSLA expression of the color. */
   get hsla() {
-    const hsl = Couleur.rgb2hsl(this.values);
+    const hsl = Couleur.rgb2hsl(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3)));
     return Couleur.expr('hsla', [...hsl, this.a]);
   }
 
@@ -536,12 +539,13 @@ export default class Couleur {
 
   /** @returns {string} HWB expression of the color. */
   get hwb() {
-    const hwb = Couleur.hsl2hwb(Couleur.rgb2hsl(this.values));
+    const hwb = Couleur.hsl2hwb(Couleur.rgb2hsl(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3))));
     return Couleur.expr('hwb', [...hwb, this.a]);
   }
 
   /** @returns {string} HWB expression of the color, but always with the alpha value. */
   get hwba() {
+    const hwb = Couleur.hsl2hwb(Couleur.rgb2hsl(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3))));
     return Couleur.expr('hwba', [...hwb, this.a]);
   }
 
@@ -561,14 +565,14 @@ export default class Couleur {
 
   /** @returns {string} LAB expression of the color. */
   get lab() {
-    const lab = Couleur.rgb2lab(this.values);
-    return Couleur.expr('lab', [...lab, this.a]);
+    const lab = Couleur.rgb2lab(Couleur.clampToColorSpace('lab', this.values.slice(0, 3)));
+    return Couleur.expr('lab', [...lab, this.a], { clamp: 'lab' });
   }
 
   /** @returns {string} LAB expression of the color, but always with the alpha value. */
   get laba() {
-    const lab = Couleur.rgb2lab(this.values);
-    return Couleur.expr('laba', [...lab, this.a]);
+    const lab = Couleur.rgb2lab(Couleur.clampToColorSpace('lab', this.values.slice(0, 3)));
+    return Couleur.expr('laba', [...lab, this.a], { clamp: 'lab' });
   }
 
 
@@ -587,14 +591,14 @@ export default class Couleur {
 
   /** @returns {string} LCH expression of the color. */
   get lch() {
-    const lch = Couleur.lab2lch(Couleur.rgb2lab(this.values));
-    return Couleur.expr('lch', [...lch, this.a]);
+    const lch = Couleur.lab2lch(Couleur.rgb2lab(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3))));
+    return Couleur.expr('lch', [...lch, this.a], { clamp: 'lab' });
   }
 
   /** @returns {string} LCH expression of the color, but always with the alpha value. */
   get lcha() {
-    const lch = Couleur.lab2lch(Couleur.rgb2lab(this.values));
-    return Couleur.expr('lcha', [...lch, this.a]);
+    const lch = Couleur.lab2lch(Couleur.rgb2lab(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3))));
+    return Couleur.expr('lcha', [...lch, this.a], { clamp: 'lab' });
   }
 
 
@@ -821,48 +825,48 @@ export default class Couleur {
   }
 
   /**
-   * Checks whether the given r, g and b values would make a color in sRGB space.
-   * @param {number[]} rgb - Array of parsed r, g and b values.
-   * @returns {boolean} Whether r, g and b are all in [0, 1].
+   * Checks whether parsed r, g, b values correspond to a color in a given color space.
+   * @param {string} space - The identifier of the color space.
+   * @param {number[]} rgb - Array of parsed r, g, b values.
+   * @returns {boolean} Whether r, g, b are all in [0, 1].
    */
-  static inSRGB(rgb) {
+  static inColorSpace(space, rgb) {
     const ε = .00001;
-    return rgb.reduce((sum, v) => sum && v > (0 - ε) && v < (1 + ε), true);
-  }
-
-  /** @returns {boolean} Whether the color is in sRGB space, i.e. whether its r, g and b values are all in [0, 1]. */
-  inSRGB() {
-    return Couleur.inSRGB(this.values);
+    switch (space) {
+      case 'srgb': return rgb.reduce((sum, v) => sum && v > (0 - ε) && v < (1 + ε), true);
+      default: return undefined;
+    }
   }
 
   /**
-   * Clamps parsed r, g and b values to sRGB space by clamping their chroma.
-   * @param {number[]} rgb - Array of parsed r, g and b values.
-   * @returns {number[]} The array of clamped r, g and b values.
+   * Clamps parsed r, g, b values to a given color space.
+   * @param {string} space - The identifier of the color space.
+   * @param {number[]} rgb - Array of parsed r, g, b values.
+   * @returns {number[]} The array of clamped r, g, b values.
    */
-  static clampToSRGB(rgb) {
-    // Source of the math: https://css.land/lch/lch.js
-    if (Couleur.inSRGB(rgb)) return rgb;
-    let lch = Couleur.lab2lch(Couleur.rgb2lab(rgb));
+  static clampToColorSpace(space, rgb) {
+    switch (space) {
+      case 'srgb': {
+        // Source of the math: https://css.land/lch/lch.js
+        if (Couleur.inColorSpace('srgb', rgb)) return rgb;
+        let lch = Couleur.lab2lch(Couleur.rgb2lab(rgb));
 
-    const τ = .0001;
-    let Cmin = 0;
-    let Cmax = lch[1];
-    lch[1] = lch[1] / 2;
+        const τ = .0001;
+        let Cmin = 0;
+        let Cmax = lch[1];
+        lch[1] = lch[1] / 2;
 
-    const condition = lch => Couleur.inSRGB(Couleur.lab2rgb(Couleur.lch2lab(lch)));
-    while (Cmax - Cmin > τ) {
-      if (condition(lch)) Cmin = lch[1];
-      else                Cmax = lch[1];
-      lch[1] = (Cmin + Cmax) / 2;
+        const condition = lch => Couleur.inColorSpace('srgb', Couleur.lab2rgb(Couleur.lch2lab(lch)));
+        while (Cmax - Cmin > τ) {
+          if (condition(lch)) Cmin = lch[1];
+          else                Cmax = lch[1];
+          lch[1] = (Cmin + Cmax) / 2;
+        }
+
+        return Couleur.lab2rgb(Couleur.lch2lab(lch));
+      }
+      default: return rgb;
     }
-
-    return Couleur.lab2rgb(Couleur.lch2lab(lch));
-  }
-
-  /** @returns {Couleur} The closest color that's in sRGB space. */
-  clampToSRGB() {
-    this.rgb = Couleur.clampToSRGB(this.values);
   }
 
 
@@ -1062,7 +1066,7 @@ export default class Couleur {
    change(propriete, valeur, options = {}) {
     const replace = (options === true) || ((typeof options.replace != 'undefined') ? options.replace : false);
     const scale = (typeof options.scale != 'undefined') ? options.scale : false;
-    const val = scale ? Couleur.parse(valeur) : Couleur.parse(valeur, propriete, false);
+    const val = scale ? Couleur.parse(valeur) : Couleur.parse(valeur, propriete, { clamp: false });
     const changedColor = new Couleur(this.rgb);
 
     const oldVal = this[propriete];
@@ -1128,11 +1132,11 @@ export default class Couleur {
     if (couleurs.length < 2) throw `You need at least 2 colors to blend`;
     const background = Couleur.check(couleurs.shift());
     const overlay = Couleur.check(couleurs.shift());
-    let result;
+    let mix;
 
     calculation: {
       if (overlay.a === 0) {
-        result = background;
+        mix = background;
         break calculation;
       }
 
@@ -1140,46 +1144,41 @@ export default class Couleur {
       const r = (overlay.r * overlay.a + background.r * background.a * (1 - overlay.a)) / a;
       const g = (overlay.g * overlay.a + background.g * background.a * (1 - overlay.a)) / a;
       const b = (overlay.b * overlay.a + background.b * background.a * (1 - overlay.a)) / a;
-      result = new Couleur(Couleur.expr('rgb', [r, g, b, a]));
+      mix = new Couleur(Couleur.expr('rgb', [r, g, b, a]));
     }
 
-    if (couleurs.length === 0) return result;
-    else                       return Couleur.blend(result, ...couleurs);
-  }
-
-  /** Non-static version of Couleur.blend */
-  blend(...couleurs) {
-    return Couleur.blend(this, ...couleurs);
+    if (couleurs.length === 0) return mix;
+    else                       return Couleur.blend(mix, ...couleurs);
   }
 
 
   /**
-   * Solves the equation result = blend(background, ...overlays) with background unknown.
+   * Solves the equation mix = blend(background, ...overlays) with background unknown.
    * @param  {...color} couleurs - Colors to unblend.
    * @returns {?Couleur} The solution to the equation, if it has one.
    * @throws if the equation has an infinite amount of solutions.
    */
   static unblend(...couleurs) {
     if (couleurs.length < 2) throw `You need at least 2 colors to unblend`;
-    const result = Couleur.check(couleurs.shift());
+    const mix = Couleur.check(couleurs.shift());
     const overlay = Couleur.check(couleurs.shift());
     let background;
 
     if (overlay.a === 1) {
       throw `Overlay color ${overlay.rgb} isn't transparent, so the background it was blended onto could have been any color`;
     }
-    else if (overlay.a === 0)               background = result;
+    else if (overlay.a === 0)           background = mix;
     else {
-      if (result.a < overlay.a)             return null;
-      else if (result.a === overlay.a) {
-        if (Couleur.same(result, overlay))  background = new Couleur('transparent');
-        else                                return null;
+      if (mix.a < overlay.a)            return null;
+      else if (mix.a === overlay.a) {
+        if (Couleur.same(mix, overlay)) background = new Couleur('transparent');
+        else                            return null;
       }
       else {
-        const a = Couleur.pRound((result.a - overlay.a) / (1 - overlay.a), 3);
-        const r = Couleur.pRound((result.r * result.a - overlay.r * overlay.a) / (a * (1 - overlay.a)), 3);
-        const g = Couleur.pRound((result.g * result.a - overlay.g * overlay.a) / (a * (1 - overlay.a)), 3);
-        const b = Couleur.pRound((result.b * result.a - overlay.b * overlay.a) / (a * (1 - overlay.a)), 3);
+        const a = Couleur.pRound((mix.a - overlay.a) / (1 - overlay.a), 3);
+        const r = Couleur.pRound((mix.r * mix.a - overlay.r * overlay.a) / (a * (1 - overlay.a)), 3);
+        const g = Couleur.pRound((mix.g * mix.a - overlay.g * overlay.a) / (a * (1 - overlay.a)), 3);
+        const b = Couleur.pRound((mix.b * mix.a - overlay.b * overlay.a) / (a * (1 - overlay.a)), 3);
         for (const x of [r, g, b]) {
           if (x < 0 - Couleur.tolerance || x > 1 + Couleur.tolerance) return null;
         }
@@ -1198,22 +1197,22 @@ export default class Couleur {
 
 
   /**
-   * Solves the equation result = blend(background, overlay) with overlay unknown.
-   * @param {color} _couleur1 - The background color.
-   * @param {color} _couleur2 - The resulting color after the supposed blend.
+   * Solves the equation mix = blend(background, overlay) with overlay unknown.
+   * @param {color} _background - The background color.
+   * @param {color} _mix - The resulting color after the supposed blend.
    * @param {?number} alpha - The alpha value you want the solution to have.
    * @param {?number} alphaStep - The step between the alpha values of the multiple solutions.
    * @returns {(Couleur|Couleur[]|null)} The solution(s) to the equation.
    */
-  static whatToBlend(_couleur1, _couleur2, alpha, alphaStep = .1) {
-    const background = Couleur.check(_couleur1);
-    const result = Couleur.check(_couleur2);
+  static whatToBlend(_background, _mix, alpha, alphaStep = .1) {
+    const background = Couleur.check(_background);
+    const mix = Couleur.check(_mix);
     let overlay;
 
     const calculateSolution = a => {
-      const r = Couleur.pRound((result.r * result.a - background.r * background.a * (1 - a)) / a, 3);
-      const g = Couleur.pRound((result.g * result.a - background.g * background.a * (1 - a)) / a, 3);
-      const b = Couleur.pRound((result.b * result.a - background.b * background.a * (1 - a)) / a, 3);
+      const r = Couleur.pRound((mix.r * mix.a - background.r * background.a * (1 - a)) / a, 3);
+      const g = Couleur.pRound((mix.g * mix.a - background.g * background.a * (1 - a)) / a, 3);
+      const b = Couleur.pRound((mix.b * mix.a - background.b * background.a * (1 - a)) / a, 3);
       for (const x of [r, g, b]) {
         if (x < 0 - Couleur.tolerance || x > 1 + Couleur.tolerance) throw `This color doesn't exist`;
       }
@@ -1223,34 +1222,34 @@ export default class Couleur {
     // If alpha is known, we can find at most one solution
     if (!isNaN(alpha) && alpha >= 0 && alpha <= 1) {
       if (alpha === 0) {
-        if (Couleur.same(background, result)) return new Couleur('transparent');
-        else                                  return null;
+        if (Couleur.same(background, mix)) return new Couleur('transparent');
+        else                               return null;
       }           
-      else if (alpha === 1)                   return result;
-      else if (result.a < alpha)              return null;
-      else if (result.a === alpha) {
-        if (background.a > 0)                 return null;
-        else                                  return result;
+      else if (alpha === 1)                return mix;
+      else if (mix.a < alpha)              return null;
+      else if (mix.a === alpha) {
+        if (background.a > 0)              return null;
+        else                               return mix;
       }
     }
 
     // If alpha isn't known, we can find at most one solution per possible alpha value
-    if (result.a < background.a)              return null;
-    else if (result.a > background.a) {
-      if (result.a === 1)                     overlay = result;
-      else if (background.a === 0)            overlay = result;
-      // If 0 < background.a < result.a < 1, we can find a unique solution
+    if (mix.a < background.a)              return null;
+    else if (mix.a > background.a) {
+      if (mix.a === 1)                     overlay = mix;
+      else if (background.a === 0)         overlay = mix;
+      // If 0 < background.a < mix.a < 1, we can find a unique solution
       else {
-        const a = Couleur.pRound((result.a - background.a) / (1 - background.a), 3);
+        const a = Couleur.pRound((mix.a - background.a) / (1 - background.a), 3);
         if (!isNaN(alpha) && Math.abs(a - alpha) > Couleur.tolerance) return null;
         try { overlay = calculateSolution(a); }
         catch (error) { return null; }
       }
     }
-    else if (result.a === background.a) {
-      if (Couleur.same(result, background))   overlay = new Couleur('transparent');
-      else if (background.a < 1)              return null;
-      // If both result and background are opaque, there are multiple solutions (one per alpha value).
+    else if (mix.a === background.a) {
+      if (Couleur.same(mix, background))   overlay = new Couleur('transparent');
+      else if (background.a < 1)           return null;
+      // If both mix and background are opaque, there are multiple solutions (one per alpha value).
       // Let's calculate some of them.
       else {
         const solutions = [];
@@ -1318,7 +1317,7 @@ export default class Couleur {
 
     // If the text is transparent, blend it to the background to get its actual visible color
     let text = Couleur.check(_text);
-    if (text.a < 1) text = background.blend(text);
+    if (text.a < 1) text = Couleur.blend(background, text);
 
     const rgbText = [text.r, text.g, text.b];
     const rgbBack = [background.r, background.g, background.b];
@@ -1429,7 +1428,7 @@ export default class Couleur {
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    let contrast = movingColor.contrast(refColor, options.contrastMethod);
+    let contrast = Couleur.contrast(movingColor, refColor, options.contrastMethod);
     let direction;
     if (contrast > desiredContrast)      direction = -1;
     else if (contrast < desiredContrast) direction = 1;
@@ -1438,8 +1437,8 @@ export default class Couleur {
 
     // Let's measure the contrast of refColor with black and white to know if
     // desiredContrast can be reached by blackening or whitening movingColor.
-    const contrastWhite = refColor.contrast('white', options.contrastMethod);
-    const contrastBlack = refColor.contrast('black', options.contrastMethod);
+    const contrastWhite = Couleur.contrast(refColor, 'white', options.contrastMethod);
+    const contrastBlack = Couleur.contrast(refColor, 'black', options.contrastMethod);
     const towardsWhite = (direction > 0) ? contrastWhite >= desiredContrast
                                          : contrastWhite <= desiredContrast;
     const towardsBlack = (direction > 0) ? contrastBlack >= desiredContrast
@@ -1478,7 +1477,7 @@ export default class Couleur {
       // Let's try to raise contrast by increasing or reducing CIE lightness.
       const sign = (towards === 'white') ? 1 : -1;
       newColor = movingColor.replace('ciel', Couleur.unparse('ciel', movingColor.ciel + sign * .01 * step));
-      const newContrast = newColor.contrast(refColor, options.contrastMethod);
+      const newContrast = Couleur.contrast(newColor, refColor, options.contrastMethod);
 
       // If we overshot a little, stop.
       // (We want to overshoot when we're raising contrast, but not when we're lowering it!)
@@ -1496,17 +1495,20 @@ export default class Couleur {
 
 
   /**
-   * Calculates the distance between two colors in a certain format, by adding the difference between each of their properties.
-   * If no format is given, calculates the average of the distances for all formats.
+   * Calculates the distance between two colors in a given color space.
+   * Colors outside of that color space will be clamped to it.
    * @param {color} _couleur1 
    * @param {color} _couleur2 
-   * @returns {number} The distance between the two colors.
+   * @param {string} space - The color space in which distance will be measured.
+   * @returns {number} The distance between the two colors in sRGB space.
    */
-   static distance(_couleur1, _couleur2) {
+   static distance(_couleur1, _couleur2, space = 'srgb') {
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
 
-    const dist = ['r', 'g', 'b'].reduce((sum, prop) => sum + Math.abs(couleur1[prop] - couleur2[prop]), 0);
+    const values1 = Couleur.clampToColorSpace(space, couleur1.values);
+    const values2 = Couleur.clampToColorSpace(space, couleur2.values);
+    const dist = ['r', 'g', 'b'].reduce((sum, prop, k) => sum + Math.abs(values1[k] - values2[k]), 0);
     return dist;
   }
 
@@ -1523,14 +1525,9 @@ export default class Couleur {
    * @param {number} tolerance - The minimum distance between the two colors to consider them different.
    * @returns {boolean} Whether the two colors are considered the same.
    */
-  static same(couleur1, couleur2, tolerance = Couleur.tolerance) {
-    if (Couleur.distance(couleur1, couleur2) > tolerance) return false;
+  static same(couleur1, couleur2, tolerance = Couleur.tolerance, space = 'srgb') {
+    if (Couleur.distance(couleur1, couleur2, space) > tolerance) return false;
     else return true;
-  }
-
-  /** Non-static version of Couleur.same */
-  same(couleur2, tolerance = Couleur.tolerance) {
-    return Couleur.same(this, couleur2, tolerance);
   }
 
 
@@ -1617,11 +1614,6 @@ export default class Couleur {
     return .02;
   }
 
-  /** @returns {boolean} Whether colors should be clamped to sRGB space. */
-  static get mustClampToSRGB() {
-    return true;
-  }
-
   /** @returns {{id: string, syntaxes: RegExp[]}[]} Array of supported syntaxes. */
   static get formats() {
     return [
@@ -1630,38 +1622,30 @@ export default class Couleur {
         syntaxes: [
           // #abc or #ABC
           /^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/,
-          // #aabbcc or #AABBCC
-          /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/
-        ]
-      }, {
-        id: 'HEXA',
-        syntaxes: [
           // #abcd or #ABCD
           /^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/,
+          // #aabbcc or #AABBCC
+          /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/,
           // #aabbccdd or #AABBCCDD
           /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/
         ]
       }, {
         id: 'RGB',
         syntaxes: [
-          // rgb(255, 255, 255) or rgb(255,255,255)
+          // rgb(255, 255, 255) (spaces not required)
           new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum})\\)$`),
-          // rgb(100%, 100%, 100%) or rgb(100%,100%,100%)
+          // rgb(255, 255, 255, .5) or rgb(255, 255, 255, 50%) (spaces not required)
+          new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNP})\\)$`),
+          // rgb(100%, 100%, 100%) (spaces not required)
           new RegExp(`^rgba?\\((${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)$`),
+          // rgb(100%, 100%, 100%, .5) or rgb(100%, 100%, 100%, 50%) (spaces not required)
+          new RegExp(`^rgba?\\((${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
           // rgb(255 255 255)
           new RegExp(`^rgba?\\((${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum})\\)$`),
-          // rgb(100% 100% 100%)
-          new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer})\\)$`)
-        ]
-      }, {
-        id: 'RGBA',
-        syntaxes: [
-          // rgba(255, 255, 255, .5) or rgba(255, 255, 255, 50%) (espaces optionnels)
-          new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNP})\\)$`),
-          // rgba(100%, 100%, 100%, .5) or rgba(100%, 100%, 100%, 50%) (espaces optionnels)
-          new RegExp(`^rgba?\\((${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
           // rgba(255 255 255 / 50%) or rgba(255 255 255 / .5)
           new RegExp(`^rgba?\\((${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum}) ?\\/ ?(${Couleur.vNP})\\)$`),
+          // rgb(100% 100% 100%)
+          new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer})\\)$`),
           // rgba(100% 100% 100% / 50%) or rgba(100% 100% 100% / .5)
           new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
@@ -1670,32 +1654,20 @@ export default class Couleur {
         syntaxes: [
           // hsl(<angle>, 100%, 100%)
           new RegExp(`^hsla?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)$`),
-          // hsl(<angle> 100% 100%)
-          new RegExp(`^hsla?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer})\\)$`)
-        ]
-      }, {
-        id: 'HSLA',
-        syntaxes: [
           // hsla(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
           new RegExp(`^hsla?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
+          // hsl(<angle> 100% 100%)
+          new RegExp(`^hsla?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer})\\)$`),
           // hsla(<angle> 100% 100% / .5) or hsl(<angle> 100% 100% / 50%)
           new RegExp(`^hsla?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
         id: 'HWB',
         syntaxes: [
-          // hwb(<angle>, 100%, 100%)
-          new RegExp(`^hwba?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)$`),
           // hwb(<angle> 100% 100%)
-          new RegExp(`^hwba?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer})\\)$`)
-        ]
-      }, {
-        id: 'HWBA',
-        syntaxes: [
-          // hwba(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
-          new RegExp(`^hwba?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
+          new RegExp(`^hwb\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer})\\)$`),
           // hwba(<angle> 100% 100% / .5) or hsl(<angle> 100% 100% / 50%)
-          new RegExp(`^hwba?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
+          new RegExp(`^hwb\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
         id: 'LAB',
