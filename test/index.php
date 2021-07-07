@@ -22,6 +22,9 @@ foreach($_tests as $k => $test) {
         display: grid;
         grid-template-columns: 50vw 50vw;
         gap: 2px 0;
+        --echiquier-transparence: linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
+          linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
+          linear-gradient(to right, #ddd 0% 100%);
       }
       h2 {
         grid-row: 1;
@@ -45,6 +48,13 @@ foreach($_tests as $k => $test) {
       }
       .js {
         grid-column: 2;
+      }
+      h3 {
+        background-image: var(--gradient, linear-gradient(to right, var(--color, white) 0 100%)),
+                          var(--echiquier-transparence);
+        background-size: 100% 100%, 16px 16px, 16px 16px;
+        background-position: 0 0, 0 0, 8px 8px;
+        background-repeat: no-repeat, repeat, repeat;
       }
     </style>
   </head>

@@ -101,17 +101,17 @@ export default class Test {
     h3.innerHTML = this.nom;
 
     // Title background color (= visual test results)
-    let backgroundColor;
+    let backgroundColor = new Colour('white');
     try {
       if (resultat instanceof Colour) backgroundColor = resultat;
       else if (Array.isArray(resultat)) {
         const gradient = `linear-gradient(to right, ${resultat.map(c => (new Colour(c)).rgb).join(', ')})`;
-        h3.style.setProperty('background-image', gradient);
+        h3.style.setProperty('--gradient', gradient);
         backgroundColor = new Colour(resultat[0]);
       }
-      else backgroundColor = new Colour(this.resultatAttendu);
+      else if (typeof this.resultatAttendu === 'string') backgroundColor = new Colour(this.resultatAttendu);
   
-      h3.style.setProperty('background-color', backgroundColor.rgba || 'transparent');
+      h3.style.setProperty('--color', backgroundColor.rgb || 'white');
       h3.style.setProperty('color', backgroundColor.name != 'transparent' ? backgroundColor.replace('a', 1).contrastedText() : 'black');
     }
     catch(error) { console.log(error); }
@@ -132,7 +132,7 @@ export default class Test {
     pre2.classList.add('js');
 
     if (validation) pre2.style.display = 'none';
-    else pre2.style.setProperty('color', 'red');
+    else pre2.style.setProperty('color', 'darkred');
     
     div.appendChild(h3);
     div.appendChild(span);

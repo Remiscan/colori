@@ -99,7 +99,14 @@ class Test {
 
   // Checks if two objects with a similar structure to a Colour are the same
   static public function sameColorObject($couleur1, $couleur2) {
-    return $couleur1 == $couleur2;
+    $c1 = get_object_vars($couleur1);
+    $c2 = get_object_vars($couleur2);
+    foreach($c1 as $p => $v) {
+      $v1 = (float) $v;
+      $v2 = (float) $c2[$p];
+      if (abs($v1 - $v2) > self::TOLERANCE) return false;
+    }
+    return true;
   }
 
 
@@ -118,28 +125,32 @@ class Test {
     $recu = "\n\n".json_encode($resultat, JSON_PRETTY_PRINT);
     $attendu = "\n\n".json_encode($this->resultatAttendu, JSON_PRETTY_PRINT);
     
-    $backgroundColor = 'transparent';
-    $gradient = 'none';
+    $backgroundColor = new Couleur('white');
+    $gradient = '';
     try {
-      if ($resultat instanceof self) $backgroundColor = $resultat;
+      if ($resultat instanceof Couleur) $backgroundColor = $resultat;
       elseif (is_array($resultat)) {
-        $gradient = 'linear-gradient(to right, ' . (implode(', ', array_map(function($c) { return (new self($c))->rgb(); }, $resultat))) . ')';
-        $backgroundColor = new self($resultat[0]);
+        $gradient = 'linear-gradient(to right, ' . (implode(', ', array_map(function($c) { return (new Couleur($c))->rgb(); }, $resultat))) . ')';
+        $backgroundColor = new Couleur($resultat[0]);
       }
-      elseif (is_a($this->resultatAttendu, 'string')) $backgroundColor = new self($this->resultatAttendu);
-
-      $backgroundColor = $backgroundColor->rgba() || 'transparent';
-      $textColor = ($backgroundColor->name() != 'transparent') ? $backgroundColor->replace('a', 1)->contrastedText() : 'black';
+      elseif (is_string($this->resultatAttendu)) $backgroundColor = new Couleur($this->resultatAttendu);
     }
     catch (Exception $error) {}
     catch (Error $error) {}
 
+    try {
+      $textColor = ($backgroundColor->name() !== 'transparent') ? $backgroundColor->replace('a', 1)->contrastedText() : 'black';
+    } catch (Exception $error) {
+      $textColor = 'black';
+    }
+    $backgroundColor = $backgroundColor->rgb() ?? 'white';
+
     echo <<<DIV
     <div class="php $class" style="grid-row: $row" data-validate="$validation">
-      <h3 class="php" style="background-color: $backgroundColor; background-image: $gradient;">$titre</h3>
+      <h3 class="php" style="--color:$backgroundColor; --gradient:$gradient;">$titre</h3>
       <span class="php">$texte</span>
       <pre class="php">Reçu : $recu</pre>
-      <pre class="php" style="display: $displayPre2; color: red;">Attendu : $attendu</pre>
+      <pre class="php" style="display: $displayPre2; color: darkred;">Attendu : $attendu</pre>
     </div>
     DIV;
   }
