@@ -138,6 +138,7 @@ class Test {
     catch (Exception $error) {}
     catch (Error $error) {}
 
+    $textColor = 'black';
     try {
       $textColor = ($backgroundColor->name() !== 'transparent') ? $backgroundColor->replace('a', 1)->contrastedText() : 'black';
     } catch (Exception $error) {
@@ -147,7 +148,7 @@ class Test {
 
     echo <<<DIV
     <div class="php $class" style="grid-row: $row" data-validate="$validation">
-      <h3 class="php" style="--color:$backgroundColor; --gradient:$gradient;">$titre</h3>
+      <h3 class="php" style="--color:$backgroundColor; --gradient:$gradient; color:$textColor;">$titre</h3>
       <span class="php">$texte</span>
       <pre class="php">Reçu : $recu</pre>
       <pre class="php" style="display: $displayPre2; color: darkred;">Attendu : $attendu</pre>
