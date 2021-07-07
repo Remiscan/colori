@@ -381,7 +381,7 @@ export default class Couleur {
   /* ALL VALUES (r, g, b) */
 
   /** @returns {number[]} The array of r, g, b values of the color. */
-  get values() { return [this.r, this.g, this.b]; }
+  get values() { return [this.r, this.g, this.b, this.a]; }
 
 
   /* NAME */
@@ -486,12 +486,12 @@ export default class Couleur {
 
   /** @returns {string} RGB expression of the color. */
   get rgb() {
-    return Couleur.expr('rgb', [...this.values, this.a]);
+    return Couleur.expr('rgb', this.values);
   }
 
   /** @returns {string} RGBA expression of the color. */
   get rgba() {
-    return Couleur.expr('rgba', [...this.values, this.a]);
+    return Couleur.expr('rgba', this.values);
   }
 
 
@@ -1475,7 +1475,7 @@ export default class Couleur {
 
       // Let's try to raise contrast by increasing or reducing CIE lightness.
       const sign = (towards === 'white') ? 1 : -1;
-      newColor = new Couleur(`lch(${100 * movingColor.ciel + sign * step}% ${movingColor.ciec} ${movingColor.cieh})`);
+      newColor = movingColor.replace('ciel', Couleur.unparse('ciel', movingColor.ciel + sign * .01 * step));
       const newContrast = newColor.contrast(refColor);
 
       // If we overshot a little, stop.

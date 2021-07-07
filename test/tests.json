@@ -226,7 +226,7 @@
     "resultatAttendu": 15.511
   }, {
     "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 17).hsl",
-    "resultatAttendu": "hsl(53, 100%, 92%)"
+    "resultatAttendu": "hsl(54, 100%, 91%)"
   }, {
     "fonction": "Colour.contrast('hsl(53, 100%, 92%)', 'hsl(230, 25%, 10%)')",
     "resultatAttendu": 17.213

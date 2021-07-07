@@ -315,6 +315,12 @@ class Couleur
   }
 
 
+  /* ALL VALUES (r, g, b) */
+  public function values() {
+    return [$this->r, $this->g, $this->b, $this->a];
+  }
+
+
   /* NAME */
 
   /** The approximate name of the color. */
@@ -400,12 +406,12 @@ class Couleur
 
   /** RGB expression of the color. */
   public function rgb() {  
-    return self::expr('rgb', [$this->r, $this->g, $this->b, $this->a]);
+    return self::expr('rgb', $this->values());
   }
 
   /** RGBA expression of the color. */
   public function rgba() {  
-    return self::expr('rgba', [$this->r, $this->g, $this->b, $this->a]);
+    return self::expr('rgba', $this->values());
   }
 
 
@@ -418,13 +424,13 @@ class Couleur
 
   /** HSL expression of the color. */
   public function hsl() {  
-    $hsl = self::rgb2hsl([$this->r, $this->g, $this->b]);
+    $hsl = self::rgb2hsl($this->values());
     return self::expr('hsl', [$hsl[0], $hsl[1], $hsl[2], $this->a]);
   }
 
   /** HSLA expression of the color. */
   public function hsla() {  
-    $hsl = self::rgb2hsl([$this->r, $this->g, $this->b]);
+    $hsl = self::rgb2hsl($this->values());
     return self::expr('hsla', [$hsl[0], $hsl[1], $hsl[2], $this->a]);
   }
 
@@ -438,13 +444,13 @@ class Couleur
 
   /** HWB expression of the color. */
   public function hwb() {
-    $hwb = self::hsl2hwb(self::rgb2hsl([$this->r, $this->g, $this->b]));
+    $hwb = self::hsl2hwb(self::rgb2hsl($this->values()));
     return self::expr('hwb', [$hwb[0], $hwb[1], $hwb[2], $this->a]);
   }
 
   /** HWB expression of the color, but always with the alpha value. */
   public function hwba() {
-    $hwb = self::hsl2hwb(self::rgb2hsl([$this->r, $this->g, $this->b]));
+    $hwb = self::hsl2hwb(self::rgb2hsl($this->values()));
     return self::expr('hwba', [$hwb[0], $hwb[1], $hwb[2], $this->a]);
   }
 
@@ -458,13 +464,13 @@ class Couleur
 
   /** LAB expression of the color. */
   public function lab() {
-    $lab = self::rgb2lab([$this->r, $this->g, $this->b]);
+    $lab = self::rgb2lab($this->values());
     return self::expr('lab', [$lab[0], $lab[1], $lab[2], $this->a]);
   }
 
   /** LAB expression of the color, but always with the alpha value. */
   public function laba() {
-    $lab = self::rgb2lab([$this->r, $this->g, $this->b]);
+    $lab = self::rgb2lab($this->values());
     return self::expr('laba', [$lab[0], $lab[1], $lab[2], $this->a]);
   }
 
@@ -478,13 +484,13 @@ class Couleur
 
   /** LCH expression of the color. */
   public function lch() {
-    $lch = self::lab2lch(self::rgb2lab([$this->r, $this->g, $this->b]));
+    $lch = self::lab2lch(self::rgb2lab($this->values()));
     return self::expr('lch', [$lch[0], $lch[1], $lch[2], $this->a]);
   }
 
   /** LCH expression of the color, but always with the alpha value. */
   public function lcha() {
-    $lch = self::lab2lch(self::rgb2lab([$this->r, $this->g, $this->b]));
+    $lch = self::lab2lch(self::rgb2lab($this->values()));
     return self::expr('lcha', [$lch[0], $lch[1], $lch[2], $this->a]);
   }
 
@@ -512,124 +518,124 @@ class Couleur
   }
 
   private function setH($val) {
-    [$x, $s, $l] = self::rgb2hsl([$this->r, $this->g, $this->b]);
+    [$x, $s, $l] = self::rgb2hsl($this->values());
     $temp = [];
+    $props = self::propertiesOf('hsl'); $props[] = 'a';
     foreach([$val, $s, $l, $this->a] as $k => $v) {
-      $props = self::propertiesOf('hsl'); $props[] = 'a';
       $temp[] = self::unparse($props[$k], $v);
     }
     $this->setHsl($temp);
   }
 
   private function setS($val) {
-    [$h, $x, $l] = self::rgb2hsl([$this->r, $this->g, $this->b]);
+    [$h, $x, $l] = self::rgb2hsl($this->values());
     $temp = [];
+    $props = self::propertiesOf('hsl'); $props[] = 'a';
     foreach([$h, $val, $l, $this->a] as $k => $v) {
-      $props = self::propertiesOf('hsl'); $props[] = 'a';
       $temp[] = self::unparse($props[$k], $v);
     }
     $this->setHsl($temp);
   }
 
   private function setL($val) {
-    [$h, $s, $x] = self::rgb2hsl([$this->r, $this->g, $this->b]);
+    [$h, $s, $x] = self::rgb2hsl($this->values());
     $temp = [];
-    foreach([$h, $s, $x, $this->a] as $k => $v) {
-      $props = self::propertiesOf('hsl'); $props[] = 'a';
+    $props = self::propertiesOf('hsl'); $props[] = 'a';
+    foreach([$h, $s, $val, $this->a] as $k => $v) {
       $temp[] = self::unparse($props[$k], $v);
     }
     $this->setHsl($temp);
   }
 
   private function setW($val) {
-    [$h, $x, $bk] = self::hsl2hwb(self::rgb2hsl([$this->r, $this->g, $this->b]));
+    [$h, $x, $bk] = self::hsl2hwb(self::rgb2hsl($this->values()));
     $temp = [];
+    $props = self::propertiesOf('hwb'); $props[] = 'a';
     foreach([$h, $val, $bk, $this->a] as $k => $v) {
-      $props = self::propertiesOf('hwb'); $props[] = 'a';
       $temp[] = self::unparse($props[$k], $v);
     }
-    $this->setHsl($temp);
+    $this->setHwb($temp);
   }
 
   private function setBK($val) {
-    [$h, $w, $x] = self::hsl2hwb(self::rgb2hsl([$this->r, $this->g, $this->b]));
+    [$h, $w, $x] = self::hsl2hwb(self::rgb2hsl($this->values()));
     $temp = [];
+    $props = self::propertiesOf('hwb'); $props[] = 'a';
     foreach([$h, $w, $val, $this->a] as $k => $v) {
-      $props = self::propertiesOf('hwb'); $props[] = 'a';
       $temp[] = self::unparse($props[$k], $v);
     }
-    $this->setHsl($temp);
+    $this->setHwb($temp);
   }
 
   private function setCIEL($val) {
-    [$x, $ciea, $cieb] = self::rgb2lab([$this->r, $this->g, $this->b]);
+    [$x, $ciea, $cieb] = self::rgb2lab($this->values());
     $temp = [];
+    $props = self::propertiesOf('lab'); $props[] = 'a';
     foreach([$val, $ciea, $cieb, $this->a] as $k => $v) {
-      $props = self::propertiesOf('lab'); $props[] = 'a';
       $temp[] = self::unparse($props[$k], $v);
     }
-    $this->setHsl($temp);
+    $this->setLab($temp);
   }
 
   private function setCIEA($val) {
-    [$ciel, $x, $cieb] = self::rgb2lab([$this->r, $this->g, $this->b]);
+    [$ciel, $x, $cieb] = self::rgb2lab($this->values());
     $temp = [];
+    $props = self::propertiesOf('lab'); $props[] = 'a';
     foreach([$ciel, $val, $cieb, $this->a] as $k => $v) {
-      $props = self::propertiesOf('lab'); $props[] = 'a';
       $temp[] = self::unparse($props[$k], $v);
     }
-    $this->setHsl($temp);
+    $this->setLab($temp);
   }
 
   private function setCIEB($val) {
-    [$ciel, $ciea, $x] = self::rgb2lab([$this->r, $this->g, $this->b]);
+    [$ciel, $ciea, $x] = self::rgb2lab($this->values());
     $temp = [];
+    $props = self::propertiesOf('lab'); $props[] = 'a';
     foreach([$ciel, $ciea, $val, $this->a] as $k => $v) {
-      $props = self::propertiesOf('lab'); $props[] = 'a';
       $temp[] = self::unparse($props[$k], $v);
     }
-    $this->setHsl($temp);
+    $this->setLab($temp);
   }
 
   private function setCIEC($val) {
-    [$ciel, $x, $cieh] = self::lab2lch(self::rgb2lab([$this->r, $this->g, $this->b]));
+    [$ciel, $x, $cieh] = self::lab2lch(self::rgb2lab($this->values()));
     $temp = [];
-    foreach([$ciel, $x, $cieh, $this->a] as $k => $v) {
-      $props = self::propertiesOf('lch'); $props[] = 'a';
+    $props = self::propertiesOf('lch'); $props[] = 'a';
+    foreach([$ciel, $val, $cieh, $this->a] as $k => $v) {
       $temp[] = self::unparse($props[$k], $v);
     }
-    $this->setHsl($temp);
+    $this->setLch($temp);
   }
 
   private function setCIEH($val) {
-    [$ciel, $ciec, $x] = self::lab2lch(self::rgb2lab([$this->r, $this->g, $this->b]));
+    [$ciel, $ciec, $x] = self::lab2lch(self::rgb2lab($this->values()));
     $temp = [];
+    $props = self::propertiesOf('lch'); $props[] = 'a';
     foreach([$ciel, $ciec, $val, $this->a] as $k => $v) {
-      $props = self::propertiesOf('lch'); $props[] = 'a';
       $temp[] = self::unparse($props[$k], $v);
     }
-    $this->setHsl($temp);
+    $this->setLch($temp);
   }
 
-  public function h() { return self::rgb2hsl([$this->r, $this->g, $this->b])[0]; }
+  public function h() { return self::rgb2hsl($this->values())[0]; }
 
-  public function s() { return self::rgb2hsl([$this->r, $this->g, $this->b])[1]; }
+  public function s() { return self::rgb2hsl($this->values())[1]; }
 
-  public function l() { return self::rgb2hsl([$this->r, $this->g, $this->b])[2]; }
+  public function l() { return self::rgb2hsl($this->values())[2]; }
 
-  public function w() { return self::hsl2hwb(self::rgb2hsl([$this->r, $this->g, $this->b]))[1]; }
+  public function w() { return self::hsl2hwb(self::rgb2hsl($this->values()))[1]; }
 
-  public function bk() { return self::hsl2hwb(self::rgb2hsl([$this->r, $this->g, $this->b]))[2]; }
+  public function bk() { return self::hsl2hwb(self::rgb2hsl($this->values()))[2]; }
 
-  public function ciel() { return self::rgb2lab([$this->r, $this->g, $this->b])[0]; }
+  public function ciel() { return self::rgb2lab($this->values())[0]; }
 
-  public function ciea() { return self::rgb2lab([$this->r, $this->g, $this->b])[1]; }
+  public function ciea() { return self::rgb2lab($this->values())[1]; }
 
-  public function cieb() { return self::rgb2lab([$this->r, $this->g, $this->b])[2]; }
+  public function cieb() { return self::rgb2lab($this->values())[2]; }
 
-  public function ciec() { return self::lab2lch(self::rgb2lab([$this->r, $this->g, $this->b]))[1]; }
+  public function ciec() { return self::lab2lch(self::rgb2lab($this->values()))[1]; }
 
-  public function cieh() { return self::lab2lch(self::rgb2lab([$this->r, $this->g, $this->b]))[2]; }
+  public function cieh() { return self::lab2lch(self::rgb2lab($this->values()))[2]; }
 
 
 
@@ -1084,7 +1090,7 @@ class Couleur
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   public function luminance() {
     if ($this->a < 1) throw new Exception('The luminance of a transparent color would be meaningless');
-    $rgb = self::gamRGB_linRGB([$this->r, $this->g, $this->b]);
+    $rgb = self::gamRGB_linRGB($this->values());
     return 0.2126 * $rgb[0] + 0.7152 * $rgb[1] + 0.0722 * $rgb[2];
   }
 
@@ -1243,7 +1249,7 @@ class Couleur
 
       // Let's try to raise contrast by increasing or reducing CIE lightness.
       $sign = ($towards === 'white') ? 1 : -1;
-      $newColor = new self('lch(' . (100 * $movingColor->ciel() + $sign * $step) . '% ' . $movingColor->ciec() . ' ' . 360 * $movingColor->cieh() . ')');
+      $newColor = $movingColor->replace('ciel', self::unparse('ciel', $movingColor->ciel() + $sign * .01 * $step));
       $newContrast = self::contrast($newColor, $refColor);
 
       // If we overshot a little, stop.
