@@ -104,6 +104,7 @@ export default class Couleur {
       const result = couleur.match(syntaxe);
       if (result != null && result[0] === couleur) {
         if (format.id === 'NAME') {
+          if (couleur === 'transparent') return Couleur.matchSyntax('#00000000');
           const allNames = Couleur.couleursNommees;
           const name = couleur.toLowerCase();
           if (name in allNames) return Couleur.matchSyntax('#' + allNames[name]);
@@ -351,22 +352,25 @@ export default class Couleur {
   /**
    * Gets the CSS expression of a color.
    * @param {string} format - The format of the expression.
-   * @param {number[]} values - The values of the color's properties.
+   * @param {number[]} rgba - The values of the r, g, b, a properties.
    * @param {object?} options
    * @param {boolean} options.round - Whether to round the values in the expression.
    * @param {string} options.clamp - Which color space the values should be clamped to.
    * @returns {string} The expression of the color in the requested format.
    */
-  static expr(format, values, options = {}) {
+  static expr(format, rgba, options = {}) {
     if (typeof options.round === 'undefined') options.round = true;
+    if (typeof options.clamp === 'undefined') options.clamp = true;
+
+    const space = format.replace('color-', '');
+    const values = [...Couleur.convert('srgb', space, rgba.slice(0, 3)), rgba[3]];
+    const a = Couleur.unparse('a', values[3], { round: options.round });
 
     // If the requested expression is of the color(space, ...) type
     if (format.slice(0, 5) === 'color') {
-      const space = format.replace('color-', '');
       let string = `color(${space}`;
       for (const [k, v] of Object.entries(values)) {
-        if (k == values.length - 1) {
-          const a = options.round ? Math.round(100 * v) / 100 : v;
+        if (Number(k) === values.length - 1) {
           if (a >= 1) break;
           string += ` / ${a}`;
         } else {
@@ -379,10 +383,8 @@ export default class Couleur {
 
     // If the requested expression is of the ${format}(...) type
     const props = Couleur.propertiesOf(format);
-    const a = Couleur.unparse('a', values[3], { round: options.round });
     const [x, y, z] = props.map((p, k) => Couleur.unparse(p, values[k], { round: options.round }));
 
-    // Let's create the expression string
     switch (format) {
       case 'rgb': case 'rgba': case 'hsl': case 'hsla': {
         if ((format.length > 3 && format.slice(-1) === 'a') || a < 1)
@@ -402,8 +404,16 @@ export default class Couleur {
 
   /* ALL VALUES (r, g, b) */
 
-  /** @returns {number[]} The array of r, g, b values of the color. */
-  get values() { return [this.r, this.g, this.b, this.a]; }
+  /**
+   * Returns the values of the color in a given color space.
+   * @param {string} space - The identifier of the color space.
+   * @returns {number[]} The array of r, g, b values of the color.
+   */
+  values(space = 'srgb', alpha = true) {
+    const values = Couleur.convert('srgb', space, [this.r, this.g, this.b]);
+    if (alpha) values.push(this.a);
+    return values;
+  }
 
 
   /* NAME */
@@ -419,6 +429,7 @@ export default class Couleur {
         if (Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) < tolerance) return name;
       }
     }
+    else if (this.a === 0) return 'transparent';
     return null;
   }
 
@@ -476,15 +487,15 @@ export default class Couleur {
   /** @returns {string} Hexadecimal expression of the color. */
   get hex() {
     if (this.a < 1) return this.hexa;
-    const values = Couleur.clampToColorSpace('srgb', this.values.slice(0, 3));
+    const values = Couleur.clampToColorSpace('srgb', this.values().slice(0, 3));
     const rgb = values.map(v => Couleur.pad(Math.round(v * 255).toString(16)));
     return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
   }
 
   /** @returns {string} Hexadecimal (+ a) expression of the color. */
   get hexa() {
-    const values = Couleur.clampToColorSpace('srgb', this.values.slice(0, 3));
-    const rgb = [...values, this.a].map(v => Couleur.pad(Math.round(v * 255).toString(16)));
+    const values = Couleur.clampToColorSpace('srgb', this.values().slice(0, 3));
+    const rgb = values.map(v => Couleur.pad(Math.round(v * 255).toString(16)));
     return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
   }
 
@@ -493,130 +504,60 @@ export default class Couleur {
   
   /**
    * Calculates all properties of the color from its functional RGB expression.
-   * @param {Array.<string|number>} - The numerical values of the r, g, b, a properties.
+   * @param {Array.<string|number>} rgba - The unparsed values of the r, g, b, a properties.
    */
-  set rgb(rgba) {
-    this.set(rgba, ['r', 'g', 'b'], 'rgb');
-  }
-  
-  /** Alias to the rgb setter. */
+  set rgb(rgba) { this.set(rgba, ['r', 'g', 'b'], 'rgb'); }
   set rgba(rgba) { this.rgb = rgba; }
-
-  /** @returns {string} RGB expression of the color. */
-  get rgb() {
-    const values = Couleur.clampToColorSpace('srgb', this.values.slice(0, 3));
-    return Couleur.expr('rgb', [...values, this.a]);
-  }
-
-  /** @returns {string} RGBA expression of the color. */
-  get rgba() {
-    const values = Couleur.clampToColorSpace('srgb', this.values.slice(0, 3));
-    return Couleur.expr('rgba', [...values, this.a]);
-  }
+  get rgb() { return Couleur.expr('rgb', this.values()); }
+  get rgba() { return Couleur.expr('rgba', this.values()); }
 
 
   /* HSL */
 
   /**
    * Calculates all properties of the color from its HSL expression.
-   * @param {Array.<string|number>} - The numerical values of the h, s, l, a properties.
+   * @param {Array.<string|number>} hsla - The unparsed values of the h, s, l, a properties.
    */
-  set hsl(hsla) {
-    this.set(hsla, ['h', 's', 'l'], 'hsl')
-  }
-
-  /** Alias to the hsl setter. */
+  set hsl(hsla) { this.set(hsla, ['h', 's', 'l'], 'hsl') }
   set hsla(hsla) { this.hsl = hsla; }
-
-  /** @returns {string} HSL expression of the color. */
-  get hsl() {
-    const hsl = Couleur.rgb2hsl(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3)));
-    return Couleur.expr('hsl', [...hsl, this.a]);
-  }
-
-  /** @returns {string} HSLA expression of the color. */
-  get hsla() {
-    const hsl = Couleur.rgb2hsl(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3)));
-    return Couleur.expr('hsla', [...hsl, this.a]);
-  }
+  get hsl() { return Couleur.expr('hsl', this.values()); }
+  get hsla() { return Couleur.expr('hsla', this.values()); }
 
 
   /* HWB */
 
   /**
    * Calculates all properties of the color from its HWB expression.
-   * @param {Array.<string|number>} - The numerical values of the h, w, bk, a properties.
+   * @param {Array.<string|number>} hwba - The unparsed values of the h, w, bk, a properties.
    */
-  set hwb(hwba) {
-    this.set(hwba, ['h', 'w', 'bk'], 'hwb');
-  }
-
-  /** Alias to the hwb setter. */
+  set hwb(hwba) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
   set hwba(hwba) { this.hwb = hwba; }
-
-  /** @returns {string} HWB expression of the color. */
-  get hwb() {
-    const hwb = Couleur.hsl2hwb(Couleur.rgb2hsl(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3))));
-    return Couleur.expr('hwb', [...hwb, this.a]);
-  }
-
-  /** @returns {string} HWB expression of the color, but always with the alpha value. */
-  get hwba() {
-    const hwb = Couleur.hsl2hwb(Couleur.rgb2hsl(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3))));
-    return Couleur.expr('hwba', [...hwb, this.a]);
-  }
+  get hwb() { return Couleur.expr('hwb', this.values()); }
+  get hwba() { return Couleur.expr('hwba', this.values()); }
 
 
   /* LAB */
 
   /**
    * Calculates all properties of the color from its LAB expression.
-   * @param {Array.<string|number>} - The numerical values of the ciel, ciea, cieb, a properties.
+   * @param {Array.<string|number>} laba - The unparsed values of the ciel, ciea, cieb, a properties.
    */
-  set lab(laba) {
-    this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab');
-  }
-
-  /** Alias to the lab setter. */
+  set lab(laba) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
   set laba(laba) { this.lab = laba; }
-
-  /** @returns {string} LAB expression of the color. */
-  get lab() {
-    const lab = Couleur.rgb2lab(Couleur.clampToColorSpace('lab', this.values.slice(0, 3)));
-    return Couleur.expr('lab', [...lab, this.a]);
-  }
-
-  /** @returns {string} LAB expression of the color, but always with the alpha value. */
-  get laba() {
-    const lab = Couleur.rgb2lab(Couleur.clampToColorSpace('lab', this.values.slice(0, 3)));
-    return Couleur.expr('laba', [...lab, this.a]);
-  }
+  get lab() { return Couleur.expr('lab', this.values()); }
+  get laba() { return Couleur.expr('laba', this.values()); }
 
 
   /* LCH */
 
   /**
    * Calculates all properties of the color from its LCH expression.
-   * @param {Array.<string|number>} - The numerical values of the ciel, ciec, cieh, a properties.
+   * @param {Array.<string|number>} - The unparsed values of the ciel, ciec, cieh, a properties.
    */
-  set lch(lcha) {
-    this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch');
-  }
-
-  /** Alias to the lch setter. */
+  set lch(lcha) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
   set lcha(lcha) { this.lch = lcha; }
-
-  /** @returns {string} LCH expression of the color. */
-  get lch() {
-    const lch = Couleur.lab2lch(Couleur.rgb2lab(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3))));
-    return Couleur.expr('lch', [...lch, this.a]);
-  }
-
-  /** @returns {string} LCH expression of the color, but always with the alpha value. */
-  get lcha() {
-    const lch = Couleur.lab2lch(Couleur.rgb2lab(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3))));
-    return Couleur.expr('lcha', [...lch, this.a]);
-  }
+  get lch() { return Couleur.expr('lch', this.values()); }
+  get lcha() { return Couleur.expr('lcha', this.values()); }
 
 
   /* PROFILED COLORS */
@@ -648,10 +589,7 @@ export default class Couleur {
    * @param {string} space - The identifier of the color space.
    * @returns {string} Expression of the color.
    */
-  color(space) {
-    const values = Couleur.convert('srgb', space, this.values.slice(0, 3));
-    return Couleur.expr(`color-${space}`, [...values, this.a]);
-  }
+  color(space) { return Couleur.expr(`color-${space}`, this.values()); }
 
 
 
@@ -661,130 +599,76 @@ export default class Couleur {
 
   
   /**
-   * Recalculates the r, g, b properties of the color after modifying its hue (h) property.
-   * @param {number} val - The parsed new value of h.
+   * Recalculates the r, g, b properties of the color after modifying one of its properties.
+   * @param {number} val - The parsed new value of the property.
    */
   set h(val) {
-    const [x, s, l] = Couleur.rgb2hsl(this.values);
+    const [x, s, l] = this.values('hsl');
     this.hsl = [val, s, l, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
   }
 
-  /**
-   * Recalculates the r, g, b properties of the color after modifying its saturation (s) property.
-   * @param {number} val - The parsed new value of s.
-   */
   set s(val) {
-    const [h, x, l] = Couleur.rgb2hsl(this.values);
+    const [h, x, l] = this.values('hsl');
     this.hsl = [h, val, l, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
   }
 
-  /**
-   * Recalculates the r, g, b properties of the color after modifying its luminosity (l) property.
-   * @param {number} val - The parsed new value of l.
-   */
   set l(val) {
-    const [h, s, x] = Couleur.rgb2hsl(this.values);
+    const [h, s, x] = this.values('hsl');
     this.hsl = [h, s, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
   }
 
-  /**
-   * Recalculates the r, g, b properties of the color after modifying its whiteness (w) property.
-   * @param {number} val - The parsed new value of w.
-   */
   set w(val) {
-    const [h, x, bk] = Couleur.hsl2hwb(Couleur.rgb2hsl(this.values));
+    const [h, x, bk] = this.values('hwb');
     this.hwb = [h, val, bk, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hwb'), 'a'][k], v));
   }
 
-  /**
-   * Recalculates the r, g, b properties of the color after modifying its blackness (bk) property.
-   * @param {number} val - The parsed new value of bk.
-   */
   set bk(val) {
-    const [h, w, x] = Couleur.hsl2hwb(Couleur.rgb2hsl(this.values));
+    const [h, w, x] = this.values('hwb');
     this.hwb = [h, w, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hwb'), 'a'][k], v));
   }
 
-  /**
-   * Recalculates the r, g, b properties of the color after modifying its CIE lightness (ciel) property.
-   * @param {number} val - The parsed new value of ciel.
-   */
   set ciel(val) {
-    const [x, ciea, cieb] = Couleur.rgb2lab(this.values);
+    const [x, ciea, cieb] = this.values('lab');
     this.lab = [val, ciea, cieb, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
   }
 
-  /**
-   * Recalculates the r, g, b properties of the color after modifying its CIE A-axis (ciea) property.
-   * @param {number} val - The parsed new value of ciea.
-   */
   set ciea(val) {
-    const [ciel, x, cieb] = Couleur.rgb2lab(this.values);
+    const [ciel, x, cieb] = this.values('lab');
     this.lab = [ciel, val, cieb, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lab'), 'a'][k], v));
   }
 
-  /**
-   * Recalculates the r, g, b properties of the color after modifying its CIE B-axis (cieb) property.
-   * @param {number} val - The parsed new value of cieb.
-   */
   set cieb(val) {
-    const [ciel, ciea, x] = Couleur.rgb2lab(this.values);
+    const [ciel, ciea, x] = this.values('lab');
     this.lab = [ciel, ciea, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lab'), 'a'][k], v));
   }
 
-  /**
-   * Recalculates the r, g, b properties of the color after modifying its CIE chroma (ciec) property.
-   * @param {number} val - The parsed new value of ciec.
-   */
   set ciec(val) {
-    const [ciel, x, cieh] = Couleur.lab2lch(Couleur.rgb2lab(this.values));
+    const [ciel, x, cieh] = this.values('lch');
     this.lch = [ciel, val, cieh, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
   }
 
-  /**
-   * Recalculates the r, g, b properties of the color after modifying its CIE hue (cieh) property.
-   * @param {number} val - The parsed new value of cieh.
-   */
   set cieh(val) {
-    const [ciel, ciec, x] = Couleur.lab2lch(Couleur.rgb2lab(this.values));
+    const [ciel, ciec, x] = this.values('lch');
     this.lch = [ciel, ciec, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
   }
 
-  /** @returns {number} Gets the parsed value of the hue (h) property, in [0, 360]. */
-  get h() { return Couleur.rgb2hsl(this.values)[0]; }
-
-  /** @returns {number} Gets the parsed value of the saturation (s) property, in [0, 1]. */
-  get s() { return Couleur.rgb2hsl(this.values)[1]; }
-
-  /** @returns {number} Gets the parsed value of the luminosity (l) property, in [0, 1]. */
-  get l() { return Couleur.rgb2hsl(this.values)[2]; }
-
-  /** @returns {number} Gets the parsed value of the whiteness (w) property, in [0, 1]. */
-  get w() { return Couleur.hsl2hwb(Couleur.rgb2hsl(this.values))[1]; }
-
-  /** @returns {number} Gets the parsed value of the blackness (bk) property, in [0, 1]. */
-  get bk() { return Couleur.hsl2hwb(Couleur.rgb2hsl(this.values))[2]; }
-
-  /** @returns {number} Gets the parsed value of the CIE lightness (ciel) property, in [0, 1]. */
-  get ciel() { return Couleur.rgb2lab(this.values)[0]; }
-
-  /** @returns {number} Gets the parsed value of the CIE A-axie (ciea) property, unbounded. */
-  get ciea() { return Couleur.rgb2lab(this.values)[1]; }
-
-  /** @returns {number} Gets the parsed value of the CIE B-axis (cieb) property, unbounded. */
-  get cieb() { return Couleur.rgb2lab(this.values)[2]; }
-
-  /** @returns {number} Gets the parsed value of the CIE chroma (ciec) property, in [0, +Inf]. */
-  get ciec() { return Couleur.lab2lch(Couleur.rgb2lab(this.values))[1]; }
-
-  /** @returns {number} Gets the parsed value of the CIE hue (cieh) property, in [0, 360]. */
-  get cieh() { return Couleur.lab2lch(Couleur.rgb2lab(this.values))[2]; }
+  /** @returns {number} Gets the parsed value of one of the color properties. */
+  get h() { return this.values('hsl')[0]; }
+  get s() { return this.values('hsl')[1]; }
+  get l() { return this.values('hsl')[2]; }
+  get w() { return this.values('hwb')[1]; }
+  get bk() { return this.values('hwb')[2]; }
+  get ciel() { return this.values('lab')[0]; }
+  get ciea() { return this.values('lab')[1]; }
+  get cieb() { return this.values('lab')[2]; }
+  get ciec() { return this.values('lch')[1]; }
+  get cieh() { return this.values('lch')[2]; }
 
   /** @returns {number} Luminance of the color. */
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   get luminance() {
     if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
-    let rgb = Couleur.gamRGB_linRGB(this.values);
+    let rgb = Couleur.gamRGB_linRGB(this.values());
     return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
   }
 
@@ -1001,7 +885,7 @@ export default class Couleur {
   static d65XYZ_d65XYZ(xyz) { return xyz; }
 
 
-  /* Clamping to color space *
+  /* Clamping to color space */
 
 
   /**
@@ -1053,12 +937,12 @@ export default class Couleur {
 
   /* Actual conversion functions */
 
-
   /**
-   * Converts r, g, b values into h, s, l values.
-   * @param {number[]} rgb - Array of parsed r, g, b values.
-   * @returns {number[]} Array of parsed h, s, l values.
+   * They are all in the form `${format1}2${format2}`.
+   * @param {number[]} values - Array of parsed values in ${format1}.
+   * @returns {number[]} Array of parsed values in ${format2}.
    */
+
   static rgb2hsl(rgb) {
     // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
     const [r, g, b] = rgb; // all in [0, 1]
@@ -1089,12 +973,6 @@ export default class Couleur {
     return [h, s, l]; // h in [0, 360], s & l in [0, 1]
   }
 
-
-  /**
-   * Converts h, s, l values into r, g, b values.
-   * @param {number[]} hsl - Array of parsed h, s, l values.
-   * @returns {number[]} Array of parsed r, g, b values.
-   */
   static hsl2rgb(hsl) {
     // source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
@@ -1110,12 +988,6 @@ export default class Couleur {
     return [r, g, b]; // all in [0, 1]
   }
 
-
-  /**
-   * Converts h, s, l values into h, w, bk values.
-   * @param {number[]} hsl - Array of parsed h, s, l values.
-   * @returns {number[]} Array of parsed h, w, bk values.
-   */
   static hsl2hwb(hsl) {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
@@ -1132,12 +1004,6 @@ export default class Couleur {
     return [h, w, bk]; // h in [0, 360], w & bk in [0, 1]
   }
 
-
-  /**
-   * Converts h, w, bk values into h, s, l values.
-   * @param {number[]} hwb - Array of parsed h, w, bk values.
-   * @returns {number[]} Array of parsed h, s, l values.
-   */
   static hwb2hsl(hwb) {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
@@ -1162,47 +1028,6 @@ export default class Couleur {
     return [h, s, l]; // h in [0, 360], s & l in [0, 1]
   }
 
-
-  /**
-   * Converts r, g, b values into ciel, ciea, cieb values.
-   * @param {number[]} rgb - Array of parsed r, g, b values.
-   * @returns {number[]} Array of parsed ciel, ciea, cieb values.
-   */
-  static rgb2lab(rgb) {
-    // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
-    //                   & https://drafts.csswg.org/css-color-4/utilities.js
-    //                   & https://drafts.csswg.org/css-color-4/conversions.js
-
-    // Takes r, g & b in [0, 1]
-    // Returns ciel in [0, 1], ciea as any number
-    return Couleur.convert('srgb', 'lab', rgb);
-  }
-
-
-  /**
-   * Converts ciel, ciea, cieb values into r, g, b values.
-   * @param {number[]} lab - Array of parsed ciel, ciea, cieb values.
-   * @returns {number[]} Array of parsed r, g, b values.
-   */
-  static lab2rgb(lab) {
-    // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
-    //                   & https://drafts.csswg.org/css-color-4/utilities.js
-    //                   & https://drafts.csswg.org/css-color-4/conversions.js
-    //                   & https://css.land/lch/lch.js
-
-    // If the color isn't part of the sRGB color space, let's find the closest color that is
-
-    // Takes ciel in [0, 1], ciea & cieb as any number
-    // Returns r, g & b in [0, 1]
-    return Couleur.convert('lab', 'srgb', lab);
-  }
-
-
-  /**
-   * Converts ciel, ciea, cieb values into ciel, ciec, cieh values.
-   * @param {number[]} lab - Array of parsed ciel, ciea, cieb values.
-   * @returns {number[]} Array of parsed ciel, ciec, cieh values.
-   */
   static lab2lch(lab) {
     const [ciel, ciea, cieb] = lab;
     const ciec = Math.sqrt(ciea ** 2 + cieb ** 2);
@@ -1211,12 +1036,6 @@ export default class Couleur {
     return [ciel, ciec, cieh];
   }
 
-
-  /**
-   * Converts ciel, ciec, cieh values into ciel, ciea, ciea values.
-   * @param {number[]} lab - Array of parsed ciel, ciec, cieh values.
-   * @returns {number[]} Array of parsed ciel, ciea, cieb values.
-   */
   static lch2lab(lch) {
     const [ciel, ciec, cieh] = lch;
     const ciea = ciec * Math.cos(cieh * Math.PI / 180);
@@ -1224,6 +1043,13 @@ export default class Couleur {
 
     return [ciel, ciea, cieb];
   }
+
+  static rgb2rgb(rgb) { return rgb; }
+  static rgb2hwb(rgb) { return Couleur.hsl2hwb(Couleur.rgb2hsl(rgb)); }
+  static hwb2rgb(hwb) { return Couleur.hsl2rgb(Couleur.hwb2hsl(hwb)); }
+  static rgb2lab(rgb) { return Couleur.convert('srgb', 'lab', rgb); }
+  static lab2rgb(lab) { return Couleur.convert('lab', 'srgb', lab); }
+
 
   /**
    * Converts the color values from one color space to another.
@@ -1233,37 +1059,43 @@ export default class Couleur {
    * @returns 
    */
   static convert(startSpace, endSpace, values) {
-    // Source of the math: https://drafts.csswg.org/css-color/#predefined-to-predefined
     if (startSpace === endSpace) return values;
 
+    // Source of the math: https://drafts.csswg.org/css-color/#predefined-to-predefined
     const supportedSpaces = [
-      { id: 'srgb',         whitepoint: 'd65', prefix: 'RGB' },
-      { id: 'display-p3',   whitepoint: 'd65', prefix: 'P3' },
-      { id: 'a98-rgb',      whitepoint: 'd65', prefix: 'A98' },
-      { id: 'prophoto-rgb', whitepoint: 'd50', prefix: 'PROPHOTO' },
-      { id: 'rec2020',      whitepoint: 'd65', prefix: 'REC2020' },
-      { id: 'xyz',          whitepoint: 'd50', prefix: 'XYZ' },
-      { id: 'lab',          whitepoint: 'd50', prefix: 'LAB' }
+      { id: 'srgb',         whitepoint: 'd65', prefix: 'RGB',      otherFormats: ['rgb', 'hsl', 'hwb'] },
+      { id: 'display-p3',   whitepoint: 'd65', prefix: 'P3',       otherFormats: []                    },
+      { id: 'a98-rgb',      whitepoint: 'd65', prefix: 'A98',      otherFormats: []                    },
+      { id: 'prophoto-rgb', whitepoint: 'd50', prefix: 'PROPHOTO', otherFormats: []                    },
+      { id: 'rec2020',      whitepoint: 'd65', prefix: 'REC2020',  otherFormats: []                    },
+      { id: 'xyz',          whitepoint: 'd50', prefix: 'XYZ',      otherFormats: []                    },
+      { id: 'lab',          whitepoint: 'd50', prefix: 'LAB',      otherFormats: ['lab', 'lch']        }
     ];
 
-    const ids = supportedSpaces.map(s => s.id);
-    if (!ids.includes(startSpace) || !ids.includes(endSpace))
+    const [start, end] = [startSpace, endSpace].map(id => supportedSpaces.find(s => s.id === id || s.otherFormats.includes(id)));
+
+    if (typeof start === 'undefined' || typeof end === 'undefined')
       throw `Can not convert from ${startSpace} to ${endSpace}`;
 
-    const [start, end] = [startSpace, endSpace].map(id => supportedSpaces.find(s => s.id === id));
-
     const functions = [];
-    if (startSpace !== 'xyz') functions.push(
-      `gam${start.prefix}_lin${start.prefix}`,
-      `lin${start.prefix}_${start.whitepoint}XYZ`
-    );
-    if (start.whitepoint !== end.whitepoint) functions.push(
-      `${start.whitepoint}XYZ_${end.whitepoint}XYZ`
-    );
-    if (endSpace !== 'xyz') functions.push(
-      `${end.whitepoint}XYZ_lin${end.prefix}`,
-      `lin${end.prefix}_gam${end.prefix}`
-    );
+    // If we're converting from another format
+    if (startSpace !== start.id) functions.push(`${startSpace}2${start.otherFormats[0]}`);
+    // If we're converting to another color spaces
+    if (start.id !== end.id) {
+      if (startSpace !== 'xyz') functions.push(
+        `gam${start.prefix}_lin${start.prefix}`,
+        `lin${start.prefix}_${start.whitepoint}XYZ`
+      );
+      if (start.whitepoint !== end.whitepoint) functions.push(
+        `${start.whitepoint}XYZ_${end.whitepoint}XYZ`
+      );
+      if (endSpace !== 'xyz') functions.push(
+        `${end.whitepoint}XYZ_lin${end.prefix}`,
+        `lin${end.prefix}_gam${end.prefix}`
+      );
+    }
+    // If we're converting to another format
+    if (endSpace !== end.id) functions.push(`${end.otherFormats[0]}2${endSpace}`);
 
     let result = values;
     for (const fun of functions) {
@@ -1593,7 +1425,7 @@ export default class Couleur {
    */
   static contrast(text, background, method = 'WCAG2') {
     switch (method.toLowerCase()) {
-      case 'wcag3': case 'sapc': case 'apca':
+      case 'wcag3': case 'apca':
         return Couleur.APCAcontrast(text, background);
       default:
         return Couleur.WCAG2contrast(text, background);
@@ -1922,6 +1754,6 @@ export default class Couleur {
 
   /** @returns {Object} List of named colors in CSS. */
   static get couleursNommees() {
-    return { transparent: '00000000', aliceblue: 'f0f8ff', antiquewhite: 'faebd7', aqua: '00ffff', aquamarine: '7fffd4', azure: 'f0ffff', beige: 'f5f5dc', bisque: 'ffe4c4', black: '000000', blanchedalmond: 'ffebcd', blue: '0000ff', blueviolet: '8a2be2', brown: 'a52a2a', burlywood: 'deb887', cadetblue: '5f9ea0', chartreuse: '7fff00', chocolate: 'd2691e', coral: 'ff7f50', cornflowerblue: '6495ed', cornsilk: 'fff8dc', crimson: 'dc143c', cyan: '00ffff', darkblue: '00008b', darkcyan: '008b8b', darkgoldenrod: 'b8860b', darkgray: 'a9a9a9', darkgrey: 'a9a9a9', darkgreen: '006400', darkkhaki: 'bdb76b', darkmagenta: '8b008b', darkolivegreen: '556b2f', darkorange: 'ff8c00', darkorchid: '9932cc', darkred: '8b0000', darksalmon: 'e9967a', darkseagreen: '8fbc8f', darkslateblue: '483d8b', darkslategray: '2f4f4f', darkslategrey: '2f4f4f', darkturquoise: '00ced1', darkviolet: '9400d3', deeppink: 'ff1493', deepskyblue: '00bfff', dimgray: '696969', dimgrey: '696969', dodgerblue: '1e90ff', firebrick: 'b22222', floralwhite: 'fffaf0', forestgreen: '228b22', fuchsia: 'ff00ff', gainsboro: 'dcdcdc', ghostwhite: 'f8f8ff', gold: 'ffd700', goldenrod: 'daa520', gray: '808080', grey: '808080', green: '008000', greenyellow: 'adff2f', honeydew: 'f0fff0', hotpink: 'ff69b4', indianred: 'cd5c5c', indigo: '4b0082', ivory: 'fffff0', khaki: 'f0e68c', lavender: 'e6e6fa', lavenderblush: 'fff0f5', lawngreen: '7cfc00', lemonchiffon: 'fffacd', lightblue: 'add8e6', lightcoral: 'f08080', lightcyan: 'e0ffff', lightgoldenrodyellow: 'fafad2', lightgray: 'd3d3d3', lightgrey: 'd3d3d3', lightgreen: '90ee90', lightpink: 'ffb6c1', lightsalmon: 'ffa07a', lightseagreen: '20b2aa', lightskyblue: '87cefa', lightslategray: '778899', lightslategrey: '778899', lightsteelblue: 'b0c4de', lightyellow: 'ffffe0', lime: '00ff00', limegreen: '32cd32', linen: 'faf0e6', magenta: 'ff00ff', maroon: '800000', mediumaquamarine: '66cdaa', mediumblue: '0000cd', mediumorchid: 'ba55d3', mediumpurple: '9370d8', mediumseagreen: '3cb371', mediumslateblue: '7b68ee', mediumspringgreen: '00fa9a', mediumturquoise: '48d1cc', mediumvioletred: 'c71585', midnightblue: '191970', mintcream: 'f5fffa', mistyrose: 'ffe4e1', moccasin: 'ffe4b5', navajowhite: 'ffdead', navy: '000080', oldlace: 'fdf5e6', olive: '808000', olivedrab: '6b8e23', orange: 'ffa500', orangered: 'ff4500', orchid: 'da70d6', palegoldenrod: 'eee8aa', palegreen: '98fb98', paleturquoise: 'afeeee', palevioletred: 'd87093', papayawhip: 'ffefd5', peachpuff: 'ffdab9', peru: 'cd853f', pink: 'ffc0cb', plum: 'dda0dd', powderblue: 'b0e0e6', purple: '800080', rebeccapurple: '663399', red: 'ff0000', rosybrown: 'bc8f8f', royalblue: '4169e1', saddlebrown: '8b4513', salmon: 'fa8072', sandybrown: 'f4a460', seagreen: '2e8b57', seashell: 'fff5ee', sienna: 'a0522d', silver: 'c0c0c0', skyblue: '87ceeb', slateblue: '6a5acd', slategray: '708090', slategrey: '708090', snow: 'fffafa', springgreen: '00ff7f', steelblue: '4682b4', tan: 'd2b48c', teal: '008080', thistle: 'd8bfd8', tomato: 'ff6347', turquoise: '40e0d0', violet: 'ee82ee', wheat: 'f5deb3', white: 'ffffff', whitesmoke: 'f5f5f5', yellow: 'ffff00', yellowgreen: '9acd32' };
+    return { aliceblue: 'f0f8ff', antiquewhite: 'faebd7', aqua: '00ffff', aquamarine: '7fffd4', azure: 'f0ffff', beige: 'f5f5dc', bisque: 'ffe4c4', black: '000000', blanchedalmond: 'ffebcd', blue: '0000ff', blueviolet: '8a2be2', brown: 'a52a2a', burlywood: 'deb887', cadetblue: '5f9ea0', chartreuse: '7fff00', chocolate: 'd2691e', coral: 'ff7f50', cornflowerblue: '6495ed', cornsilk: 'fff8dc', crimson: 'dc143c', cyan: '00ffff', darkblue: '00008b', darkcyan: '008b8b', darkgoldenrod: 'b8860b', darkgray: 'a9a9a9', darkgrey: 'a9a9a9', darkgreen: '006400', darkkhaki: 'bdb76b', darkmagenta: '8b008b', darkolivegreen: '556b2f', darkorange: 'ff8c00', darkorchid: '9932cc', darkred: '8b0000', darksalmon: 'e9967a', darkseagreen: '8fbc8f', darkslateblue: '483d8b', darkslategray: '2f4f4f', darkslategrey: '2f4f4f', darkturquoise: '00ced1', darkviolet: '9400d3', deeppink: 'ff1493', deepskyblue: '00bfff', dimgray: '696969', dimgrey: '696969', dodgerblue: '1e90ff', firebrick: 'b22222', floralwhite: 'fffaf0', forestgreen: '228b22', fuchsia: 'ff00ff', gainsboro: 'dcdcdc', ghostwhite: 'f8f8ff', gold: 'ffd700', goldenrod: 'daa520', gray: '808080', grey: '808080', green: '008000', greenyellow: 'adff2f', honeydew: 'f0fff0', hotpink: 'ff69b4', indianred: 'cd5c5c', indigo: '4b0082', ivory: 'fffff0', khaki: 'f0e68c', lavender: 'e6e6fa', lavenderblush: 'fff0f5', lawngreen: '7cfc00', lemonchiffon: 'fffacd', lightblue: 'add8e6', lightcoral: 'f08080', lightcyan: 'e0ffff', lightgoldenrodyellow: 'fafad2', lightgray: 'd3d3d3', lightgrey: 'd3d3d3', lightgreen: '90ee90', lightpink: 'ffb6c1', lightsalmon: 'ffa07a', lightseagreen: '20b2aa', lightskyblue: '87cefa', lightslategray: '778899', lightslategrey: '778899', lightsteelblue: 'b0c4de', lightyellow: 'ffffe0', lime: '00ff00', limegreen: '32cd32', linen: 'faf0e6', magenta: 'ff00ff', maroon: '800000', mediumaquamarine: '66cdaa', mediumblue: '0000cd', mediumorchid: 'ba55d3', mediumpurple: '9370d8', mediumseagreen: '3cb371', mediumslateblue: '7b68ee', mediumspringgreen: '00fa9a', mediumturquoise: '48d1cc', mediumvioletred: 'c71585', midnightblue: '191970', mintcream: 'f5fffa', mistyrose: 'ffe4e1', moccasin: 'ffe4b5', navajowhite: 'ffdead', navy: '000080', oldlace: 'fdf5e6', olive: '808000', olivedrab: '6b8e23', orange: 'ffa500', orangered: 'ff4500', orchid: 'da70d6', palegoldenrod: 'eee8aa', palegreen: '98fb98', paleturquoise: 'afeeee', palevioletred: 'd87093', papayawhip: 'ffefd5', peachpuff: 'ffdab9', peru: 'cd853f', pink: 'ffc0cb', plum: 'dda0dd', powderblue: 'b0e0e6', purple: '800080', rebeccapurple: '663399', red: 'ff0000', rosybrown: 'bc8f8f', royalblue: '4169e1', saddlebrown: '8b4513', salmon: 'fa8072', sandybrown: 'f4a460', seagreen: '2e8b57', seashell: 'fff5ee', sienna: 'a0522d', silver: 'c0c0c0', skyblue: '87ceeb', slateblue: '6a5acd', slategray: '708090', slategrey: '708090', snow: 'fffafa', springgreen: '00ff7f', steelblue: '4682b4', tan: 'd2b48c', teal: '008080', thistle: 'd8bfd8', tomato: 'ff6347', turquoise: '40e0d0', violet: 'ee82ee', wheat: 'f5deb3', white: 'ffffff', whitesmoke: 'f5f5f5', yellow: 'ffff00', yellowgreen: '9acd32' };
   }
 }
