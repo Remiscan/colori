@@ -370,7 +370,7 @@ export default class Couleur {
           if (a >= 1) break;
           string += ` / ${a}`;
         } else {
-          string += ` ${options.round ? Math.round(1000 * v) / 1000 : v}`;
+          string += ` ${options.round ? Math.round(10000 * v) / 10000 : v}`;
         }
       }
       string += `)`;
@@ -626,22 +626,21 @@ export default class Couleur {
    * @param {Array.<string|number>} - The numerical values of the r, g, b, a properties.
    */
    setColor(space, values) {
-    let rgb;
+    let rgb = values.slice(0, 3);
+    const a = values[3];
+
     const clamp = v => Math.max(0, Math.min(v, 1));
     switch (space) {
-      case 'display-p3':
-        rgb = values.map(v => clamp(v));
-        rgb = Couleur.convert('display-p3', 'srgb', rgb.slice(0, 3));
-        break;
-      case 'srgb':
-        rgb = values.map(v => clamp(v));
-        rgb = rgb.slice(0, 3);
+      case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
+        rgb = rgb.map(v => clamp(v));
+      case 'xyz':
+        rgb = Couleur.convert(space, 'srgb', rgb);
         break;
       default:
         throw `The ${space} color space is not supported`;
     }
 
-    const rgba = [...rgb, values[3]];
+    const rgba = [...rgb, a];
     return this.set(rgba, [null, null, null], 'rgb');
   }
 
@@ -880,6 +879,64 @@ export default class Couleur {
     ];
   }
 
+  /* a98-rgb */
+
+  static gamA98_linA98(rgb) {
+    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 563/256));
+  }
+
+  static linA98_gamA98(rgb) {
+    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 256/563));
+  }
+
+  static linA98_d65XYZ(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.5766690429101305 * r + 0.1855582379065463 * g + 0.1882286462349947 * b,
+      0.29734497525053605 * r + 0.6273635662554661 * g + 0.07529145849399788 * b,
+      0.02703136138641234 * r + 0.07068885253582723 * g + 0.9913375368376388 * b
+    ];
+  }
+
+  static d65XYZ_linA98(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      2.0415879038107465 * x + -0.5650069742788596 * y + -0.34473135077832956 * z,
+      -0.9692436362808795 * x + 1.8759675015077202 * y + 0.04155505740717557 * z,
+      0.013444280632031142 * x + -0.11836239223101838 * y + 1.0151749943912054 * z
+    ];
+  }
+
+  /* rec2020 */
+
+  static gamREC2020_linREC2020(rgb) {
+    const e = 1.09929682680944;
+    return rgb.map(v => Math.abs(v) < 0.018053968510807 * 4.5 ? v / 4.5 : (Math.sign(v) || 1) * Math.pow(Math.pow.abs(v) + e - 1, 1/0.45));
+  }
+
+  static linREC2020_gamREC2020(rgb) {
+    const e = 1.09929682680944;
+    return rgb.map(v => Math.abs(v) > 0.018053968510807 ? (Math.sign(v) || 1) * (e * Math.pow(Math.abs(v), 0.45) - (e - 1)) : 4.5 * v);
+  }
+
+  static linREC2020_d65XYZ(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.6369580483012914 * r + 0.14461690358620832 * g + 0.1688809751641721 * b,
+		  0.2627002120112671 * r + 0.6779980715188708 * g + 0.05930171646986196 * b,
+		  0.000000000000000 * r + 0.028072693049087428 * g + 1.060985057710791 * b
+    ];
+  }
+
+  static d65XYZ_linREC2020(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      1.7166511879712674 * x + -0.35567078377639233 * y + -0.25336628137365974 * z,
+		  -0.6666843518324892 * x + 1.6164812366349395 * y + 0.01576854581391113 * z,
+		  0.017639857445310783 * x + -0.042770613257808524 * y + 0.9421031212354738 * z
+    ];
+  }
+
   /* lab */
 
   static gamLAB_linLAB(lab) { return lab; }
@@ -948,57 +1005,49 @@ export default class Couleur {
 
 
   /**
-   * Checks whether parsed r, g, b values correspond to a color in a given color space.
+   * Checks whether parsed r, g, b values in sRGB color space correspond to a color in a given color space.
    * @param {string} space - The identifier of the color space.
-   * @param {number[]} rgb - Array of parsed r, g, b values.
-   * @returns {boolean} Whether r, g, b are all in [0, 1].
+   * @param {number[]} rgb - Array of parsed r, g, b values in sRGB color space.
+   * @returns {boolean} Whether r, g, b in ${space} color space are all in [0, 1].
    */
   static inColorSpace(space, rgb) {
     const ε = .000005;
-    switch (space) {
-      case 'srgb': return rgb.every(v => v > (0 - ε) && v < (1 + ε));
-      default: return;
-    }
+    return Couleur.convert('srgb', space, rgb).every(v => v > (0 - ε) && v < (1 + ε));
   }
 
   /**
-   * Clamps parsed r, g, b values to a given color space.
+   * Clamps parsed r, g, b values in sRGB color space to a given color space.
    * @param {string} space - The identifier of the color space.
-   * @param {number[]} rgb - Array of parsed r, g, b values.
-   * @returns {number[]} The array of clamped r, g, b values.
+   * @param {number[]} rgb - Array of parsed r, g, b values in sRGB color space.
+   * @returns {number[]} The array of r, g, b values in sRGB color space, after clamping the color to ${space} color space.
    */
   static clampToColorSpace(space, rgb) {
-    switch (space) {
-      case 'srgb': {
-        // Source of the math: https://css.land/lch/lch.js
-        if (Couleur.inColorSpace('srgb', rgb)) return rgb;
-        let lch = Couleur.lab2lch(Couleur.rgb2lab(rgb));
+    // Source of the math: https://css.land/lch/lch.js
+    if (Couleur.inColorSpace(space, rgb)) return rgb;
+    let lch = Couleur.lab2lch(Couleur.rgb2lab(rgb));
 
-        // If lightness is too low / high, clamp it and try again
-        const ε = .00001;
-        if (lch[0] < (0 - ε) || lch[0] > (1 + ε)) {
-          lch[0] = Math.max(0, Math.min(lch[0], 1));
-          const rgb = Couleur.lab2rgb(Couleur.lch2lab(lch));
-          return Couleur.clampToColorSpace(space, rgb);
-        }
-
-        // If chroma is too high, clamp it
-        const τ = .0001;
-        let Cmin = 0;
-        let Cmax = lch[1];
-        lch[1] = lch[1] / 2;
-
-        const condition = lch => Couleur.inColorSpace('srgb', Couleur.lab2rgb(Couleur.lch2lab(lch)));
-        while (Cmax - Cmin > τ) {
-          if (condition(lch)) Cmin = lch[1];
-          else                Cmax = lch[1];
-          lch[1] = (Cmin + Cmax) / 2;
-        }
-
-        return Couleur.lab2rgb(Couleur.lch2lab(lch));
-      }
-      default: return rgb;
+    // If lightness is too low / high, clamp it and try again
+    const ε = .00001;
+    if (lch[0] < (0 - ε) || lch[0] > (1 + ε)) {
+      lch[0] = Math.max(0, Math.min(lch[0], 1));
+      const rgb = Couleur.lab2rgb(Couleur.lch2lab(lch));
+      return Couleur.clampToColorSpace(space, rgb);
     }
+
+    // If chroma is too high, clamp it
+    const τ = .0001;
+    let Cmin = 0;
+    let Cmax = lch[1];
+    lch[1] = lch[1] / 2;
+
+    const condition = lch => Couleur.inColorSpace(space, Couleur.lab2rgb(Couleur.lch2lab(lch)));
+    while (Cmax - Cmin > τ) {
+      if (condition(lch)) Cmin = lch[1];
+      else                Cmax = lch[1];
+      lch[1] = (Cmin + Cmax) / 2;
+    }
+
+    return Couleur.lab2rgb(Couleur.lch2lab(lch));
   }
 
 
@@ -1190,7 +1239,10 @@ export default class Couleur {
     const supportedSpaces = [
       { id: 'srgb',         whitepoint: 'd65', prefix: 'RGB' },
       { id: 'display-p3',   whitepoint: 'd65', prefix: 'P3' },
+      { id: 'a98-rgb',      whitepoint: 'd65', prefix: 'A98' },
       { id: 'prophoto-rgb', whitepoint: 'd50', prefix: 'PROPHOTO' },
+      { id: 'rec2020',      whitepoint: 'd65', prefix: 'REC2020' },
+      { id: 'xyz',          whitepoint: 'd50', prefix: 'XYZ' },
       { id: 'lab',          whitepoint: 'd50', prefix: 'LAB' }
     ];
 
@@ -1200,13 +1252,18 @@ export default class Couleur {
 
     const [start, end] = [startSpace, endSpace].map(id => supportedSpaces.find(s => s.id === id));
 
-    const functions = [
+    const functions = [];
+    if (startSpace !== 'xyz') functions.push(
       `gam${start.prefix}_lin${start.prefix}`,
-      `lin${start.prefix}_${start.whitepoint}XYZ`,
-      `${start.whitepoint}XYZ_${end.whitepoint}XYZ`,
+      `lin${start.prefix}_${start.whitepoint}XYZ`
+    );
+    if (start.whitepoint !== end.whitepoint) functions.push(
+      `${start.whitepoint}XYZ_${end.whitepoint}XYZ`
+    );
+    if (endSpace !== 'xyz') functions.push(
       `${end.whitepoint}XYZ_lin${end.prefix}`,
       `lin${end.prefix}_gam${end.prefix}`
-    ];
+    );
 
     let result = values;
     for (const fun of functions) {
