@@ -1554,14 +1554,76 @@ export default class Couleur {
    * @param {string} space - The color space in which distance will be measured.
    * @returns {number} The distance between the two colors in sRGB space.
    */
-   static distance(_couleur1, _couleur2, space = 'srgb') {
+  static distance(_couleur1, _couleur2, options = {}) {
+    if (typeof options.space === 'undefined') options.space = 'lab';
+    if (typeof options.method === 'undefined') options.method = 'CIEDE2020';
+    
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
 
-    const values1 = Couleur.clampToColorSpace(space, couleur1.values);
-    const values2 = Couleur.clampToColorSpace(space, couleur2.values);
-    const dist = ['r', 'g', 'b'].reduce((sum, prop, k) => sum + Math.abs(values1[k] - values2[k]), 0);
-    return dist;
+    const space = Couleur.whichSpaceHasFormat(options.space) || Couleur.space(options.space);
+    const format = Couleur.whichSpaceHasFormat(options.space) ? options.space : null;
+
+    let values1 = Couleur.clampToColorSpace(space.id, couleur1.values('srgb', false));
+    let values2 = Couleur.clampToColorSpace(space.id, couleur2.values('srgb', false));
+
+    switch (options.method) {
+      case 'CIEDE2000': {
+
+        // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
+        const [[x1, a1, b1], [x2, a2, b2]] = [values1, values2].map(v => Couleur.convert('rgb', 'lab', v));
+        const [[L1, C1, H1], [L2, C2, H2]] = [values1, values2].map(v => Couleur.convert('rgb', 'lch', v));
+
+        const mC = (C1 + C2) / 2,
+              G = 0.5 * (1 - Math.sqrt(mC ** 7 / (mC ** 7 + 25 ** 7))),
+              aa1 = (1 + G) * a1,
+              aa2 = (1 + G) * a2,
+              CC1 = Math.sqrt(aa1 ** 2 + b1 ** 2),
+              CC2 = Math.sqrt(aa2 ** 2 + b2 ** 2);
+        let hh1 = CC1 === 0 ? 0 : Math.atan2(b1, aa1) * 180 / Math.PI,
+            hh2 = CC2 === 0 ? 0 : Math.atan2(b2, aa2) * 180 / Math.PI;
+        while (hh1 < 0) hh1 += 360; while (hh1 > 360) hh1 -= 360;
+        while (hh2 < 0) hh2 += 360; while (hh2 > 360) hh2 -= 360;
+
+        const dL = L2 - L1,
+              dC = CC2 - CC1;
+        const dhh = (CC1 * CC2 === 0) ? 0
+                  : (Math.abs(hh2 - hh1) <= 180) ? hh2 - hh1
+                  : (hh2 - hh1 > 180) ? hh2 - hh1 - 360
+                  : hh2 - hh1 + 360;
+        const dH = 2 * Math.sqrt(CC1 * CC2) * Math.sin((Math.PI / 180) * (dhh / 2));
+
+        const mL = (L1 + L2) / 2,
+              mCC = (CC1 + CC2) / 2;
+        const mhh = (CC1 * CC2 === 0) ? hh1 + hh2
+                  : (Math.abs(hh2 - hh1) <= 180) ? (hh1 + hh2) / 2
+                  : (hh1 + hh2 >= 360) ? (hh1 + hh2 - 360) / 2
+                  : (hh1 + hh2 + 360) / 2;
+        const T = 1 - 0.17 * Math.cos((Math.PI / 180) * (mhh - 30))
+                    + 0.24 * Math.cos((Math.PI / 180) * (2 * mhh))
+                    + 0.32 * Math.cos((Math.PI / 180) * (3 * mhh + 6))
+                    - 0.20 * Math.cos((Math.PI / 180) * (4 * mhh - 63)),
+              dTH = 30 * Math.exp(-1 * ((mhh - 275) / 25) ** 2),
+              RC = 2 * Math.sqrt(mCC ** 7 / (mCC ** 7 + 25 ** 7)),
+              SL = 1 + (0.015 * (mL - 50) ** 2) / Math.sqrt(20 + (mL - 50) ** 2),
+              SC = 1 + 0.045 * mCC,
+              SH = 1 + 0.015 * mCC * T,
+              RT = -1 * Math.sin((Math.PI / 180) * (2 * dTH)) * RC;
+
+        return Math.sqrt(
+          (dL / SL) ** 2
+          + (dC / SC) ** 2
+          + (dH / SH) ** 2
+          + RT * (dC / SC) * (dH / SH)
+        );
+      }
+
+      case 'euclidean':
+      default: {
+        if (format) [values1, values2] = [values1, values2].map(v => Couleur.convert('rgb', format, v));
+        return values1.reduce((sum, v, k) => sum + (v - values2[k]) ** 2);
+      }
+    }
   }
 
 
