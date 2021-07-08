@@ -31,15 +31,12 @@ export default class Couleur {
 
     switch (format.id) {
       case 'HEX':
-      case 'HEXA':
         this.hex = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')];
         break;
       case 'RGB':
-      case 'RGBA':
         this.rgb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
         break;
       case 'HSL':
-      case 'HSLA':
         this.hsl = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
         break;
       case 'HWB':
@@ -50,6 +47,9 @@ export default class Couleur {
         break;
       case 'LCH':
         this.lch = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+        break;
+      case 'COLOR':
+        this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
         break;
       default:
         throw `${couleur} is not a valid color format`;
@@ -89,12 +89,15 @@ export default class Couleur {
     // Predetermine the format, to save regex-matching time
     let format;
     if (tri.slice(0, 1) === '#') format = allFormats[0];
-    else if (tri === 'rgb')      format = allFormats[1];
-    else if (tri === 'hsl')      format = allFormats[2];
-    else if (tri === 'hwb')      format = allFormats[3];
-    else if (tri === 'lab')      format = allFormats[4];
-    else if (tri === 'lch')      format = allFormats[5];
-    else                         format = allFormats[6];
+    else switch (tri) {
+      case 'rgb': format = allFormats[1]; break;
+      case 'hsl': format = allFormats[2]; break;
+      case 'hwb': format = allFormats[3]; break;
+      case 'lab': format = allFormats[4]; break;
+      case 'lch': format = allFormats[5]; break;
+      case 'col': format = allFormats[6]; break;
+      default:    format = allFormats[7];
+    }
 
     // Check if the given string matches any color syntax
     for (const [k, syntaxe] of format.syntaxes.entries()) {
@@ -357,6 +360,24 @@ export default class Couleur {
   static expr(format, values, options = {}) {
     if (typeof options.round === 'undefined') options.round = true;
 
+    // If the requested expression is of the color(space, ...) type
+    if (format.slice(0, 5) === 'color') {
+      const space = format.replace('color-', '');
+      let string = `color(${space}`;
+      for (const [k, v] of Object.entries(values)) {
+        if (k == values.length - 1) {
+          const a = options.round ? Math.round(100 * v) / 100 : v;
+          if (a >= 1) break;
+          string += ` / ${a}`;
+        } else {
+          string += ` ${options.round ? Math.round(1000 * v) / 1000 : v}`;
+        }
+      }
+      string += `)`;
+      return string;
+    }
+
+    // If the requested expression is of the ${format}(...) type
     const props = Couleur.propertiesOf(format);
     const a = Couleur.unparse('a', values[3], { round: options.round });
     const [x, y, z] = props.map((p, k) => Couleur.unparse(p, values[k], { round: options.round }));
@@ -454,21 +475,17 @@ export default class Couleur {
 
   /** @returns {string} Hexadecimal expression of the color. */
   get hex() {
-    if (this.a < 1)
-      return this.hexa;
-    const r = Couleur.pad(Math.round(this.r * 255).toString(16));
-    const g = Couleur.pad(Math.round(this.g * 255).toString(16));
-    const b = Couleur.pad(Math.round(this.b * 255).toString(16));
-    return `#${r}${g}${b}`;
+    if (this.a < 1) return this.hexa;
+    const values = Couleur.clampToColorSpace('srgb', this.values.slice(0, 3));
+    const rgb = values.map(v => Couleur.pad(Math.round(v * 255).toString(16)));
+    return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
   }
 
   /** @returns {string} Hexadecimal (+ a) expression of the color. */
   get hexa() {
-    const r = Couleur.pad(Math.round(this.r * 255).toString(16));
-    const g = Couleur.pad(Math.round(this.g * 255).toString(16));
-    const b = Couleur.pad(Math.round(this.b * 255).toString(16));
-    const a = Couleur.pad(Math.round(this.a * 255).toString(16));
-    return `#${r}${g}${b}${a}`;
+    const values = Couleur.clampToColorSpace('srgb', this.values.slice(0, 3));
+    const rgb = [...values, this.a].map(v => Couleur.pad(Math.round(v * 255).toString(16)));
+    return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
   }
 
 
@@ -566,13 +583,13 @@ export default class Couleur {
   /** @returns {string} LAB expression of the color. */
   get lab() {
     const lab = Couleur.rgb2lab(Couleur.clampToColorSpace('lab', this.values.slice(0, 3)));
-    return Couleur.expr('lab', [...lab, this.a], { clamp: 'lab' });
+    return Couleur.expr('lab', [...lab, this.a]);
   }
 
   /** @returns {string} LAB expression of the color, but always with the alpha value. */
   get laba() {
     const lab = Couleur.rgb2lab(Couleur.clampToColorSpace('lab', this.values.slice(0, 3)));
-    return Couleur.expr('laba', [...lab, this.a], { clamp: 'lab' });
+    return Couleur.expr('laba', [...lab, this.a]);
   }
 
 
@@ -592,13 +609,46 @@ export default class Couleur {
   /** @returns {string} LCH expression of the color. */
   get lch() {
     const lch = Couleur.lab2lch(Couleur.rgb2lab(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3))));
-    return Couleur.expr('lch', [...lch, this.a], { clamp: 'lab' });
+    return Couleur.expr('lch', [...lch, this.a]);
   }
 
   /** @returns {string} LCH expression of the color, but always with the alpha value. */
   get lcha() {
     const lch = Couleur.lab2lch(Couleur.rgb2lab(Couleur.clampToColorSpace('srgb', this.values.slice(0, 3))));
-    return Couleur.expr('lcha', [...lch, this.a], { clamp: 'lab' });
+    return Couleur.expr('lcha', [...lch, this.a]);
+  }
+
+
+  /* PROFILED COLORS */
+
+  /**
+   * Calculates all properties of the color from its functional color() expression.
+   * @param {Array.<string|number>} - The numerical values of the r, g, b, a properties.
+   */
+   setColor(space, values) {
+    let rgb;
+    switch (space) {
+      case 'display-p3': 
+        rgb = Couleur.convert('display-p3', 'srgb', values.slice(0, 3));
+        break;
+      case 'srgb':
+        rgb = values.slice(0, 3);
+        break;
+      default:
+        throw `The ${space} color space is not supported`;
+    }
+
+    const rgba = [...rgb.map(v => 255 * v), values[3]];
+    return this.set(rgba, ['r', 'g', 'b'], 'rgb');
+  }
+
+  /** Returns the expression on the color in a given color space.
+   * @param {string} space - The identifier of the color space.
+   * @returns {string} Expression of the color.
+   */
+  color(space) {
+    const values = Couleur.convert('srgb', space, this.values.slice(0, 3));
+    return Couleur.expr(`color-${space}`, [...values, this.a]);
   }
 
 
@@ -748,6 +798,8 @@ export default class Couleur {
   //                   & https://drafts.csswg.org/css-color-4/utilities.js
   //                   & https://drafts.csswg.org/css-color-4/conversions.js
 
+  /* srgb */
+
   static gamRGB_linRGB(rgb) {
     return rgb.map(x => (Math.abs(x) < 0.04045) ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4));
   }
@@ -768,29 +820,67 @@ export default class Couleur {
   static d65XYZ_linRGB(xyz) {
     const [x, y, z] = xyz;
     return [
-      3.2409699419045226 * x - 1.537383177570094 * y - 0.4986107602930034 * z,
+      3.2409699419045226 * x + -1.537383177570094 * y + -0.4986107602930034 * z,
       -0.9692436362808796 * x + 1.8759675015077202 * y + 0.04155505740717559 * z,
-      0.05563007969699366 * x - 0.20397695888897652 * y + 1.0569715142428786 * z
+      0.05563007969699366 * x + -0.20397695888897652 * y + 1.0569715142428786 * z
     ];
   }
 
-  static d65XYZ_d50XYZ(xyz) {
-    const [x, y, z] = xyz;
+  /* display-p3 */
+
+  static gamP3_linP3(rgb) { return Couleur.gamRGB_linRGB(rgb); }
+  static linP3_gamP3(rgb) { return Couleur.linRGB_gamRGB(rgb); }
+  
+  static linP3_d65XYZ(rgb) {
+    const [r, g, b] = rgb;
     return [
-      1.0479298208405488 * x + 0.022946793341019088 * y - 0.05019222954313557 * z,
-      0.029627815688159344 * x + 0.990434484573249 * y - 0.01707382502938514 * z,
-      -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z
+      0.4865709486482162 * r + 0.26566769316909306 * g + 0.1982172852343625 * b,
+		  0.2289745640697488 * r + 0.6917385218365064 * g + 0.079286914093745 * b,
+		  0.0000000000000000 * r + 0.04511338185890264 * g + 1.043944368900976 * b
     ];
   }
 
-  static d50XYZ_d65XYZ(xyz) {
+  static d65XYZ_linP3(xyz) {
     const [x, y, z] = xyz;
     return [
-      0.9554734527042182 * x - 0.023098536874261423 * y + 0.0632593086610217 * z,
-      -0.028369706963208136 * x + 1.0099954580058226 * y + 0.021041398966943008 * z,
-      0.012314001688319899 * x - 0.020507696433477912 * y + 1.3303659366080753 * z
+      2.493496911941425 * x + -0.9313836179191239 * y + -0.40271078445071684 * z,
+		  -0.8294889695615747 * x + 1.7626640603183463 * y +  0.023624685841943577 * z,
+		  0.03584583024378447 * x + -0.07617238926804182 * y + 0.9568845240076872 * z
     ];
   }
+
+  /* prophoto-rgb */
+
+  static gamPROPHOTO_linPROPHOTO(rgb) {
+    return rgb.map(v => Math.abs(v) <= 16/512 ? v / 16 : (Math.sign(x) || 1) * Math.pow(v, 1.8));
+  }
+
+  static linPROPHOTO_gamPROPHOTO(rgb) {
+    return rgb.map(v => Math.abs(v) >= 1/512 ? (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1/1.8) : 16 * v);
+  }
+
+  static linPROPHOTO_d50XYZ(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
+      0.2880711282292934 * r + 0.7118432178101014 * g + 0.00008565396060525902 * b,
+      0.0 * r + 0.0 * g + 0.8251046025104601 * b
+    ];
+  }
+
+  static d50XYZ_linPROPHOTO(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
+	  	-0.5446224939028347 * x + 1.5082327413132781 * y + 0.02053603239147973 * z,
+	  	0.0 * x + 0.0 * y + 1.2119675456389454 * z
+    ];
+  }
+
+  /* lab */
+
+  static gamLAB_linLAB(lab) { return lab; }
+  static linLAB_gamLAB(lab) { return lab; }
 
   static d50XYZ_LAB(xyz) {
     const ε = 216/24389;
@@ -824,6 +914,36 @@ export default class Couleur {
     return [x, y, z].map((v, k) => v * w[k]);
   }
 
+  static d50XYZ_linLAB(lab) { return Couleur.d50XYZ_LAB(lab); }
+  static linLAB_d50XYZ(lab) { return Couleur.LAB_d50XYZ(lab); }
+
+  /* Bradford transform */
+
+  static d65XYZ_d50XYZ(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      1.0479298208405488 * x + 0.022946793341019088 * y + -0.05019222954313557 * z,
+      0.029627815688159344 * x + 0.990434484573249 * y + -0.01707382502938514 * z,
+      -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z
+    ];
+  }
+
+  static d50XYZ_d65XYZ(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      0.9554734527042182 * x + -0.023098536874261423 * y + 0.0632593086610217 * z,
+      -0.028369706963208136 * x + 1.0099954580058226 * y + 0.021041398966943008 * z,
+      0.012314001688319899 * x + -0.020507696433477912 * y + 1.3303659366080753 * z
+    ];
+  }
+
+  static d50XYZ_d50XYZ(xyz) { return xyz; }
+  static d65XYZ_d65XYZ(xyz) { return xyz; }
+
+
+  /* Clamping to color space *
+
+
   /**
    * Checks whether parsed r, g, b values correspond to a color in a given color space.
    * @param {string} space - The identifier of the color space.
@@ -831,10 +951,10 @@ export default class Couleur {
    * @returns {boolean} Whether r, g, b are all in [0, 1].
    */
   static inColorSpace(space, rgb) {
-    const ε = .00001;
+    const ε = .000005;
     switch (space) {
-      case 'srgb': return rgb.reduce((sum, v) => sum && v > (0 - ε) && v < (1 + ε), true);
-      default: return undefined;
+      case 'srgb': return rgb.every(v => v > (0 - ε) && v < (1 + ε));
+      default: return;
     }
   }
 
@@ -851,6 +971,15 @@ export default class Couleur {
         if (Couleur.inColorSpace('srgb', rgb)) return rgb;
         let lch = Couleur.lab2lch(Couleur.rgb2lab(rgb));
 
+        // If lightness is too low / high, clamp it and try again
+        const ε = .00001;
+        if (lch[0] < (0 - ε) || lch[0] > (1 + ε)) {
+          lch[0] = Math.max(0, Math.min(lch[0], 1));
+          const rgb = Couleur.lab2rgb(Couleur.lch2lab(lch));
+          return Couleur.clampToColorSpace(space, rgb);
+        }
+
+        // If chroma is too high, clamp it
         const τ = .0001;
         let Cmin = 0;
         let Cmax = lch[1];
@@ -994,7 +1123,7 @@ export default class Couleur {
 
     // Takes r, g & b in [0, 1]
     // Returns ciel in [0, 1], ciea as any number
-    return Couleur.d50XYZ_LAB(Couleur.d65XYZ_d50XYZ(Couleur.linRGB_d65XYZ(Couleur.gamRGB_linRGB(rgb))));
+    return Couleur.convert('srgb', 'lab', rgb);
   }
 
 
@@ -1013,7 +1142,7 @@ export default class Couleur {
 
     // Takes ciel in [0, 1], ciea & cieb as any number
     // Returns r, g & b in [0, 1]
-    return Couleur.linRGB_gamRGB(Couleur.d65XYZ_linRGB(Couleur.d50XYZ_d65XYZ(Couleur.LAB_d50XYZ(lab))));
+    return Couleur.convert('lab', 'srgb', lab);
   }
 
 
@@ -1042,6 +1171,47 @@ export default class Couleur {
     const cieb = ciec * Math.sin(cieh * Math.PI / 180);
 
     return [ciel, ciea, cieb];
+  }
+
+  /**
+   * Converts the color values from one color space to another.
+   * @param {string} startSpace - The identifier of the starting color space.
+   * @param {string} endSpace - The identifier of the color space to convert to.
+   * @param {*} values - Array of color values.
+   * @returns 
+   */
+  static convert(startSpace, endSpace, values) {
+    // Source of the math: https://drafts.csswg.org/css-color/#predefined-to-predefined
+    if (startSpace === endSpace) return values;
+
+    const supportedSpaces = [
+      { id: 'srgb',         whitepoint: 'd65', prefix: 'RGB' },
+      { id: 'display-p3',   whitepoint: 'd65', prefix: 'P3' },
+      { id: 'prophoto-rgb', whitepoint: 'd50', prefix: 'PROPHOTO' },
+      { id: 'lab',          whitepoint: 'd50', prefix: 'LAB' }
+    ];
+
+    const ids = supportedSpaces.map(s => s.id);
+    if (!ids.includes(startSpace) || !ids.includes(endSpace))
+      throw `Can not convert from ${startSpace} to ${endSpace}`;
+
+    const [start, end] = [startSpace, endSpace].map(id => supportedSpaces.find(s => s.id === id));
+
+    const functions = [
+      `gam${start.prefix}_lin${start.prefix}`,
+      `lin${start.prefix}_${start.whitepoint}XYZ`,
+      `${start.whitepoint}XYZ_${end.whitepoint}XYZ`,
+      `${end.whitepoint}XYZ_lin${end.prefix}`,
+      `lin${end.prefix}_gam${end.prefix}`
+    ];
+
+    let result = values;
+    for (const fun of functions) {
+      try {
+        result = Couleur[fun](result);
+      } catch (error) { console.error(error, fun); }
+    }
+    return result;
   }
 
 
@@ -1664,6 +1834,14 @@ export default class Couleur {
           new RegExp(`^lch\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vAng})\\)$`),
           // lch(300% 25 <angle> / .5)
           new RegExp(`^lch\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vAng}) ?\\/ ?(${Couleur.vNP})\\)$`)
+        ]
+      }, {
+        id: 'COLOR',
+        syntaxes: [
+          // color(display-p3 -0.6112 1.0079 -0.2192)
+          new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum})\\)$`),
+          // color(display-p3 -0.6112 1.0079 -0.2192 / .5)
+          new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
         id: 'NAME',
