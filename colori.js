@@ -341,7 +341,7 @@ export default class Couleur {
   set(data, props, format) {
     const values = props.map((p, i) => Couleur.parse(data[i], p));
     const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
-    this.a = Couleur.pRound(Couleur.parse(isAlpha(data[3]), 'a'));
+    this.a = Couleur.parse(isAlpha(data[3]), 'a');
     this.compute(format, values);
   }
 
@@ -627,19 +627,22 @@ export default class Couleur {
    */
    setColor(space, values) {
     let rgb;
+    const clamp = v => Math.max(0, Math.min(v, 1));
     switch (space) {
-      case 'display-p3': 
-        rgb = Couleur.convert('display-p3', 'srgb', values.slice(0, 3));
+      case 'display-p3':
+        rgb = values.map(v => clamp(v));
+        rgb = Couleur.convert('display-p3', 'srgb', rgb.slice(0, 3));
         break;
       case 'srgb':
-        rgb = values.slice(0, 3);
+        rgb = values.map(v => clamp(v));
+        rgb = rgb.slice(0, 3);
         break;
       default:
         throw `The ${space} color space is not supported`;
     }
 
-    const rgba = [...rgb.map(v => 255 * v), values[3]];
-    return this.set(rgba, ['r', 'g', 'b'], 'rgb');
+    const rgba = [...rgb, values[3]];
+    return this.set(rgba, [null, null, null], 'rgb');
   }
 
   /** Returns the expression on the color in a given color space.
