@@ -12,11 +12,6 @@ export default class Couleur {
    * @throws {string} when the parameter isn't a valid color string.
    */
   constructor(couleur) {
-    if (couleur instanceof Couleur)
-      throw 'Already an instance of Couleur';
-    else if (typeof couleur != 'string')
-      throw `Couleur objects can only be created from a String ; this is not one: ${couleur}`;
-
     /** @property {number} r - Red value (from 0 to 1) */
     this.r = null;
     /** @property {number} g - Green value (from 0 to 1) */
@@ -26,33 +21,46 @@ export default class Couleur {
     /** @property {number} a - Opacity (from 0 to 1) */
     this.a = null;
 
-    const format = Couleur.matchSyntax(couleur.trim());
-    const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
+    if (couleur instanceof Couleur) {
+      this.r = couleur.r;
+      this.g = couleur.g;
+      this.b = couleur.b;
+      this.a = couleur.a;
+    }
 
-    switch (format.id) {
-      case 'HEX':
-        this.hex = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')];
-        break;
-      case 'RGB':
-        this.rgb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
-        break;
-      case 'HSL':
-        this.hsl = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
-        break;
-      case 'HWB':
-        this.hwb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
-        break;
-      case 'LAB':
-        this.lab = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
-        break;
-      case 'LCH':
-        this.lch = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
-        break;
-      case 'COLOR':
-        this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
-        break;
-      default:
-        throw `${couleur} is not a valid color format`;
+    else if (typeof couleur != 'string') {
+      throw `Couleur objects can only be created from a String ; this is not one: ${couleur}`;
+    }
+
+    else {
+      const format = Couleur.matchSyntax(couleur.trim());
+      const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
+
+      switch (format.id) {
+        case 'HEX':
+          this.hex = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')];
+          break;
+        case 'RGB':
+          this.rgb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          break;
+        case 'HSL':
+          this.hsl = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          break;
+        case 'HWB':
+          this.hwb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          break;
+        case 'LAB':
+          this.lab = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          break;
+        case 'LCH':
+          this.lch = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          break;
+        case 'COLOR':
+          this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
+          break;
+        default:
+          throw `${couleur} is not a valid color format`;
+      }
     }
   }
 
@@ -129,10 +137,10 @@ export default class Couleur {
     let rgb;
     switch (knownFormat) {
       case 'rgb': rgb = values; break;
-      case 'hsl': rgb = Couleur.hsl2rgb(values); break;
-      case 'hwb': rgb = Couleur.hsl2rgb(Couleur.hwb2hsl(values)); break;
-      case 'lab': rgb = Couleur.lab2rgb(values); break;
-      case 'lch': rgb = Couleur.lab2rgb(Couleur.lch2lab(values)); break;
+      case 'hsl': rgb = Utils.hsl2rgb(values); break;
+      case 'hwb': rgb = Utils.hsl2rgb(Utils.hwb2hsl(values)); break;
+      case 'lab': rgb = Utils.lab2rgb(values); break;
+      case 'lch': rgb = Utils.lab2rgb(Utils.lch2lab(values)); break;
     }
     [this.r, this.g, this.b] = rgb.map(v => Couleur.pRound(v));
   }
@@ -147,20 +155,6 @@ export default class Couleur {
   static pRound(_x, n = 5) {
     let x = (typeof _x === 'number') ? _x : Number(_x);
     return Number(parseFloat(x.toPrecision(n)));
-  }
-
-
-  /**
-   * Checks if a variable is a Couleur object, or if it can be made into one.
-   * @param {color} color
-   * @returns {Couleur}
-   */
-  static check(color) {
-    if (color instanceof Couleur) return color;
-    try { return new Couleur(color); }
-    catch (error) {
-      throw `Argument should be an instance of the Couleur class, or a valid color string ; this isn't: ${color}`;
-    }
   }
 
 
@@ -502,7 +496,7 @@ export default class Couleur {
 
   /** @returns {string} Hexadecimal (+ a) expression of the color. */
   get hexa() {
-    const values = Couleur.clampToColorSpace('srgb', this.values().slice(0, 3));
+    const values = Couleur.clampToColorSpace('srgb', this.values());
     const rgb = values.map(v => Couleur.pad(Math.round(v * 255).toString(16)));
     return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
   }
@@ -574,7 +568,7 @@ export default class Couleur {
    * Calculates all properties of the color from its functional color() expression.
    * @param {Array.<string|number>} - The numerical values of the r, g, b, a properties.
    */
-   setColor(space, values) {
+  setColor(space, values) {
     let rgb = values.slice(0, 3);
     const a = values[3];
 
@@ -672,225 +666,11 @@ export default class Couleur {
   get ciec() { return this.values('lch')[1]; }
   get cieh() { return this.values('lch')[2]; }
 
-  /** @returns {number} Luminance of the color. */
-  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   get luminance() {
     if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
-    let rgb = Couleur.gamRGB_linRGB(this.values());
-    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+    return Utils.luminance(this.values('rgb', { alpha: false }));
   }
 
-
-
-  /************************************/
-  /* Conversion between color formats */
-  /************************************/
-
-
-  /* Utility functions for conversion */
-  // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
-  //                   & https://drafts.csswg.org/css-color-4/utilities.js
-  //                   & https://drafts.csswg.org/css-color-4/conversions.js
-
-  /* srgb */
-
-  static gamRGB_linRGB(rgb) {
-    return rgb.map(x => (Math.abs(x) < 0.04045) ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4));
-  }
-
-  static linRGB_gamRGB(rgb) {
-    return rgb.map(x => (Math.abs(x) > 0.0031308) ? (Math.sign(x) || 1) * (1.055 * Math.pow(Math.abs(x), 1 / 2.4) - 0.055) : 12.92 * x);
-  }
-
-  static linRGB_d65XYZ(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.41239079926595934 * r + 0.357584339383878 * g + 0.1804807884018343 * b,
-      0.21263900587151027 * r + 0.715168678767756 * g + 0.07219231536073371 * b,
-      0.01933081871559182 * r + 0.11919477979462598 * g + 0.9505321522496607 * b
-    ];
-  }
-
-  static d65XYZ_linRGB(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      3.2409699419045226 * x + -1.537383177570094 * y + -0.4986107602930034 * z,
-      -0.9692436362808796 * x + 1.8759675015077202 * y + 0.04155505740717559 * z,
-      0.05563007969699366 * x + -0.20397695888897652 * y + 1.0569715142428786 * z
-    ];
-  }
-
-  /* display-p3 */
-
-  static gamP3_linP3(rgb) { return Couleur.gamRGB_linRGB(rgb); }
-  static linP3_gamP3(rgb) { return Couleur.linRGB_gamRGB(rgb); }
-  
-  static linP3_d65XYZ(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.4865709486482162 * r + 0.26566769316909306 * g + 0.1982172852343625 * b,
-		  0.2289745640697488 * r + 0.6917385218365064 * g + 0.079286914093745 * b,
-		  0.0000000000000000 * r + 0.04511338185890264 * g + 1.043944368900976 * b
-    ];
-  }
-
-  static d65XYZ_linP3(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      2.493496911941425 * x + -0.9313836179191239 * y + -0.40271078445071684 * z,
-		  -0.8294889695615747 * x + 1.7626640603183463 * y +  0.023624685841943577 * z,
-		  0.03584583024378447 * x + -0.07617238926804182 * y + 0.9568845240076872 * z
-    ];
-  }
-
-  /* prophoto-rgb */
-
-  static gamPROPHOTO_linPROPHOTO(rgb) {
-    return rgb.map(v => Math.abs(v) <= 16/512 ? v / 16 : (Math.sign(x) || 1) * Math.pow(v, 1.8));
-  }
-
-  static linPROPHOTO_gamPROPHOTO(rgb) {
-    return rgb.map(v => Math.abs(v) >= 1/512 ? (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1/1.8) : 16 * v);
-  }
-
-  static linPROPHOTO_d50XYZ(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
-      0.2880711282292934 * r + 0.7118432178101014 * g + 0.00008565396060525902 * b,
-      0.0 * r + 0.0 * g + 0.8251046025104601 * b
-    ];
-  }
-
-  static d50XYZ_linPROPHOTO(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
-	  	-0.5446224939028347 * x + 1.5082327413132781 * y + 0.02053603239147973 * z,
-	  	0.0 * x + 0.0 * y + 1.2119675456389454 * z
-    ];
-  }
-
-  /* a98-rgb */
-
-  static gamA98_linA98(rgb) {
-    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 563/256));
-  }
-
-  static linA98_gamA98(rgb) {
-    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 256/563));
-  }
-
-  static linA98_d65XYZ(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.5766690429101305 * r + 0.1855582379065463 * g + 0.1882286462349947 * b,
-      0.29734497525053605 * r + 0.6273635662554661 * g + 0.07529145849399788 * b,
-      0.02703136138641234 * r + 0.07068885253582723 * g + 0.9913375368376388 * b
-    ];
-  }
-
-  static d65XYZ_linA98(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      2.0415879038107465 * x + -0.5650069742788596 * y + -0.34473135077832956 * z,
-      -0.9692436362808795 * x + 1.8759675015077202 * y + 0.04155505740717557 * z,
-      0.013444280632031142 * x + -0.11836239223101838 * y + 1.0151749943912054 * z
-    ];
-  }
-
-  /* rec2020 */
-
-  static gamREC2020_linREC2020(rgb) {
-    const e = 1.09929682680944;
-    return rgb.map(v => Math.abs(v) < 0.018053968510807 * 4.5 ? v / 4.5 : (Math.sign(v) || 1) * Math.pow(Math.pow.abs(v) + e - 1, 1/0.45));
-  }
-
-  static linREC2020_gamREC2020(rgb) {
-    const e = 1.09929682680944;
-    return rgb.map(v => Math.abs(v) > 0.018053968510807 ? (Math.sign(v) || 1) * (e * Math.pow(Math.abs(v), 0.45) - (e - 1)) : 4.5 * v);
-  }
-
-  static linREC2020_d65XYZ(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.6369580483012914 * r + 0.14461690358620832 * g + 0.1688809751641721 * b,
-		  0.2627002120112671 * r + 0.6779980715188708 * g + 0.05930171646986196 * b,
-		  0.000000000000000 * r + 0.028072693049087428 * g + 1.060985057710791 * b
-    ];
-  }
-
-  static d65XYZ_linREC2020(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      1.7166511879712674 * x + -0.35567078377639233 * y + -0.25336628137365974 * z,
-		  -0.6666843518324892 * x + 1.6164812366349395 * y + 0.01576854581391113 * z,
-		  0.017639857445310783 * x + -0.042770613257808524 * y + 0.9421031212354738 * z
-    ];
-  }
-
-  /* lab */
-
-  static gamLAB_linLAB(lab) { return lab; }
-  static linLAB_gamLAB(lab) { return lab; }
-
-  static d50XYZ_LAB(xyz) {
-    const ε = 216/24389;
-    const κ = 24389/27;
-    const w = [0.96422, 1, 0.82521];
-
-    const [x, y, z] = xyz.map((v, k) => v / w[k]);
-    const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
-    const [f0, f1, f2] = [x, y, z].map(v => f(v));
-    return [
-      (116 * f1 - 16) / 100,
-      500 * (f0 - f1),
-      200 * (f1 - f2)
-    ];
-  }
-
-  static LAB_d50XYZ(lab) {
-    const ε = 216/24389;
-    const κ = 24389/27;
-    const w = [0.96422, 1, 0.82521];
-
-    let [ciel, ciea, cieb] = lab;
-    ciel = 100 * ciel;
-    const f1 = (ciel + 16) / 116;
-    const f0 = ciea / 500 + f1;
-    const f2 = f1 - cieb / 200;
-
-    const x = (f0 ** 3 > ε) ? f0 ** 3 : (116 * f0 - 16) / κ;
-    const y = (ciel > κ * ε) ? ((ciel + 16) / 116) ** 3 : ciel / κ;
-    const z = (f2 ** 3 > ε) ? f2 ** 3 : (116 * f2 - 16) / κ;
-    return [x, y, z].map((v, k) => v * w[k]);
-  }
-
-  static d50XYZ_linLAB(lab) { return Couleur.d50XYZ_LAB(lab); }
-  static linLAB_d50XYZ(lab) { return Couleur.LAB_d50XYZ(lab); }
-
-  /* Bradford transform */
-
-  static d65XYZ_d50XYZ(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      1.0479298208405488 * x + 0.022946793341019088 * y + -0.05019222954313557 * z,
-      0.029627815688159344 * x + 0.990434484573249 * y + -0.01707382502938514 * z,
-      -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z
-    ];
-  }
-
-  static d50XYZ_d65XYZ(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      0.9554734527042182 * x + -0.023098536874261423 * y + 0.0632593086610217 * z,
-      -0.028369706963208136 * x + 1.0099954580058226 * y + 0.021041398966943008 * z,
-      0.012314001688319899 * x + -0.020507696433477912 * y + 1.3303659366080753 * z
-    ];
-  }
-
-  static d50XYZ_d50XYZ(xyz) { return xyz; }
-  static d65XYZ_d65XYZ(xyz) { return xyz; }
 
 
   /* Clamping to color space */
@@ -922,13 +702,13 @@ export default class Couleur {
     // Source of the math: https://css.land/lch/lch.js
     const space = Couleur.whichSpaceHasFormat(_space) || Couleur.space(_space);
     if (Couleur.inColorSpace(space.id, rgb)) return rgb;
-    let lch = Couleur.lab2lch(Couleur.rgb2lab(rgb));
+    let lch = Utils.lab2lch(Utils.rgb2lab(rgb));
 
     // If lightness is too low / high, clamp it and try again
     const ε = .00001;
     if (lch[0] < (0 - ε) || lch[0] > (1 + ε)) {
       lch[0] = Math.max(0, Math.min(lch[0], 1));
-      const rgb = Couleur.lab2rgb(Couleur.lch2lab(lch));
+      const rgb = Utils.lab2rgb(Utils.lch2lab(lch));
       return Couleur.clampToColorSpace(space.id, rgb);
     }
 
@@ -938,131 +718,18 @@ export default class Couleur {
     let Cmax = lch[1];
     lch[1] = lch[1] / 2;
 
-    const condition = lch => Couleur.inColorSpace(space.id, Couleur.lab2rgb(Couleur.lch2lab(lch)));
+    const condition = lch => Couleur.inColorSpace(space.id, Utils.lab2rgb(Utils.lch2lab(lch)));
     while (Cmax - Cmin > τ) {
       if (condition(lch)) Cmin = lch[1];
       else                Cmax = lch[1];
       lch[1] = (Cmin + Cmax) / 2;
     }
 
-    return Couleur.lab2rgb(Couleur.lch2lab(lch));
+    return Utils.lab2rgb(Utils.lch2lab(lch));
   }
 
 
-  /* Actual conversion functions */
-
-  /**
-   * They are all in the form `${format1}2${format2}`.
-   * @param {number[]} values - Array of parsed values in ${format1}.
-   * @returns {number[]} Array of parsed values in ${format2}.
-   */
-
-  static rgb2hsl(rgb) {
-    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
-    const [r, g, b] = rgb; // all in [0, 1]
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const chroma = max - min;
-
-    const l = (max + min) / 2;
-
-    let h;
-    if (chroma === 0) h = 0;
-    else {
-      switch (max) {
-        case r: h = (g - b) / chroma; break;
-        case g: h = (b - r) / chroma + 2; break;
-        case b: h = (r - g) / chroma + 4; break;
-      }
-      h = 60 * h;
-      if (h < 0) h += 360;
-    }
-
-    let s;
-    if (l === 0 || l === 1) s = 0;
-    else if (l <= 0.5)      s = chroma / (2 * l);
-    else                    s = chroma / (2 - 2 * l);
-
-    return [h, s, l]; // h in [0, 360], s & l in [0, 1]
-  }
-
-  static hsl2rgb(hsl) {
-    // source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
-    const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
-
-    const m = s * Math.min(l, 1 - l);
-    const k = n => (n + h / 30) % 12;
-    const f = n => l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
-
-    const r = f(0);
-    const g = f(8);
-    const b = f(4);
-
-    return [r, g, b]; // all in [0, 1]
-  }
-
-  static hsl2hwb(hsl) {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
-    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
-    const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
-
-    let _s;
-    const v = l + s * Math.min(l, 1 - l);
-    if (v === 0) _s = 0;
-    else         _s = 2 - 2 * l / v;
-
-    const w = (1 - _s) * v;
-    const bk = 1 - v;
-
-    return [h, w, bk]; // h in [0, 360], w & bk in [0, 1]
-  }
-
-  static hwb2hsl(hwb) {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
-    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
-    const [h, w, bk] = hwb; // h in [0, 360], w & bk in [0, 1]
-
-    let _w = w, _bk = bk;
-    if (w + bk > 1) {
-      _w = w / (w + bk);
-      _bk = bk / (w + bk);
-    }
-
-    let _s;
-    const v = 1 - _bk;
-    if (_bk === 1) _s = 0;
-    else           _s = 1 - _w / v;
-
-    let s;
-    const l = v - v * _s / 2;
-    if (l === 0 || l === 1) s = 0;
-    else                    s = (v - l) / Math.min(l, 1 - l);
-
-    return [h, s, l]; // h in [0, 360], s & l in [0, 1]
-  }
-
-  static lab2lch(lab) {
-    const [ciel, ciea, cieb] = lab;
-    const ciec = Math.sqrt(ciea ** 2 + cieb ** 2);
-    const cieh = Couleur.parse(Math.atan2(cieb, ciea) * 180 / Math.PI, 'cieh');
-
-    return [ciel, ciec, cieh];
-  }
-
-  static lch2lab(lch) {
-    const [ciel, ciec, cieh] = lch;
-    const ciea = ciec * Math.cos(cieh * Math.PI / 180);
-    const cieb = ciec * Math.sin(cieh * Math.PI / 180);
-
-    return [ciel, ciea, cieb];
-  }
-
-  static rgb2rgb(rgb) { return rgb; }
-  static rgb2hwb(rgb) { return Couleur.hsl2hwb(Couleur.rgb2hsl(rgb)); }
-  static hwb2rgb(hwb) { return Couleur.hsl2rgb(Couleur.hwb2hsl(hwb)); }
-  static rgb2lab(rgb) { return Couleur.convert('srgb', 'lab', rgb); }
-  static lab2rgb(lab) { return Couleur.convert('lab', 'srgb', lab); }
+  
 
 
   /**
@@ -1105,11 +772,13 @@ export default class Couleur {
     let result = values;
     for (const fun of functions) {
       try {
-        result = Couleur[fun](result);
+        result = Utils[fun](result);
       } catch (error) { console.error(error, fun); }
     }
     return result;
   }
+
+  convertTo(space) { return [...Couleur.convert('srgb', space, this.values('rgb', { alpha: false })), this.a]; }
 
 
 
@@ -1197,8 +866,8 @@ export default class Couleur {
    */
   static blend(...couleurs) {
     if (couleurs.length < 2) throw `You need at least 2 colors to blend`;
-    const background = Couleur.check(couleurs.shift());
-    const overlay = Couleur.check(couleurs.shift());
+    const background = new Couleur(couleurs.shift());
+    const overlay = new Couleur(couleurs.shift());
     let mix;
 
     calculation: {
@@ -1227,8 +896,8 @@ export default class Couleur {
    */
   static unblend(...couleurs) {
     if (couleurs.length < 2) throw `You need at least 2 colors to unblend`;
-    const mix = Couleur.check(couleurs.shift());
-    const overlay = Couleur.check(couleurs.shift());
+    const mix = new Couleur(couleurs.shift());
+    const overlay = new Couleur(couleurs.shift());
     let background;
 
     if (overlay.a === 1) {
@@ -1267,8 +936,8 @@ export default class Couleur {
    * @returns {(Couleur|Couleur[]|null)} The solution(s) to the equation.
    */
   static whatToBlend(_background, _mix, alpha, alphaStep = .1) {
-    const background = Couleur.check(_background);
-    const mix = Couleur.check(_mix);
+    const background = new Couleur(_background);
+    const mix = new Couleur(_mix);
     let overlay;
 
     const calculateSolution = a => {
@@ -1343,103 +1012,30 @@ export default class Couleur {
 
 
   /**
-   * Computes the contrast between two colors as defined by WCAG2.
-   * @param {color} _couleur1
-   * @param {color} _couleur2
-   * @returns {number} Contrast between the two colors, in [1, 21].
-   */
-  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
-  static WCAG2contrast(_couleur1, _couleur2) {
-    const couleur1 = Couleur.check(_couleur1);
-    const couleur2 = Couleur.check(_couleur2);
-
-    const L1 = couleur1.luminance;
-    const L2 = couleur2.luminance;
-    const Lmax = Math.max(L1, L2);
-    const Lmin = Math.min(L1, L2);
-    return (Lmax + 0.05) / (Lmin + 0.05);
-  }
-
-
-  /**
-   * Computes the SAPC/APCA contrast between two colors as defined by WCAG3.
+   * Computes the contrast between two colors as defined by WCAG2 or 3.
    * @param {color} _text
    * @param {color} _background
-   * @returns {number} Contrast between the two colors.
-   */
-  // (Source of the math: https://github.com/Myndex/SAPC-APCA)
-  static APCAcontrast(_text, _background) {
-    const background = Couleur.check(_background);
-    if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
-
-    // If the text is transparent, blend it to the background to get its actual visible color
-    let text = Couleur.check(_text);
-    if (text.a < 1) text = Couleur.blend(background, text);
-
-    const rgbText = [text.r, text.g, text.b];
-    const rgbBack = [background.r, background.g, background.b];
-
-    // 1. Compute luminances
-    const coeffs = [0.2126729, 0.7151522, 0.0721750];
-    const gamma = 2.4;
-    const luminance = rgb => rgb.reduce((sum, v, i) => sum + Math.pow(v, gamma) * coeffs[i], 0);
-    let [Ltext, Lback] = [rgbText, rgbBack].map(rgb => luminance(rgb));
-
-    // 2. Clamp luminances
-    const blackClampTrigger = 0.03;
-    const blackClampPow = 1.45;
-    [Ltext, Lback] = [Ltext, Lback].map(L => L > blackClampTrigger ? L : L + Math.pow(blackClampTrigger - L, blackClampPow));
-
-    const δLmin = 0.0005;
-    if (Math.abs(Ltext - Lback) < δLmin) return 0;
-
-    // 3. Compute contrast
-    let result;
-    const scale = 1.25;
-    const compute = (Lback, Ltext, powBack, powText) => (Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * scale;
-    const lowClip = 0.001, lowTrigger = 0.078, lowOffset = 0.06, invLowTrigger = 12.82051282051282;
-
-    // for dark text on light background
-    if (Lback > Ltext) {
-      const powBack = 0.55, powText = 0.58;
-      const SAPC = compute(Lback, Ltext, powBack, powText);
-      result = (SAPC < lowClip) ? 0
-             : (SAPC < lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
-             : SAPC - lowOffset;
-    }
-
-    // for light text on dark background
-    else {
-      const powBack = 0.62, powText = 0.57;
-      const SAPC = compute(Lback, Ltext, powBack, powText);
-      result = (SAPC > -lowClip) ? 0
-             : (SAPC > -lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
-             : SAPC + lowOffset;
-    }
-
-    return result * 100;
-  }
-
-
-  /**
-   * Computes the contrast between two colors as defined by WCAG2 or 3.
-   * @param {color} text
-   * @param {color} background
    * @param {string} method - Whether to use the new APCA or the old WCAG2 method.
    * @returns {number} Contrast between the two colors.
    */
-  static contrast(text, background, method = 'WCAG2') {
+  static contrast(_text, _background, method = 'WCAG2') {
+    const background = new Couleur(_background);
+    if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
+    let text = new Couleur(_text);
+
+    // If the text is transparent, blend it to the background to get its actual visible color
+    if (text.a < 1) text = Couleur.blend(background, text);
+
     switch (method.toLowerCase()) {
       case 'wcag3': case 'apca':
-        return Couleur.APCAcontrast(text, background);
+        return Utils.APCAcontrast(text.values('rgb', { alpha: false }), background.values('rgb', { alpha: false }));
       default:
-        return Couleur.WCAG2contrast(text, background);
+        return Utils.WCAG2contrast(text.values('rgb', { alpha: false }), background.values('rgb', { alpha: false }));
     }
-    
   }
 
   /** Non-static version of Couleur.contrast */
-  contrast(background, method = 'WCAG2') {
+  contrastWith(background, method = 'WCAG2') {
     return Couleur.contrast(this, background, method);
   }
 
@@ -1474,14 +1070,14 @@ export default class Couleur {
    * @param {string?} options.contrastMethod - The method to use to compute the contrast. 'WCAG2' by default.
    * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
    */
-  improveContrast(referenceColor, desiredContrast, step = 2, options = {}) {
+  improveContrastWith(referenceColor, desiredContrast, step = 2, options = {}) {
     if (typeof options.lower === 'undefined') options.lower = false;
     if (typeof options.maxIterations === 'undefined') options.maxIterations = 100;
     if (typeof options.towards === 'undefined') options.towards = null;
     if (typeof options.contrastMethod === 'undefined') options.contrastMethod = 'WCAG2';
 
     let movingColor = new Couleur(`${this.rgb}`);
-    let refColor = Couleur.check(referenceColor);
+    let refColor = new Couleur(referenceColor);
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
@@ -1563,67 +1159,12 @@ export default class Couleur {
     if (typeof options.space === 'undefined') options.space = 'lab';
     if (typeof options.method === 'undefined') options.method = 'CIEDE2000';
     
-    const couleur1 = Couleur.check(_couleur1);
-    const couleur2 = Couleur.check(_couleur2);
-
-    const space = Couleur.whichSpaceHasFormat(options.space) || Couleur.space(options.space);
-    const format = Couleur.whichSpaceHasFormat(options.space) ? options.space : null;
-
-    /*let values1 = Couleur.clampToColorSpace(space.id, couleur1.values('srgb', { alpha: false }));
-    let values2 = Couleur.clampToColorSpace(space.id, couleur2.values('srgb', { alpha: false }));*/
+    const couleur1 = new Couleur(_couleur1);
+    const couleur2 = new Couleur(_couleur2);
 
     switch (options.method) {
-      case 'CIEDE2000': {
-
-        // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
-        const [[x1, a1, b1], [x2, a2, b2]] = [couleur1, couleur2].map(c => c.values('lab', { alpha: false, clamp: false }));
-        let [[L1, C1, H1], [L2, C2, H2]] = [couleur1, couleur2].map(c => c.values('lch', { alpha: false, clamp: false }));
-        L1 *= 100; L2 *= 100;
-
-        const mC = (C1 + C2) / 2,
-              G = 0.5 * (1 - Math.sqrt(mC ** 7 / (mC ** 7 + 25 ** 7))),
-              aa1 = (1 + G) * a1,
-              aa2 = (1 + G) * a2,
-              CC1 = Math.sqrt(aa1 ** 2 + b1 ** 2),
-              CC2 = Math.sqrt(aa2 ** 2 + b2 ** 2);
-        let hh1 = CC1 === 0 ? 0 : Math.atan2(b1, aa1) * 180 / Math.PI,
-            hh2 = CC2 === 0 ? 0 : Math.atan2(b2, aa2) * 180 / Math.PI;
-        while (hh1 < 0) hh1 += 360; while (hh1 > 360) hh1 -= 360;
-        while (hh2 < 0) hh2 += 360; while (hh2 > 360) hh2 -= 360;
-
-        const dL = L2 - L1,
-              dC = CC2 - CC1;
-        const dhh = (CC1 * CC2 === 0) ? 0
-                  : (Math.abs(hh2 - hh1) <= 180) ? hh2 - hh1
-                  : (hh2 - hh1 > 180) ? hh2 - hh1 - 360
-                  : hh2 - hh1 + 360;
-        const dH = 2 * Math.sqrt(CC1 * CC2) * Math.sin((Math.PI / 180) * (dhh / 2));
-
-        const mL = (L1 + L2) / 2,
-              mCC = (CC1 + CC2) / 2;
-        const mhh = (CC1 * CC2 === 0) ? hh1 + hh2
-                  : (Math.abs(hh2 - hh1) <= 180) ? (hh1 + hh2) / 2
-                  : (hh1 + hh2 >= 360) ? (hh1 + hh2 - 360) / 2
-                  : (hh1 + hh2 + 360) / 2;
-        const T = 1 - 0.17 * Math.cos((Math.PI / 180) * (mhh - 30))
-                    + 0.24 * Math.cos((Math.PI / 180) * (2 * mhh))
-                    + 0.32 * Math.cos((Math.PI / 180) * (3 * mhh + 6))
-                    - 0.20 * Math.cos((Math.PI / 180) * (4 * mhh - 63)),
-              dTH = 30 * Math.exp(-1 * ((mhh - 275) / 25) ** 2),
-              RC = 2 * Math.sqrt(mCC ** 7 / (mCC ** 7 + 25 ** 7)),
-              SL = 1 + (0.015 * (mL - 50) ** 2) / Math.sqrt(20 + (mL - 50) ** 2),
-              SC = 1 + 0.045 * mCC,
-              SH = 1 + 0.015 * mCC * T,
-              RT = -1 * Math.sin((Math.PI / 180) * (2 * dTH)) * RC;
-
-        return Math.sqrt(
-          (dL / SL) ** 2
-          + (dC / SC) ** 2
-          + (dH / SH) ** 2
-          + RT * (dC / SC) * (dH / SH)
-        );
-      }
-
+      case 'CIEDE2000':
+        return Utils.CIEDE2000([couleur1, couleur2].map(c => c.values('lab', { alpha: false, clamp: false })));
       case 'euclidean':
       default: {
         const [values1, values2] = [couleur1, couleur2].map(c => c.values('lab'));
@@ -1631,6 +1172,8 @@ export default class Couleur {
       }
     }
   }
+
+  distanceTo(color, options) { return Couleur.distance(this, color, options); }
 
 
   /**
@@ -1640,10 +1183,12 @@ export default class Couleur {
    * @param {number} tolerance - The minimum distance between the two colors to consider them different.
    * @returns {boolean} Whether the two colors are considered the same.
    */
-  static same(couleur1, couleur2, tolerance = Couleur.tolerance, space = 'srgb') {
-    if (Couleur.distance(couleur1, couleur2, space) > tolerance) return false;
+  static same(couleur1, couleur2, tolerance = Couleur.tolerance) {
+    if (Couleur.distance(couleur1, couleur2) > tolerance) return false;
     else return true;
   }
+
+  sameAs(color) { return Couleur.same(this, color); }
 
 
   /* Other functions */
@@ -1658,8 +1203,8 @@ export default class Couleur {
    * @returns {Couleur[]} The array of colors in the gradient.
    */
   static gradient(_start, _end, _steps = 5, format = 'lch') {
-    const start = Couleur.check(_start);
-    const end = Couleur.check(_end);
+    const start = new Couleur(_start);
+    const end = new Couleur(_end);
     const steps = Math.min(Math.max(1, _steps), 100);
     const props = [...Couleur.propertiesOf(format), 'a'];
 
@@ -1691,6 +1236,8 @@ export default class Couleur {
 
     return [...intermediateColors.map(c => new Couleur(Couleur.expr(format, c))), end];
   }
+
+  gradientTo(color, steps, format) { return Couleur.gradient(this, color, steps, format); }
 
 
 
@@ -1841,3 +1388,472 @@ export default class Couleur {
     return { aliceblue: 'f0f8ff', antiquewhite: 'faebd7', aqua: '00ffff', aquamarine: '7fffd4', azure: 'f0ffff', beige: 'f5f5dc', bisque: 'ffe4c4', black: '000000', blanchedalmond: 'ffebcd', blue: '0000ff', blueviolet: '8a2be2', brown: 'a52a2a', burlywood: 'deb887', cadetblue: '5f9ea0', chartreuse: '7fff00', chocolate: 'd2691e', coral: 'ff7f50', cornflowerblue: '6495ed', cornsilk: 'fff8dc', crimson: 'dc143c', cyan: '00ffff', darkblue: '00008b', darkcyan: '008b8b', darkgoldenrod: 'b8860b', darkgray: 'a9a9a9', darkgrey: 'a9a9a9', darkgreen: '006400', darkkhaki: 'bdb76b', darkmagenta: '8b008b', darkolivegreen: '556b2f', darkorange: 'ff8c00', darkorchid: '9932cc', darkred: '8b0000', darksalmon: 'e9967a', darkseagreen: '8fbc8f', darkslateblue: '483d8b', darkslategray: '2f4f4f', darkslategrey: '2f4f4f', darkturquoise: '00ced1', darkviolet: '9400d3', deeppink: 'ff1493', deepskyblue: '00bfff', dimgray: '696969', dimgrey: '696969', dodgerblue: '1e90ff', firebrick: 'b22222', floralwhite: 'fffaf0', forestgreen: '228b22', fuchsia: 'ff00ff', gainsboro: 'dcdcdc', ghostwhite: 'f8f8ff', gold: 'ffd700', goldenrod: 'daa520', gray: '808080', grey: '808080', green: '008000', greenyellow: 'adff2f', honeydew: 'f0fff0', hotpink: 'ff69b4', indianred: 'cd5c5c', indigo: '4b0082', ivory: 'fffff0', khaki: 'f0e68c', lavender: 'e6e6fa', lavenderblush: 'fff0f5', lawngreen: '7cfc00', lemonchiffon: 'fffacd', lightblue: 'add8e6', lightcoral: 'f08080', lightcyan: 'e0ffff', lightgoldenrodyellow: 'fafad2', lightgray: 'd3d3d3', lightgrey: 'd3d3d3', lightgreen: '90ee90', lightpink: 'ffb6c1', lightsalmon: 'ffa07a', lightseagreen: '20b2aa', lightskyblue: '87cefa', lightslategray: '778899', lightslategrey: '778899', lightsteelblue: 'b0c4de', lightyellow: 'ffffe0', lime: '00ff00', limegreen: '32cd32', linen: 'faf0e6', magenta: 'ff00ff', maroon: '800000', mediumaquamarine: '66cdaa', mediumblue: '0000cd', mediumorchid: 'ba55d3', mediumpurple: '9370d8', mediumseagreen: '3cb371', mediumslateblue: '7b68ee', mediumspringgreen: '00fa9a', mediumturquoise: '48d1cc', mediumvioletred: 'c71585', midnightblue: '191970', mintcream: 'f5fffa', mistyrose: 'ffe4e1', moccasin: 'ffe4b5', navajowhite: 'ffdead', navy: '000080', oldlace: 'fdf5e6', olive: '808000', olivedrab: '6b8e23', orange: 'ffa500', orangered: 'ff4500', orchid: 'da70d6', palegoldenrod: 'eee8aa', palegreen: '98fb98', paleturquoise: 'afeeee', palevioletred: 'd87093', papayawhip: 'ffefd5', peachpuff: 'ffdab9', peru: 'cd853f', pink: 'ffc0cb', plum: 'dda0dd', powderblue: 'b0e0e6', purple: '800080', rebeccapurple: '663399', red: 'ff0000', rosybrown: 'bc8f8f', royalblue: '4169e1', saddlebrown: '8b4513', salmon: 'fa8072', sandybrown: 'f4a460', seagreen: '2e8b57', seashell: 'fff5ee', sienna: 'a0522d', silver: 'c0c0c0', skyblue: '87ceeb', slateblue: '6a5acd', slategray: '708090', slategrey: '708090', snow: 'fffafa', springgreen: '00ff7f', steelblue: '4682b4', tan: 'd2b48c', teal: '008080', thistle: 'd8bfd8', tomato: 'ff6347', turquoise: '40e0d0', violet: 'ee82ee', wheat: 'f5deb3', white: 'ffffff', whitesmoke: 'f5f5f5', yellow: 'ffff00', yellowgreen: '9acd32' };
   }
 }
+
+const Utils = {
+  /**
+   * All of these functions take an array of parsed color values,
+   * and return an array of parsed color values converted into the 
+   * desired color space or CSS format.
+   * */
+
+
+
+  /***********************************/
+  /* Conversion between color spaces */
+  /***********************************/
+
+
+  // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
+  //                   & https://drafts.csswg.org/css-color-4/utilities.js
+  //                   & https://drafts.csswg.org/css-color-4/conversions.js
+
+  /* srgb */
+
+  gamRGB_linRGB: function(rgb) {
+    return rgb.map(x => (Math.abs(x) < 0.04045) ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4));
+  },
+
+  linRGB_gamRGB: function(rgb) {
+    return rgb.map(x => (Math.abs(x) > 0.0031308) ? (Math.sign(x) || 1) * (1.055 * Math.pow(Math.abs(x), 1 / 2.4) - 0.055) : 12.92 * x);
+  },
+
+  linRGB_d65XYZ: function(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.41239079926595934 * r + 0.357584339383878 * g + 0.1804807884018343 * b,
+      0.21263900587151027 * r + 0.715168678767756 * g + 0.07219231536073371 * b,
+      0.01933081871559182 * r + 0.11919477979462598 * g + 0.9505321522496607 * b
+    ];
+  },
+
+  d65XYZ_linRGB: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      3.2409699419045226 * x + -1.537383177570094 * y + -0.4986107602930034 * z,
+      -0.9692436362808796 * x + 1.8759675015077202 * y + 0.04155505740717559 * z,
+      0.05563007969699366 * x + -0.20397695888897652 * y + 1.0569715142428786 * z
+    ];
+  },
+
+  /* display-p3 */
+
+  gamP3_linP3: function(rgb) { return this.gamRGB_linRGB(rgb); },
+  linP3_gamP3: function(rgb) { return this.linRGB_gamRGB(rgb); },
+  
+  linP3_d65XYZ: function(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.4865709486482162 * r + 0.26566769316909306 * g + 0.1982172852343625 * b,
+		  0.2289745640697488 * r + 0.6917385218365064 * g + 0.079286914093745 * b,
+		  0.0000000000000000 * r + 0.04511338185890264 * g + 1.043944368900976 * b
+    ];
+  },
+
+  d65XYZ_linP3: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      2.493496911941425 * x + -0.9313836179191239 * y + -0.40271078445071684 * z,
+		  -0.8294889695615747 * x + 1.7626640603183463 * y +  0.023624685841943577 * z,
+		  0.03584583024378447 * x + -0.07617238926804182 * y + 0.9568845240076872 * z
+    ];
+  },
+
+  /* prophoto-rgb */
+
+  gamPROPHOTO_linPROPHOTO: function(rgb) {
+    return rgb.map(v => Math.abs(v) <= 16/512 ? v / 16 : (Math.sign(x) || 1) * Math.pow(v, 1.8));
+  },
+
+  linPROPHOTO_gamPROPHOTO: function(rgb) {
+    return rgb.map(v => Math.abs(v) >= 1/512 ? (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1/1.8) : 16 * v);
+  },
+
+  linPROPHOTO_d50XYZ: function(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
+      0.2880711282292934 * r + 0.7118432178101014 * g + 0.00008565396060525902 * b,
+      0.0 * r + 0.0 * g + 0.8251046025104601 * b
+    ];
+  },
+
+  d50XYZ_linPROPHOTO: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
+	  	-0.5446224939028347 * x + 1.5082327413132781 * y + 0.02053603239147973 * z,
+	  	0.0 * x + 0.0 * y + 1.2119675456389454 * z
+    ];
+  },
+
+  /* a98-rgb */
+
+  gamA98_linA98: function(rgb) {
+    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 563/256));
+  },
+
+  linA98_gamA98: function(rgb) {
+    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 256/563));
+  },
+
+  linA98_d65XYZ: function(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.5766690429101305 * r + 0.1855582379065463 * g + 0.1882286462349947 * b,
+      0.29734497525053605 * r + 0.6273635662554661 * g + 0.07529145849399788 * b,
+      0.02703136138641234 * r + 0.07068885253582723 * g + 0.9913375368376388 * b
+    ];
+  },
+
+  d65XYZ_linA98: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      2.0415879038107465 * x + -0.5650069742788596 * y + -0.34473135077832956 * z,
+      -0.9692436362808795 * x + 1.8759675015077202 * y + 0.04155505740717557 * z,
+      0.013444280632031142 * x + -0.11836239223101838 * y + 1.0151749943912054 * z
+    ];
+  },
+
+  /* rec2020 */
+
+  gamREC2020_linREC2020: function(rgb) {
+    const e = 1.09929682680944;
+    return rgb.map(v => Math.abs(v) < 0.018053968510807 * 4.5 ? v / 4.5 : (Math.sign(v) || 1) * Math.pow(Math.pow.abs(v) + e - 1, 1/0.45));
+  },
+
+  linREC2020_gamREC2020: function(rgb) {
+    const e = 1.09929682680944;
+    return rgb.map(v => Math.abs(v) > 0.018053968510807 ? (Math.sign(v) || 1) * (e * Math.pow(Math.abs(v), 0.45) - (e - 1)) : 4.5 * v);
+  },
+
+  linREC2020_d65XYZ: function(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.6369580483012914 * r + 0.14461690358620832 * g + 0.1688809751641721 * b,
+		  0.2627002120112671 * r + 0.6779980715188708 * g + 0.05930171646986196 * b,
+		  0.000000000000000 * r + 0.028072693049087428 * g + 1.060985057710791 * b
+    ];
+  },
+
+  d65XYZ_linREC2020: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      1.7166511879712674 * x + -0.35567078377639233 * y + -0.25336628137365974 * z,
+		  -0.6666843518324892 * x + 1.6164812366349395 * y + 0.01576854581391113 * z,
+		  0.017639857445310783 * x + -0.042770613257808524 * y + 0.9421031212354738 * z
+    ];
+  },
+
+  /* lab */
+
+  d50XYZ_LAB: function(xyz) {
+    const ε = 216/24389;
+    const κ = 24389/27;
+    const w = [0.96422, 1, 0.82521];
+
+    const [x, y, z] = xyz.map((v, k) => v / w[k]);
+    const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
+    const [f0, f1, f2] = [x, y, z].map(v => f(v));
+    return [
+      (116 * f1 - 16) / 100,
+      500 * (f0 - f1),
+      200 * (f1 - f2)
+    ];
+  },
+
+  LAB_d50XYZ: function(lab) {
+    const ε = 216/24389;
+    const κ = 24389/27;
+    const w = [0.96422, 1, 0.82521];
+
+    let [ciel, ciea, cieb] = lab;
+    ciel = 100 * ciel;
+    const f1 = (ciel + 16) / 116;
+    const f0 = ciea / 500 + f1;
+    const f2 = f1 - cieb / 200;
+
+    const x = (f0 ** 3 > ε) ? f0 ** 3 : (116 * f0 - 16) / κ;
+    const y = (ciel > κ * ε) ? ((ciel + 16) / 116) ** 3 : ciel / κ;
+    const z = (f2 ** 3 > ε) ? f2 ** 3 : (116 * f2 - 16) / κ;
+    return [x, y, z].map((v, k) => v * w[k]);
+  },
+
+  gamLAB_linLAB: function(lab) { return lab; },
+  linLAB_gamLAB: function(lab) { return lab; },
+  d50XYZ_linLAB: function(lab) { return this.d50XYZ_LAB(lab); },
+  linLAB_d50XYZ: function(lab) { return this.LAB_d50XYZ(lab); },
+
+  /* Bradford transform */
+
+  d65XYZ_d50XYZ: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      1.0479298208405488 * x + 0.022946793341019088 * y + -0.05019222954313557 * z,
+      0.029627815688159344 * x + 0.990434484573249 * y + -0.01707382502938514 * z,
+      -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z
+    ];
+  },
+
+  d50XYZ_d65XYZ: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      0.9554734527042182 * x + -0.023098536874261423 * y + 0.0632593086610217 * z,
+      -0.028369706963208136 * x + 1.0099954580058226 * y + 0.021041398966943008 * z,
+      0.012314001688319899 * x + -0.020507696433477912 * y + 1.3303659366080753 * z
+    ];
+  },
+
+  d50XYZ_d50XYZ: function(xyz) { return xyz; },
+  d65XYZ_d65XYZ: function(xyz) { return xyz; },
+
+
+
+  /**********************************/
+  /* Conversion between CSS formats */
+  /**********************************/
+
+
+   rgb2hsl: function(rgb) {
+    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
+    const [r, g, b] = rgb; // all in [0, 1]
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const chroma = max - min;
+
+    const l = (max + min) / 2;
+
+    let h;
+    if (chroma === 0) h = 0;
+    else switch (max) {
+      case r: h = (g - b) / chroma; break;
+      case g: h = (b - r) / chroma + 2; break;
+      case b: h = (r - g) / chroma + 4; break;
+    }
+    h = 60 * h;
+    while (h < 0)   h += 360;
+    while (h > 360) h -= 360;
+
+    let s;
+    if (l === 0 || l === 1) s = 0;
+    else if (l <= 0.5)      s = chroma / (2 * l);
+    else                    s = chroma / (2 - 2 * l);
+
+    return [h, s, l]; // h in [0, 360], s & l in [0, 1]
+  },
+
+  hsl2rgb: function(hsl) {
+    // source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
+    const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
+
+    const m = s * Math.min(l, 1 - l);
+    const k = n => (n + h / 30) % 12;
+    const f = n => l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
+
+    const r = f(0);
+    const g = f(8);
+    const b = f(4);
+
+    return [r, g, b]; // all in [0, 1]
+  },
+
+  hsl2hwb: function(hsl) {
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
+    const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
+
+    let _s;
+    const v = l + s * Math.min(l, 1 - l);
+    if (v === 0) _s = 0;
+    else         _s = 2 - 2 * l / v;
+
+    const w = (1 - _s) * v;
+    const bk = 1 - v;
+
+    return [h, w, bk]; // h in [0, 360], w & bk in [0, 1]
+  },
+
+  hwb2hsl: function(hwb) {
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
+    const [h, w, bk] = hwb; // h in [0, 360], w & bk in [0, 1]
+
+    let _w = w, _bk = bk;
+    if (w + bk > 1) {
+      _w = w / (w + bk);
+      _bk = bk / (w + bk);
+    }
+
+    let _s;
+    const v = 1 - _bk;
+    if (_bk === 1) _s = 0;
+    else           _s = 1 - _w / v;
+
+    let s;
+    const l = v - v * _s / 2;
+    if (l === 0 || l === 1) s = 0;
+    else                    s = (v - l) / Math.min(l, 1 - l);
+
+    return [h, s, l]; // h in [0, 360], s & l in [0, 1]
+  },
+
+  lab2lch: function(lab) {
+    const [ciel, ciea, cieb] = lab;
+    const ciec = Math.sqrt(ciea ** 2 + cieb ** 2);
+    let cieh = Math.atan2(cieb, ciea) * 180 / Math.PI;
+    while (cieh < 0) cieh += 360;
+    while (cieh > 360) cieh -= 360;
+
+    return [ciel, ciec, cieh];
+  },
+
+  lch2lab: function(lch) {
+    const [ciel, ciec, cieh] = lch;
+    const ciea = ciec * Math.cos(cieh * Math.PI / 180);
+    const cieb = ciec * Math.sin(cieh * Math.PI / 180);
+
+    return [ciel, ciea, cieb];
+  },
+
+  rgb2rgb: function(rgb) { return rgb; },
+  rgb2hwb: function(rgb) { return this.hsl2hwb(this.rgb2hsl(rgb)); },
+  hwb2rgb: function(hwb) { return this.hsl2rgb(this.hwb2hsl(hwb)); },
+  rgb2lab: function(rgb) { return this.convert('srgb', 'lab', rgb); },
+  lab2rgb: function(lab) { return this.convert('lab', 'srgb', lab); },
+
+
+
+  /**********************/
+  /* Contrast functions */
+  /**********************/
+
+
+  /** @returns {number} Luminance of the color. */
+  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
+  luminance: function(_rgb) {
+    const rgb = Utils.gamRGB_linRGB(_rgb);
+    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+  },
+
+
+  /**
+   * Computes the contrast between two colors as defined by WCAG2.
+   * @param {number[]} rgbText - Array of r, g, b values of the text.
+   * @param {number[]} rgbBack - Array of r, g, b values of the background.
+   * @returns {number} Contrast between the two colors, in [1, 21].
+   */
+  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
+  WCAG2contrast: function(rgbText, rgbBack) {
+    const L1 = Utils.luminance(rgbText);
+    const L2 = Utils.luminance(rgbBack);
+    const Lmax = Math.max(L1, L2);
+    const Lmin = Math.min(L1, L2);
+    return (Lmax + 0.05) / (Lmin + 0.05);
+  },
+
+
+  /**
+   * Computes the SAPC/APCA contrast between two colors as defined by WCAG3.
+   * @param {number[]} rgbText - Array of r, g, b values of the text.
+   * @param {number[]} rgbBack - Array of r, g, b values of the background.
+   * @returns {number} Contrast between the two colors.
+   */
+  // (Source of the math: https://github.com/Myndex/SAPC-APCA)
+  APCAcontrast: function(rgbText, rgbBack) {
+    // 1. Compute luminances
+    const coeffs = [0.2126729, 0.7151522, 0.0721750];
+    const gamma = 2.4;
+    const luminance = rgb => rgb.reduce((sum, v, i) => sum + Math.pow(v, gamma) * coeffs[i], 0);
+    let [Ltext, Lback] = [rgbText, rgbBack].map(rgb => luminance(rgb));
+
+    // 2. Clamp luminances
+    const blackClampTrigger = 0.03;
+    const blackClampPow = 1.45;
+    [Ltext, Lback] = [Ltext, Lback].map(L => L > blackClampTrigger ? L : L + Math.pow(blackClampTrigger - L, blackClampPow));
+
+    const δLmin = 0.0005;
+    if (Math.abs(Ltext - Lback) < δLmin) return 0;
+
+    // 3. Compute contrast
+    let result;
+    const scale = 1.25;
+    const compute = (Lback, Ltext, powBack, powText) => (Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * scale;
+    const lowClip = 0.001, lowTrigger = 0.078, lowOffset = 0.06, invLowTrigger = 12.82051282051282;
+
+    // for dark text on light background
+    if (Lback > Ltext) {
+      const powBack = 0.55, powText = 0.58;
+      const SAPC = compute(Lback, Ltext, powBack, powText);
+      result = (SAPC < lowClip) ? 0
+             : (SAPC < lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
+             : SAPC - lowOffset;
+    }
+
+    // for light text on dark background
+    else {
+      const powBack = 0.62, powText = 0.57;
+      const SAPC = compute(Lback, Ltext, powBack, powText);
+      result = (SAPC > -lowClip) ? 0
+             : (SAPC > -lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
+             : SAPC + lowOffset;
+    }
+
+    return result * 100;
+  },
+
+
+
+  /**********************/
+  /* Distance functions */
+  /**********************/
+
+
+  CIEDE2000: function([[L1, a1, b1], [L2, a2, b2]]) {
+    // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
+    const C1 = Math.sqrt(a1 ** 2 + b1 ** 2);
+    const C2 = Math.sqrt(a2 ** 2 + b2 ** 2);
+
+    const mC = (C1 + C2) / 2,
+          G = 0.5 * (1 - Math.sqrt(mC ** 7 / (mC ** 7 + 25 ** 7))),
+          aa1 = (1 + G) * a1,
+          aa2 = (1 + G) * a2,
+          CC1 = Math.sqrt(aa1 ** 2 + b1 ** 2),
+          CC2 = Math.sqrt(aa2 ** 2 + b2 ** 2);
+    let hh1 = CC1 === 0 ? 0 : Math.atan2(b1, aa1) * 180 / Math.PI,
+        hh2 = CC2 === 0 ? 0 : Math.atan2(b2, aa2) * 180 / Math.PI;
+    while (hh1 < 0) hh1 += 360; while (hh1 > 360) hh1 -= 360;
+    while (hh2 < 0) hh2 += 360; while (hh2 > 360) hh2 -= 360;
+
+    const dL = L2 - L1,
+          dC = CC2 - CC1;
+    const dhh = (CC1 * CC2 === 0) ? 0
+              : (Math.abs(hh2 - hh1) <= 180) ? hh2 - hh1
+              : (hh2 - hh1 > 180) ? hh2 - hh1 - 360
+              : hh2 - hh1 + 360;
+    const dH = 2 * Math.sqrt(CC1 * CC2) * Math.sin((Math.PI / 180) * (dhh / 2));
+
+    const mL = (L1 + L2) / 2,
+          mCC = (CC1 + CC2) / 2;
+    const mhh = (CC1 * CC2 === 0) ? hh1 + hh2
+              : (Math.abs(hh2 - hh1) <= 180) ? (hh1 + hh2) / 2
+              : (hh1 + hh2 >= 360) ? (hh1 + hh2 - 360) / 2
+              : (hh1 + hh2 + 360) / 2;
+    const T = 1 - 0.17 * Math.cos((Math.PI / 180) * (mhh - 30))
+                + 0.24 * Math.cos((Math.PI / 180) * (2 * mhh))
+                + 0.32 * Math.cos((Math.PI / 180) * (3 * mhh + 6))
+                - 0.20 * Math.cos((Math.PI / 180) * (4 * mhh - 63)),
+          dTH = 30 * Math.exp(-1 * ((mhh - 275) / 25) ** 2),
+          RC = 2 * Math.sqrt(mCC ** 7 / (mCC ** 7 + 25 ** 7)),
+          SL = 1 + (0.015 * (mL - 50) ** 2) / Math.sqrt(20 + (mL - 50) ** 2),
+          SC = 1 + 0.045 * mCC,
+          SH = 1 + 0.015 * mCC * T,
+          RT = -1 * Math.sin((Math.PI / 180) * (2 * dTH)) * RC;
+
+    return Math.sqrt(
+      (dL / SL) ** 2
+      + (dC / SC) ** 2
+      + (dH / SH) ** 2
+      + RT * (dC / SC) * (dH / SH)
+    );
+  }
+};
