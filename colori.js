@@ -409,9 +409,17 @@ export default class Couleur {
    * @param {string} space - The identifier of the color space.
    * @returns {number[]} The array of r, g, b values of the color.
    */
-  values(space = 'srgb', alpha = true) {
-    const values = Couleur.convert('srgb', space, [this.r, this.g, this.b]);
-    if (alpha) values.push(this.a);
+  values(_space = 'srgb', options = {}) {
+    if (typeof options.alpha === 'undefined') options.alpha = true;
+    if (typeof options.clamp === 'undefined') options.clamp = true;
+
+    let rgb = [this.r, this.g, this.b];
+    const space = Couleur.whichSpaceHasFormat(_space) || Couleur.space(_space);
+    const format = _space;
+
+    if (options.clamp) rgb = Couleur.clampToColorSpace(space.id, rgb);
+    const values = Couleur.convert('srgb', format, rgb);
+    if (options.alpha) values.push(this.a);
     return values;
   }
 
@@ -894,9 +902,14 @@ export default class Couleur {
    * @param {number[]} rgb - Array of parsed r, g, b values in sRGB color space.
    * @returns {boolean} Whether r, g, b in ${space} color space are all in [0, 1].
    */
-  static inColorSpace(space, rgb) {
+  static inColorSpace(_space, rgb) {
     const ε = .000005;
-    return Couleur.convert('srgb', space, rgb).every(v => v > (0 - ε) && v < (1 + ε));
+    const space = Couleur.whichSpaceHasFormat(_space) || Couleur.space(_space);
+    switch (space.id) {
+      case 'xyz': return true;
+      case 'lab': { const ciel = Couleur.convert('srgb', 'lab', rgb)[0]; return ciel >= 0 && ciel <= 1; }
+      default:    return Couleur.convert('srgb', space.id, rgb).every(v => v > (0 - ε) && v < (1 + ε));
+    }
   }
 
   /**
@@ -905,9 +918,10 @@ export default class Couleur {
    * @param {number[]} rgb - Array of parsed r, g, b values in sRGB color space.
    * @returns {number[]} The array of r, g, b values in sRGB color space, after clamping the color to ${space} color space.
    */
-  static clampToColorSpace(space, rgb) {
+  static clampToColorSpace(_space, rgb) {
     // Source of the math: https://css.land/lch/lch.js
-    if (Couleur.inColorSpace(space, rgb)) return rgb;
+    const space = Couleur.whichSpaceHasFormat(_space) || Couleur.space(_space);
+    if (Couleur.inColorSpace(space.id, rgb)) return rgb;
     let lch = Couleur.lab2lch(Couleur.rgb2lab(rgb));
 
     // If lightness is too low / high, clamp it and try again
@@ -915,7 +929,7 @@ export default class Couleur {
     if (lch[0] < (0 - ε) || lch[0] > (1 + ε)) {
       lch[0] = Math.max(0, Math.min(lch[0], 1));
       const rgb = Couleur.lab2rgb(Couleur.lch2lab(lch));
-      return Couleur.clampToColorSpace(space, rgb);
+      return Couleur.clampToColorSpace(space.id, rgb);
     }
 
     // If chroma is too high, clamp it
@@ -924,7 +938,7 @@ export default class Couleur {
     let Cmax = lch[1];
     lch[1] = lch[1] / 2;
 
-    const condition = lch => Couleur.inColorSpace(space, Couleur.lab2rgb(Couleur.lch2lab(lch)));
+    const condition = lch => Couleur.inColorSpace(space.id, Couleur.lab2rgb(Couleur.lch2lab(lch)));
     while (Cmax - Cmin > τ) {
       if (condition(lch)) Cmin = lch[1];
       else                Cmax = lch[1];
@@ -1056,22 +1070,13 @@ export default class Couleur {
    * @param {string} startSpace - The identifier of the starting color space.
    * @param {string} endSpace - The identifier of the color space to convert to.
    * @param {*} values - Array of color values.
-   * @returns 
+   * @returns {number[]} Array of values in the new color space.
    */
   static convert(startSpace, endSpace, values) {
     if (startSpace === endSpace) return values;
 
     // Source of the math: https://drafts.csswg.org/css-color/#predefined-to-predefined
-    const supportedSpaces = [
-      { id: 'srgb',         whitepoint: 'd65', prefix: 'RGB',      otherFormats: ['rgb', 'hsl', 'hwb'] },
-      { id: 'display-p3',   whitepoint: 'd65', prefix: 'P3',       otherFormats: []                    },
-      { id: 'a98-rgb',      whitepoint: 'd65', prefix: 'A98',      otherFormats: []                    },
-      { id: 'prophoto-rgb', whitepoint: 'd50', prefix: 'PROPHOTO', otherFormats: []                    },
-      { id: 'rec2020',      whitepoint: 'd65', prefix: 'REC2020',  otherFormats: []                    },
-      { id: 'xyz',          whitepoint: 'd50', prefix: 'XYZ',      otherFormats: []                    },
-      { id: 'lab',          whitepoint: 'd50', prefix: 'LAB',      otherFormats: ['lab', 'lch']        }
-    ];
-
+    const supportedSpaces = Couleur.colorSpaces;
     const [start, end] = [startSpace, endSpace].map(id => supportedSpaces.find(s => s.id === id || s.otherFormats.includes(id)));
 
     if (typeof start === 'undefined' || typeof end === 'undefined')
@@ -1718,6 +1723,22 @@ export default class Couleur {
   static get tolerance() {
     return .02;
   }
+
+  /** @returns {{id: string, whitepoint: string, prefix: string, otherFormat: string[]}} Supported color spaces. */
+  static get colorSpaces() {
+    return [
+      { id: 'srgb',         whitepoint: 'd65', prefix: 'RGB',      otherFormats: ['rgb', 'hsl', 'hwb'] },
+      { id: 'display-p3',   whitepoint: 'd65', prefix: 'P3',       otherFormats: []                    },
+      { id: 'a98-rgb',      whitepoint: 'd65', prefix: 'A98',      otherFormats: []                    },
+      { id: 'prophoto-rgb', whitepoint: 'd50', prefix: 'PROPHOTO', otherFormats: []                    },
+      { id: 'rec2020',      whitepoint: 'd65', prefix: 'REC2020',  otherFormats: []                    },
+      { id: 'xyz',          whitepoint: 'd50', prefix: 'XYZ',      otherFormats: []                    },
+      { id: 'lab',          whitepoint: 'd50', prefix: 'LAB',      otherFormats: ['lab', 'lch']        }
+    ];
+  }
+
+  static space(id) { return Couleur.colorSpaces.find(s => s.id === id); }
+  static whichSpaceHasFormat(format) { return Couleur.colorSpaces.find(s => s.otherFormats.includes(format)); }
 
   /** @returns {{id: string, syntaxes: RegExp[]}[]} Array of supported syntaxes. */
   static get formats() {
