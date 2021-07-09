@@ -1556,7 +1556,7 @@ export default class Couleur {
    */
   static distance(_couleur1, _couleur2, options = {}) {
     if (typeof options.space === 'undefined') options.space = 'lab';
-    if (typeof options.method === 'undefined') options.method = 'CIEDE2020';
+    if (typeof options.method === 'undefined') options.method = 'CIEDE2000';
     
     const couleur1 = Couleur.check(_couleur1);
     const couleur2 = Couleur.check(_couleur2);
@@ -1564,15 +1564,16 @@ export default class Couleur {
     const space = Couleur.whichSpaceHasFormat(options.space) || Couleur.space(options.space);
     const format = Couleur.whichSpaceHasFormat(options.space) ? options.space : null;
 
-    let values1 = Couleur.clampToColorSpace(space.id, couleur1.values('srgb', false));
-    let values2 = Couleur.clampToColorSpace(space.id, couleur2.values('srgb', false));
+    /*let values1 = Couleur.clampToColorSpace(space.id, couleur1.values('srgb', { alpha: false }));
+    let values2 = Couleur.clampToColorSpace(space.id, couleur2.values('srgb', { alpha: false }));*/
 
     switch (options.method) {
       case 'CIEDE2000': {
 
         // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
-        const [[x1, a1, b1], [x2, a2, b2]] = [values1, values2].map(v => Couleur.convert('rgb', 'lab', v));
-        const [[L1, C1, H1], [L2, C2, H2]] = [values1, values2].map(v => Couleur.convert('rgb', 'lch', v));
+        const [[x1, a1, b1], [x2, a2, b2]] = [couleur1, couleur2].map(c => c.values('lab', { alpha: false, clamp: false }));
+        let [[L1, C1, H1], [L2, C2, H2]] = [couleur1, couleur2].map(c => c.values('lch', { alpha: false, clamp: false }));
+        L1 *= 100; L2 *= 100;
 
         const mC = (C1 + C2) / 2,
               G = 0.5 * (1 - Math.sqrt(mC ** 7 / (mC ** 7 + 25 ** 7))),
@@ -1620,7 +1621,7 @@ export default class Couleur {
 
       case 'euclidean':
       default: {
-        if (format) [values1, values2] = [values1, values2].map(v => Couleur.convert('rgb', format, v));
+        const [values1, values2] = [couleur1, couleur2].map(c => c.values('lab'));
         return values1.reduce((sum, v, k) => sum + (v - values2[k]) ** 2);
       }
     }
