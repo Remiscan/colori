@@ -391,6 +391,7 @@ export default class Couleur {
         const [r2, g2, b2] = [parseInt(`${hex[0]}${hex[1]}`, 16), parseInt(`${hex[2]}${hex[3]}`, 16), parseInt(`${hex[4]}${hex[5]}`, 16)];
         if (Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) < tolerance) return name;
       }
+      return null;
     }
     else if (this.a === 0) return 'transparent';
     else                   return null;
@@ -660,9 +661,9 @@ export default class Couleur {
     try { path = Utils.findShortestPath(graph, startSpace, endSpace); }
     catch (error) {
       switch (error) {
-        case 'No path found': throw `Conversion from ${startID} space to ${endID} space is impossible`;
-        case 'start does not exist': throw `${startID} is not a supported color space`;
-        case 'end does not exist': throw `${endID} is not a supported color space`;
+        case 'No path found': throw `Conversion from ${startSpace} space to ${endSpace} space is impossible`;
+        case 'start does not exist': throw `${startSpace} is not a supported color space`;
+        case 'end does not exist': throw `${endSpace} is not a supported color space`;
         default: throw error;
       }
     }
@@ -672,7 +673,7 @@ export default class Couleur {
     while (path.length > 1) {
       const start = path.shift();
       const end = path[0];
-      const functionName = `${start}_to_${end}`;
+      const functionName = `${start}_to_${end}`.replace(/-/g, '');
       if (!Utils[functionName]) console.log(functionName);
       result = Utils[functionName](result);
     }
@@ -1028,7 +1029,7 @@ export default class Couleur {
    * @param {string} options.method - Whether to use the new APCA or the old WCAG2 method.
    * @returns {number} Contrast between the two colors.
    */
-  static contrast(_text, _background, { method = 'WCAG2' }) {
+  static contrast(_text, _background, { method = 'WCAG2' } = {}) {
     const background = new Couleur(_background);
     if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
     let text = new Couleur(_text);
@@ -1187,7 +1188,7 @@ export default class Couleur {
    * @param {number} tolerance - The minimum distance between the two colors to consider them different.
    * @returns {boolean} Whether the two colors are considered the same.
    */
-  static same(couleur1, couleur2, tolerance = Couleur.tolerance) {
+  static same(couleur1, couleur2, tolerance = 1) {
     if (Couleur.distance(couleur1, couleur2) > tolerance) return false;
     else return true;
   }
@@ -1209,7 +1210,7 @@ export default class Couleur {
   static gradient(_start, _end, _steps = 5, format = 'lch') {
     const start = new Couleur(_start);
     const end = new Couleur(_end);
-    const steps = Math.min(Math.max(1, _steps), 100);
+    const steps = Math.max(1, Math.min(_steps, 100));
     const props = [...Couleur.propertiesOf(format), 'a'];
 
     // Calculate by how much each property will be changed at each steap
@@ -1647,7 +1648,7 @@ const Utils = {
     ];
   },
 
-  xyz_to_linprophotorgb: function(xyz) {
+  xyz_to_lin_prophotorgb: function(xyz) {
     const [x, y, z] = xyz;
     return [
       1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
