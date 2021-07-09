@@ -37,25 +37,25 @@ export default class Couleur {
       const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
 
       switch (format.id) {
-        case 'HEX':
+        case 'hex':
           this.hex = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')];
           break;
-        case 'RGB':
+        case 'rgb':
           this.rgb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
           break;
-        case 'HSL':
+        case 'hsl':
           this.hsl = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
           break;
-        case 'HWB':
+        case 'hwb':
           this.hwb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
           break;
-        case 'LAB':
+        case 'lab':
           this.lab = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
           break;
-        case 'LCH':
+        case 'lch':
           this.lch = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
           break;
-        case 'COLOR':
+        case 'color':
           this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
           break;
         default:
@@ -69,7 +69,7 @@ export default class Couleur {
 
   /** 
    * A valid color expression.
-   * Supported formats are hexadecimal, RGB, HSL, HWB, LAB and LCH.
+   * Supported formats are hexadecimal, RGB, HSL, HWB, LAB, LCH and the color() function.
    * @typedef {string} colorString
    */
 
@@ -79,7 +79,7 @@ export default class Couleur {
    */
 
   /**
-   * A precalculated property of a Couleur object.
+   * The name of a property of a Couleur object.
    * @typedef {('r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh')} colorProperty
    */
 
@@ -111,7 +111,7 @@ export default class Couleur {
     for (const [k, syntaxe] of format.syntaxes.entries()) {
       const result = couleur.match(syntaxe);
       if (result != null && result[0] === couleur) {
-        if (format.id === 'NAME') {
+        if (format.id === 'name') {
           if (couleur === 'transparent') return Couleur.matchSyntax('#00000000');
           const allNames = Couleur.couleursNommees;
           const name = couleur.toLowerCase();
@@ -126,23 +126,6 @@ export default class Couleur {
     }
 
     throw `${couleur} is not a valid color format`;
-  }
-
-
-  /**
-   * Calculates all the color properties from the already defined ones.
-   * @param {string} knownFormat - Name of the already know format.
-   */
-  compute(knownFormat, values) {
-    let rgb;
-    switch (knownFormat) {
-      case 'rgb': rgb = values; break;
-      case 'hsl': rgb = Utils.hsl2rgb(values); break;
-      case 'hwb': rgb = Utils.hsl2rgb(Utils.hwb2hsl(values)); break;
-      case 'lab': rgb = Utils.lab2rgb(values); break;
-      case 'lch': rgb = Utils.lab2rgb(Utils.lch2lab(values)); break;
-    }
-    [this.r, this.g, this.b] = rgb.map(v => Couleur.pRound(v));
   }
 
 
@@ -166,10 +149,7 @@ export default class Couleur {
    * @param {boolean} options.clamp - Whether the value should de clamped to its sRGB interval.
    * @returns {number} The properly parsed number.
    */
-  static parse(n, type = null, options = {}) {
-    if (typeof options.clamp === 'undefined') options.clamp = true;
-    const clamp = options.clamp;
-
+  static parse(n, type = null, { clamp = true } = {}) {
     // Alpha values:
     // from any % or any number
     // clamped to [0, 100]% or [0, 1]
@@ -302,10 +282,7 @@ export default class Couleur {
    * @param {boolean} options.round - Whether to round the unparsed value.
    * @returns {string} The unparsed value, ready to insert in a CSS expression.
    */
-  static unparse(prop, value, options = {}) {
-    if (typeof options.round === 'undefined') options.round = true;
-    const round = options.round;
-
+  static unparse(prop, value, { round = true } = {}) {
     switch (prop) {
       case 'r': case 'g': case 'b':
         return round ? `${Math.round(255 * value)}` : `${255 * value}`;
@@ -335,30 +312,28 @@ export default class Couleur {
    */
   set(data, props, format) {
     const values = props.map((p, i) => Couleur.parse(data[i], p));
+    [this.r, this.g, this.b] = Couleur.convert(format, 'srgb', values);
+
     const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
     this.a = Couleur.parse(isAlpha(data[3]), 'a');
-    this.compute(format, values);
   }
 
 
   /* GENERAL GETTER */
 
   /**
-   * Gets the CSS expression of a color.
+   * Creates a string containing the CSS expression of a color.
    * @param {string} format - The format of the expression.
    * @param {number[]} rgba - The values of the r, g, b, a properties.
-   * @param {object?} options
+   * @param {object} options
    * @param {boolean} options.round - Whether to round the values in the expression.
    * @param {string} options.clamp - Which color space the values should be clamped to.
    * @returns {string} The expression of the color in the requested format.
    */
-  static expr(format, rgba, options = {}) {
-    if (typeof options.round === 'undefined') options.round = true;
-    if (typeof options.clamp === 'undefined') options.clamp = true;
-
-    const space = format.replace('color-', '');
-    const values = [...Couleur.convert('srgb', space, rgba.slice(0, 3)), rgba[3]];
-    const a = Couleur.unparse('a', values[3], { round: options.round });
+  static makeExpr(format, rgba, { round = true, clamp = true } = {}) {
+    const space = format === 'rgb' ? 'srgb' : format.replace('color-', '');
+    const values = Couleur.convert('srgb', space, rgba.slice(0, 3));
+    const a = Couleur.unparse('a', rgba[3], { round });
 
     // If the requested expression is of the color(space, ...) type
     if (format.slice(0, 5) === 'color') {
@@ -368,7 +343,7 @@ export default class Couleur {
           if (a >= 1) break;
           string += ` / ${a}`;
         } else {
-          string += ` ${options.round ? Math.round(10000 * v) / 10000 : v}`;
+          string += ` ${round ? Math.round(10000 * v) / 10000 : v}`;
         }
       }
       string += `)`;
@@ -377,7 +352,7 @@ export default class Couleur {
 
     // If the requested expression is of the ${format}(...) type
     const props = Couleur.propertiesOf(format);
-    const [x, y, z] = props.map((p, k) => Couleur.unparse(p, values[k], { round: options.round }));
+    const [x, y, z] = props.map((p, k) => Couleur.unparse(p, values[k], { round }));
 
     switch (format) {
       case 'rgb': case 'rgba': case 'hsl': case 'hsla': {
@@ -395,27 +370,13 @@ export default class Couleur {
     }
   }
 
+  expr(format, options) { return Couleur.makeExpr(format, [...this.values, this.a], options); }
+
 
   /* ALL VALUES (r, g, b) */
 
-  /**
-   * Returns the values of the color in a given color space.
-   * @param {string} space - The identifier of the color space.
-   * @returns {number[]} The array of r, g, b values of the color.
-   */
-  values(_space = 'srgb', options = {}) {
-    if (typeof options.alpha === 'undefined') options.alpha = true;
-    if (typeof options.clamp === 'undefined') options.clamp = true;
-
-    let rgb = [this.r, this.g, this.b];
-    const space = Couleur.whichSpaceHasFormat(_space) || Couleur.space(_space);
-    const format = _space;
-
-    if (options.clamp) rgb = Couleur.clampToColorSpace(space.id, rgb);
-    const values = Couleur.convert('srgb', format, rgb);
-    if (options.alpha) values.push(this.a);
-    return values;
-  }
+  /** @returns {number[]} The array of r, g, b values of the color in sRGB color space. */
+  get values() { return [this.r, this.g, this.b]; }
 
 
   /* NAME */
@@ -432,7 +393,7 @@ export default class Couleur {
       }
     }
     else if (this.a === 0) return 'transparent';
-    return null;
+    else                   return null;
   }
 
   /** @returns {?string} The exact name of the color. */
@@ -449,13 +410,6 @@ export default class Couleur {
 
 
   /* RGB (hexadecimal) */
-
-  /**
-   * Adds a zero before a string of length 1.
-   * @param {string} s - The string to pad.
-   * @returns {string} The padded string.
-   */
-  static pad(s) { return (s.length < 2) ? `0${s}` : s; }
   
   /**
    * Calculates all properties of the color from its hexadecimal expression.
@@ -489,15 +443,16 @@ export default class Couleur {
   /** @returns {string} Hexadecimal expression of the color. */
   get hex() {
     if (this.a < 1) return this.hexa;
-    const values = Couleur.clampToColorSpace('srgb', this.values().slice(0, 3));
-    const rgb = values.map(v => Couleur.pad(Math.round(v * 255).toString(16)));
+    const values = Couleur.clampToColorSpace('srgb', this.values);
+    const rgb = values.map(v => Utils.pad(Math.round(v * 255).toString(16)));
     return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
   }
 
   /** @returns {string} Hexadecimal (+ a) expression of the color. */
   get hexa() {
-    const values = Couleur.clampToColorSpace('srgb', this.values());
-    const rgb = values.map(v => Couleur.pad(Math.round(v * 255).toString(16)));
+    const values = Couleur.clampToColorSpace('srgb', this.values);
+    values.push(this.a);
+    const rgb = values.map(v => Utils.pad(Math.round(v * 255).toString(16)));
     return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
   }
 
@@ -508,10 +463,10 @@ export default class Couleur {
    * Calculates all properties of the color from its functional RGB expression.
    * @param {Array.<string|number>} rgba - The unparsed values of the r, g, b, a properties.
    */
-  set rgb(rgba) { this.set(rgba, ['r', 'g', 'b'], 'rgb'); }
+  set rgb(rgba) { this.set(rgba, ['r', 'g', 'b'], 'srgb'); }
   set rgba(rgba) { this.rgb = rgba; }
-  get rgb() { return Couleur.expr('rgb', this.values()); }
-  get rgba() { return Couleur.expr('rgba', this.values()); }
+  get rgb() { return this.expr('rgb'); }
+  get rgba() { return this.expr('rgba'); }
 
 
   /* HSL */
@@ -522,8 +477,8 @@ export default class Couleur {
    */
   set hsl(hsla) { this.set(hsla, ['h', 's', 'l'], 'hsl') }
   set hsla(hsla) { this.hsl = hsla; }
-  get hsl() { return Couleur.expr('hsl', this.values()); }
-  get hsla() { return Couleur.expr('hsla', this.values()); }
+  get hsl() { return this.expr('hsl'); }
+  get hsla() { return this.expr('hsla'); }
 
 
   /* HWB */
@@ -534,8 +489,8 @@ export default class Couleur {
    */
   set hwb(hwba) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
   set hwba(hwba) { this.hwb = hwba; }
-  get hwb() { return Couleur.expr('hwb', this.values()); }
-  get hwba() { return Couleur.expr('hwba', this.values()); }
+  get hwb() { return this.expr('hwb'); }
+  get hwba() { return this.expr('hwba'); }
 
 
   /* LAB */
@@ -546,8 +501,8 @@ export default class Couleur {
    */
   set lab(laba) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
   set laba(laba) { this.lab = laba; }
-  get lab() { return Couleur.expr('lab', this.values()); }
-  get laba() { return Couleur.expr('laba', this.values()); }
+  get lab() { return this.expr('lab'); }
+  get laba() { return this.expr('laba'); }
 
 
   /* LCH */
@@ -558,8 +513,8 @@ export default class Couleur {
    */
   set lch(lcha) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
   set lcha(lcha) { this.lch = lcha; }
-  get lch() { return Couleur.expr('lch', this.values()); }
-  get lcha() { return Couleur.expr('lcha', this.values()); }
+  get lch() { return this.expr('lch'); }
+  get lcha() { return this.expr('lcha'); }
 
 
   /* PROFILED COLORS */
@@ -584,14 +539,8 @@ export default class Couleur {
     }
 
     const rgba = [...rgb, a];
-    return this.set(rgba, [null, null, null], 'rgb');
+    return this.set(rgba, [null, null, null], 'srgb');
   }
-
-  /** Returns the expression on the color in a given color space.
-   * @param {string} space - The identifier of the color space.
-   * @returns {string} Expression of the color.
-   */
-  color(space) { return Couleur.expr(`color-${space}`, this.values()); }
 
 
 
@@ -605,75 +554,153 @@ export default class Couleur {
    * @param {number} val - The parsed new value of the property.
    */
   set h(val) {
-    const [x, s, l] = this.values('hsl');
-    this.hsl = [val, s, l, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
+    const [x, s, l, a] = this.convertTo('hsl', { alpha: true });
+    const props = [...Couleur.propertiesOf('hsl'), 'a'];
+    this.hsl = [val, s, l, a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set s(val) {
-    const [h, x, l] = this.values('hsl');
-    this.hsl = [h, val, l, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
+    const [h, x, l, a] = this.convertTo('hsl', { alpha: true });
+    const props = [...Couleur.propertiesOf('hsl'), 'a'];
+    this.hsl = [h, val, l, a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set l(val) {
-    const [h, s, x] = this.values('hsl');
-    this.hsl = [h, s, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hsl'), 'a'][k], v));
+    const [h, s, x, a] = this.convertTo('hsl', { alpha: true });
+    const props = [...Couleur.propertiesOf('hsl'), 'a']
+    this.hsl = [h, s, val, a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set w(val) {
-    const [h, x, bk] = this.values('hwb');
-    this.hwb = [h, val, bk, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hwb'), 'a'][k], v));
+    const [h, x, bk, a] = this.convertTo('hwb', { alpha: true });
+    const props = [...Couleur.propertiesOf('hwb'), 'a'];
+    this.hwb = [h, val, bk, a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set bk(val) {
-    const [h, w, x] = this.values('hwb');
-    this.hwb = [h, w, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('hwb'), 'a'][k], v));
+    const [h, w, x, a] = this.convertTo('hwb', { alpha: true });
+    const props = [...Couleur.propertiesOf('hwb'), 'a'];
+    this.hwb = [h, w, val, a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set ciel(val) {
-    const [x, ciea, cieb] = this.values('lab');
-    this.lab = [val, ciea, cieb, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
+    const [x, ciea, cieb, a] = this.convertTo('lab', { alpha: true });
+    const props = [...Couleur.propertiesOf('lch'), 'a'];
+    this.lab = [val, ciea, cieb, a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set ciea(val) {
-    const [ciel, x, cieb] = this.values('lab');
-    this.lab = [ciel, val, cieb, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lab'), 'a'][k], v));
+    const [ciel, x, cieb, a] = this.convertTo('lab', { alpha: true });
+    const props = [...Couleur.propertiesOf('lab'), 'a'];
+    this.lab = [ciel, val, cieb, a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set cieb(val) {
-    const [ciel, ciea, x] = this.values('lab');
-    this.lab = [ciel, ciea, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lab'), 'a'][k], v));
+    const [ciel, ciea, x, a] = this.convertTo('lab', { alpha: true });
+    const props = [...Couleur.propertiesOf('lab'), 'a'];
+    this.lab = [ciel, ciea, val, a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set ciec(val) {
-    const [ciel, x, cieh] = this.values('lch');
-    this.lch = [ciel, val, cieh, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
+    const [ciel, x, cieh, a] = this.convertTo('lch', { alpha: true });
+    const props = [...Couleur.propertiesOf('lch'), 'a'];
+    this.lch = [ciel, val, cieh, a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set cieh(val) {
-    const [ciel, ciec, x] = this.values('lch');
-    this.lch = [ciel, ciec, val, this.a].map((v, k) => Couleur.unparse([...Couleur.propertiesOf('lch'), 'a'][k], v));
+    const [ciel, ciec, x, a] = this.convertTo('lch', { alpha: true });
+    const props = [...Couleur.propertiesOf('lch'), 'a'];
+    this.lch = [ciel, ciec, val, a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   /** @returns {number} Gets the parsed value of one of the color properties. */
-  get h() { return this.values('hsl')[0]; }
-  get s() { return this.values('hsl')[1]; }
-  get l() { return this.values('hsl')[2]; }
-  get w() { return this.values('hwb')[1]; }
-  get bk() { return this.values('hwb')[2]; }
-  get ciel() { return this.values('lab')[0]; }
-  get ciea() { return this.values('lab')[1]; }
-  get cieb() { return this.values('lab')[2]; }
-  get ciec() { return this.values('lch')[1]; }
-  get cieh() { return this.values('lch')[2]; }
+  get h() { return this.convertTo('hsl')[0]; }
+  get s() { return this.convertTo('hsl')[1]; }
+  get l() { return this.convertTo('hsl')[2]; }
+  get w() { return this.convertTo('hwb')[1]; }
+  get bk() { return this.convertTo('hwb')[2]; }
+  get ciel() { return this.convertTo('lab')[0]; }
+  get ciea() { return this.convertTo('lab')[1]; }
+  get cieb() { return this.convertTo('lab')[2]; }
+  get ciec() { return this.convertTo('lch')[1]; }
+  get cieh() { return this.convertTo('lch')[2]; }
 
   get luminance() {
     if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
-    return Utils.luminance(this.values('rgb', { alpha: false }));
+    return Utils.luminance(this.values);
   }
 
 
 
-  /* Clamping to color space */
+  /***************************************************/
+  /* Conversion between color spaces and CSS formats */
+  /***************************************************/
+
+
+  /**
+   * Converts the color values from one color space to another.
+   * @param {string} startSpace - The identifier of the starting color space or CSS format.
+   * @param {string} endSpace - The identifier of the color space or CSS format to convert to.
+   * @param {*} values - Array of color values (without alpha).
+   * @returns {number[]} Array of values in the new color space.
+   */
+  static convert(startSpace, endSpace, values) {
+    if (startSpace === endSpace) return values;
+
+    // Find the shortest sequence of functions to convert between color spaces
+    let path;
+    const graph = Couleur.colorSpaces.map(space => {
+      return {
+        id: space.id,
+        links: space.functionsTo,
+        visited: false,
+        predecessorID: null
+      };
+    });
+    try { path = Utils.findShortestPath(graph, startSpace, endSpace); }
+    catch (error) {
+      switch (error) {
+        case 'No path found': throw `Conversion from ${startID} space to ${endID} space is impossible`;
+        case 'start does not exist': throw `${startID} is not a supported color space`;
+        case 'end does not exist': throw `${endID} is not a supported color space`;
+        default: throw error;
+      }
+    }
+
+    // Apply these functions to the color values.
+    let result = values;
+    while (path.length > 1) {
+      const start = path.shift();
+      const end = path[0];
+      const functionName = `${start}_to_${end}`;
+      if (!Utils[functionName]) console.log(functionName);
+      result = Utils[functionName](result);
+    }
+
+    return result;
+  }
+
+
+  /**
+   * Converts the r, g, b values of the color to another color space or CSS format.
+   * @param {string} space - The identifier of the desired color space or CSS format.
+   * @param {object} options
+   * @param {boolean} options.alpha - Whether to include the alpha value in the returned array.
+   * @param {boolean} options.clamp - Whether to clamp the values to their new color space.
+   * @returns {number[]} The array of converted r, g, b (and optionally a) values.
+   */
+  convertTo(space, { alpha = false, clamp = false } = {}) {
+    let values = Couleur.convert('srgb', space, this.values);
+    if (clamp) {
+      const S = Couleur.getSpace(space);
+      values = Couleur.clampToColorSpace(S.id, values);
+    }
+    if (alpha) values.push(this.a);
+    return values;
+  }
+
+
+  /* Clamping to a color space */
 
 
   /**
@@ -684,13 +711,15 @@ export default class Couleur {
    */
   static inColorSpace(_space, rgb) {
     const ε = .000005;
-    const space = Couleur.whichSpaceHasFormat(_space) || Couleur.space(_space);
+    const space = Couleur.getSpace(_space);
     switch (space.id) {
       case 'xyz': return true;
       case 'lab': { const ciel = Couleur.convert('srgb', 'lab', rgb)[0]; return ciel >= 0 && ciel <= 1; }
       default:    return Couleur.convert('srgb', space.id, rgb).every(v => v > (0 - ε) && v < (1 + ε));
     }
   }
+
+  inGamut(space) { return Couleur.inColorSpace(space, this.values); }
 
   /**
    * Clamps parsed r, g, b values in sRGB color space to a given color space.
@@ -700,7 +729,7 @@ export default class Couleur {
    */
   static clampToColorSpace(_space, rgb) {
     // Source of the math: https://css.land/lch/lch.js
-    const space = Couleur.whichSpaceHasFormat(_space) || Couleur.space(_space);
+    const space = Couleur.getSpace(_space);
     if (Couleur.inColorSpace(space.id, rgb)) return rgb;
     let lch = Utils.lab2lch(Utils.rgb2lab(rgb));
 
@@ -728,57 +757,7 @@ export default class Couleur {
     return Utils.lab2rgb(Utils.lch2lab(lch));
   }
 
-
-  
-
-
-  /**
-   * Converts the color values from one color space to another.
-   * @param {string} startSpace - The identifier of the starting color space.
-   * @param {string} endSpace - The identifier of the color space to convert to.
-   * @param {*} values - Array of color values.
-   * @returns {number[]} Array of values in the new color space.
-   */
-  static convert(startSpace, endSpace, values) {
-    if (startSpace === endSpace) return values;
-
-    // Source of the math: https://drafts.csswg.org/css-color/#predefined-to-predefined
-    const supportedSpaces = Couleur.colorSpaces;
-    const [start, end] = [startSpace, endSpace].map(id => supportedSpaces.find(s => s.id === id || s.otherFormats.includes(id)));
-
-    if (typeof start === 'undefined' || typeof end === 'undefined')
-      throw `Can not convert from ${startSpace} to ${endSpace}`;
-
-    const functions = [];
-    // If we're converting from another format
-    if (startSpace !== start.id) functions.push(`${startSpace}2${start.otherFormats[0]}`);
-    // If we're converting to another color spaces
-    if (start.id !== end.id) {
-      if (startSpace !== 'xyz') functions.push(
-        `gam${start.prefix}_lin${start.prefix}`,
-        `lin${start.prefix}_${start.whitepoint}XYZ`
-      );
-      if (start.whitepoint !== end.whitepoint) functions.push(
-        `${start.whitepoint}XYZ_${end.whitepoint}XYZ`
-      );
-      if (endSpace !== 'xyz') functions.push(
-        `${end.whitepoint}XYZ_lin${end.prefix}`,
-        `lin${end.prefix}_gam${end.prefix}`
-      );
-    }
-    // If we're converting to another format
-    if (endSpace !== end.id) functions.push(`${end.otherFormats[0]}2${endSpace}`);
-
-    let result = values;
-    for (const fun of functions) {
-      try {
-        result = Utils[fun](result);
-      } catch (error) { console.error(error, fun); }
-    }
-    return result;
-  }
-
-  convertTo(space) { return [...Couleur.convert('srgb', space, this.values('rgb', { alpha: false })), this.a]; }
+  toGamut(space) { return Couleur.clampToColorSpace(space, this.values); }
 
 
 
@@ -795,13 +774,14 @@ export default class Couleur {
    * @param {colorProperty} propriete - The color property that will be changed.
    * @param {(string|number)} valeur - The value that will be added to the property.
    * @param {Object} options
-   * @param {boolean} options.replace - Whether the value should replace the previous value of the property, instead of being added to it.
-   * @param {boolean} options.scale - Whether the value should be multiplied to the previous value of the property, instead of being added to it.
+   * @param {boolean} options.action - 'replace' if the value should replace the previous value of the property,
+   *                                   'scale' if the value should be multiplied to the previous value of the property,
+   *                                   null if the value should be added to the previous value of the property.
    * @returns {Couleur} The modified color.
    */
-   change(propriete, valeur, options = {}) {
-    const replace = (options === true) || ((typeof options.replace != 'undefined') ? options.replace : false);
-    const scale = (typeof options.scale != 'undefined') ? options.scale : false;
+   change(propriete, valeur, { action = null } = {}) {
+    const replace = action === 'replace';
+    const scale = action === 'scale';
     const val = scale ? Couleur.parse(valeur) : Couleur.parse(valeur, propriete, { clamp: false });
     const changedColor = new Couleur(this.rgb);
 
@@ -819,7 +799,7 @@ export default class Couleur {
    * @returns {Couleur} The modified color.
    */
   replace(propriete, valeur) {
-    return this.change(propriete, valeur, { replace: true, scale: false });
+    return this.change(propriete, valeur, { action: 'replace' });
   }
 
   /**
@@ -830,7 +810,7 @@ export default class Couleur {
    * @returns {Couleur} The modified color.
    */
   scale(propriete, valeur) {
-    return this.change(propriete, valeur, { replace: false, scale: true });
+    return this.change(propriete, valeur, { action: 'scale' });
   }
 
   /** @returns {Couleur} The complementary color. */
@@ -860,32 +840,46 @@ export default class Couleur {
 
 
   /**
+   * Blends two colors together.
+   * @param {color} _background - Background color.
+   * @param {color} _overlay - Overlay color.
+   * @param {number|string|null} alpha - Alpha value that will replace overlay's.
+   * @returns {Couleur} The resulting color.
+   */
+   static blend(_background, _overlay, alpha) {
+    const background = new Couleur(_background);
+    const overlay = new Couleur(_overlay);
+    if (alpha != null) // if alpha isn't null or undefined
+      overlay.a = Couleur.parse(alpha, 'a');
+
+    if (overlay.a === 0) return background;
+    else if (overlay.a === 1) return overlay;
+
+    const a = overlay.a + background.a * (1 - overlay.a);
+    const r = (overlay.r * overlay.a + background.r * background.a * (1 - overlay.a)) / a;
+    const g = (overlay.g * overlay.a + background.g * background.a * (1 - overlay.a)) / a;
+    const b = (overlay.b * overlay.a + background.b * background.a * (1 - overlay.a)) / a;
+    return new Couleur(Couleur.makeExpr('rgb', [r, g, b, a]));
+  }
+  
+  /**
    * Blends colors together, in the order they were given.
    * @param  {...color} couleurs - Colors to blend.
    * @returns {Couleur} The resulting color.
    */
-  static blend(...couleurs) {
+  static blendAll(...couleurs) {
     if (couleurs.length < 2) throw `You need at least 2 colors to blend`;
-    const background = new Couleur(couleurs.shift());
-    const overlay = new Couleur(couleurs.shift());
-    let mix;
-
-    calculation: {
-      if (overlay.a === 0) {
-        mix = background;
-        break calculation;
-      }
-
-      const a = overlay.a + background.a * (1 - overlay.a);
-      const r = (overlay.r * overlay.a + background.r * background.a * (1 - overlay.a)) / a;
-      const g = (overlay.g * overlay.a + background.g * background.a * (1 - overlay.a)) / a;
-      const b = (overlay.b * overlay.a + background.b * background.a * (1 - overlay.a)) / a;
-      mix = new Couleur(Couleur.expr('rgb', [r, g, b, a]));
-    }
+    const background = couleurs.shift();
+    const overlay = couleurs.shift();
+    
+    const mix = Couleur.blend(background, overlay);
 
     if (couleurs.length === 0) return mix;
-    else                       return Couleur.blend(mix, ...couleurs);
+    else                       return Couleur.blendAll(mix, ...couleurs);
   }
+
+  blend(couleur, alpha) { return Couleur.blend(this, couleur, alpha); }
+  blendAll(...couleurs) { return Couleur.blendAll(this, ...couleurs); }
 
 
   /**
@@ -894,37 +888,52 @@ export default class Couleur {
    * @returns {?Couleur} The solution to the equation, if it has one.
    * @throws if the equation has an infinite amount of solutions.
    */
-  static unblend(...couleurs) {
-    if (couleurs.length < 2) throw `You need at least 2 colors to unblend`;
-    const mix = new Couleur(couleurs.shift());
-    const overlay = new Couleur(couleurs.shift());
-    let background;
+   static unblend(_mix, _overlay, alpha) {
+    const mix = new Couleur(_mix);
+    const overlay = new Couleur(_overlay);
+    if (alpha != null) // if alpha isn't null or undefined
+      overlay.a = Couleur.parse(alpha, 'a');
 
     if (overlay.a === 1) {
       throw `Overlay color ${overlay.rgb} isn't transparent, so the background it was blended onto could have been any color`;
     }
-    else if (overlay.a === 0)           background = mix;
+    else if (overlay.a === 0)           return mix;
     else {
       if (mix.a < overlay.a)            return null;
       else if (mix.a === overlay.a) {
-        if (Couleur.same(mix, overlay)) background = new Couleur('transparent');
+        if (Couleur.same(mix, overlay)) return new Couleur('transparent');
         else                            return null;
       }
       else {
-        const a = Couleur.pRound((mix.a - overlay.a) / (1 - overlay.a), 3);
-        const r = Couleur.pRound((mix.r * mix.a - overlay.r * overlay.a) / (a * (1 - overlay.a)), 3);
-        const g = Couleur.pRound((mix.g * mix.a - overlay.g * overlay.a) / (a * (1 - overlay.a)), 3);
-        const b = Couleur.pRound((mix.b * mix.a - overlay.b * overlay.a) / (a * (1 - overlay.a)), 3);
-        for (const x of [r, g, b]) {
-          if (x < 0 - Couleur.tolerance || x > 1 + Couleur.tolerance) return null;
-        }
-        background = new Couleur(Couleur.expr('rgb', [r, g, b, a]));
+        const a = (mix.a - overlay.a) / (1 - overlay.a);
+        const r = (mix.r * mix.a - overlay.r * overlay.a) / (a * (1 - overlay.a));
+        const g = (mix.g * mix.a - overlay.g * overlay.a) / (a * (1 - overlay.a));
+        const b = (mix.b * mix.a - overlay.b * overlay.a) / (a * (1 - overlay.a));
+        if (!Couleur.inColorSpace('srgb', [r, g, b])) return null;
+        return new Couleur(Couleur.makeExpr('rgb', [r, g, b, a]));
       }
     }
+  }
+
+  /**
+   * Solves the equation mix = blend(background, ...overlays) with background unknown.
+   * @param  {...color} couleurs - Colors to unblend.
+   * @returns {?Couleur} The solution to the equation, if it has one.
+   * @throws if the equation has an infinite amount of solutions.
+   */
+  static unblendAll(...couleurs) {
+    if (couleurs.length < 2) throw `You need at least 2 colors to unblend`;
+    const mix = couleurs.shift();
+    const overlay = couleurs.shift();
+    
+    const background = Couleur.unblend(mix, overlay);
 
     if (couleurs.length === 0) return background;
-    else                       return Couleur.unblend(background, ...couleurs);
+    else                       return Couleur.unblendAll(background, ...couleurs);
   }
+
+  unblend(couleur, alpha) { return Couleur.unblend(this, couleur, alpha); }
+  unblendAll(...couleurs) { return Couleur.unblendAll(this, ...couleurs); }
 
 
   /**
@@ -947,7 +956,7 @@ export default class Couleur {
       for (const x of [r, g, b]) {
         if (x < 0 - Couleur.tolerance || x > 1 + Couleur.tolerance) throw `This color doesn't exist`;
       }
-      return new Couleur(Couleur.expr('rgb', [r, g, b, a]));
+      return new Couleur(Couleur.makeExpr('rgb', [r, g, b, a]));
     };
 
     // If alpha is known, we can find at most one solution
@@ -1015,10 +1024,11 @@ export default class Couleur {
    * Computes the contrast between two colors as defined by WCAG2 or 3.
    * @param {color} _text
    * @param {color} _background
-   * @param {string} method - Whether to use the new APCA or the old WCAG2 method.
+   * @param {object} options
+   * @param {string} options.method - Whether to use the new APCA or the old WCAG2 method.
    * @returns {number} Contrast between the two colors.
    */
-  static contrast(_text, _background, method = 'WCAG2') {
+  static contrast(_text, _background, { method = 'WCAG2' }) {
     const background = new Couleur(_background);
     if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
     let text = new Couleur(_text);
@@ -1028,15 +1038,16 @@ export default class Couleur {
 
     switch (method.toLowerCase()) {
       case 'wcag3': case 'apca':
-        return Utils.APCAcontrast(text.values('rgb', { alpha: false }), background.values('rgb', { alpha: false }));
+        return Utils.APCAcontrast(text.values, background.values);
+      case 'wcag2':
       default:
-        return Utils.WCAG2contrast(text.values('rgb', { alpha: false }), background.values('rgb', { alpha: false }));
+        return Utils.WCAG2contrast(text.values, background.values);
     }
   }
 
   /** Non-static version of Couleur.contrast */
-  contrastWith(background, method = 'WCAG2') {
-    return Couleur.contrast(this, background, method);
+  contrastWith(background, options) {
+    return Couleur.contrast(this, background, options);
   }
 
 
@@ -1070,28 +1081,23 @@ export default class Couleur {
    * @param {string?} options.contrastMethod - The method to use to compute the contrast. 'WCAG2' by default.
    * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
    */
-  improveContrastWith(referenceColor, desiredContrast, step = 2, options = {}) {
-    if (typeof options.lower === 'undefined') options.lower = false;
-    if (typeof options.maxIterations === 'undefined') options.maxIterations = 100;
-    if (typeof options.towards === 'undefined') options.towards = null;
-    if (typeof options.contrastMethod === 'undefined') options.contrastMethod = 'WCAG2';
-
+  improveContrastWith(referenceColor, desiredContrast, step = 2, { lower = false, towards = null, contrastMethod = 'WCAG2', maxIterations = 100 } = {}) {
     let movingColor = new Couleur(`${this.rgb}`);
     let refColor = new Couleur(referenceColor);
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    let contrast = Couleur.contrast(movingColor, refColor, options.contrastMethod);
+    let contrast = Couleur.contrast(movingColor, refColor, contrastMethod);
     let direction;
     if (contrast > desiredContrast)      direction = -1;
     else if (contrast < desiredContrast) direction = 1;
     else                                 direction = 0;
-    if ((direction < 0 && options.lower === false) || (direction === 0)) return this;
+    if ((direction < 0 && lower === false) || (direction === 0)) return this;
 
     // Let's measure the contrast of refColor with black and white to know if
     // desiredContrast can be reached by blackening or whitening movingColor.
-    const contrastWhite = Couleur.contrast(refColor, 'white', options.contrastMethod);
-    const contrastBlack = Couleur.contrast(refColor, 'black', options.contrastMethod);
+    const contrastWhite = Couleur.contrast(refColor, 'white', contrastMethod);
+    const contrastBlack = Couleur.contrast(refColor, 'black', contrastMethod);
     const towardsWhite = (direction > 0) ? contrastWhite >= desiredContrast
                                          : contrastWhite <= desiredContrast;
     const towardsBlack = (direction > 0) ? contrastBlack >= desiredContrast
@@ -1099,38 +1105,38 @@ export default class Couleur {
     
     // Let's decide if we're going to raise blackness or whiteness
     // to reach desiredContrast.
-    let towards;
-    if (towardsWhite && !towardsBlack)            towards = 'white';
-    else if (towardsBlack && !towardsWhite)       towards = 'black';
+    let to;
+    if (towardsWhite && !towardsBlack)            to = 'white';
+    else if (towardsBlack && !towardsWhite)       to = 'black';
     else if (!towardsWhite && !towardsBlack) {
-      if (options.towards !== null)               towards = options.towards;
+      if (towards !== null)                       to = towards;
       else if (contrastWhite > contrastBlack)     return new Couleur('white');
       else                                        return new Couleur('black');
     }
-    else if (towardsWhite && towardsBlack)        towards = options.towards;
+    else if (towardsWhite && towardsBlack)        to = towards;
     if (towards === null) {
-      if (refColor.ciel < movingColor.ciel)       towards = 'white';
-      else if (refColor.ciel > movingColor.ciel)  towards = 'black';
-      else                                        towards = 'black';
+      if (refColor.ciel < movingColor.ciel)       to = 'white';
+      else if (refColor.ciel > movingColor.ciel)  to = 'black';
+      else                                        to = 'black';
     }
 
     // We keep going as long as contrast is still below / over desiredContrast.
     const condition =  c => (direction > 0) ? (c < desiredContrast)
                                             : (c > desiredContrast);
     let i = 0;
-    while (condition(contrast) && i < options.maxIterations) {
+    while (condition(contrast) && i < maxIterations) {
       i++;
       let newColor;
 
       // If movingColor is totally black (if towards black) or white (if towards white),
       // i.e. there's no way to go, stop.
-      if ((towards === 'black' && movingColor.ciel === 0) || (towards === 'white' && movingColor.ciel === 1))
+      if ((to === 'black' && movingColor.ciel === 0) || (to === 'white' && movingColor.ciel === 1))
         break;
 
       // Let's try to raise contrast by increasing or reducing CIE lightness.
-      const sign = (towards === 'white') ? 1 : -1;
+      const sign = (to === 'white') ? 1 : -1;
       newColor = movingColor.replace('ciel', Couleur.unparse('ciel', movingColor.ciel + sign * .01 * step));
-      const newContrast = Couleur.contrast(newColor, refColor, options.contrastMethod);
+      const newContrast = Couleur.contrast(newColor, refColor, contrastMethod);
 
       // If we overshot a little, stop.
       // (We want to overshoot when we're raising contrast, but not when we're lowering it!)
@@ -1152,22 +1158,20 @@ export default class Couleur {
    * Colors outside of that color space will be clamped to it.
    * @param {color} _couleur1 
    * @param {color} _couleur2 
-   * @param {string} space - The color space in which distance will be measured.
+   * @param {object} options
+   * @param {string} options.method - The method to use to compute the distance.
    * @returns {number} The distance between the two colors in sRGB space.
    */
-  static distance(_couleur1, _couleur2, options = {}) {
-    if (typeof options.space === 'undefined') options.space = 'lab';
-    if (typeof options.method === 'undefined') options.method = 'CIEDE2000';
-    
+  static distance(_couleur1, _couleur2, { method = 'CIEDE2000' } = {}) { 
     const couleur1 = new Couleur(_couleur1);
     const couleur2 = new Couleur(_couleur2);
 
-    switch (options.method) {
+    switch (method) {
       case 'CIEDE2000':
-        return Utils.CIEDE2000([couleur1, couleur2].map(c => c.values('lab', { alpha: false, clamp: false })));
+        return Utils.CIEDE2000([couleur1, couleur2].map(c => c.convertTo('lab', { alpha: false, clamp: false })));
       case 'euclidean':
       default: {
-        const [values1, values2] = [couleur1, couleur2].map(c => c.values('lab'));
+        const [values1, values2] = [couleur1, couleur2].map(c => c.convertTo('lab'));
         return values1.reduce((sum, v, k) => sum + (v - values2[k]) ** 2);
       }
     }
@@ -1234,7 +1238,7 @@ export default class Couleur {
       previous = next;
     }
 
-    return [...intermediateColors.map(c => new Couleur(Couleur.expr(format, c))), end];
+    return [...intermediateColors.map(c => new Couleur(Couleur.makeExpr(format, c))), end];
   }
 
   gradientTo(color, steps, format) { return Couleur.gradient(this, color, steps, format); }
@@ -1274,24 +1278,99 @@ export default class Couleur {
   /** @returns {{id: string, whitepoint: string, prefix: string, otherFormat: string[]}} Supported color spaces. */
   static get colorSpaces() {
     return [
-      { id: 'srgb',         whitepoint: 'd65', prefix: 'RGB',      otherFormats: ['rgb', 'hsl', 'hwb'] },
-      { id: 'display-p3',   whitepoint: 'd65', prefix: 'P3',       otherFormats: []                    },
-      { id: 'a98-rgb',      whitepoint: 'd65', prefix: 'A98',      otherFormats: []                    },
-      { id: 'prophoto-rgb', whitepoint: 'd50', prefix: 'PROPHOTO', otherFormats: []                    },
-      { id: 'rec2020',      whitepoint: 'd65', prefix: 'REC2020',  otherFormats: []                    },
-      { id: 'xyz',          whitepoint: 'd50', prefix: 'XYZ',      otherFormats: []                    },
-      { id: 'lab',          whitepoint: 'd50', prefix: 'LAB',      otherFormats: ['lab', 'lch']        }
+      {
+        id: 'srgb',
+        whitepoint: 'd65',
+        CSSformat: 'rgb',
+        gamut: [ [0, 1], [0, 1], [0, 1] ],
+        functionsTo: ['lin_srgb', 'hsl']
+      }, {
+        id: 'lin_srgb',
+        functionsTo: ['srgb', 'd65xyz']
+      }, {
+        id: 'hsl',
+        whitepoint: 'd65',
+        CSSformat: 'hsl',
+        gamut: [ [0, 360], [0, 1], [0, 1] ],
+        functionsTo: ['srgb', 'hwb']
+      }, {
+        id: 'hwb',
+        whitepoint: 'd65',
+        CSSformat: 'hwb',
+        gamut: [ [0, 360], [0, 1], [0, 1] ],
+        functionsTo: ['hsl']
+      }, {
+        id: 'lab',
+        whitepoint: 'd50',
+        CSSformat: 'lab',
+        gamut: [ [0, 4], [-Infinity, Infinity], [-Infinity, Infinity] ],
+        functionsTo: ['xyz', 'lch']
+      }, {
+        id: 'lch',
+        whitepoint: 'd50',
+        CSSformat: 'lch',
+        gamut: [ [0, 4], [0, +Infinity], [0, 360] ],
+        functionsTo: ['lab']
+      }, {
+        id: 'xyz',
+        whitepoint: 'd50',
+        CSSformat: 'color',
+        gamut: [ [-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
+        functionsTo: ['lab', 'd65xyz', 'lin_prophoto-rgb']
+      }, {
+        id: 'd65xyz',
+        whitepoint: 'd65',
+        functionsTo: ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020']
+      }, {
+        id: 'display-p3',
+        whitepoint: 'd65',
+        CSSformat: 'color',
+        gamut: [ [0, 1], [0, 1], [0, 1] ],
+        functionsTo: ['lin_display-p3']
+      }, {
+        id: 'lin_display-p3',
+        functionsTo: ['display-p3', 'd65xyz']
+      }, {
+        id: 'a98-rgb',
+        whitepoint: 'd65',
+        CSSformat: 'color',
+        gamut: [ [0, 1], [0, 1], [0, 1] ],
+        functionsTo: ['lin_a98-rgb']
+      }, {
+        id: 'lin_a98-rgb',
+        functionsTo: ['a98-rgb', 'd65xyz']
+      }, {
+        id: 'prophoto-rgb',
+        whitepoint: 'd50',
+        CSSformat: 'color',
+        gamut: [ [0, 1], [0, 1], [0, 1] ],
+        functionsTo: ['lin_prophoto-rgb', 'xyz']
+      }, {
+        id: 'lin_prophoto-rgb',
+        functionsTo: ['prophoto-rgb']
+      }, {
+        id: 'rec2020',
+        whitepoint: 'd65',
+        CSSformat: 'color',
+        gamut: [ [0, 1], [0, 1], [0, 1] ],
+        functionsTo: ['lin_rec2020']
+      }, {
+        id: 'lin_rec2020',
+        functionsTo: ['rec2020', 'd65xyz']
+      }
     ];
   }
 
-  static space(id) { return Couleur.colorSpaces.find(s => s.id === id); }
-  static whichSpaceHasFormat(format) { return Couleur.colorSpaces.find(s => s.otherFormats.includes(format)); }
+  static getSpace(_id) {
+    const id = _id === 'rgb' ? 'srgb' : _id;
+    return Couleur.colorSpaces.find(sp => sp.id == id);
+  }
 
   /** @returns {{id: string, syntaxes: RegExp[]}[]} Array of supported syntaxes. */
   static get formats() {
     return [
       {
-        id: 'HEX',
+        id: 'hex',
         syntaxes: [
           // #abc or #ABC
           /^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/,
@@ -1303,7 +1382,7 @@ export default class Couleur {
           /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/
         ]
       }, {
-        id: 'RGB',
+        id: 'rgb',
         syntaxes: [
           // rgb(255, 255, 255) (spaces not required)
           new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum})\\)$`),
@@ -1323,7 +1402,7 @@ export default class Couleur {
           new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
-        id: 'HSL',
+        id: 'hsl',
         syntaxes: [
           // hsl(<angle>, 100%, 100%)
           new RegExp(`^hsla?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)$`),
@@ -1335,7 +1414,7 @@ export default class Couleur {
           new RegExp(`^hsla?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
-        id: 'HWB',
+        id: 'hwb',
         syntaxes: [
           // hwb(<angle> 100% 100%)
           new RegExp(`^hwb\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer})\\)$`),
@@ -1343,7 +1422,7 @@ export default class Couleur {
           new RegExp(`^hwb\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
-        id: 'LAB',
+        id: 'lab',
         syntaxes: [
           // lab(300% 25 40)
           new RegExp(`^lab\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vNum})\\)$`),
@@ -1351,7 +1430,7 @@ export default class Couleur {
           new RegExp(`^lab\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vNum}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
-        id: 'LCH',
+        id: 'lch',
         syntaxes: [
           // lch(300% 25 <angle>)
           new RegExp(`^lch\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vAng})\\)$`),
@@ -1359,7 +1438,7 @@ export default class Couleur {
           new RegExp(`^lch\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vAng}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
-        id: 'COLOR',
+        id: 'color',
         syntaxes: [
           // color(display-p3 -0.6112 1.0079 -0.2192)
           new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum})\\)$`),
@@ -1367,7 +1446,7 @@ export default class Couleur {
           new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum}) ?\\/ ?(${Couleur.vNP})\\)$`)
         ]
       }, {
-        id: 'NAME',
+        id: 'name',
         syntaxes: [
           // white or WHITE or WhiTe
           /^[A-Za-z]+$/
@@ -1390,11 +1469,8 @@ export default class Couleur {
 }
 
 const Utils = {
-  /**
-   * All of these functions take an array of parsed color values,
-   * and return an array of parsed color values converted into the 
-   * desired color space or CSS format.
-   * */
+  /** Pads a string of length 1 with a zero. */
+   pad: function(s) { return (s.length < 2) ? `0${s}` : s; },
 
 
 
@@ -1402,22 +1478,28 @@ const Utils = {
   /* Conversion between color spaces */
   /***********************************/
 
+  /**
+   * All of these functions take an array of parsed color values (without alpha),
+   * and return an array of parsed color values (without alpha) converted into the 
+   * desired color space or CSS format.
+   */
 
   // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
+  //                   & https://drafts.csswg.org/css-color/#predefined-to-predefined
   //                   & https://drafts.csswg.org/css-color-4/utilities.js
   //                   & https://drafts.csswg.org/css-color-4/conversions.js
 
   /* srgb */
 
-  gamRGB_linRGB: function(rgb) {
+  srgb_to_lin_srgb: function(rgb) {
     return rgb.map(x => (Math.abs(x) < 0.04045) ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4));
   },
 
-  linRGB_gamRGB: function(rgb) {
+  lin_srgb_to_srgb: function(rgb) {
     return rgb.map(x => (Math.abs(x) > 0.0031308) ? (Math.sign(x) || 1) * (1.055 * Math.pow(Math.abs(x), 1 / 2.4) - 0.055) : 12.92 * x);
   },
 
-  linRGB_d65XYZ: function(rgb) {
+  lin_srgb_to_d65xyz: function(rgb) {
     const [r, g, b] = rgb;
     return [
       0.41239079926595934 * r + 0.357584339383878 * g + 0.1804807884018343 * b,
@@ -1426,7 +1508,7 @@ const Utils = {
     ];
   },
 
-  d65XYZ_linRGB: function(xyz) {
+  d65xyz_to_lin_srgb: function(xyz) {
     const [x, y, z] = xyz;
     return [
       3.2409699419045226 * x + -1.537383177570094 * y + -0.4986107602930034 * z,
@@ -1435,185 +1517,9 @@ const Utils = {
     ];
   },
 
-  /* display-p3 */
+  /* hsl */
 
-  gamP3_linP3: function(rgb) { return this.gamRGB_linRGB(rgb); },
-  linP3_gamP3: function(rgb) { return this.linRGB_gamRGB(rgb); },
-  
-  linP3_d65XYZ: function(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.4865709486482162 * r + 0.26566769316909306 * g + 0.1982172852343625 * b,
-		  0.2289745640697488 * r + 0.6917385218365064 * g + 0.079286914093745 * b,
-		  0.0000000000000000 * r + 0.04511338185890264 * g + 1.043944368900976 * b
-    ];
-  },
-
-  d65XYZ_linP3: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      2.493496911941425 * x + -0.9313836179191239 * y + -0.40271078445071684 * z,
-		  -0.8294889695615747 * x + 1.7626640603183463 * y +  0.023624685841943577 * z,
-		  0.03584583024378447 * x + -0.07617238926804182 * y + 0.9568845240076872 * z
-    ];
-  },
-
-  /* prophoto-rgb */
-
-  gamPROPHOTO_linPROPHOTO: function(rgb) {
-    return rgb.map(v => Math.abs(v) <= 16/512 ? v / 16 : (Math.sign(x) || 1) * Math.pow(v, 1.8));
-  },
-
-  linPROPHOTO_gamPROPHOTO: function(rgb) {
-    return rgb.map(v => Math.abs(v) >= 1/512 ? (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1/1.8) : 16 * v);
-  },
-
-  linPROPHOTO_d50XYZ: function(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
-      0.2880711282292934 * r + 0.7118432178101014 * g + 0.00008565396060525902 * b,
-      0.0 * r + 0.0 * g + 0.8251046025104601 * b
-    ];
-  },
-
-  d50XYZ_linPROPHOTO: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
-	  	-0.5446224939028347 * x + 1.5082327413132781 * y + 0.02053603239147973 * z,
-	  	0.0 * x + 0.0 * y + 1.2119675456389454 * z
-    ];
-  },
-
-  /* a98-rgb */
-
-  gamA98_linA98: function(rgb) {
-    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 563/256));
-  },
-
-  linA98_gamA98: function(rgb) {
-    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 256/563));
-  },
-
-  linA98_d65XYZ: function(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.5766690429101305 * r + 0.1855582379065463 * g + 0.1882286462349947 * b,
-      0.29734497525053605 * r + 0.6273635662554661 * g + 0.07529145849399788 * b,
-      0.02703136138641234 * r + 0.07068885253582723 * g + 0.9913375368376388 * b
-    ];
-  },
-
-  d65XYZ_linA98: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      2.0415879038107465 * x + -0.5650069742788596 * y + -0.34473135077832956 * z,
-      -0.9692436362808795 * x + 1.8759675015077202 * y + 0.04155505740717557 * z,
-      0.013444280632031142 * x + -0.11836239223101838 * y + 1.0151749943912054 * z
-    ];
-  },
-
-  /* rec2020 */
-
-  gamREC2020_linREC2020: function(rgb) {
-    const e = 1.09929682680944;
-    return rgb.map(v => Math.abs(v) < 0.018053968510807 * 4.5 ? v / 4.5 : (Math.sign(v) || 1) * Math.pow(Math.pow.abs(v) + e - 1, 1/0.45));
-  },
-
-  linREC2020_gamREC2020: function(rgb) {
-    const e = 1.09929682680944;
-    return rgb.map(v => Math.abs(v) > 0.018053968510807 ? (Math.sign(v) || 1) * (e * Math.pow(Math.abs(v), 0.45) - (e - 1)) : 4.5 * v);
-  },
-
-  linREC2020_d65XYZ: function(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.6369580483012914 * r + 0.14461690358620832 * g + 0.1688809751641721 * b,
-		  0.2627002120112671 * r + 0.6779980715188708 * g + 0.05930171646986196 * b,
-		  0.000000000000000 * r + 0.028072693049087428 * g + 1.060985057710791 * b
-    ];
-  },
-
-  d65XYZ_linREC2020: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      1.7166511879712674 * x + -0.35567078377639233 * y + -0.25336628137365974 * z,
-		  -0.6666843518324892 * x + 1.6164812366349395 * y + 0.01576854581391113 * z,
-		  0.017639857445310783 * x + -0.042770613257808524 * y + 0.9421031212354738 * z
-    ];
-  },
-
-  /* lab */
-
-  d50XYZ_LAB: function(xyz) {
-    const ε = 216/24389;
-    const κ = 24389/27;
-    const w = [0.96422, 1, 0.82521];
-
-    const [x, y, z] = xyz.map((v, k) => v / w[k]);
-    const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
-    const [f0, f1, f2] = [x, y, z].map(v => f(v));
-    return [
-      (116 * f1 - 16) / 100,
-      500 * (f0 - f1),
-      200 * (f1 - f2)
-    ];
-  },
-
-  LAB_d50XYZ: function(lab) {
-    const ε = 216/24389;
-    const κ = 24389/27;
-    const w = [0.96422, 1, 0.82521];
-
-    let [ciel, ciea, cieb] = lab;
-    ciel = 100 * ciel;
-    const f1 = (ciel + 16) / 116;
-    const f0 = ciea / 500 + f1;
-    const f2 = f1 - cieb / 200;
-
-    const x = (f0 ** 3 > ε) ? f0 ** 3 : (116 * f0 - 16) / κ;
-    const y = (ciel > κ * ε) ? ((ciel + 16) / 116) ** 3 : ciel / κ;
-    const z = (f2 ** 3 > ε) ? f2 ** 3 : (116 * f2 - 16) / κ;
-    return [x, y, z].map((v, k) => v * w[k]);
-  },
-
-  gamLAB_linLAB: function(lab) { return lab; },
-  linLAB_gamLAB: function(lab) { return lab; },
-  d50XYZ_linLAB: function(lab) { return this.d50XYZ_LAB(lab); },
-  linLAB_d50XYZ: function(lab) { return this.LAB_d50XYZ(lab); },
-
-  /* Bradford transform */
-
-  d65XYZ_d50XYZ: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      1.0479298208405488 * x + 0.022946793341019088 * y + -0.05019222954313557 * z,
-      0.029627815688159344 * x + 0.990434484573249 * y + -0.01707382502938514 * z,
-      -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z
-    ];
-  },
-
-  d50XYZ_d65XYZ: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      0.9554734527042182 * x + -0.023098536874261423 * y + 0.0632593086610217 * z,
-      -0.028369706963208136 * x + 1.0099954580058226 * y + 0.021041398966943008 * z,
-      0.012314001688319899 * x + -0.020507696433477912 * y + 1.3303659366080753 * z
-    ];
-  },
-
-  d50XYZ_d50XYZ: function(xyz) { return xyz; },
-  d65XYZ_d65XYZ: function(xyz) { return xyz; },
-
-
-
-  /**********************************/
-  /* Conversion between CSS formats */
-  /**********************************/
-
-
-   rgb2hsl: function(rgb) {
+  srgb_to_hsl: function(rgb) {
     // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
     const [r, g, b] = rgb; // all in [0, 1]
 
@@ -1642,7 +1548,7 @@ const Utils = {
     return [h, s, l]; // h in [0, 360], s & l in [0, 1]
   },
 
-  hsl2rgb: function(hsl) {
+  hsl_to_srgb: function(hsl) {
     // source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
 
@@ -1657,7 +1563,9 @@ const Utils = {
     return [r, g, b]; // all in [0, 1]
   },
 
-  hsl2hwb: function(hsl) {
+  /* hwb */
+
+  hsl_to_hwb: function(hsl) {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
     const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
@@ -1673,7 +1581,7 @@ const Utils = {
     return [h, w, bk]; // h in [0, 360], w & bk in [0, 1]
   },
 
-  hwb2hsl: function(hwb) {
+  hwb_to_hsl: function(hwb) {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
     //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
     const [h, w, bk] = hwb; // h in [0, 360], w & bk in [0, 1]
@@ -1697,7 +1605,150 @@ const Utils = {
     return [h, s, l]; // h in [0, 360], s & l in [0, 1]
   },
 
-  lab2lch: function(lab) {
+  /* display-p3 */
+
+  displayp3_to_lin_displayp3: function(rgb) { return this.srgb_to_lin_srgb(rgb); },
+  lin_displayp3_to_displayp3: function(rgb) { return this.lin_srgb_to_srgb(rgb); },
+  
+  lin_displayp3_to_d65xyz: function(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.4865709486482162 * r + 0.26566769316909306 * g + 0.1982172852343625 * b,
+		  0.2289745640697488 * r + 0.6917385218365064 * g + 0.079286914093745 * b,
+		  0.0000000000000000 * r + 0.04511338185890264 * g + 1.043944368900976 * b
+    ];
+  },
+
+  d65xyz_to_lin_displayp3: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      2.493496911941425 * x + -0.9313836179191239 * y + -0.40271078445071684 * z,
+		  -0.8294889695615747 * x + 1.7626640603183463 * y +  0.023624685841943577 * z,
+		  0.03584583024378447 * x + -0.07617238926804182 * y + 0.9568845240076872 * z
+    ];
+  },
+
+  /* prophoto-rgb */
+
+  prophotorgb_to_lin_prophotorgb: function(rgb) {
+    return rgb.map(v => Math.abs(v) <= 16/512 ? v / 16 : (Math.sign(x) || 1) * Math.pow(v, 1.8));
+  },
+
+  lin_prophotorgb_to_prophotorgb: function(rgb) {
+    return rgb.map(v => Math.abs(v) >= 1/512 ? (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1/1.8) : 16 * v);
+  },
+
+  lin_prophotorgb_to_xyz: function(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
+      0.2880711282292934 * r + 0.7118432178101014 * g + 0.00008565396060525902 * b,
+      0.0 * r + 0.0 * g + 0.8251046025104601 * b
+    ];
+  },
+
+  xyz_to_linprophotorgb: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
+	  	-0.5446224939028347 * x + 1.5082327413132781 * y + 0.02053603239147973 * z,
+	  	0.0 * x + 0.0 * y + 1.2119675456389454 * z
+    ];
+  },
+
+  /* a98-rgb */
+
+  a98rgb_to_lin_a98rgb: function(rgb) {
+    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 563/256));
+  },
+
+  lin_a98rgb_to_a98rgb: function(rgb) {
+    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 256/563));
+  },
+
+  lin_a98rgb_to_d65xyz: function(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.5766690429101305 * r + 0.1855582379065463 * g + 0.1882286462349947 * b,
+      0.29734497525053605 * r + 0.6273635662554661 * g + 0.07529145849399788 * b,
+      0.02703136138641234 * r + 0.07068885253582723 * g + 0.9913375368376388 * b
+    ];
+  },
+
+  d65xyz_to_lin_a98rgb: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      2.0415879038107465 * x + -0.5650069742788596 * y + -0.34473135077832956 * z,
+      -0.9692436362808795 * x + 1.8759675015077202 * y + 0.04155505740717557 * z,
+      0.013444280632031142 * x + -0.11836239223101838 * y + 1.0151749943912054 * z
+    ];
+  },
+
+  /* rec2020 */
+
+  rec2020_to_lin_rec2020: function(rgb) {
+    const e = 1.09929682680944;
+    return rgb.map(v => Math.abs(v) < 0.018053968510807 * 4.5 ? v / 4.5 : (Math.sign(v) || 1) * Math.pow(Math.pow.abs(v) + e - 1, 1/0.45));
+  },
+
+  lin_rec2020_to_rec2020: function(rgb) {
+    const e = 1.09929682680944;
+    return rgb.map(v => Math.abs(v) > 0.018053968510807 ? (Math.sign(v) || 1) * (e * Math.pow(Math.abs(v), 0.45) - (e - 1)) : 4.5 * v);
+  },
+
+  lin_rec2020_to_d65xyz: function(rgb) {
+    const [r, g, b] = rgb;
+    return [
+      0.6369580483012914 * r + 0.14461690358620832 * g + 0.1688809751641721 * b,
+		  0.2627002120112671 * r + 0.6779980715188708 * g + 0.05930171646986196 * b,
+		  0.000000000000000 * r + 0.028072693049087428 * g + 1.060985057710791 * b
+    ];
+  },
+
+  d65xyz_to_lin_rec2020: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      1.7166511879712674 * x + -0.35567078377639233 * y + -0.25336628137365974 * z,
+		  -0.6666843518324892 * x + 1.6164812366349395 * y + 0.01576854581391113 * z,
+		  0.017639857445310783 * x + -0.042770613257808524 * y + 0.9421031212354738 * z
+    ];
+  },
+
+  /* lab */
+
+  xyz_to_lab: function(xyz) {
+    const ε = 216/24389;
+    const κ = 24389/27;
+    const w = [0.96422, 1, 0.82521];
+
+    const [x, y, z] = xyz.map((v, k) => v / w[k]);
+    const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
+    const [f0, f1, f2] = [x, y, z].map(v => f(v));
+    return [
+      (116 * f1 - 16) / 100,
+      500 * (f0 - f1),
+      200 * (f1 - f2)
+    ];
+  },
+
+  lab_to_xyz: function(lab) {
+    const ε = 216/24389;
+    const κ = 24389/27;
+    const w = [0.96422, 1, 0.82521];
+
+    let [ciel, ciea, cieb] = lab;
+    ciel = 100 * ciel;
+    const f1 = (ciel + 16) / 116;
+    const f0 = ciea / 500 + f1;
+    const f2 = f1 - cieb / 200;
+
+    const x = (f0 ** 3 > ε) ? f0 ** 3 : (116 * f0 - 16) / κ;
+    const y = (ciel > κ * ε) ? ((ciel + 16) / 116) ** 3 : ciel / κ;
+    const z = (f2 ** 3 > ε) ? f2 ** 3 : (116 * f2 - 16) / κ;
+    return [x, y, z].map((v, k) => v * w[k]);
+  },
+
+  lab_to_lch: function(lab) {
     const [ciel, ciea, cieb] = lab;
     const ciec = Math.sqrt(ciea ** 2 + cieb ** 2);
     let cieh = Math.atan2(cieb, ciea) * 180 / Math.PI;
@@ -1707,7 +1758,7 @@ const Utils = {
     return [ciel, ciec, cieh];
   },
 
-  lch2lab: function(lch) {
+  lch_to_lab: function(lch) {
     const [ciel, ciec, cieh] = lch;
     const ciea = ciec * Math.cos(cieh * Math.PI / 180);
     const cieb = ciec * Math.sin(cieh * Math.PI / 180);
@@ -1715,11 +1766,25 @@ const Utils = {
     return [ciel, ciea, cieb];
   },
 
-  rgb2rgb: function(rgb) { return rgb; },
-  rgb2hwb: function(rgb) { return this.hsl2hwb(this.rgb2hsl(rgb)); },
-  hwb2rgb: function(hwb) { return this.hsl2rgb(this.hwb2hsl(hwb)); },
-  rgb2lab: function(rgb) { return this.convert('srgb', 'lab', rgb); },
-  lab2rgb: function(lab) { return this.convert('lab', 'srgb', lab); },
+  /* Bradford transform */
+
+  d65xyz_to_xyz: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      1.0479298208405488 * x + 0.022946793341019088 * y + -0.05019222954313557 * z,
+      0.029627815688159344 * x + 0.990434484573249 * y + -0.01707382502938514 * z,
+      -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z
+    ];
+  },
+
+  xyz_to_d65xyz: function(xyz) {
+    const [x, y, z] = xyz;
+    return [
+      0.9554734527042182 * x + -0.023098536874261423 * y + 0.0632593086610217 * z,
+      -0.028369706963208136 * x + 1.0099954580058226 * y + 0.021041398966943008 * z,
+      0.012314001688319899 * x + -0.020507696433477912 * y + 1.3303659366080753 * z
+    ];
+  },
 
 
 
@@ -1731,7 +1796,7 @@ const Utils = {
   /** @returns {number} Luminance of the color. */
   // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   luminance: function(_rgb) {
-    const rgb = Utils.gamRGB_linRGB(_rgb);
+    const rgb = Utils.srgb_to_lin_srgb(_rgb);
     return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
   },
 
@@ -1855,5 +1920,61 @@ const Utils = {
       + (dH / SH) ** 2
       + RT * (dC / SC) * (dH / SH)
     );
+  },
+
+
+
+  /*******************/
+  /* Other functions */
+  /*******************/
+
+
+  /**
+   * Finds the shortest sequence of functions to convert r, g, b values between color spaces.
+   * @param {*} startID - The identifier of the source color space.
+   * @param {*} endID - The identifier of the destination color space.
+   * @returns {string[]} Array of color spaces the conversion will move through.
+   */
+   findShortestPath: function(graph, startID, endID) {
+    // Source of the math: https://en.wikipedia.org/wiki/Breadth-first_search  
+    if (startID === endID) return [];
+  
+    const [start, end] = [startID, endID].map(e => graph.find(s => s.id === e));
+    if (typeof start === 'undefined') throw `start does not exist`;
+    if (typeof end === 'undefined')   throw `end does not exist`;
+
+    const queue = [start];
+    start.visited = true;
+    
+    // Let's build a breadth-first tree until we find the destination.
+    let found = false;
+    walk: while (queue.length > 0) {
+      const current = queue.shift();
+      if (current.id === end.id) {
+        found = true;
+        break walk;
+      }
+  
+      for (const neighbourID of current.links) {
+        const neighbour = graph.find(s => s.id === neighbourID);
+        if (neighbour.visited === false) {
+          neighbour.visited = true;
+          neighbour.predecessorID = current.id;
+          queue.push(neighbour);
+        }
+      }
+    }
+  
+    if (!found) throw `No path found`;
+  
+    // Let's backtrack through the tree to find the path.
+    const path = [];
+    path.push(end.id);
+    let current = end;
+    while (current.predecessorID != null) {
+      path.push(current.predecessorID);
+      current = graph.find(s => s.id === current.predecessorID)
+    }
+    return path.reverse();
   }
 };
