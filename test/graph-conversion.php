@@ -73,7 +73,7 @@ $version = version();
     { ids: ['hsl', 'hwb'], expected: ['hsl', 'hwb'] },
     { ids: ['lab', 'lch'], expected: ['lab', 'lch'] },
     { ids: ['hwb', 'display-p3'], expected: ['hwb', 'hsl', 'srgb', 'lin_srgb', 'd65xyz', 'lin_display-p3', 'display-p3'] },
-    { ids: ['prophoto-rgb', 'lab'], expected: ['prophoto-rgb', 'xyz', 'lab'] },
+    { ids: ['prophoto-rgb', 'lab'], expected: ['prophoto-rgb', 'lin_prophoto-rgb', 'xyz', 'lab'] },
     { ids: ['lab', 'lab'], expected: [] }
   ];
   performTest(tests, document.querySelector('tbody.manual'));
