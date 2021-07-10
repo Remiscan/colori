@@ -114,26 +114,26 @@ export default class Test {
     div.style.setProperty('grid-row', this.ordre + 2);
 
     // Title background color (= visual test results)
-    let backgroundColor = new Colour('white');
-    let textColor = 'black', gradient = '';
+    let backgroundColor = '';
+    let textColor= '', gradient = '';
     try {
-      if (resultat instanceof Colour) backgroundColor = resultat;
+      if (resultat instanceof Colour) backgroundColor = resultat.rgb;
       else if (Array.isArray(resultat)) {
         try {
           gradient = `linear-gradient(to right, ${resultat.map(c => (new Colour(c)).rgb).join(', ')})`;
-          backgroundColor = new Colour(resultat[0]);
+          backgroundColor = (new Colour(resultat[0])).rgb;
         } catch (error) {}
       }
-      else if (typeof this.resultatAttendu === 'string') backgroundColor = new Colour(this.resultatAttendu);
-      textColor = backgroundColor.name != 'transparent' ? backgroundColor.replace('a', 1).contrastedText() : 'black';
+      else if (typeof this.resultatAttendu === 'string') backgroundColor = (new Colour(this.resultatAttendu)).rgb;
+      textColor = backgroundColor != 'transparent' ? (new Colour(backgroundColor)).replace('a', 1).contrastedText() : 'initial';
     }
     catch(error) { console.log(error); }
 
     div.innerHTML = `
-      <h3 class="js" style="--color:${backgroundColor.rgb || 'white'}; --gradient:${gradient}; color:${textColor};">${this.nom}</h3>
+      <h3 class="js" style="--color:${backgroundColor || ''}; --gradient:${gradient}; color:${textColor};">${this.nom}</h3>
       <span class="js">${validation ? '✅ Success' : '❌ Failure'} in ${this.time} ms</span>
       <pre class="js">${'Reçu :\n\n' + JSON.stringify(resultat, null, 2)}</pre>
-      <pre class="js" style="display: ${validation ? 'none' : 'unset'}; color: darkred;">${'Attendu :\n\n' + JSON.stringify(this.resultatAttendu, null, 2)}</pre>
+      <pre class="js">${'Attendu :\n\n' + JSON.stringify(this.resultatAttendu, null, 2)}</pre>
     `;
     
     document.body.appendChild(div);

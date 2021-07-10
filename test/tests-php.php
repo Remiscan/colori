@@ -139,39 +139,37 @@ class Test {
 
     $class = $validation ? 'yes' : 'no';
     $texte = $validation ? '✅ Success' : '❌ Failure';
-    $displayPre2 = $validation ? 'none' : 'block';
     $row = $this->ordre + 2;
 
     $recu = "\n\n".json_encode($resultat, JSON_PRETTY_PRINT);
     $attendu = "\n\n".json_encode($this->resultatAttendu, JSON_PRETTY_PRINT);
     
-    $backgroundColor = new Couleur('white');
-    $gradient = '';
+    $backgroundColor = '';
+    $textColor = ''; $gradient = '';
     try {
-      if ($resultat instanceof Couleur) $backgroundColor = $resultat;
+      if ($resultat instanceof Couleur) $backgroundColor = $resultat->rgb();
       elseif (is_array($resultat)) {
         $gradient = 'linear-gradient(to right, ' . (implode(', ', array_map(function($c) { return (new Couleur($c))->rgb(); }, $resultat))) . ')';
-        $backgroundColor = new Couleur($resultat[0]);
+        $backgroundColor = (new Couleur($resultat[0]))->rgb();
       }
-      elseif (is_string($this->resultatAttendu)) $backgroundColor = new Couleur($this->resultatAttendu);
+      elseif (is_string($this->resultatAttendu)) $backgroundColor = (new Couleur($this->resultatAttendu))->rgb();
     }
     catch (Exception $error) {}
     catch (Error $error) {}
 
     $textColor = 'black';
     try {
-      $textColor = ($backgroundColor->name() !== 'transparent') ? $backgroundColor->replace('a', 1)->contrastedText() : 'black';
+      $textColor = ($backgroundColor !== 'transparent') ? (new Couleur($backgroundColor))->replace('a', 1)->contrastedText() : 'black';
     } catch (Exception $error) {
-      $textColor = 'black';
+      $textColor = 'initial';
     }
-    $backgroundColor = $backgroundColor->rgb() ?? 'white';
 
     echo <<<DIV
     <div class="php ${class}" style="grid-row: ${row}" data-validate="${validation}">
       <h3 class="php" style="--color:${backgroundColor}; --gradient:${gradient}; color:${textColor};">${titre}</h3>
       <span class="php">${texte} in ${time} ms</span>
       <pre class="php">Reçu : ${recu}</pre>
-      <pre class="php" style="display: ${displayPre2}; color: darkred;">Attendu : ${attendu}</pre>
+      <pre class="php"">Attendu : ${attendu}</pre>
     </div>
     DIV;
   }

@@ -16,12 +16,21 @@ foreach($_tests as $k => $test) {
 ?>
 <!doctype html>
 <html>
-  <head> 
+  <head>
     <style>
+      html {
+        color-scheme: dark light;
+      }
       body {
+        width: 100%;
+        height: 100%;
         display: grid;
-        grid-template-columns: 50vw 50vw;
-        gap: 2px 0;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px 10px;
+        margin: 0;
+        padding: 10px;
+        font-size: 1rem;
+        box-sizing: border-box;
         --echiquier-transparence: linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
           linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
           linear-gradient(to right, #ddd 0% 100%);
@@ -41,7 +50,7 @@ foreach($_tests as $k => $test) {
         background-color: <?php $c = new Couleur('palegreen'); echo $c->replace('a', '.2')->hsl(); ?>;
       }
       .no {
-        background-color: pink;
+        background-color: <?php $c = new Couleur('pink'); echo $c->replace('a', '.2')->hsl(); ?>;
       }
       .php {
         grid-column: 1;
@@ -55,6 +64,32 @@ foreach($_tests as $k => $test) {
         background-size: 100% 100%, 16px 16px, 16px 16px;
         background-position: 0 0, 0 0, 8px 8px;
         background-repeat: no-repeat, repeat, repeat;
+      }
+
+      span, pre {
+        padding: 0 1rem;
+      }
+
+      pre {
+        white-space: pre-wrap;
+      }
+      .no>pre:nth-of-type(1) {
+        color: darkred;
+      }
+      @media (prefers-color-scheme: dark) {
+        h3 {
+          background-image: var(--gradient, linear-gradient(to right, var(--color, #333) 0 100%)),
+                            var(--echiquier-transparence);
+        }
+        .no>pre:nth-of-type(1) {
+          color: pink;
+        }
+      }
+      pre:nth-of-type(2) {
+        display: none;
+      }
+      .no>pre:nth-of-type(2) {
+        display: block;
       }
     </style>
   </head>
