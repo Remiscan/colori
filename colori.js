@@ -320,8 +320,10 @@ export default class Couleur {
    */
   static makeExpr(format, rgba, { round = true, clamp = true } = {}) {
     const space = Couleur.getSpace(format.replace('color-', ''));
-    const values = Couleur.convert('srgb', space.id, rgba.slice(0, 3));
+    let values = Couleur.convert('srgb', space.id, rgba.slice(0, 3));
+    if (clamp) values = Couleur.clampToColorSpace(space.id, values, space.id);
     const a = Couleur.unparse('a', rgba[3], { round });
+    values = [...values, a];
 
     // If the requested expression is of the color(space, ...) type
     if (format.slice(0, 5) === 'color') {
@@ -690,7 +692,7 @@ export default class Couleur {
     return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
   }
 
-  inGamut(space, options) { return Couleur.inColorSpace(space, this.values, options); }
+  inGamut(space, options) { return Couleur.inColorSpace(space, this.values, 'srgb', options); }
 
   /**
    * Clamps parsed r, g, b values in sRGB color space to a given color space.
@@ -699,40 +701,47 @@ export default class Couleur {
    * @param {string} valueSpaceID - The identifier of the color space of the given values.
    * @returns {number[]} The array of r, g, b values in sRGB color space, after clamping the color to ${space} color space.
    */
-  static clampToColorSpace(spaceID, values, valueSpaceID = 'srgb') {
+  static clampToColorSpace(spaceID, values, valueSpaceID = 'srgb', { method = 'chroma' } = {}) {
     // Source of the math: https://css.land/lch/lch.js
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
     if (Couleur.inColorSpace(space.id, values, valueSpace.id, { tolerance: 0 })) return values;
+    let clampedValues, clampSpaceID;
+
+    // Naively clamp the values
+    if (method === 'naive') {
+      clampSpaceID = space.id;
+      const convertedValues = Couleur.convert(valueSpace.id, clampSpaceID, values);
+      clampedValues = convertedValues.map((v, k) => Math.max(space.gamut[k][0], Math.min(v, space.gamut[k][1])));
+    }
     
     // Let's reduce the chroma until the color is in the color space
-    let lch = Couleur.convert(valueSpace.id, 'lch', values);
+    else {
+      clampSpaceID = 'lch';
+      let lch = Couleur.convert(valueSpace.id, 'lch', values);
 
-    const τ = .01;
-    let Cmin = 0;
-    let Cmax = lch[1];
-    lch[1] = lch[1] / 2;
+      const τ = .01;
+      let Cmin = 0;
+      let Cmax = lch[1];
+      lch[1] = lch[1] / 2;
 
-    const naiveClamp = lch => Couleur.convert('lch', space.id, lch).map((v, k) => {
-      return Math.max(space.gamut[k][0], Math.min(v, space.gamut[k][1]));
-    });
+      while (Cmax - Cmin > τ) {
+        const naive = Couleur.clampToColorSpace(space.id, lch, 'lch', { method: 'naive' });
 
-    while (Cmax - Cmin > τ) {
-      const naive = naiveClamp(lch);
-      // If the color is close to the color space border
-      if (Couleur.distance(naive, lch, { method: 'CIEDE2000' }) < 2 + τ)
-        Cmin = lch[1];
-      else
-        Cmax = lch[1];
-      lch[1] = (Cmin + Cmax) / 2;
+        // If the color is close to the color space border
+        if (Couleur.distance(naive, lch, { method: 'CIEDE2000' }) < 2 + τ)
+          Cmin = lch[1];
+        else
+          Cmax = lch[1];
+        lch[1] = (Cmin + Cmax) / 2;
+      }
+
+      // Final naive clamp to get in the color space if the color is still just outside the border
+      clampedValues = Couleur.clampToColorSpace(space.id, lch, 'lch', { method: 'naive' });
     }
 
-    // Final naive clamp to get in the color space if the color is still
-    // just outside the border
-    const clampedValues = naiveClamp(lch);
-
     // Send the values back in the same color space we found them in
-    return Couleur.convert(space.id, valueSpace.id, clampedValues);
+    return Couleur.convert(clampSpaceID, valueSpace.id, clampedValues);
   }
 
   toGamut(space) { return Couleur.clampToColorSpace(space, this.values); }
@@ -837,7 +846,7 @@ export default class Couleur {
     const r = (overlay.r * overlay.a + background.r * background.a * (1 - overlay.a)) / a;
     const g = (overlay.g * overlay.a + background.g * background.a * (1 - overlay.a)) / a;
     const b = (overlay.b * overlay.a + background.b * background.a * (1 - overlay.a)) / a;
-    return new Couleur(Couleur.makeExpr('rgb', [r, g, b, a]));
+    return new Couleur([r, g, b, a]);
   }
   
   /**
@@ -879,7 +888,7 @@ export default class Couleur {
     else {
       if (mix.a < overlay.a)            return null;
       else if (mix.a === overlay.a) {
-        if (Couleur.same(mix, overlay)) return new Couleur('transparent');
+        if (Couleur.same(mix, overlay)) return new Couleur([0, 0, 0, 0]);
         else                            return null;
       }
       else {
@@ -887,8 +896,9 @@ export default class Couleur {
         const r = (mix.r * mix.a - overlay.r * overlay.a) / (a * (1 - overlay.a));
         const g = (mix.g * mix.a - overlay.g * overlay.a) / (a * (1 - overlay.a));
         const b = (mix.b * mix.a - overlay.b * overlay.a) / (a * (1 - overlay.a));
-        if (!Couleur.inColorSpace('srgb', [r, g, b])) return null;
-        return new Couleur(Couleur.makeExpr('rgb', [r, g, b, a]));
+        if (!Couleur.inColorSpace('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) return null;
+        const clampedValues = Couleur.clampToColorSpace('srgb', [r, g, b], 'srgb', { method: 'naive' });
+        return new Couleur([...clampedValues, a]);
       }
     }
   }
@@ -931,14 +941,15 @@ export default class Couleur {
       const r = Couleur.pRound((mix.r * mix.a - background.r * background.a * (1 - a)) / a, 3);
       const g = Couleur.pRound((mix.g * mix.a - background.g * background.a * (1 - a)) / a, 3);
       const b = Couleur.pRound((mix.b * mix.a - background.b * background.a * (1 - a)) / a, 3);
-      if (!Couleur.inColorSpace('srgb', [r, g, b])) throw `This color doesn't exist`;
-      return new Couleur(Couleur.makeExpr('rgb', [r, g, b, a]));
+      if (!Couleur.inColorSpace('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) throw `This color doesn't exist`;
+      const clampedValues = Couleur.clampToColorSpace('srgb', [r, g, b], 'srgb', { method: 'naive' });
+      return new Couleur([...clampedValues, a]);
     };
 
     // If alpha is known, we can find at most one solution
     if (!isNaN(alpha) && alpha >= 0 && alpha <= 1) {
       if (alpha === 0) {
-        if (Couleur.same(background, mix)) return new Couleur('transparent');
+        if (Couleur.same(background, mix)) return new Couleur([0, 0, 0, 0]);
         else                               return null;
       }           
       else if (alpha === 1)                return mix;
@@ -963,7 +974,7 @@ export default class Couleur {
       }
     }
     else if (mix.a === background.a) {
-      if (Couleur.same(mix, background))   overlay = new Couleur('transparent');
+      if (Couleur.same(mix, background))   overlay = new Couleur([0, 0, 0, 0]);
       else if (background.a < 1)           return null;
       // If both mix and background are opaque, there are multiple solutions (one per alpha value).
       // Let's calculate some of them.
@@ -1184,34 +1195,42 @@ export default class Couleur {
     const end = new Couleur(_end);
     const steps = Math.max(1, Math.min(_steps, 100));
     const props = [...Couleur.propertiesOf(format), 'a'];
+    const startValues = [...start.valuesTo(format), start.a];
+    const endValues = [...end.valuesTo(format), end.a];
 
     // Calculate by how much each property will be changed at each steap
-    const stepList = props.map(prop => {
+    const stepList = props.map((prop, k) => {
       let step;
       switch (prop) {
         case 'h':
         case 'cieh':
           // Minimize the distance to travel through hues
-          const stepUp = ((end[prop] - start[prop]) % 360 + 360) % 360;
-          const stepDown = ((start[prop] - end[prop]) % 360 + 360) % 360;
+          const stepUp = ((endValues[k] - startValues[k]) % 360 + 360) % 360;
+          const stepDown = ((startValues[k] - endValues[k]) % 360 + 360) % 360;
           step = ((stepUp <= stepDown) ? stepUp : -stepDown) / steps;
           break;
         default:
-          step = (end[prop] - start[prop]) / steps;
+          step = (endValues[k] - startValues[k]) / steps;
       }
       return step;
     });
 
     // Calculate all colors of the gradient
-    const intermediateColors = [props.map(prop => start[prop])];
+    const intermediateColors = [startValues];
     for (let i = 1; i < steps; i++) {
       let previous = intermediateColors[i - 1];
-      const next = previous.map((prop, k) => prop + stepList[k]);
+      let next = props.map((prop, k) => {
+        let v = previous[k] + stepList[k];
+        if (['h', 'cieh'].includes(prop)) return Utils.angleToRange(v);
+        else return v;
+      });
+      const a = next[3];
+      next = Couleur.clampToColorSpace(format, next.slice(0, 3), format);
+      next = [...next, a];
       intermediateColors.push(next);
-      previous = next;
     }
 
-    return [...intermediateColors.map(c => new Couleur(Couleur.makeExpr(format, c))), end];
+    return [...intermediateColors.map(c => new Couleur(Couleur.convert(format, 'srgb', c))), end];
   }
 
   gradientTo(color, steps, format) { return Couleur.gradient(this, color, steps, format); }
