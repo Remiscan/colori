@@ -712,6 +712,7 @@ export default class Couleur {
     return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
   }
 
+  /** @see Couleur.inGamut - Non-static version. */
   inGamut(space, options) { return Couleur.inGamut(space, this.values, 'srgb', options); }
 
   /**
@@ -764,6 +765,7 @@ export default class Couleur {
     return Couleur.convert(clampSpaceID, valueSpace.id, clampedValues);
   }
 
+  /** @see Couleur.toGamut - Non-static version. */
   toGamut(space) { return Couleur.toGamut(space, this.values); }
 
 
@@ -885,7 +887,10 @@ export default class Couleur {
     else                       return Couleur.blendAll(mix, ...couleurs);
   }
 
+  /** @see Couleur.blend - Non-static version. */
   blend(couleur, alpha) { return Couleur.blend(this, couleur, alpha); }
+
+  /** @see Couleur.blendAll - Non-static version. */
   blendAll(...couleurs) { return Couleur.blendAll(this, ...couleurs); }
 
 
@@ -940,7 +945,10 @@ export default class Couleur {
     else                       return Couleur.unblendAll(background, ...couleurs);
   }
 
+  /** @see Couleur.unblend - Non-static version. */
   unblend(couleur, alpha) { return Couleur.unblend(this, couleur, alpha); }
+  
+  /** @see Couleur.unblendAll - Non-static version. */
   unblendAll(...couleurs) { return Couleur.unblendAll(this, ...couleurs); }
 
 
@@ -1023,6 +1031,7 @@ export default class Couleur {
     else               return overlay;
   }
 
+  /** @see Couleur.whatToBlend - Non-static version. */
   whatToBlend(mix, alpha, alphaStep) { return Couleur.whatToBlend(this, mix, alpha, alphaStep); }
 
 
@@ -1054,7 +1063,7 @@ export default class Couleur {
     }
   }
 
-  /** Non-static version of Couleur.contrast */
+  /** @see Couleur.contrast - Non-static version. */
   contrast(background, options) {
     return Couleur.contrast(this, background, options);
   }
@@ -1197,6 +1206,7 @@ export default class Couleur {
     }
   }
 
+  /** @see Couleur.distance - Non-static version. */
   distance(color, options) { return Couleur.distance(this, color, options); }
 
 
@@ -1212,6 +1222,7 @@ export default class Couleur {
     else return true;
   }
 
+  /** @see Couleur.same - Non-static version. */
   same(color) { return Couleur.same(this, color); }
 
 
@@ -1269,6 +1280,7 @@ export default class Couleur {
     return [...intermediateColors.map(c => new Couleur(Couleur.convert(format, 'srgb', c))), end];
   }
 
+  /** @see Couleur.gradient - Non-static version. */
   gradient(color, steps, format) { return Couleur.gradient(this, color, steps, format); }
 
 
