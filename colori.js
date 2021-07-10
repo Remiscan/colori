@@ -1156,7 +1156,8 @@ export default class Couleur {
 
     switch (method) {
       case 'CIEDE2000':
-        return Utils.CIEDE2000([couleur1, couleur2].map(c => c.valuesTo('lab')));
+        const [lab1, lab2] = [couleur1, couleur2].map(c => c.valuesTo('lab'));
+        return Utils.CIEDE2000(lab1, lab2);
       case 'euclidean':
       default: {
         const [values1, values2] = [couleur1, couleur2].map(c => c.valuesTo('lab'));
@@ -1859,8 +1860,15 @@ const Utils = {
   /**********************/
 
 
-  CIEDE2000: function([[L1, a1, b1], [L2, a2, b2]]) {
+  /**
+   * Computes the CIEDE2000 distance between two colors.
+   * @param {number[]} - Array of parsed LAB values of the first color (i.e. l in [0, 1]).
+   * @param {number[]} - Array of parsed LAB values of the second color (i.e. l in [0, 1]).
+   * @returns {number} Distance between the cwo colors.
+   */
+  CIEDE2000: function([l1, a1, b1], [l2, a2, b2]) {
     // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
+    const L1 = 100 * l1, L2 = 100 * l2;
     const C1 = Math.sqrt(a1 ** 2 + b1 ** 2);
     const C2 = Math.sqrt(a2 ** 2 + b2 ** 2);
 
@@ -1964,3 +1972,5 @@ const Utils = {
     return path.reverse();
   }
 };
+
+export { Utils };
