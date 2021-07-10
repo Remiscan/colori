@@ -96,36 +96,31 @@ export default class Couleur {
    */
   static matchSyntax(couleur) {
     const tri = couleur.slice(0, 3);
-    const allFormats = Couleur.formats;
     
     // Predetermine the format, to save regex-matching time
     let format;
-    if (tri.slice(0, 1) === '#') format = allFormats[0];
+    if (tri.slice(0, 1) === '#') format = Couleur.formats[0];
     else switch (tri) {
-      case 'rgb': format = allFormats[1]; break;
-      case 'hsl': format = allFormats[2]; break;
-      case 'hwb': format = allFormats[3]; break;
-      case 'lab': format = allFormats[4]; break;
-      case 'lch': format = allFormats[5]; break;
-      case 'col': format = allFormats[6]; break;
-      default:    format = allFormats[7];
+      case 'rgb': format = Couleur.formats[1]; break;
+      case 'hsl': format = Couleur.formats[2]; break;
+      case 'hwb': format = Couleur.formats[3]; break;
+      case 'lab': format = Couleur.formats[4]; break;
+      case 'lch': format = Couleur.formats[5]; break;
+      case 'col': format = Couleur.formats[6]; break;
+      default:    format = Couleur.formats[7];
     }
 
     // Check if the given string matches any color syntax
-    for (const [k, syntaxe] of format.syntaxes.entries()) {
+    for (const syntaxe of format.syntaxes) {
       const result = couleur.match(syntaxe);
       if (result != null && result[0] === couleur) {
         if (format.id === 'name') {
-          if (couleur === 'transparent') return Couleur.matchSyntax('#00000000');
+          if (couleur === 'transparent') return { id: 'rgb', data: [null, 0, 0, 0, 0] };
           const allNames = Couleur.couleursNommees;
           const name = couleur.toLowerCase();
           if (name in allNames) return Couleur.matchSyntax('#' + allNames[name]);
         }
-        return {
-          id: format.id,
-          syntaxe: k,
-          data: result
-        };
+        return { id: format.id, data: result };
       }
     }
 
