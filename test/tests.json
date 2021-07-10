@@ -84,7 +84,7 @@
     "fonction": "Colour.unblend('rgb(255, 128, 128)', 'rgba(255, 0, 0, .5)').rgb",
     "resultatAttendu": "rgb(255, 255, 255)"
   }, {
-    "fonction": "Colour.unblendAll('rgb(128, 192, 64)', 'rgba(0, 255, 0, .5)', 'rgba(255, 0, 0, .5)').rgb",
+    "fonction": "Colour.unblendAll('rgb(127.5, 191.25, 64)', 'rgba(0, 255, 0, .5)', 'rgba(255, 0, 0, .5)').rgb",
     "resultatAttendu": "rgb(255, 255, 255)"
   } , {
     "fonction": "Colour.whatToBlend('red', 'red', 0).rgb",
@@ -214,16 +214,16 @@
     "fonction": "Colour.contrast('hsl(230, 25%, 10%)', 'hsl(55, 85%, 80%)')",
     "resultatAttendu": 15.511
   }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrastWith('hsl(230, 25%, 10%)', 17).hsl",
-    "resultatAttendu": "hsl(54, 100%, 91%)"
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrastWith('hsl(230, 25%, 10%)', 17).lab",
+    "resultatAttendu": "lab(97.69% -5.89 39.38)"
   }, {
     "fonction": "Colour.contrast('hsl(53, 100%, 92%)', 'hsl(230, 25%, 10%)')",
     "resultatAttendu": 17.213
   }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrastWith('hsl(230, 25%, 10%)', 12, 2).hsl",
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrastWith('hsl(230, 25%, 10%)', 12).hsl",
     "resultatAttendu": "hsl(55, 85%, 80%)"
   }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrastWith('hsl(230, 25%, 10%)', 12, 2, { lower: true }).hsl",
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrastWith('hsl(230, 25%, 10%)', 12, { lower: true }).lab",
     "resultatAttendu": "hsl(55, 57%, 71%)"
   }, {
     "fonction": "Colour.contrast('hsl(55, 57%, 71%)', 'hsl(230, 25%, 10%)')",
