@@ -1,5 +1,4 @@
 <?php
-// Calcule la version du site
 function version()
 {
   $listeFichiers = ['../colori.js'];
