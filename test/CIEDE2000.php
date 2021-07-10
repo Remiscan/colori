@@ -80,7 +80,7 @@ $version = version();
       if (method === 'direct')
         result = Math.round(10**4 * de2000([[test[0][0], test[0][1], test[0][2]], [test[1][0], test[1][1], test[1][2]]])) / 10**4;
       else
-        result = Math.round(10**4 * Couleur.distance(c1, c2, { method: 'CIEDE2000', space: 'lab' })) / 10**4;
+        result = Math.round(10**4 * Couleur.distance(c1, c2, { method: 'CIEDE2000' })) / 10**4;
       const expected = expectedResults[Number(k)];
       const verif = Math.abs(result - expected) < 0.0001;
       const verif2 = Math.abs(result - expected) < 0.1;
@@ -88,9 +88,9 @@ $version = version();
       table.innerHTML += `
         <tr style="background-color: ${verif ? 'palegreen' : verif2 ? 'yellow' : 'pink'}">
           <td>${`lab(${test[0][0]}% ${test[0][1]} ${test[0][2]})`}</td>
-          <td>${c1.values('lab', { alpha: false, clamp: false }).join(' ')}</td>
+          <td>${c1.convertTo('lab').map(v => Math.round(10**4 * v) / 10**4).join(', ')}</td>
           <td>${`lab(${test[1][0]}% ${test[1][1]} ${test[1][2]})`}</td>
-          <td>${c2.values('lab', { alpha: false, clamp: false }).join(' ')}</td>
+          <td>${c2.convertTo('lab').map(v => Math.round(10**4 * v) / 10**4).join(', ')}</td>
           <td>${result}</td>
           <td>${expected}</td>
           <td>${verif ? 'yes' : verif2 ? 'close' : 'no'}</td>
