@@ -193,30 +193,19 @@ export default class Couleur {
       let _n = parseFloat(n);
       // If n is a number
       if (new RegExp('^' + Couleur.vNum + '$').test(n)) {
-        while (_n < 0) _n += 360;
-        while (_n > 360) _n -= 360;
-        return _n;
+        return Utils.angleToRange(_n);
       }
       // If n is an angle
       if ((new RegExp('^' + Couleur.vAng + '$').test(n))) {
-        if (String(n).slice(-3) === 'deg') {
-          while (_n < 0) _n += 360;
-          while (_n > 360) _n -= 360;
-          return _n;
-        } else if (String(n).slice(-4) === 'grad') {
-          while (_n < 0) _n += 400;
-          while (_n > 400) _n -= 400;
-          return _n * 360 / 400;
-        } else if (String(n).slice(-3) === 'rad') {
+        if (String(n).slice(-3) === 'deg') {}
+        else if (String(n).slice(-4) === 'grad')
+          _n = _n * 360 / 400;
+        else if (String(n).slice(-3) === 'rad')
           _n = _n * 180 / Math.PI;
-          while (_n < 0) _n += 360;
-          while (_n > 360) _n -= 360;
-          return _n;
-        } else if (String(n).slice(-4) === 'turn') {
-          while (_n < 0) _n += 1;
-          while (_n > 1) _n -= 1;
-          return _n * 360;
-        } else throw `Invalid angle value: ${JSON.stringify(n)}`;
+        else if (String(n).slice(-4) === 'turn')
+          _n = _n * 360;
+        else throw `Invalid angle value: ${JSON.stringify(n)}`;
+        return Utils.angleToRange(_n);
       }
       else throw `Invalid ${JSON.stringify(type)} value: ${JSON.stringify(n)}`;
     }
@@ -1452,7 +1441,15 @@ export default class Couleur {
 
 const Utils = {
   /** Pads a string of length 1 with a zero. */
-   pad: function(s) { return (s.length < 2) ? `0${s}` : s; },
+  pad: function(s) { return (s.length < 2) ? `0${s}` : s; },
+
+  /** Brings an angle in degrees to [0, 360]. */
+  angleToRange: function(_h) {
+    let h = _h;
+    while (h < 0)   h += 360;
+    while (h > 360) h -= 360;
+    return h;
+  },
 
 
 
