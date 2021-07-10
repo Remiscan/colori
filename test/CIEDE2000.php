@@ -88,9 +88,9 @@ $version = version();
       table.innerHTML += `
         <tr style="background-color: ${verif ? 'palegreen' : verif2 ? 'yellow' : 'pink'}">
           <td>${`lab(${test[0][0]}% ${test[0][1]} ${test[0][2]})`}</td>
-          <td>${c1.convertTo('lab').map(v => Math.round(10**4 * v) / 10**4).join(', ')}</td>
+          <td>${c1.valuesTo('lab').map(v => Math.round(10**4 * v) / 10**4).join(', ')}</td>
           <td>${`lab(${test[1][0]}% ${test[1][1]} ${test[1][2]})`}</td>
-          <td>${c2.convertTo('lab').map(v => Math.round(10**4 * v) / 10**4).join(', ')}</td>
+          <td>${c2.valuesTo('lab').map(v => Math.round(10**4 * v) / 10**4).join(', ')}</td>
           <td>${result}</td>
           <td>${expected}</td>
           <td>${verif ? 'yes' : verif2 ? 'close' : 'no'}</td>
