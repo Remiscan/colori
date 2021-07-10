@@ -41,14 +41,24 @@ class Test {
     $this->resultatAttendu = $resultatAttendu;
     $this->nophp = $nophp;
     $this->ordre = $ordre;
+    $this->time = null;
   }
 
   public function resultat() {
+    $time = microtime(true);
     try {
-      return eval("return " . $this->fonction . ";");
+      $result = eval("return " . $this->fonction . ";");
+      $this->time = microtime(true) - $time;
+      return $result;
     }
-    catch (Error $error) { return ['Error', $error]; }
-    catch (Exception $error) { return ['Error', $error]; }
+    catch (Error $error) {
+      $this->time = microtime(true) - $time;
+      return ['Error', $error];
+    }
+    catch (Exception $error) {
+      $this->time = microtime(true) - $time;
+      return ['Error', $error];
+    }
   }
 
   public function nom() {
@@ -125,6 +135,7 @@ class Test {
     $resultat = $this->resultat();
     if (is_array($resultat) && $resultat[0] === 'Error') $resultat[1] = htmlspecialchars($resultat[1]);
     $titre = $this->nom();
+    $time = $this->time;
 
     $class = $validation ? 'yes' : 'no';
     $texte = $validation ? '✅ Success' : '❌ Failure';
@@ -156,11 +167,11 @@ class Test {
     $backgroundColor = $backgroundColor->rgb() ?? 'white';
 
     echo <<<DIV
-    <div class="php $class" style="grid-row: $row" data-validate="$validation">
-      <h3 class="php" style="--color:$backgroundColor; --gradient:$gradient; color:$textColor;">$titre</h3>
-      <span class="php">$texte</span>
-      <pre class="php">Reçu : $recu</pre>
-      <pre class="php" style="display: $displayPre2; color: darkred;">Attendu : $attendu</pre>
+    <div class="php ${class}" style="grid-row: ${row}" data-validate="${validation}">
+      <h3 class="php" style="--color:${backgroundColor}; --gradient:${gradient}; color:${textColor};">${titre}</h3>
+      <span class="php">${texte} in ${time} ms</span>
+      <pre class="php">Reçu : ${recu}</pre>
+      <pre class="php" style="display: ${displayPre2}; color: darkred;">Attendu : ${attendu}</pre>
     </div>
     DIV;
   }

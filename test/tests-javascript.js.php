@@ -16,15 +16,24 @@ export default class Test {
     this.fonction = fonction;
     this.resultatAttendu = resultatAttendu;
     this.ordre = ordre;
+    this.tested = false;
+    this.time = null;
   }
 
   get resultat() {
+    const time = performance.now(); // in case the inner test fails
     try {
-      if (typeof this.resultatReel === 'undefined')
+      if (!this.tested) {
+        const time = performance.now();
         this.resultatReel = eval(this.fonction);
+        this.time = performance.now() - time;
+        this.tested = true;
+      }
       return this.resultatReel;
     }
-    catch(error) {
+    catch (error) {
+      if (this.resultatAttendu !== 'Error') console.error(error);
+      this.time = performance.now() - time;
       return ['Error', error];
     }
   }
@@ -104,51 +113,29 @@ export default class Test {
     div.classList.add(validation ? 'yes' : 'no');
     div.style.setProperty('grid-row', this.ordre + 2);
 
-    // Title that displayed the tested function
-    const h3 = document.createElement('h3');
-    h3.classList.add('js');
-    h3.innerHTML = this.nom;
-
     // Title background color (= visual test results)
     let backgroundColor = new Colour('white');
+    let textColor = 'black', gradient = '';
     try {
       if (resultat instanceof Colour) backgroundColor = resultat;
       else if (Array.isArray(resultat)) {
         try {
-          const gradient = `linear-gradient(to right, ${resultat.map(c => (new Colour(c)).rgb).join(', ')})`;
-          h3.style.setProperty('--gradient', gradient);
+          gradient = `linear-gradient(to right, ${resultat.map(c => (new Colour(c)).rgb).join(', ')})`;
           backgroundColor = new Colour(resultat[0]);
         } catch (error) {}
       }
       else if (typeof this.resultatAttendu === 'string') backgroundColor = new Colour(this.resultatAttendu);
-  
-      h3.style.setProperty('--color', backgroundColor.rgb || 'white');
-      h3.style.setProperty('color', backgroundColor.name != 'transparent' ? backgroundColor.replace('a', 1).contrastedText() : 'black');
+      textColor = backgroundColor.name != 'transparent' ? backgroundColor.replace('a', 1).contrastedText() : 'black';
     }
     catch(error) { console.log(error); }
-  
-    // Boolean result of test validation
-    const span = document.createElement('span');
-    span.classList.add('js');
-    span.innerHTML = validation ? '✅ Success' : '❌ Failure';
 
-    // Display the test results
-    const pre = document.createElement('pre');
-    pre.classList.add('js');
-    pre.innerHTML = 'Reçu :\n\n' + JSON.stringify(resultat, null, 2);
-
-    // Displat the expected test results
-    const pre2 = document.createElement('pre');
-    pre2.innerHTML = 'Attendu :\n\n' + JSON.stringify(this.resultatAttendu, null, 2);
-    pre2.classList.add('js');
-
-    if (validation) pre2.style.display = 'none';
-    else pre2.style.setProperty('color', 'darkred');
+    div.innerHTML = `
+      <h3 class="js" style="--color:${backgroundColor.rgb || 'white'}; --gradient:${gradient}; color:${textColor};">${this.nom}</h3>
+      <span class="js">${validation ? '✅ Success' : '❌ Failure'} in ${this.time} ms</span>
+      <pre class="js">${'Reçu :\n\n' + JSON.stringify(resultat, null, 2)}</pre>
+      <pre class="js" style="display: ${validation ? 'none' : 'unset'}; color: darkred;">${'Attendu :\n\n' + JSON.stringify(this.resultatAttendu, null, 2)}</pre>
+    `;
     
-    div.appendChild(h3);
-    div.appendChild(span);
-    div.appendChild(pre);
-    div.appendChild(pre2);
     document.body.appendChild(div);
   }
 }
