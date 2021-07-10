@@ -8,7 +8,7 @@ export default class Couleur {
    * Creates a new Couleur object that contains r, g, b, a properties of the color.
    * These properties will take their values from sRGB color space, even if they're out of bounds.
    * (This means values <0 or >1 can be stored — they can be clamped to a specific color space when needed.)
-   * @param {colorString} couleur - Color expression in a supported format.
+   * @param {colorString|number[]|Couleur} couleur - Color expression in a supported format.
    * @throws {string} when the parameter isn't a valid color string.
    */
   constructor(couleur) {
@@ -21,6 +21,8 @@ export default class Couleur {
     /** @property {number} a - Opacity (from 0 to 1) */
     this.a = null;
 
+    const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
+
     if (couleur instanceof Couleur) {
       this.r = couleur.r;
       this.g = couleur.g;
@@ -28,13 +30,13 @@ export default class Couleur {
       this.a = couleur.a;
     }
 
-    else if (typeof couleur != 'string') {
-      throw `Couleur objects can only be created from a String ; this is not one: ${couleur}`;
+    else if (Array.isArray(couleur) && (couleur.length == 3 || couleur.length == 4)) {
+      [this.r, this.g, this.b] = couleur.slice(0, 3);
+      this.a = Math.max(0, Math.min(isAlpha(couleur[3]), 1));
     }
 
-    else {
+    else if (typeof couleur === 'string') {
       const format = Couleur.matchSyntax(couleur.trim());
-      const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
 
       switch (format.id) {
         case 'hex':
@@ -59,9 +61,11 @@ export default class Couleur {
           this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
           break;
         default:
-          throw `${couleur} is not a valid color format`;
+          throw `${JSON.stringify(couleur)} is not a valid color format`;
       }
     }
+
+    else throw `Couleur objects can only be created from a string, an array of parsed values, or another Couleur object ; this is not one: ${JSON.stringify(couleur)}`;
   }
 
 
@@ -125,7 +129,7 @@ export default class Couleur {
       }
     }
 
-    throw `${couleur} is not a valid color format`;
+    throw `${JSON.stringify(couleur)} is not a valid color format`;
   }
 
 
@@ -165,7 +169,7 @@ export default class Couleur {
         if (clamp)  return Math.max(0, Math.min(n, 1));
         else        return parseFloat(n);
       }
-      else throw `Invalid ${type} value: ${n}`;
+      else throw `Invalid ${JSON.stringify(type)} value: ${JSON.stringify(n)}`;
     }
 
     // Red, green, blue values:
@@ -183,7 +187,7 @@ export default class Couleur {
         if (clamp)  return Math.max(0, Math.min(n / 255, 1));
         else        return n / 255;
       }
-      else throw `Invalid ${type} value: ${n}`;
+      else throw `Invalid ${JSON.stringify(type)} value: ${JSON.stringify(n)}`;
     }
 
     // Hue and CIE hue values:
@@ -217,9 +221,9 @@ export default class Couleur {
           while (_n < 0) _n += 1;
           while (_n > 1) _n -= 1;
           return _n * 360;
-        } else throw `Invalid angle value: ${n}`;
+        } else throw `Invalid angle value: ${JSON.stringify(n)}`;
       }
-      else throw `Invalid ${type} value: ${n}`;
+      else throw `Invalid ${JSON.stringify(type)} value: ${JSON.stringify(n)}`;
     }
 
     // Percentage values:
@@ -232,7 +236,7 @@ export default class Couleur {
         if (clamp)  return Math.max(0, Math.min(parseFloat(n) / 100, 1));
         else        return parseFloat(n) / 100;
       }
-      else throw `Invalid ${type} value: ${n}`;
+      else throw `Invalid ${JSON.stringify(type)} value: ${JSON.stringify(n)}`;
     }
 
     // CIE axes values:
@@ -242,7 +246,7 @@ export default class Couleur {
       if (new RegExp('^' + Couleur.vNum + '$').test(n)) {
         return parseFloat(n);
       }
-      else throw `Invalid ${type} value: ${n}`;
+      else throw `Invalid ${JSON.stringify(type)} value: ${JSON.stringify(n)}`;
     }
 
     // CIE chroma values:
@@ -254,7 +258,7 @@ export default class Couleur {
         if (clamp)  return Math.max(0, n);
         else        return parseFloat(n);
       }
-      else throw `Invalid ${type} value: ${n}`;
+      else throw `Invalid ${JSON.stringify(type)} value: ${JSON.stringify(n)}`;
     }
 
     // Arbitrary values
@@ -269,7 +273,7 @@ export default class Couleur {
       else if (new RegExp('^' + Couleur.vNum + '$').test(n)) {
         return parseFloat(n);
       }
-      else throw `Invalid arbitrary value: ${n}`;
+      else throw `Invalid arbitrary value: ${JSON.stringify(n)}`;
     }
   }
 
@@ -331,13 +335,13 @@ export default class Couleur {
    * @returns {string} The expression of the color in the requested format.
    */
   static makeExpr(format, rgba, { round = true, clamp = true } = {}) {
-    const space = format === 'rgb' ? 'srgb' : format.replace('color-', '');
-    const values = Couleur.convert('srgb', space, rgba.slice(0, 3));
+    const space = Couleur.getSpace(format.replace('color-', ''));
+    const values = Couleur.convert('srgb', space.id, rgba.slice(0, 3));
     const a = Couleur.unparse('a', rgba[3], { round });
 
     // If the requested expression is of the color(space, ...) type
     if (format.slice(0, 5) === 'color') {
-      let string = `color(${space}`;
+      let string = `color(${space.id}`;
       for (const [k, v] of Object.entries(values)) {
         if (Number(k) === values.length - 1) {
           if (a >= 1) break;
@@ -362,10 +366,8 @@ export default class Couleur {
           return `${format}(${x}, ${y}, ${z})`;
       }
       default: {
-        if ((format.length > 3 && format.slice(-1) === 'a') || a < 1)
-          return `${format}(${x} ${y} ${z} / ${a})`;
-        else
-          return `${format}(${x} ${y} ${z})`;
+        if (a < 1) return `${format}(${x} ${y} ${z} / ${a})`;
+        else       return `${format}(${x} ${y} ${z})`;
       }
     }
   }
@@ -386,7 +388,7 @@ export default class Couleur {
     if (this.a === 1) {
       const allNames = Couleur.couleursNommees;
       const [r, g, b] = [255 * this.r, 255 * this.g, 255 * this.b];
-      const tolerance = 255 * Couleur.tolerance;
+      const tolerance = 255 * .02;
       for (const [name, hex] of Object.entries(allNames)) {
         const [r2, g2, b2] = [parseInt(`${hex[0]}${hex[1]}`, 16), parseInt(`${hex[2]}${hex[3]}`, 16), parseInt(`${hex[4]}${hex[5]}`, 16)];
         if (Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) < tolerance) return name;
@@ -443,18 +445,10 @@ export default class Couleur {
 
   /** @returns {string} Hexadecimal expression of the color. */
   get hex() {
-    if (this.a < 1) return this.hexa;
     const values = Couleur.clampToColorSpace('srgb', this.values);
-    const rgb = values.map(v => Utils.pad(Math.round(v * 255).toString(16)));
-    return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
-  }
-
-  /** @returns {string} Hexadecimal (+ a) expression of the color. */
-  get hexa() {
-    const values = Couleur.clampToColorSpace('srgb', this.values);
-    values.push(this.a);
-    const rgb = values.map(v => Utils.pad(Math.round(v * 255).toString(16)));
-    return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
+    const rgb = [...values, this.a].map(v => Utils.pad(Math.round(v * 255).toString(16)));
+    if (this.a < 1) return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
+    else            return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
   }
 
 
@@ -467,7 +461,7 @@ export default class Couleur {
   set rgb(rgba) { this.set(rgba, ['r', 'g', 'b'], 'srgb'); }
   set rgba(rgba) { this.rgb = rgba; }
   get rgb() { return this.expr('rgb'); }
-  get rgba() { return this.expr('rgba'); }
+  get rgba() { return this.rgb; }
 
 
   /* HSL */
@@ -479,7 +473,7 @@ export default class Couleur {
   set hsl(hsla) { this.set(hsla, ['h', 's', 'l'], 'hsl') }
   set hsla(hsla) { this.hsl = hsla; }
   get hsl() { return this.expr('hsl'); }
-  get hsla() { return this.expr('hsla'); }
+  get hsla() { return this.hsl; }
 
 
   /* HWB */
@@ -489,9 +483,7 @@ export default class Couleur {
    * @param {Array.<string|number>} hwba - The unparsed values of the h, w, bk, a properties.
    */
   set hwb(hwba) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
-  set hwba(hwba) { this.hwb = hwba; }
   get hwb() { return this.expr('hwb'); }
-  get hwba() { return this.expr('hwba'); }
 
 
   /* LAB */
@@ -501,9 +493,7 @@ export default class Couleur {
    * @param {Array.<string|number>} laba - The unparsed values of the ciel, ciea, cieb, a properties.
    */
   set lab(laba) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
-  set laba(laba) { this.lab = laba; }
   get lab() { return this.expr('lab'); }
-  get laba() { return this.expr('laba'); }
 
 
   /* LCH */
@@ -513,9 +503,7 @@ export default class Couleur {
    * @param {Array.<string|number>} - The unparsed values of the ciel, ciec, cieh, a properties.
    */
   set lch(lcha) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
-  set lcha(lcha) { this.lch = lcha; }
   get lch() { return this.expr('lch'); }
-  get lcha() { return this.expr('lcha'); }
 
 
   /* PROFILED COLORS */
@@ -536,7 +524,7 @@ export default class Couleur {
         rgb = Couleur.convert(space, 'srgb', rgb);
         break;
       default:
-        throw `The ${space} color space is not supported`;
+        throw `The ${JSON.stringify(space)} color space is not supported`;
     }
 
     const rgba = [...rgb, a];
@@ -555,76 +543,76 @@ export default class Couleur {
    * @param {number} val - The parsed new value of the property.
    */
   set h(val) {
-    const [x, s, l, a] = this.convertTo('hsl', { alpha: true });
+    const [x, s, l] = this.valuesTo('hsl');
     const props = [...Couleur.propertiesOf('hsl'), 'a'];
-    this.hsl = [val, s, l, a].map((v, k) => Couleur.unparse(props[k], v));
+    this.hsl = [val, s, l, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set s(val) {
-    const [h, x, l, a] = this.convertTo('hsl', { alpha: true });
+    const [h, x, l] = this.valuesTo('hsl');
     const props = [...Couleur.propertiesOf('hsl'), 'a'];
-    this.hsl = [h, val, l, a].map((v, k) => Couleur.unparse(props[k], v));
+    this.hsl = [h, val, l, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set l(val) {
-    const [h, s, x, a] = this.convertTo('hsl', { alpha: true });
+    const [h, s, x] = this.valuesTo('hsl');
     const props = [...Couleur.propertiesOf('hsl'), 'a']
-    this.hsl = [h, s, val, a].map((v, k) => Couleur.unparse(props[k], v));
+    this.hsl = [h, s, val, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set w(val) {
-    const [h, x, bk, a] = this.convertTo('hwb', { alpha: true });
+    const [h, x, bk] = this.valuesTo('hwb');
     const props = [...Couleur.propertiesOf('hwb'), 'a'];
-    this.hwb = [h, val, bk, a].map((v, k) => Couleur.unparse(props[k], v));
+    this.hwb = [h, val, bk, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set bk(val) {
-    const [h, w, x, a] = this.convertTo('hwb', { alpha: true });
+    const [h, w, x] = this.valuesTo('hwb');
     const props = [...Couleur.propertiesOf('hwb'), 'a'];
-    this.hwb = [h, w, val, a].map((v, k) => Couleur.unparse(props[k], v));
+    this.hwb = [h, w, val, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set ciel(val) {
-    const [x, ciea, cieb, a] = this.convertTo('lab', { alpha: true });
+    const [x, ciea, cieb] = this.valuesTo('lab');
     const props = [...Couleur.propertiesOf('lch'), 'a'];
-    this.lab = [val, ciea, cieb, a].map((v, k) => Couleur.unparse(props[k], v));
+    this.lab = [val, ciea, cieb, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set ciea(val) {
-    const [ciel, x, cieb, a] = this.convertTo('lab', { alpha: true });
+    const [ciel, x, cieb] = this.valuesTo('lab');
     const props = [...Couleur.propertiesOf('lab'), 'a'];
-    this.lab = [ciel, val, cieb, a].map((v, k) => Couleur.unparse(props[k], v));
+    this.lab = [ciel, val, cieb, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set cieb(val) {
-    const [ciel, ciea, x, a] = this.convertTo('lab', { alpha: true });
+    const [ciel, ciea, x] = this.valuesTo('lab');
     const props = [...Couleur.propertiesOf('lab'), 'a'];
-    this.lab = [ciel, ciea, val, a].map((v, k) => Couleur.unparse(props[k], v));
+    this.lab = [ciel, ciea, val, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set ciec(val) {
-    const [ciel, x, cieh, a] = this.convertTo('lch', { alpha: true });
+    const [ciel, x, cieh] = this.valuesTo('lch');
     const props = [...Couleur.propertiesOf('lch'), 'a'];
-    this.lch = [ciel, val, cieh, a].map((v, k) => Couleur.unparse(props[k], v));
+    this.lch = [ciel, val, cieh, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   set cieh(val) {
-    const [ciel, ciec, x, a] = this.convertTo('lch', { alpha: true });
+    const [ciel, ciec, x] = this.valuesTo('lch');
     const props = [...Couleur.propertiesOf('lch'), 'a'];
-    this.lch = [ciel, ciec, val, a].map((v, k) => Couleur.unparse(props[k], v));
+    this.lch = [ciel, ciec, val, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
 
   /** @returns {number} Gets the parsed value of one of the color properties. */
-  get h() { return this.convertTo('hsl')[0]; }
-  get s() { return this.convertTo('hsl')[1]; }
-  get l() { return this.convertTo('hsl')[2]; }
-  get w() { return this.convertTo('hwb')[1]; }
-  get bk() { return this.convertTo('hwb')[2]; }
-  get ciel() { return this.convertTo('lab')[0]; }
-  get ciea() { return this.convertTo('lab')[1]; }
-  get cieb() { return this.convertTo('lab')[2]; }
-  get ciec() { return this.convertTo('lch')[1]; }
-  get cieh() { return this.convertTo('lch')[2]; }
+  get h() { return this.valuesTo('hsl')[0]; }
+  get s() { return this.valuesTo('hsl')[1]; }
+  get l() { return this.valuesTo('hsl')[2]; }
+  get w() { return this.valuesTo('hwb')[1]; }
+  get bk() { return this.valuesTo('hwb')[2]; }
+  get ciel() { return this.valuesTo('lab')[0]; }
+  get ciea() { return this.valuesTo('lab')[1]; }
+  get cieb() { return this.valuesTo('lab')[2]; }
+  get ciec() { return this.valuesTo('lch')[1]; }
+  get cieh() { return this.valuesTo('lch')[2]; }
 
   get luminance() {
     if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
@@ -661,9 +649,9 @@ export default class Couleur {
     try { path = Utils.findShortestPath(graph, startSpace, endSpace); }
     catch (error) {
       switch (error) {
-        case 'No path found': throw `Conversion from ${startSpace} space to ${endSpace} space is impossible`;
-        case 'start does not exist': throw `${startSpace} is not a supported color space`;
-        case 'end does not exist': throw `${endSpace} is not a supported color space`;
+        case 'No path found': throw `Conversion from ${JSON.stringify(startSpace)} space to ${JSON.stringify(endSpace)} space is impossible`;
+        case 'start does not exist': throw `${JSON.stringify(startSpace)} is not a supported color space`;
+        case 'end does not exist': throw `${JSON.stringify(endSpace)} is not a supported color space`;
         default: throw error;
       }
     }
@@ -688,15 +676,14 @@ export default class Couleur {
    * @param {object} options
    * @param {boolean} options.alpha - Whether to include the alpha value in the returned array.
    * @param {boolean} options.clamp - Whether to clamp the values to their new color space.
-   * @returns {number[]} The array of converted r, g, b (and optionally a) values.
+   * @returns {number[]} The array of converted r, g, b values.
    */
-  convertTo(space, { alpha = false, clamp = false } = {}) {
+  valuesTo(space, { clamp = false } = {}) {
     let values = Couleur.convert('srgb', space, this.values);
     if (clamp) {
       const S = Couleur.getSpace(space);
       values = Couleur.clampToColorSpace(S.id, values);
     }
-    if (alpha) values.push(this.a);
     return values;
   }
 
@@ -706,56 +693,60 @@ export default class Couleur {
 
   /**
    * Checks whether parsed r, g, b values in sRGB color space correspond to a color in a given color space.
-   * @param {string} space - The identifier of the color space.
-   * @param {number[]} rgb - Array of parsed r, g, b values in sRGB color space.
+   * @param {string} spaceID - The identifier of the color space.
+   * @param {number[]} values - Array of parsed values.
+   * @param {string} valueSpace - The identifier of the color space of the given values.
    * @returns {boolean} Whether r, g, b in ${space} color space are all in [0, 1].
    */
-  static inColorSpace(_space, rgb) {
-    const ε = .000005;
-    const space = Couleur.getSpace(_space);
-    switch (space.id) {
-      case 'xyz': return true;
-      case 'lab': { const ciel = Couleur.convert('srgb', 'lab', rgb)[0]; return ciel >= 0 && ciel <= 1; }
-      default:    return Couleur.convert('srgb', space.id, rgb).every(v => v > (0 - ε) && v < (1 + ε));
-    }
+  static inColorSpace(spaceID, values, valueSpace = 'srgb', { tolerance = .0001 } = {}) {
+    const space = Couleur.getSpace(spaceID);
+    const convertedValues = Couleur.convert(valueSpace, space.id, values);
+    return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
   }
 
-  inGamut(space) { return Couleur.inColorSpace(space, this.values); }
+  inGamut(space, options) { return Couleur.inColorSpace(space, this.values, options); }
 
   /**
    * Clamps parsed r, g, b values in sRGB color space to a given color space.
-   * @param {string} space - The identifier of the color space.
-   * @param {number[]} rgb - Array of parsed r, g, b values in sRGB color space.
+   * @param {string} spaceID - The identifier of the color space.
+   * @param {number[]} values - Array of parsed values.
+   * @param {string} valueSpaceID - The identifier of the color space of the given values.
    * @returns {number[]} The array of r, g, b values in sRGB color space, after clamping the color to ${space} color space.
    */
-  static clampToColorSpace(_space, rgb) {
+  static clampToColorSpace(spaceID, values, valueSpaceID = 'srgb') {
     // Source of the math: https://css.land/lch/lch.js
-    const space = Couleur.getSpace(_space);
-    if (Couleur.inColorSpace(space.id, rgb)) return rgb;
-    let lch = Utils.lab2lch(Utils.rgb2lab(rgb));
+    const space = Couleur.getSpace(spaceID);
+    const valueSpace = Couleur.getSpace(valueSpaceID);
+    if (Couleur.inColorSpace(space.id, values, valueSpace.id, { tolerance: 0 })) return values;
+    
+    // Let's reduce the chroma until the color is in the color space
+    let lch = Couleur.convert(valueSpace.id, 'lch', values);
 
-    // If lightness is too low / high, clamp it and try again
-    const ε = .00001;
-    if (lch[0] < (0 - ε) || lch[0] > (1 + ε)) {
-      lch[0] = Math.max(0, Math.min(lch[0], 1));
-      const rgb = Utils.lab2rgb(Utils.lch2lab(lch));
-      return Couleur.clampToColorSpace(space.id, rgb);
-    }
-
-    // If chroma is too high, clamp it
-    const τ = .0001;
+    const τ = .01;
     let Cmin = 0;
     let Cmax = lch[1];
     lch[1] = lch[1] / 2;
 
-    const condition = lch => Couleur.inColorSpace(space.id, Utils.lab2rgb(Utils.lch2lab(lch)));
+    const naiveClamp = lch => Couleur.convert('lch', space.id, lch).map((v, k) => {
+      return Math.max(space.gamut[k][0], Math.min(v, space.gamut[k][1]));
+    });
+
     while (Cmax - Cmin > τ) {
-      if (condition(lch)) Cmin = lch[1];
-      else                Cmax = lch[1];
+      const naive = naiveClamp(lch);
+      // If the color is close to the color space border
+      if (Couleur.distance(naive, lch, { method: 'CIEDE2000' }) < 2 + τ)
+        Cmin = lch[1];
+      else
+        Cmax = lch[1];
       lch[1] = (Cmin + Cmax) / 2;
     }
 
-    return Utils.lab2rgb(Utils.lch2lab(lch));
+    // Final naive clamp to get in the color space if the color is still
+    // just outside the border
+    const clampedValues = naiveClamp(lch);
+
+    // Send the values back in the same color space we found them in
+    return Couleur.convert(space.id, valueSpace.id, clampedValues);
   }
 
   toGamut(space) { return Couleur.clampToColorSpace(space, this.values); }
@@ -784,7 +775,7 @@ export default class Couleur {
     const replace = action === 'replace';
     const scale = action === 'scale';
     const val = scale ? Couleur.parse(valeur) : Couleur.parse(valeur, propriete, { clamp: false });
-    const changedColor = new Couleur(this.rgb);
+    const changedColor = new Couleur(this);
 
     const oldVal = this[propriete];
     const newVal = replace ? val : scale ? oldVal * val : oldVal + val;
@@ -896,7 +887,7 @@ export default class Couleur {
       overlay.a = Couleur.parse(alpha, 'a');
 
     if (overlay.a === 1) {
-      throw `Overlay color ${overlay.rgb} isn't transparent, so the background it was blended onto could have been any color`;
+      throw `Overlay color ${JSON.stringify(overlay.rgb)} isn't transparent, so the background it was blended onto could have been any color`;
     }
     else if (overlay.a === 0)           return mix;
     else {
@@ -954,9 +945,7 @@ export default class Couleur {
       const r = Couleur.pRound((mix.r * mix.a - background.r * background.a * (1 - a)) / a, 3);
       const g = Couleur.pRound((mix.g * mix.a - background.g * background.a * (1 - a)) / a, 3);
       const b = Couleur.pRound((mix.b * mix.a - background.b * background.a * (1 - a)) / a, 3);
-      for (const x of [r, g, b]) {
-        if (x < 0 - Couleur.tolerance || x > 1 + Couleur.tolerance) throw `This color doesn't exist`;
-      }
+      if (!Couleur.inColorSpace('srgb', [r, g, b])) throw `This color doesn't exist`;
       return new Couleur(Couleur.makeExpr('rgb', [r, g, b, a]));
     };
 
@@ -982,7 +971,7 @@ export default class Couleur {
       // If 0 < background.a < mix.a < 1, we can find a unique solution
       else {
         const a = Couleur.pRound((mix.a - background.a) / (1 - background.a), 3);
-        if (!isNaN(alpha) && Math.abs(a - alpha) > Couleur.tolerance) return null;
+        if (!isNaN(alpha) && Math.abs(a - alpha) > .02) return null;
         try { overlay = calculateSolution(a); }
         catch (error) { return null; }
       }
@@ -1169,10 +1158,10 @@ export default class Couleur {
 
     switch (method) {
       case 'CIEDE2000':
-        return Utils.CIEDE2000([couleur1, couleur2].map(c => c.convertTo('lab', { alpha: false, clamp: false })));
+        return Utils.CIEDE2000([couleur1, couleur2].map(c => c.valuesTo('lab')));
       case 'euclidean':
       default: {
-        const [values1, values2] = [couleur1, couleur2].map(c => c.convertTo('lab'));
+        const [values1, values2] = [couleur1, couleur2].map(c => c.valuesTo('lab'));
         return values1.reduce((sum, v, k) => sum + (v - values2[k]) ** 2);
       }
     }
@@ -1271,11 +1260,6 @@ export default class Couleur {
     return Couleur.propertiesOf();
   }
 
-  /** @returns {number} Tolerance value. Used for example as the maximum distance before two colors are considered different. */
-  static get tolerance() {
-    return .02;
-  }
-
   /** @returns {{id: string, whitepoint: string, prefix: string, otherFormat: string[]}} Supported color spaces. */
   static get colorSpaces() {
     return [
@@ -1363,7 +1347,10 @@ export default class Couleur {
   }
 
   static getSpace(_id) {
-    const id = _id === 'rgb' ? 'srgb' : _id;
+    const id = _id === 'rgb' ? 'srgb'
+             : _id === 'rgba' ? 'srgb'
+             : _id === 'hsla' ? 'hsl'
+             : _id;
     return Couleur.colorSpaces.find(sp => sp.id == id);
   }
 
