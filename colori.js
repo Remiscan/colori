@@ -404,8 +404,10 @@ export default class Couleur {
     if (this.a === 1) {
       const allNames = Couleur.couleursNommees;
       const hex6 = this.hex.slice(1);
-      const name = Object.keys(allNames).find(k => (allNames[k] === hex6));
-      return name || null;
+      for (const [name, hex] of Object.entries(allNames)) {
+        if (hex === hex6) return name;
+      }
+      return null;
     }
     else if (this.a === 0) return 'transparent';
     else                   return null;
@@ -1046,13 +1048,9 @@ export default class Couleur {
    * @returns {('black'|'white')}
    */
   contrastedText() {
-    const L = this.luminance;
-    const Lblack = 0, Lwhite = 1;
-    const contrastes = [
-      (L + 0.05) / (Lblack + 0.05),
-      (Lwhite + 0.05) / (L + 0.05)
-    ];
-    return (contrastes[0] > contrastes[1]) ? 'black' : 'white';
+    const Cblack = Math.abs(this.contrastWith('black', { method: 'apca' }));
+    const Cwhite = Math.abs(this.contrastWith('white', { method: 'apca' }));
+    return (Cblack >= Cwhite) ? 'black' : 'white';
   }
 
 
