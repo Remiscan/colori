@@ -1051,89 +1051,103 @@ export default class Couleur {
 
 
   /**
-   * Modifies the CIE lightness of a color to give it better contrast with referenceColor.
-   * @param {color} referenceColor - The color whose contrast with {this} will be optimized.
-   * @param {number} desiredContrast - The contrast to reach between referenceColor and {this}.
-   * @param {number} step - The quantity that will be added to/substracted from {this.ciel} at each step.
+   * Modifies the CIE lightness of a color to give it better contrast with a background color.
+   * @param {color} backgroundColor - The color with which contrast will be measured and improved.
+   * @param {number} desiredContrast - The contrast value to reach.
    * @param {Object} options
    * @param {boolean?} options.lower - Whether contrast should be lowered if it's already bigger than desiredContrast.
-   * @param {number?} options.maxIterations - The maximum number of times the color will be altered.
-   * @param {('black'|'white')?} options.towards - 'black' if {this} should change towards black (lower its lightness),
-   *                                                   'white' if {this} should change towards white (raise its lightness),
-   *                                                   null if that choice should be made automatically (if the function
-   *                                                   can't guess, 'black' will be chosen).
-   * @param {string?} options.contrastMethod - The method to use to compute the contrast. 'WCAG2' by default.
+   *                                   If true, and contrast is higher from the start, it will be lowered until it reaches desiredContrast.
+   *                                   If false, and contrast is higher from the start, nothing will be done.
+   * @param {string?} options.colorScheme - Whether the color should be darker than the background color (colorScheme = 'light')
+   *                                        or lighter than the background color (colorScheme = 'dark').
+   *                                        If null, the starting color scheme will be preserved (i.e. if the color starts darker
+   *                                        than the background color, it will stay darker.)
+   * @param {string?} options.method - The method to use to compute the contrast.
    * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
    */
-  improveContrastWith(referenceColor, desiredContrast, step = 2, { lower = false, towards = null, contrastMethod = 'WCAG2', maxIterations = 100 } = {}) {
-    let movingColor = new Couleur(`${this.rgb}`);
-    let refColor = new Couleur(referenceColor);
+  improveContrastWith(backgroundColor, desiredContrast, { lower = false, _colorScheme = null, method = 'WCAG2' } = {}) {
+    const background = new Couleur(backgroundColor);
+    const movingColor = new Couleur([...this.values, this.a]);
+    const backgroundLab = background.valuesTo('lab');
+    const movingLab = movingColor.valuesTo('lab');
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    let contrast = Couleur.contrast(movingColor, refColor, contrastMethod);
-    let direction;
-    if (contrast > desiredContrast)      direction = -1;
-    else if (contrast < desiredContrast) direction = 1;
-    else                                 direction = 0;
-    if ((direction < 0 && lower === false) || (direction === 0)) return this;
+    let startContrast = Couleur.contrast(movingColor, background, method);
+    let directionContrast;
+    if (startContrast > desiredContrast)      directionContrast = -1;
+    else if (startContrast < desiredContrast) directionContrast = 1;
+    else                                      directionContrast = 0;
+    // If the contrast is already higher than desired, and lowering it is not allowed, return the color as is.
+    if ((directionContrast < 0 && lower === false) || (directionContrast === 0)) return this;
 
-    // Let's measure the contrast of refColor with black and white to know if
-    // desiredContrast can be reached by blackening or whitening movingColor.
-    const contrastWhite = Couleur.contrast(refColor, 'white', contrastMethod);
-    const contrastBlack = Couleur.contrast(refColor, 'black', contrastMethod);
-    const towardsWhite = (direction > 0) ? contrastWhite >= desiredContrast
-                                         : contrastWhite <= desiredContrast;
-    const towardsBlack = (direction > 0) ? contrastBlack >= desiredContrast
-                                         : contrastBlack <= desiredContrast;
-    
-    // Let's decide if we're going to raise blackness or whiteness
-    // to reach desiredContrast.
-    let to;
-    if (towardsWhite && !towardsBlack)            to = 'white';
-    else if (towardsBlack && !towardsWhite)       to = 'black';
-    else if (!towardsWhite && !towardsBlack) {
-      if (towards !== null)                       to = towards;
-      else if (contrastWhite > contrastBlack)     return new Couleur('white');
-      else                                        return new Couleur('black');
+    // Let's detect the color scheme if it isn't given.
+    const colorScheme = _colorScheme || ((backgroundLab[0] < movingLab[0]) ? 'dark' : 'light');
+
+    // Let's measure the contrast of the background with black and white to know if
+    // desiredContrast can be reached by lowering or raising the color's CIE lightness.
+    const cBlack = Couleur.contrast(background, 'black', method);
+    const cWhite = Couleur.contrast(background, 'white', method);
+    const isPossible = {
+      lowering: (directionContrast > 0) ? Math.abs(cBlack) >= desiredContrast : Math.abs(cBlack) <= desiredContrast,
+      raising: (directionContrast > 0) ? Math.abs(cWhite) >= desiredContrast : Math.abs(cWhite) <= desiredContrast
+    };
+
+    // Let's decide which direction to move the lightness in.
+    let directionCIEL;
+    if (isPossible.lowering && !isPossible.raising)      directionCIEL = -1;
+    else if (isPossible.raising && !isPossible.lowering) directionCIEL = 1;
+    // If desiredContrast can not be reached, return white or black — the one that fits the color scheme.
+    else if (!isPossible.raising && !isPossible.lowering) {
+      if (colorScheme === 'light') return new Couleur('black');
+      else                         return new Couleur('white');
     }
-    else if (towardsWhite && towardsBlack)        to = towards;
-    if (towards === null) {
-      if (refColor.ciel < movingColor.ciel)       to = 'white';
-      else if (refColor.ciel > movingColor.ciel)  to = 'black';
-      else                                        to = 'black';
+    // If desiredContrast can be reached in both directions
+    else {
+      // If the background is light and we need to raise the contrast, lower the lightness.
+      if (colorScheme === 'light' && directionContrast > 0)      directionCIEL = -1;
+      // If the background is light and we need to lower the contrast, raise the lightness.
+      else if (colorScheme === 'light' && directionContrast < 0) directionCIEL = 1;
+      // If the background is dark and we need to raise the contrast, raise the lightness.
+      else if (colorScheme === 'dark' && directionContrast > 0)  directionCIEL = 1;
+      // If the background is dark and we need to lower the contrast, lower the lightness.
+      else                                                       directionCIEL = -1;
     }
 
-    // We keep going as long as contrast is still below / over desiredContrast.
-    const condition =  c => (direction > 0) ? (c < desiredContrast)
-                                            : (c > desiredContrast);
-    let i = 0;
-    while (condition(contrast) && i < maxIterations) {
-      i++;
-      let newColor;
+    const τ = .0001;
+    let CIELmin = (directionCIEL > 0) ? movingLab[0] : 0;
+    let CIELmax = (directionCIEL > 0) ? 1 : movingLab[0];
 
-      // If movingColor is totally black (if towards black) or white (if towards white),
-      // i.e. there's no way to go, stop.
-      if ((to === 'black' && movingColor.ciel === 0) || (to === 'white' && movingColor.ciel === 1))
-        break;
-
+    while (CIELmax - CIELmin > τ) {
       // Let's try to raise contrast by increasing or reducing CIE lightness.
-      const sign = (to === 'white') ? 1 : -1;
-      newColor = movingColor.replace('ciel', Couleur.unparse('ciel', movingColor.ciel + sign * .01 * step));
-      const newContrast = Couleur.contrast(newColor, refColor, contrastMethod);
+      const ciel = (CIELmin + CIELmax) / 2;
+      const newValues = movingLab; newValues[0] = ciel;
+      const newContrast = Couleur.contrast(Couleur.convert('lab', 'srgb', newValues), background, method);
 
-      // If we overshot a little, stop.
-      // (We want to overshoot when we're raising contrast, but not when we're lowering it!)
-      const overshot = ((direction < 0) && (contrast > desiredContrast) && (newContrast < desiredContrast));
-      if (overshot) break;
+      // If the new contrast hasn't gone over its desired value
+      const condition = (directionContrast > 0) ? (Math.abs(newContrast) < desiredContrast) : (Math.abs(newContrast) > desiredContrast);
+      if (condition) {
+        if (directionCIEL > 0) CIELmin = ciel;
+        else                   CIELmax = ciel;
+      }
+      // If we overshot and the contrast moved further than we want it to
+      else {
+        if (directionCIEL > 0) CIELmax = ciel;
+        else                   CIELmin = ciel;
+      }
 
-      // We're on our way, let's keep going!
-      contrast = newContrast;
-      movingColor = newColor;
+      movingLab[0] = ciel;
+    }
+
+    let result = new Couleur(Couleur.convert('lab', 'srgb', movingLab));
+    // If the color we find has its contrast slightly below the desired value, push it further.
+    if (Math.abs(Couleur.contrast(result, background, method)) < desiredContrast) {
+      if (directionCIEL > 0) movingLab[0] = CIELmax;
+      else                   movingLab[0] = CIELmin;
     }
 
     // We're done!
-    return movingColor;
+    return new Couleur(Couleur.convert('lab', 'srgb', movingLab));
   }
 
 
