@@ -147,22 +147,19 @@ class Test {
     $backgroundColor = '';
     $textColor = ''; $gradient = '';
     try {
-      if ($resultat instanceof Couleur) $backgroundColor = $resultat->rgb();
-      elseif (is_array($resultat)) {
+      if (is_array($resultat)) {
         $gradient = 'linear-gradient(to right, ' . (implode(', ', array_map(function($c) { return (new Couleur($c))->rgb(); }, $resultat))) . ')';
-        $backgroundColor = (new Couleur($resultat[0]))->rgb();
+        $backgroundColor = new Couleur($resultat[0]);
+      } else {
+        $backgroundColor = new Couleur($resultat);
       }
-      elseif (is_string($this->resultatAttendu)) $backgroundColor = (new Couleur($this->resultatAttendu))->rgb();
     }
     catch (Exception $error) {}
     catch (Error $error) {}
 
-    $textColor = 'black';
-    try {
-      $textColor = ($backgroundColor !== 'transparent') ? (new Couleur($backgroundColor))->replace('a', 1)->contrastedText() : 'black';
-    } catch (Exception $error) {
-      $textColor = 'initial';
-    }
+    $textColor = ($backgroundColor instanceof Couleur) ? Couleur::blend('white', $backgroundColor)->contrastedText()
+               : 'initial';
+    $backgroundColor = ($backgroundColor instanceof Couleur) ? $backgroundColor->rgb() : $backgroundColor;
 
     echo <<<DIV
     <div class="php ${class}" style="grid-row: ${row}" data-validate="${validation}">

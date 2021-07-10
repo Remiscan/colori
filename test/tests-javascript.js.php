@@ -117,17 +117,17 @@ export default class Test {
     let backgroundColor = '';
     let textColor= '', gradient = '';
     try {
-      if (resultat instanceof Colour) backgroundColor = resultat.rgb;
-      else if (Array.isArray(resultat)) {
-        try {
-          gradient = `linear-gradient(to right, ${resultat.map(c => (new Colour(c)).rgb).join(', ')})`;
-          backgroundColor = (new Colour(resultat[0])).rgb;
-        } catch (error) {}
+      if (Array.isArray(resultat)) {
+        gradient = `linear-gradient(to right, ${resultat.map(c => (new Colour(c)).rgb).join(', ')})`;
+        backgroundColor = new Colour(resultat[0]);
+      } else {
+        backgroundColor = new Colour(resultat);
       }
-      else if (typeof this.resultatAttendu === 'string') backgroundColor = (new Colour(this.resultatAttendu)).rgb;
-      textColor = backgroundColor != 'transparent' ? (new Colour(backgroundColor)).replace('a', 1).contrastedText() : 'initial';
-    }
-    catch(error) { console.log(error); }
+    } catch(e) {}
+    
+    textColor = (backgroundColor instanceof Colour) ? Colour.blend('white', backgroundColor).contrastedText()
+              : 'initial';
+    backgroundColor = (backgroundColor instanceof Colour) ? backgroundColor.rgb : backgroundColor;
 
     div.innerHTML = `
       <h3 class="js" style="--color:${backgroundColor || ''}; --gradient:${gradient}; color:${textColor};">${this.nom}</h3>
