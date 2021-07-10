@@ -322,7 +322,7 @@ export default class Couleur {
   static makeExpr(format, rgba, { precision = 0, clamp = true } = {}) {
     const space = Couleur.getSpace(format.replace('color-', ''));
     let values = Couleur.convert('srgb', space.id, rgba.slice(0, 3));
-    if (clamp) values = Couleur.clampToColorSpace(space.id, values, space.id);
+    if (clamp) values = Couleur.toGamut(space.id, values, space.id);
     const a = Couleur.unparse('a', rgba[3], { precision });
     values = [...values, a];
 
@@ -434,7 +434,7 @@ export default class Couleur {
 
   /** @returns {string} Hexadecimal expression of the color. */
   get hex() {
-    const values = Couleur.clampToColorSpace('srgb', this.values);
+    const values = Couleur.toGamut('srgb', this.values);
     const rgb = [...values, this.a].map(v => Utils.pad(Math.round(v * 255).toString(16)));
     if (this.a < 1) return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
     else            return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
@@ -690,7 +690,7 @@ export default class Couleur {
     let values = Couleur.convert('srgb', space, this.values);
     if (clamp) {
       const S = Couleur.getSpace(space);
-      values = Couleur.clampToColorSpace(S.id, values);
+      values = Couleur.toGamut(S.id, values);
     }
     return values;
   }
@@ -706,13 +706,13 @@ export default class Couleur {
    * @param {string} valueSpace - The identifier of the color space of the given values.
    * @returns {boolean} Whether r, g, b in ${space} color space are all in [0, 1].
    */
-  static inColorSpace(spaceID, values, valueSpace = 'srgb', { tolerance = .0001 } = {}) {
+  static inGamut(spaceID, values, valueSpace = 'srgb', { tolerance = .0001 } = {}) {
     const space = Couleur.getSpace(spaceID);
     const convertedValues = Couleur.convert(valueSpace, space.id, values);
     return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
   }
 
-  inGamut(space, options) { return Couleur.inColorSpace(space, this.values, 'srgb', options); }
+  inGamut(space, options) { return Couleur.inGamut(space, this.values, 'srgb', options); }
 
   /**
    * Clamps parsed r, g, b values in sRGB color space to a given color space.
@@ -721,11 +721,11 @@ export default class Couleur {
    * @param {string} valueSpaceID - The identifier of the color space of the given values.
    * @returns {number[]} The array of r, g, b values in sRGB color space, after clamping the color to ${space} color space.
    */
-  static clampToColorSpace(spaceID, values, valueSpaceID = 'srgb', { method = 'chroma' } = {}) {
+  static toGamut(spaceID, values, valueSpaceID = 'srgb', { method = 'chroma' } = {}) {
     // Source of the math: https://css.land/lch/lch.js
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
-    if (Couleur.inColorSpace(space.id, values, valueSpace.id, { tolerance: 0 })) return values;
+    if (Couleur.inGamut(space.id, values, valueSpace.id, { tolerance: 0 })) return values;
     let clampedValues, clampSpaceID;
 
     // Naively clamp the values
@@ -746,7 +746,7 @@ export default class Couleur {
       lch[1] = lch[1] / 2;
 
       while (Cmax - Cmin > τ) {
-        const naive = Couleur.clampToColorSpace(space.id, lch, 'lch', { method: 'naive' });
+        const naive = Couleur.toGamut(space.id, lch, 'lch', { method: 'naive' });
 
         // If the color is close to the color space border
         if (Couleur.distance(naive, lch, { method: 'CIEDE2000' }) < 2 + τ)
@@ -757,14 +757,14 @@ export default class Couleur {
       }
 
       // Final naive clamp to get in the color space if the color is still just outside the border
-      clampedValues = Couleur.clampToColorSpace(space.id, lch, 'lch', { method: 'naive' });
+      clampedValues = Couleur.toGamut(space.id, lch, 'lch', { method: 'naive' });
     }
 
     // Send the values back in the same color space we found them in
     return Couleur.convert(clampSpaceID, valueSpace.id, clampedValues);
   }
 
-  toGamut(space) { return Couleur.clampToColorSpace(space, this.values); }
+  toGamut(space) { return Couleur.toGamut(space, this.values); }
 
 
 
@@ -916,8 +916,8 @@ export default class Couleur {
         const r = (mix.r * mix.a - overlay.r * overlay.a) / (a * (1 - overlay.a));
         const g = (mix.g * mix.a - overlay.g * overlay.a) / (a * (1 - overlay.a));
         const b = (mix.b * mix.a - overlay.b * overlay.a) / (a * (1 - overlay.a));
-        if (!Couleur.inColorSpace('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) return null;
-        const clampedValues = Couleur.clampToColorSpace('srgb', [r, g, b], 'srgb', { method: 'naive' });
+        if (!Couleur.inGamut('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) return null;
+        const clampedValues = Couleur.toGamut('srgb', [r, g, b], 'srgb', { method: 'naive' });
         return new Couleur([...clampedValues, a]);
       }
     }
@@ -961,8 +961,8 @@ export default class Couleur {
       const r = Couleur.pRound((mix.r * mix.a - background.r * background.a * (1 - a)) / a, 3);
       const g = Couleur.pRound((mix.g * mix.a - background.g * background.a * (1 - a)) / a, 3);
       const b = Couleur.pRound((mix.b * mix.a - background.b * background.a * (1 - a)) / a, 3);
-      if (!Couleur.inColorSpace('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) throw `This color doesn't exist`;
-      const clampedValues = Couleur.clampToColorSpace('srgb', [r, g, b], 'srgb', { method: 'naive' });
+      if (!Couleur.inGamut('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) throw `This color doesn't exist`;
+      const clampedValues = Couleur.toGamut('srgb', [r, g, b], 'srgb', { method: 'naive' });
       return new Couleur([...clampedValues, a]);
     };
 
@@ -1023,6 +1023,8 @@ export default class Couleur {
     else               return overlay;
   }
 
+  whatToBlend(mix, alpha, alphaStep) { return Couleur.whatToBlend(this, mix, alpha, alphaStep); }
+
 
   /* Color comparison */
 
@@ -1053,7 +1055,7 @@ export default class Couleur {
   }
 
   /** Non-static version of Couleur.contrast */
-  contrastWith(background, options) {
+  contrast(background, options) {
     return Couleur.contrast(this, background, options);
   }
 
@@ -1063,8 +1065,8 @@ export default class Couleur {
    * @returns {('black'|'white')}
    */
   contrastedText() {
-    const Cblack = Math.abs(this.contrastWith('black', { method: 'apca' }));
-    const Cwhite = Math.abs(this.contrastWith('white', { method: 'apca' }));
+    const Cblack = Math.abs(this.contrast('black', { method: 'apca' }));
+    const Cwhite = Math.abs(this.contrast('white', { method: 'apca' }));
     return (Cblack >= Cwhite) ? 'black' : 'white';
   }
 
@@ -1195,7 +1197,7 @@ export default class Couleur {
     }
   }
 
-  distanceTo(color, options) { return Couleur.distance(this, color, options); }
+  distance(color, options) { return Couleur.distance(this, color, options); }
 
 
   /**
@@ -1210,7 +1212,7 @@ export default class Couleur {
     else return true;
   }
 
-  sameAs(color) { return Couleur.same(this, color); }
+  same(color) { return Couleur.same(this, color); }
 
 
   /* Other functions */
@@ -1259,7 +1261,7 @@ export default class Couleur {
         else return v;
       });
       const a = next[3];
-      next = Couleur.clampToColorSpace(format, next.slice(0, 3), format);
+      next = Couleur.toGamut(format, next.slice(0, 3), format);
       next = [...next, a];
       intermediateColors.push(next);
     }
@@ -1267,7 +1269,7 @@ export default class Couleur {
     return [...intermediateColors.map(c => new Couleur(Couleur.convert(format, 'srgb', c))), end];
   }
 
-  gradientTo(color, steps, format) { return Couleur.gradient(this, color, steps, format); }
+  gradient(color, steps, format) { return Couleur.gradient(this, color, steps, format); }
 
 
 
