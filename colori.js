@@ -1086,7 +1086,7 @@ export default class Couleur {
    * @param {string?} options.method - The method to use to compute the contrast.
    * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
    */
-  improveContrastWith(backgroundColor, desiredContrast, { lower = false, _colorScheme = null, method = 'WCAG2' } = {}) {
+  improveContrast(backgroundColor, desiredContrast, { lower = false, _colorScheme = null, method = 'WCAG2' } = {}) {
     const background = new Couleur(backgroundColor);
     const movingColor = new Couleur([...this.values, this.a]);
     const backgroundLab = background.valuesTo('lab');
