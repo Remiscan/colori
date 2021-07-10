@@ -536,36 +536,42 @@ export default class Couleur {
     const props = [...Couleur.propertiesOf('hsl'), 'a'];
     this.hsl = [val, s, l, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
+  set hue(val) { this.h = val; }
 
   set s(val) {
     const [h, x, l] = this.valuesTo('hsl');
     const props = [...Couleur.propertiesOf('hsl'), 'a'];
     this.hsl = [h, val, l, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
+  set saturation(val) { this.s = val; }
 
   set l(val) {
     const [h, s, x] = this.valuesTo('hsl');
     const props = [...Couleur.propertiesOf('hsl'), 'a']
     this.hsl = [h, s, val, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
+  set lightness(val) { this.l = val; }
 
   set w(val) {
     const [h, x, bk] = this.valuesTo('hwb');
     const props = [...Couleur.propertiesOf('hwb'), 'a'];
     this.hwb = [h, val, bk, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
+  set whiteness(val) { this.w = val; }
 
   set bk(val) {
     const [h, w, x] = this.valuesTo('hwb');
     const props = [...Couleur.propertiesOf('hwb'), 'a'];
     this.hwb = [h, w, val, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
+  set blackness(val) { this.bk = val; }
 
   set ciel(val) {
     const [x, ciea, cieb] = this.valuesTo('lab');
     const props = [...Couleur.propertiesOf('lch'), 'a'];
     this.lab = [val, ciea, cieb, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
+  set CIElightness(val) { this.ciel = val; }
 
   set ciea(val) {
     const [ciel, x, cieb] = this.valuesTo('lab');
@@ -584,24 +590,37 @@ export default class Couleur {
     const props = [...Couleur.propertiesOf('lch'), 'a'];
     this.lch = [ciel, val, cieh, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
+  set CIEchroma(val) { this.ciec = val; }
 
   set cieh(val) {
     const [ciel, ciec, x] = this.valuesTo('lch');
     const props = [...Couleur.propertiesOf('lch'), 'a'];
     this.lch = [ciel, ciec, val, this.a].map((v, k) => Couleur.unparse(props[k], v));
   }
+  set CIEhue(val) { this.cieh = val; }
 
   /** @returns {number} Gets the parsed value of one of the color properties. */
+  get red() { return this.r; }
+  get green() { return this.g; }
+  get blue() { return this.b; }
   get h() { return this.valuesTo('hsl')[0]; }
+  get hue() { return this.h; }
   get s() { return this.valuesTo('hsl')[1]; }
+  get saturation() { return this.s; }
   get l() { return this.valuesTo('hsl')[2]; }
+  get lightness() { return this.l; }
   get w() { return this.valuesTo('hwb')[1]; }
+  get whiteness() { return this.w; }
   get bk() { return this.valuesTo('hwb')[2]; }
+  get whiteness() { return this.w; }
   get ciel() { return this.valuesTo('lab')[0]; }
+  get CIElightness() { return this.ciel; }
   get ciea() { return this.valuesTo('lab')[1]; }
   get cieb() { return this.valuesTo('lab')[2]; }
   get ciec() { return this.valuesTo('lch')[1]; }
+  get CIEchroma() { return this.ciec; }
   get cieh() { return this.valuesTo('lch')[2]; }
+  get CIEhue() { return this.cieh; }
 
   get luminance() {
     if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
