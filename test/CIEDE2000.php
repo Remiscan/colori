@@ -1,4 +1,5 @@
 <?php
+require_once '../colori.php';
 function version()
 {
   $listeFichiers = ['../colori.js'];
@@ -15,7 +16,18 @@ function version()
 $version = version();
 ?>
 
-<body>
+<style>
+  html { color-scheme: dark; }
+  .yes {
+    background-color: <?php $c = new Couleur('palegreen'); echo $c->replace('a', '.2')->hsl(); ?>;
+  }
+  .close {
+    background-color: <?php $c = new Couleur('gold'); echo $c->replace('a', '.2')->hsl(); ?>;
+  }
+  .no {
+    background-color: <?php $c = new Couleur('pink'); echo $c->replace('a', '.2')->hsl(); ?>;
+  }
+</style>
 
 <h1>Testing colori's implementation of CIEDE2000 color distance</h1>
 
@@ -86,7 +98,7 @@ $version = version();
       const verif2 = Math.abs(result - expected) < 0.1;
 
       table.innerHTML += `
-        <tr style="background-color: ${verif ? 'palegreen' : verif2 ? 'yellow' : 'pink'}">
+        <tr class="${verif ? 'yes' : verif2 ? 'close' : 'no'}">
           <td>${`lab(${test[0][0]}% ${test[0][1]} ${test[0][2]})`}</td>
           <td>${c1.valuesTo('lab').map(v => Math.round(10**4 * v) / 10**4).join(', ')}</td>
           <td>${`lab(${test[1][0]}% ${test[1][1]} ${test[1][2]})`}</td>

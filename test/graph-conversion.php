@@ -1,4 +1,5 @@
 <?php
+require_once '../colori.php';
 function version()
 {
   $listeFichiers = ['../colori.js'];
@@ -14,6 +15,16 @@ function version()
 }
 $version = version();
 ?>
+
+<style>
+  html { color-scheme: dark; }
+  .yes {
+    background-color: <?php $c = new Couleur('palegreen'); echo $c->replace('a', '.2')->hsl(); ?>;
+  }
+  .no {
+    background-color: <?php $c = new Couleur('pink'); echo $c->replace('a', '.2')->hsl(); ?>;
+  }
+</style>
 
 <h1>Testing colori's pathfinding conversion</h1>
 
@@ -100,7 +111,7 @@ $version = version();
       if (test.expected) verif = test.expected.every((e, k) => e === result[k]);
 
       if (duration > max) { max = duration; document.querySelector('.max').innerHTML = `${max} ms`; }
-      if (test.expected) tr.style = `background-color: ${verif ? 'palegreen' : 'pink'}`;
+      if (test.expected) tr.classList.add(`${verif ? 'yes' : 'no'}`);
 
       tr.innerHTML = `
         <td>${test.ids[0]}</td>

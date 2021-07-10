@@ -19,7 +19,7 @@ foreach($_tests as $k => $test) {
   <head>
     <style>
       html {
-        color-scheme: dark light;
+        color-scheme: dark;
       }
       body {
         width: 100%;
@@ -85,12 +85,12 @@ foreach($_tests as $k => $test) {
           color: pink;
         }
       }
-      pre:nth-of-type(2) {
+      /*pre:nth-of-type(2) {
         display: none;
       }
       .no>pre:nth-of-type(2) {
         display: block;
-      }
+      }*/
 
       ul {
         grid-column: 1 / -1;
