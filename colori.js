@@ -1346,10 +1346,10 @@ export default class Couleur {
         whitepoint: 'd50',
         CSSformat: 'color',
         gamut: [ [0, 1], [0, 1], [0, 1] ],
-        functionsTo: ['lin_prophoto-rgb', 'xyz']
+        functionsTo: ['lin_prophoto-rgb']
       }, {
         id: 'lin_prophoto-rgb',
-        functionsTo: ['prophoto-rgb']
+        functionsTo: ['prophoto-rgb', 'xyz']
       }, {
         id: 'rec2020',
         whitepoint: 'd65',
@@ -1644,7 +1644,7 @@ const Utils = {
   /* prophoto-rgb */
 
   prophotorgb_to_lin_prophotorgb: function(rgb) {
-    return rgb.map(v => Math.abs(v) <= 16/512 ? v / 16 : (Math.sign(x) || 1) * Math.pow(v, 1.8));
+    return rgb.map(v => Math.abs(v) <= 16/512 ? v / 16 : (Math.sign(v) || 1) * Math.pow(v, 1.8));
   },
 
   lin_prophotorgb_to_prophotorgb: function(rgb) {
