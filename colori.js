@@ -1506,7 +1506,7 @@ const Utils = {
   /* hsl */
 
   srgb_to_hsl: function(rgb) {
-    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach
     const [r, g, b] = rgb; // all in [0, 1]
 
     const max = Math.max(r, g, b);
@@ -1535,7 +1535,7 @@ const Utils = {
   },
 
   hsl_to_srgb: function(hsl) {
-    // source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
 
     const m = s * Math.min(l, 1 - l);
@@ -1780,7 +1780,7 @@ const Utils = {
 
 
   /** @returns {number} Luminance of the color. */
-  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
+  // Source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
   luminance: function(_rgb) {
     const rgb = Utils.srgb_to_lin_srgb(_rgb);
     return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
@@ -1793,7 +1793,7 @@ const Utils = {
    * @param {number[]} rgbBack - Array of r, g, b values of the background.
    * @returns {number} Contrast between the two colors, in [1, 21].
    */
-  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef)
+  // Source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
   WCAG2contrast: function(rgbText, rgbBack) {
     const L1 = Utils.luminance(rgbText);
     const L2 = Utils.luminance(rgbBack);
@@ -1809,7 +1809,7 @@ const Utils = {
    * @param {number[]} rgbBack - Array of r, g, b values of the background.
    * @returns {number} Contrast between the two colors.
    */
-  // (Source of the math: https://github.com/Myndex/SAPC-APCA)
+  // Source of the math: https://github.com/Myndex/SAPC-APCA
   APCAcontrast: function(rgbText, rgbBack) {
     // 1. Compute luminances
     const coeffs = [0.2126729, 0.7151522, 0.0721750];
