@@ -131,12 +131,12 @@ export default class Couleur {
   /**
    * Returns a float precise to the nth decimal.
    * @param {(number|string)} _x - The number to round.
-   * @param {number} n - The number of decimals.
+   * @param {number} precision - The number of decimals.
    * @returns {number} The float precise to the nth decimal.
    */
-  static pRound(_x, n = 5) {
+  static pRound(_x, precision = 5) {
     let x = (typeof _x === 'number') ? _x : Number(_x);
-    return Number(parseFloat(x.toPrecision(n)));
+    return Number(parseFloat(x.toPrecision(precision)));
   }
 
 
@@ -267,19 +267,20 @@ export default class Couleur {
    * @param {string} prop - Name of the property that has the value.
    * @param {number} value - Value to unparse.
    * @param {object} options
-   * @param {boolean} options.round - Whether to round the unparsed value.
+   * @param {number} options.precision - How many decimals to display.
    * @returns {string} The unparsed value, ready to insert in a CSS expression.
    */
-  static unparse(prop, value, { round = true } = {}) {
+  static unparse(prop, value, { precision = 0 } = {}) {
+    let v = value;
     switch (prop) {
       case 'r': case 'g': case 'b':
-        return round ? `${Math.round(255 * value)}` : `${255 * value}`;
+        return precision === null ? `${255 * v}` : `${Math.round(10**precision * 255 * v) / (10**precision)}`;
       case 's': case 'l': case 'w': case 'bk': case 'ciel':
-        return round ? `${Math.round(100 * value)}%` : `${100 * value}%`;
+        return precision === null ? `${100 * v}%` : `${Math.round(10**precision * 100 * v) / (10**precision)}%`;
       case 'a':
-        return round ? `${Math.round(100 * value) / 100}` : `${value}`;
+        return precision === null ? `${v}` : `${Math.round(10**Math.max(precision, 2) * v) / (10**Math.max(precision, 2))}`;
       default:
-        return round ? `${Math.round(value)}` : `${value}`;
+        return precision === null ? `${v}` : `${Math.round(10**precision * v) / (10**precision)}`;
     }
   }
 
@@ -314,15 +315,15 @@ export default class Couleur {
    * @param {string} format - The format of the expression.
    * @param {number[]} rgba - The values of the r, g, b, a properties.
    * @param {object} options
-   * @param {boolean} options.round - Whether to round the values in the expression.
+   * @param {number} options.precision - How many decimals to display.
    * @param {string} options.clamp - Which color space the values should be clamped to.
    * @returns {string} The expression of the color in the requested format.
    */
-  static makeExpr(format, rgba, { round = true, clamp = true } = {}) {
+  static makeExpr(format, rgba, { precision = 0, clamp = true } = {}) {
     const space = Couleur.getSpace(format.replace('color-', ''));
     let values = Couleur.convert('srgb', space.id, rgba.slice(0, 3));
     if (clamp) values = Couleur.clampToColorSpace(space.id, values, space.id);
-    const a = Couleur.unparse('a', rgba[3], { round });
+    const a = Couleur.unparse('a', rgba[3], { precision });
     values = [...values, a];
 
     // If the requested expression is of the color(space, ...) type
@@ -333,7 +334,7 @@ export default class Couleur {
           if (a >= 1) break;
           string += ` / ${a}`;
         } else {
-          string += ` ${round ? Math.round(10000 * v) / 10000 : v}`;
+          string += ` ${precision === null ? v : Math.round(10**precision * v) / (10**precision)}`;
         }
       }
       string += `)`;
@@ -342,7 +343,7 @@ export default class Couleur {
 
     // If the requested expression is of the ${format}(...) type
     const props = Couleur.propertiesOf(format);
-    const [x, y, z] = props.map((p, k) => Couleur.unparse(p, values[k], { round }));
+    const [x, y, z] = props.map((p, k) => Couleur.unparse(p, values[k], { precision }));
 
     switch (format) {
       case 'rgb': case 'rgba': case 'hsl': case 'hsla': {
@@ -448,7 +449,7 @@ export default class Couleur {
    */
   set rgb(rgba) { this.set(rgba, ['r', 'g', 'b'], 'srgb'); }
   set rgba(rgba) { this.rgb = rgba; }
-  get rgb() { return this.expr('rgb'); }
+  get rgb() { return this.expr('rgb', { precision: 2 }); }
   get rgba() { return this.rgb; }
 
 
@@ -460,7 +461,7 @@ export default class Couleur {
    */
   set hsl(hsla) { this.set(hsla, ['h', 's', 'l'], 'hsl') }
   set hsla(hsla) { this.hsl = hsla; }
-  get hsl() { return this.expr('hsl'); }
+  get hsl() { return this.expr('hsl', { precision: 2 }); }
   get hsla() { return this.hsl; }
 
 
@@ -471,7 +472,7 @@ export default class Couleur {
    * @param {Array.<string|number>} hwba - The unparsed values of the h, w, bk, a properties.
    */
   set hwb(hwba) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
-  get hwb() { return this.expr('hwb'); }
+  get hwb() { return this.expr('hwb', { precision: 2 }); }
 
 
   /* LAB */
@@ -481,7 +482,7 @@ export default class Couleur {
    * @param {Array.<string|number>} laba - The unparsed values of the ciel, ciea, cieb, a properties.
    */
   set lab(laba) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
-  get lab() { return this.expr('lab'); }
+  get lab() { return this.expr('lab', { precision: 2 }); }
 
 
   /* LCH */
@@ -491,7 +492,7 @@ export default class Couleur {
    * @param {Array.<string|number>} - The unparsed values of the ciel, ciec, cieh, a properties.
    */
   set lch(lcha) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
-  get lch() { return this.expr('lch'); }
+  get lch() { return this.expr('lch', { precision: 2 }); }
 
 
   /* PROFILED COLORS */
