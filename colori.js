@@ -319,7 +319,7 @@ export default class Couleur {
    * @param {string} options.clamp - Which color space the values should be clamped to.
    * @returns {string} The expression of the color in the requested format.
    */
-  static makeExpr(format, rgba, { precision = 0, clamp = true } = {}) {
+  static expr(format, rgba, { precision = 0, clamp = true } = {}) {
     const space = Couleur.getSpace(format.replace('color-', ''));
     let values = Couleur.convert('srgb', space.id, rgba.slice(0, 3));
     if (clamp) values = Couleur.toGamut(space.id, values, space.id);
@@ -359,7 +359,7 @@ export default class Couleur {
     }
   }
 
-  expr(format, options) { return Couleur.makeExpr(format, [...this.values, this.a], options); }
+  expr(format, options) { return Couleur.expr(format, [...this.values, this.a], options); }
 
 
   /* ALL VALUES (r, g, b) */
