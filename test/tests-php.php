@@ -139,7 +139,7 @@ class Test {
 
     $class = $validation ? 'yes' : 'no';
     $texte = $validation ? '✅ Success' : '❌ Failure';
-    $row = $this->ordre + 2;
+    $row = $this->ordre + 3;
 
     $recu = "\n\n".json_encode($resultat, JSON_PRETTY_PRINT);
     $attendu = "\n\n".json_encode($this->resultatAttendu, JSON_PRETTY_PRINT);

@@ -36,7 +36,7 @@ foreach($_tests as $k => $test) {
           linear-gradient(to right, #ddd 0% 100%);
       }
       h2 {
-        grid-row: 1;
+        grid-row: 2;
       }
       h3 {
         padding: .5em;
@@ -91,10 +91,21 @@ foreach($_tests as $k => $test) {
       .no>pre:nth-of-type(2) {
         display: block;
       }
+
+      ul {
+        grid-column: 1 / -1;
+        grid-row: 1;
+      }
     </style>
   </head>
 
   <body>
+    <ul>
+      <li style="list-style: none">Other tests</li>
+      <li><a href="CIEDE2000.php">CIEDE2000 distance</a>
+      <li><a href="graph-conversion.php">Path-finding conversion</a>
+    </ul>
+
     <h2 class="php">Tests de colori.php</h2>
 
     <?php

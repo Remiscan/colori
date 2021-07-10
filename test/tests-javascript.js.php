@@ -111,7 +111,7 @@ export default class Test {
     const div = document.createElement('div');
     div.classList.add('js');
     div.classList.add(validation ? 'yes' : 'no');
-    div.style.setProperty('grid-row', this.ordre + 2);
+    div.style.setProperty('grid-row', this.ordre + 3);
 
     // Title background color (= visual test results)
     let backgroundColor = '';
