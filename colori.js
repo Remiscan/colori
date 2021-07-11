@@ -31,7 +31,7 @@ export default class Couleur {
     }
 
     else if (Array.isArray(couleur) && (couleur.length == 3 || couleur.length == 4)) {
-      [this.r, this.g, this.b] = couleur.slice(0, 3);
+      [this.r, this.g, this.b] = Couleur.toGamut('srgb', couleur.slice(0, 3), 'srgb', { method: 'naive' });
       this.a = Math.max(0, Math.min(isAlpha(couleur[3]), 1));
     }
 
@@ -125,18 +125,6 @@ export default class Couleur {
     }
 
     throw `${JSON.stringify(couleur)} is not a valid color format`;
-  }
-
-
-  /**
-   * Returns a float precise to the nth decimal.
-   * @param {(number|string)} _x - The number to round.
-   * @param {number} precision - The number of decimals.
-   * @returns {number} The float precise to the nth decimal.
-   */
-  static pRound(_x, precision = 5) {
-    let x = (typeof _x === 'number') ? _x : Number(_x);
-    return Number(parseFloat(x.toPrecision(precision)));
   }
 
 
@@ -271,16 +259,15 @@ export default class Couleur {
    * @returns {string} The unparsed value, ready to insert in a CSS expression.
    */
   static unparse(prop, value, { precision = 0 } = {}) {
-    let v = value;
     switch (prop) {
       case 'r': case 'g': case 'b':
-        return precision === null ? `${255 * v}` : `${Math.round(10**precision * 255 * v) / (10**precision)}`;
+        return precision === null ? `${255 * value}` : `${Math.round(10**precision * 255 * value) / (10**precision)}`;
       case 's': case 'l': case 'w': case 'bk': case 'ciel':
-        return precision === null ? `${100 * v}%` : `${Math.round(10**precision * 100 * v) / (10**precision)}%`;
+        return precision === null ? `${100 * value}%` : `${Math.round(10**precision * 100 * value) / (10**precision)}%`;
       case 'a':
-        return precision === null ? `${v}` : `${Math.round(10**Math.max(precision, 2) * v) / (10**Math.max(precision, 2))}`;
+        return precision === null ? `${value}` : `${Math.round(10**Math.max(precision, 2) * value) / (10**Math.max(precision, 2))}`;
       default:
-        return precision === null ? `${v}` : `${Math.round(10**precision * v) / (10**precision)}`;
+        return precision === null ? `${value}` : `${Math.round(10**precision * value) / (10**precision)}`;
     }
   }
 
@@ -359,6 +346,7 @@ export default class Couleur {
     }
   }
 
+  /** @see Couleur.expr - Non-static version. */
   expr(format, options) { return Couleur.expr(format, [...this.values, this.a], options); }
 
 
@@ -603,6 +591,8 @@ export default class Couleur {
   get red() { return this.r; }
   get green() { return this.g; }
   get blue() { return this.b; }
+  get alpha() { return this.a; }
+  get opacity() { return this.a; }
   get h() { return this.valuesTo('hsl')[0]; }
   get hue() { return this.h; }
   get s() { return this.valuesTo('hsl')[1]; }
@@ -629,9 +619,9 @@ export default class Couleur {
 
 
 
-  /***************************************************/
-  /* Conversion between color spaces and CSS formats */
-  /***************************************************/
+  /***********************************/
+  /* Conversion between color spaces */
+  /***********************************/
 
 
   /**
@@ -700,15 +690,15 @@ export default class Couleur {
 
 
   /**
-   * Checks whether parsed r, g, b values in sRGB color space correspond to a color in a given color space.
+   * Checks whether parsed values in valueSpace color space correspond to a color in the spaceID color space.
    * @param {string} spaceID - The identifier of the color space.
    * @param {number[]} values - Array of parsed values.
    * @param {string} valueSpace - The identifier of the color space of the given values.
    * @returns {boolean} Whether r, g, b in ${space} color space are all in [0, 1].
    */
-  static inGamut(spaceID, values, valueSpace = 'srgb', { tolerance = .0001 } = {}) {
+  static inGamut(spaceID, values, valueSpaceID = 'srgb', { tolerance = .0001 } = {}) {
     const space = Couleur.getSpace(spaceID);
-    const convertedValues = Couleur.convert(valueSpace, space.id, values);
+    const convertedValues = Couleur.convert(valueSpaceID, space.id, values);
     return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
   }
 
@@ -716,7 +706,7 @@ export default class Couleur {
   inGamut(space, options) { return Couleur.inGamut(space, this.values, 'srgb', options); }
 
   /**
-   * Clamps parsed r, g, b values in sRGB color space to a given color space.
+   * Clamps parsed values in valueSpaceID color space to the spaceID color space.
    * @param {string} spaceID - The identifier of the color space.
    * @param {number[]} values - Array of parsed values.
    * @param {string} valueSpaceID - The identifier of the color space of the given values.
@@ -1516,6 +1506,12 @@ const Utils = {
     while (h < 0)   h += 360;
     while (h > 360) h -= 360;
     return h;
+  },
+
+  /** Returns a float precise to the nth decimal. */
+  pRound: function(_x, precision = 5) {
+    let x = (typeof _x === 'number') ? _x : Number(_x);
+    return Number(parseFloat(x.toPrecision(precision)));
   },
 
 

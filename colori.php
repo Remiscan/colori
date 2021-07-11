@@ -8,39 +8,49 @@ class Couleur
   
   function __construct($couleur)
   {
-    if ($couleur instanceof self)
-      throw new Exception('Already an instance of ' . __CLASS__);
-    else if (!is_string($couleur))
-      throw new Exception(__CLASS__ . ' objects can only be created from a String ; this is not one: ' . $couleur);
-
-    $format = self::matchSyntax(trim($couleur));
-
-    switch ($format['id']) {
-      case 'HEX':
-      case 'HEXA':
-        $this->setHex([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 'ff']);
-        break;
-      case 'RGB':
-      case 'RGBA':
-        $this->setRgb([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
-        break;
-      case 'HSL':
-      case 'HSLA':
-        $this->setHsl([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
-        break;
-      case 'HWB':
-      case 'HWBA':
-        $this->setHwb([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
-        break;
-      case 'LAB':
-        $this->setLab([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
-        break;
-      case 'LCH':
-        $this->setLch([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
-        break;
-      default:
-      throw new Exception($couleur . 'is not a valid color format');
+    if ($couleur instanceof self) {
+      $this->r = $couleur->r;
+      $this->g = $couleur->g;
+      $this->b = $couleur->b;
+      $this->a = $couleur->a;
     }
+
+    else if (is_array($couleur) && (count($couleur) === 3 || count($couleur) === 4)) {
+      [$this->r, $this->g, $this->b] = self::toGamut('srgb', array_slice($couleur, 0, 3), 'srgb', (object) ['method' => 'naive']);
+      $this->a = $couleur[3] ?? 1;
+    }
+
+    else if (is_string($couleur)) {
+      $format = self::matchSyntax(trim($couleur));
+
+      switch ($format['id']) {
+        case 'hex':
+          $this->setHex([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 'ff']);
+          break;
+        case 'rgb':
+          $this->setRgb([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
+          break;
+        case 'hsl':
+          $this->setHsl([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
+          break;
+        case 'hwb':
+          $this->setHwb([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
+          break;
+        case 'lab':
+          $this->setLab([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
+          break;
+        case 'lch':
+          $this->setLch([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
+          break;
+        case 'color':
+          $this->setColor($format['data'][1], [$format['data'][2], $format['data'][3], $format['data'][4], $format['data'][5] ?? 1]);
+          break;
+        default:
+          throw new Exception($couleur . 'is not a valid color format');
+      }
+    }
+
+    else throw new Exception(__CLASS__ . ' objects can only be created from a String ; this is not one: ' . $couleur);
   }
 
 
@@ -48,79 +58,34 @@ class Couleur
   /** Matches the user input with supported color formats. */
   private static function matchSyntax($couleur) {
     $tri = substr($couleur, 0, 3);
-    if (substr($tri, 0, 1) === '#')
-      $formats = [self::FORMATS[0], self::FORMATS[1]];
-    elseif ($tri === 'rgb')
-      $formats = [self::FORMATS[2], self::FORMATS[3]];
-    elseif ($tri === 'hsl')
-      $formats = [self::FORMATS[4], self::FORMATS[5]];
-    elseif ($tri === 'hwb')
-      $formats = [self::FORMATS[6], self::FORMATS[7]];
-    elseif ($tri === 'lab')
-      $formats = [self::FORMATS[8]];
-    elseif ($tri === 'lch')
-      $formats = [self::FORMATS[9]];
-    else
-      $formats = [self::FORMATS[10]];
 
-    foreach($formats as $format) {
-      foreach($format['syntaxes'] as $k => $syntaxe) {
-        $matches = array();
-        $_resultat = preg_match($syntaxe, $couleur, $matches);
-        if ($_resultat === 1 && $matches[0] === $couleur) {
-          if (($format['id'] === 'NAME') && array_key_exists(strtolower($couleur), self::COULEURS_NOMMEES)) {
+    // Predetermine the format, to save regex-matching time
+    if (substr($tri, 0, 1) === '#') $format = self::FORMATS[0];
+    else switch ($tri) {
+      case 'rgb': $format = self::FORMATS[1]; break;
+      case 'hsl': $format = self::FORMATS[2]; break;
+      case 'hwb': $format = self::FORMATS[3]; break;
+      case 'lab': $format = self::FORMATS[4]; break;
+      case 'lch': $format = self::FORMATS[5]; break;
+      case 'col': $format = self::FORMATS[6]; break;
+      default:    $format = self::FORMATS[7];
+    }
+
+    // Check if the given string matches any color syntax
+    foreach($format['syntaxes'] as $syntaxe) {
+      $result = preg_match($syntaxe, $couleur, $matches);
+      if ($result === 1 && $matches[0] === $couleur) {
+        if ($format['id'] === 'name') {
+          if ($couleur === 'transparent') return (object) ['id' => 'rgb', 'data' => [null, 0, 0, 0, 0]];
+          $name = strtolower($couleur);
+          if (array_key_exists($name, self::COULEURS_NOMMEES))
             return self::matchSyntax('#' . self::COULEURS_NOMMEES[strtolower($couleur)]);
-          }
-          return $resultat = array (
-            'id' => $format['id'],
-            'syntaxe' => $k,
-            'data' => $matches
-          );
         }
+        return $resultat = ['id' => $format['id'], 'data' => $matches];
       }
     }
 
-    throw new Exception($couleur . 'is not a valid color format');
-  }
-
-
-  /** Calculates all the color properties from the already defined ones. */
-  private function compute($knownFormat, $values, $clamp = self::MUST_CLAMP_TO_SRGB) {
-    switch ($knownFormat) {
-      case 'rgb': $rgb = $values; break;
-      case 'hsl': $rgb = self::hsl2rgb($values); break;
-      case 'hwb': $rgb = self::hsl2rgb(self::hwb2hsl($values)); break;
-      case 'lab':
-        if ($clamp) $rgb = self::clampToSRGB(self::lab2rgb($values));
-        else        $rgb = self::lab2rgb($values);
-        break;
-      case 'lch':
-        if ($clamp) $rgb = self::clampToSRGB(self::lab2rgb(self::lch2lab($values)));
-        else        $rgb = self::lab2rgb(self::lch2lab($values));
-        break;
-    }
-    $this->r = self::pRound($rgb[0]);
-    $this->g = self::pRound($rgb[1]);
-    $this->b = self::pRound($rgb[2]);
-  }
-
-
-  /** Returns a float precise to the nth decimal. */
-  private static function pRound($_x, $n = 5) {
-    $x = (float) $_x;
-    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -$x) + 1) : 1;
-    $precision = (int) ($n - $intDigits);
-    return round($x, $precision);
-  }
-
-
-  /** Checks if a variable is a Couleur object, or if it can be made into one. */
-  public static function check($color) {
-    if ($color instanceof self) return $color;
-    try { return new self($color); }
-    catch (Exception $error) {
-      throw new Exception('Argument should be an instance of the ' . __CLASS__ . ' class, or a valid color string ; this isn\'t: ' . $color);
-    }
+    throw new Exception($couleur .' is not a valid color format');
   }
 
 
@@ -170,30 +135,19 @@ class Couleur
       $_n = floatval($n);
       // If n is a number
       if (preg_match('/^' . self::vNum . '$/', $n)) {
-        while ($_n < 0) $_n += 360;
-        while ($_n > 360) $_n -= 360;
-        return (float) $_n;
+        return (float) Utils::angleToRange($_n);
       }
       // If n is an angle
       elseif (preg_match('/^' . self::vAng . '$/', $n)) {
-        if (substr($n, -3) === 'deg') {
-          while ($_n < 0) $_n += 360;
-          while ($_n > 360) $_n -= 360;
-          return (float) $_n;
-        } elseif (substr($n, -3) === 'grad') {
-          while ($_n < 0) $_n += 400;
-          while ($_n > 400) $_n -= 400;
-          return (float) $_n * 360 / 400;
-        } elseif (substr($n, -3) === 'rad') {
+        if (substr($n, -3) === 'deg') {}
+        elseif (substr($n, -3) === 'grad')
+          $_n = $_n * 360 / 400;
+        elseif (substr($n, -3) === 'rad')
           $_n = $_n * 180 / pi();
-          while ($_n < 0) $_n += 360;
-          while ($_n > 360) $_n -= 360;
-          return (float) $_n;
-        } elseif (substr($n, -3) === 'turn') {
-          while ($_n < 0) $_n += 1;
-          while ($_n > 1) $_n -= 1;
-          return (float) $_n * 360;
-        } else throw new Exception("Invalid angle value: $n");
+        elseif (substr($n, -3) === 'turn')
+          $_n = $_n * 360;
+        else throw new Exception("Invalid angle value: $n");
+        return Utils::angleToRange($_n);
       }
       else throw new Exception("Invalid $type value: $n");
     }
@@ -251,19 +205,23 @@ class Couleur
 
   
   /** Unparses a value to the format that would be used in a CSS expression. */
-  private static function unparse($prop, $value, $round = true) {
+  private static function unparse($prop, $value, $options = null) {
+    if ($options === null) $options = new stdClass();
+    $precision = $options->precision ?? 0;
+
+    $v = $value;
     switch ($prop) {
       case 'r': case 'g': case 'b':
-        $unparsed = $round ? round(255 * $value) : 255 * $value;
+        $unparsed = $precision === null ? (255 * $value) : round(10**$precision * 255 * $value) / (10**$precision);
         break;
       case 's': case 'l': case 'w': case 'bk': case 'ciel':
-        $unparsed = $round ? round(100 * $value).'%' : (100 * $value).'%';
+        $unparsed = $precision === null ? (100 * $value).'%' : (round(10**$precision * 100 * $value) / (10**$precision)).'%';
         break;
       case 'a':
-        $unparsed = $round ? round(100 * $value) / 100 : $value;
+        $unparsed = $precision === null ? $value : round(10**max($precision, 2) * 100 * $value) / (10**max($precision, 2));
         break;
       default:
-        $unparsed = $round ? round($value) : $value;
+        $unparsed = $precision === null ? $value : round(10**$precision * $value) / (10**$precision);
     }
     return (string) $unparsed;
   }
@@ -277,23 +235,49 @@ class Couleur
 
   /* GENERAL SETTER */
 
-  /** Will be used by other setters. */
+  /** Will be used by other setters to calculate all color properties. */
   private function set($data, $props, $format) {
     $values = [];
     for ($i = 0; $i < count($props); $i++) {
       $values[] = self::parse($data[$i], $props[$i]);
     }
-    $this->a = self::pRound(self::parse($data[3] ?? 1, 'a'));
-    $this->compute($format, $values);
+
+    [$this->r, $this->g, $this->b] = self::convert($format, 'srgb', $values);
+    $this->a = self::parse($data[3] ?? 1, 'a');
   }
 
 
   /* GENERAL GETTER */
 
-  /** Gets the CSS expression of a color. */
-  public static function expr($format, $values, $round = true) {
+  /** Creates a string containing the CSS expression of a color. */
+  public static function expr($format, $rgba, $options = null) {
+    if ($options === null) $options = new stdClass();
+    $precision = $options->precision ?? 0;
+    $clamp = $options->clamp ?? true;
+
+    $space = self::getSpace(str_replace('color-', '', $format));
+    $values = self::convert('srgb', $space['id'], array_slice($rgba, 0, 3));
+    if ($clamp) $values = self::toGamut($space['id'], $values, $space['id']);
+    $a = self::unparse('a', $rgba[3], (object)['precision' => $precision]);
+    $values[] = $a;
+
+    // If the requested expression is of the color(space, ...) type
+    if (array_slice($format, 0, 5) === 'color') {
+      $string = "color(".$space['id'];
+      foreach($values as $k => $v) {
+        if ((float) $k === count($values) - 1) {
+          if ($a >= 1) break;
+          $string .= " / $a";
+        } else {
+          $string .= " ". ($precision === null ? $v : round(10**$precision * $v) / (10**$precision));
+        }
+      }
+      $string .= ")";
+      return $string;
+    }
+
+    // If the requested expression is of the ${format}(...) type
     $props = self::propertiesOf($format);
-    $a = self::unparse('a', $values[3], $round);
     $unparsed = [];
     foreach($props as $k => $p) {
       $unparsed[] = self::unparse($p, $values[$k], $round);
@@ -307,18 +291,15 @@ class Couleur
         else
           return "${format}(${x}, ${y}, ${z})";
       default:
-        if ((strlen($format) > 3 && substr($format, -1) === 'a') || $a < 1.0)
-          return "${format}(${x} ${y} ${z} / ${a})";
-        else
-          return "${format}(${x} ${y} ${z})";
+        if ($a < 1.0) return "${format}(${x} ${y} ${z} / ${a})";
+        else          return "${format}(${x} ${y} ${z})";
     }
   }
 
 
   /* ALL VALUES (r, g, b) */
-  public function values() {
-    return [$this->r, $this->g, $this->b, $this->a];
-  }
+
+  public function values() { return [$this->r, $this->g, $this->b]; }
 
 
   /* NAME */
@@ -328,13 +309,15 @@ class Couleur
     if ($this->a === 1.0) {
       $allNames = self::COULEURS_NOMMEES;
       [$r, $g, $b] = [255 * $this->r, 255 * $this->g, 255 * $this->b];
-      $tolerance = 255 * self::TOLERANCE;
+      $tolerance = 255 * .02;
       foreach($allNames as $name => $hex) {
         [$r2, $g2, $b2] = [intval(hexdec($hex[0].$hex[1])), intval(hexdec($hex[2].$hex[3])), intval(hexdec($hex[4].$hex[5]))];
         if (abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b) < $tolerance) return $name;
       }
+      return null;
     }
-    return null;
+    else if ($this->a === 0) return 'transparent';
+    else                     return null;
   }
 
   /** The exact name of the color. */
@@ -342,7 +325,7 @@ class Couleur
     if ($this->a === 1) {
       $hex6 = substr($this->hex(), 1);
       $name = array_search($hex6, self::COULEURS_NOMMEES);
-      return $name ? $name : null;
+      return $name ?? null;
     }
     elseif ($this->a === 0)  return 'transparent';
     else                     return null;
@@ -350,11 +333,6 @@ class Couleur
 
 
   /* RGB (hexadecimal) */
-
-  /** Adds a zero before a string of length 1. */
-  private static function pad($s) {
-    return (strlen($s) < 2) ? '0' . $s : $s;
-  }
 
   /** Calculates all properties of the color from its hexadecimal expression. */
   private function setHex($hexa) {
@@ -377,121 +355,90 @@ class Couleur
     $this->setRgb([$r, $g, $b, $a]);
   }
 
+  /** Alias to the hex setter. */
+  private function setHexa($hexa) { return $this->setHex($hex); }
+
   /** Hexadecimal expression of the color. */
   public function hex() {
-    if ($this->a < 1)
-      return $this->hexa();
-    $r = self::pad(dechex(round($this->r * 255)));
-    $g = self::pad(dechex(round($this->g * 255)));
-    $b = self::pad(dechex(round($this->b * 255)));
-    return '#'.$r.$g.$b;
-  }
-
-  /** Hexadecimal (+ a) expression of the color. */
-  public function hexa() {
-    $r = self::pad(dechex(round($this->r * 255)));
-    $g = self::pad(dechex(round($this->g * 255)));
-    $b = self::pad(dechex(round($this->b * 255)));
-    $a = self::pad(dechex(round($this->a * 255)));
-    return '#'.$r.$g.$b.$a;
+    $values = self::toGamut('srgb', $this->values());
+    $values[] = $this->a;
+    foreach($values as $k => $v) {
+      $values[$k] = Utils::pad(dechex(round($v * 255)));
+    }
+    if ($this->a < 1) return '#'.$r.$g.$b.$a;
+    else              return '#'.$r.$g.$b;
   }
 
 
   /* RGB (functional) */
 
   /** Calculates all properties of the color from its functional RGB expression. */
-  private function setRgb($rgba) {
-    $this->set($rgba, ['r', 'g', 'b'], 'rgb');
-  }
-
-  /** RGB expression of the color. */
-  public function rgb() {  
-    return self::expr('rgb', $this->values());
-  }
-
-  /** RGBA expression of the color. */
-  public function rgba() {  
-    return self::expr('rgba', $this->values());
-  }
+  private function setRgb($rgba) { $this->set($rgba, ['r', 'g', 'b'], 'rgb'); }
+  private function setRgba($rgba) { return $this->setRgb($rgba); }
+  public function rgb() { return self::expr('rgb', $this->values(), (object)['precision' => 2]); }
+  public function rgba() { return $this->rgb(); }
 
 
   /* HSL */
 
   /** Calculates all properties of the color from its HSL expression. */
-  private function setHsl($hsla) {
-    $this->set($hsla, ['h', 's', 'l'], 'hsl');
-  }
-
-  /** HSL expression of the color. */
+  private function setHsl($hsla) { $this->set($hsla, ['h', 's', 'l'], 'hsl'); }
   public function hsl() {  
-    $hsl = self::rgb2hsl($this->values());
-    return self::expr('hsl', [$hsl[0], $hsl[1], $hsl[2], $this->a]);
+    $values = $this->values(); $values[] = $this->a;
+    return self::expr('hsl', $values, (object)['precision' => 2]);
   }
-
-  /** HSLA expression of the color. */
-  public function hsla() {  
-    $hsl = self::rgb2hsl($this->values());
-    return self::expr('hsla', [$hsl[0], $hsl[1], $hsl[2], $this->a]);
-  }
+  public function hsla() { return $this->hsl(); }
 
 
   /* HWB */
 
   /** Calculates all properties of the color from its HWB expression. */
-  private function setHwb($hwba) {
-    $this->set($hwba, ['h', 'w', 'b'], 'hwb');
-  }
-
-  /** HWB expression of the color. */
+  private function setHwb($hwba) { $this->set($hwba, ['h', 'w', 'b'], 'hwb'); }
   public function hwb() {
-    $hwb = self::hsl2hwb(self::rgb2hsl($this->values()));
-    return self::expr('hwb', [$hwb[0], $hwb[1], $hwb[2], $this->a]);
-  }
-
-  /** HWB expression of the color, but always with the alpha value. */
-  public function hwba() {
-    $hwb = self::hsl2hwb(self::rgb2hsl($this->values()));
-    return self::expr('hwba', [$hwb[0], $hwb[1], $hwb[2], $this->a]);
+    $values = $this->values(); $values[] = $this->a;
+    return self::expr('hwb', $values, (object)['precision' => 2]);
   }
 
 
   /* LAB */
 
   /** Calculates all properties of the color from its LAB expression. */
-  private function setLab($laba) {
-    $this->set($laba, ['ciel', 'ciea', 'cieb'], 'lab');
-  }
-
-  /** LAB expression of the color. */
+  private function setLab($laba) { $this->set($laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
   public function lab() {
-    $lab = self::rgb2lab($this->values());
-    return self::expr('lab', [$lab[0], $lab[1], $lab[2], $this->a]);
-  }
-
-  /** LAB expression of the color, but always with the alpha value. */
-  public function laba() {
-    $lab = self::rgb2lab($this->values());
-    return self::expr('laba', [$lab[0], $lab[1], $lab[2], $this->a]);
+    $values = $this->values(); $values[] = $this->a;
+    return self::expr('lab', $values, (object)['precision' => 2]);
   }
 
 
   /* LCH */
 
   /** Calculates all properties of the color from its LCH expression. */
-  private function setLch($lcha) {
-    $this->set($lcha, ['ciel', 'ciec', 'cieh'], 'lch');
-  }
-
-  /** LCH expression of the color. */
+  private function setLch($lcha) { $this->set($lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
   public function lch() {
-    $lch = self::lab2lch(self::rgb2lab($this->values()));
-    return self::expr('lch', [$lch[0], $lch[1], $lch[2], $this->a]);
+    $values = $this->values(); $values[] = $this->a;
+    return self::expr('lch', $values, (object)['precision' => 2]);
   }
 
-  /** LCH expression of the color, but always with the alpha value. */
-  public function lcha() {
-    $lch = self::lab2lch(self::rgb2lab($this->values()));
-    return self::expr('lcha', [$lch[0], $lch[1], $lch[2], $this->a]);
+
+  /* PROFILED COLORS */
+  /** Calculates all properties of the color from its functional color() expression. */
+  private function setColor($space, $values) {
+    $rgb = array_slice($values, 0, 3);
+    $a = $values[3];
+
+    $clamp = fn($v) => max(0, min($v, 1));
+    switch ($space) {
+      case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
+        $rgb = array_map($clamp, $rgb);
+      case 'xyz':
+        $rgb = self::convert($space, 'srgb', $rgb);
+        break;
+      default:
+        throw new Exception("The $space color space is not supported");
+    }
+
+    $rgba = $rgb; $rgba[] = $a;
+    return $this->set($rgba, [null, null, null], 'srgb');
   }
 
 
@@ -501,24 +448,21 @@ class Couleur
   /********************************************/
 
 
-  private function setR($val) {
-    $this->r = $val;
-  }
+  private function setR($val) { $this->r = $val; }
+  private function setRed($val) { $this->setR($val); }
 
-  private function setG($val) {
-    $this->g = $val;
-  }
+  private function setG($val) { $this->g = $val; }
+  private function setGreen($val) { $this->setG($val); }
 
-  private function setB($val) {
-    $this->b = $val;
-  }
+  private function setB($val) { $this->b = $val; }
+  private function setBlue($val) { $this->setB($val); }
 
-  private function setA($val) {
-    $this->a = $val;
-  }
+  private function setA($val) { $this->a = $val; }
+  private function setAlpha($val) { $this->setA($val); }
+  private function setOpacity($val) { $this->setA($val); }
 
   private function setH($val) {
-    [$x, $s, $l] = self::rgb2hsl($this->values());
+    [$x, $s, $l] = $this->valuesTo('hsl');
     $temp = [];
     $props = self::propertiesOf('hsl'); $props[] = 'a';
     foreach([$val, $s, $l, $this->a] as $k => $v) {
@@ -526,9 +470,10 @@ class Couleur
     }
     $this->setHsl($temp);
   }
+  private function setHue($val) { $this->setH($val); }
 
   private function setS($val) {
-    [$h, $x, $l] = self::rgb2hsl($this->values());
+    [$h, $x, $l] = $this->valuesTo('hsl');
     $temp = [];
     $props = self::propertiesOf('hsl'); $props[] = 'a';
     foreach([$h, $val, $l, $this->a] as $k => $v) {
@@ -536,9 +481,10 @@ class Couleur
     }
     $this->setHsl($temp);
   }
+  private function setSaturation($val) { $this->setS($val); }
 
   private function setL($val) {
-    [$h, $s, $x] = self::rgb2hsl($this->values());
+    [$h, $s, $x] = $this->valuesTo('hsl');
     $temp = [];
     $props = self::propertiesOf('hsl'); $props[] = 'a';
     foreach([$h, $s, $val, $this->a] as $k => $v) {
@@ -546,9 +492,10 @@ class Couleur
     }
     $this->setHsl($temp);
   }
+  private function setLightness($val) { $this->setL($val); }
 
   private function setW($val) {
-    [$h, $x, $bk] = self::hsl2hwb(self::rgb2hsl($this->values()));
+    [$h, $x, $bk] = $this->valuesTo('hwb');
     $temp = [];
     $props = self::propertiesOf('hwb'); $props[] = 'a';
     foreach([$h, $val, $bk, $this->a] as $k => $v) {
@@ -556,9 +503,10 @@ class Couleur
     }
     $this->setHwb($temp);
   }
+  private function setWhiteness($val) { $this->setW($val); }
 
-  private function setBK($val) {
-    [$h, $w, $x] = self::hsl2hwb(self::rgb2hsl($this->values()));
+  private function setBk($val) {
+    [$h, $w, $x] = $this->valuesTo('hwb');
     $temp = [];
     $props = self::propertiesOf('hwb'); $props[] = 'a';
     foreach([$h, $w, $val, $this->a] as $k => $v) {
@@ -566,9 +514,10 @@ class Couleur
     }
     $this->setHwb($temp);
   }
+  private function setBlackness($val) { $this->setBk($val); }
 
   private function setCIEL($val) {
-    [$x, $ciea, $cieb] = self::rgb2lab($this->values());
+    [$x, $ciea, $cieb] = $this->valuesTo('lab');
     $temp = [];
     $props = self::propertiesOf('lab'); $props[] = 'a';
     foreach([$val, $ciea, $cieb, $this->a] as $k => $v) {
@@ -576,9 +525,10 @@ class Couleur
     }
     $this->setLab($temp);
   }
+  private function setCIELightness($val) { $this->setCIEL($val); }
 
   private function setCIEA($val) {
-    [$ciel, $x, $cieb] = self::rgb2lab($this->values());
+    [$ciel, $x, $cieb] = $this->valuesTo('lab');
     $temp = [];
     $props = self::propertiesOf('lab'); $props[] = 'a';
     foreach([$ciel, $val, $cieb, $this->a] as $k => $v) {
@@ -588,7 +538,7 @@ class Couleur
   }
 
   private function setCIEB($val) {
-    [$ciel, $ciea, $x] = self::rgb2lab($this->values());
+    [$ciel, $ciea, $x] = $this->valuesTo('lab');
     $temp = [];
     $props = self::propertiesOf('lab'); $props[] = 'a';
     foreach([$ciel, $ciea, $val, $this->a] as $k => $v) {
@@ -598,7 +548,7 @@ class Couleur
   }
 
   private function setCIEC($val) {
-    [$ciel, $x, $cieh] = self::lab2lch(self::rgb2lab($this->values()));
+    [$ciel, $x, $cieh] = $this->valuesTo('lch');
     $temp = [];
     $props = self::propertiesOf('lch'); $props[] = 'a';
     foreach([$ciel, $val, $cieh, $this->a] as $k => $v) {
@@ -606,9 +556,10 @@ class Couleur
     }
     $this->setLch($temp);
   }
+  private function setCIEChroma($val) { $this->setCIEC($val); }
 
   private function setCIEH($val) {
-    [$ciel, $ciec, $x] = self::lab2lch(self::rgb2lab($this->values()));
+    [$ciel, $ciec, $x] = $this->valuesTo('lch');
     $temp = [];
     $props = self::propertiesOf('lch'); $props[] = 'a';
     foreach([$ciel, $ciec, $val, $this->a] as $k => $v) {
@@ -616,282 +567,149 @@ class Couleur
     }
     $this->setLch($temp);
   }
+  private function setCIEHue($val) { $this->setCIEH($val); }
 
-  public function h() { return self::rgb2hsl($this->values())[0]; }
+  /** Gets the parsed value of one of the color properties. */
+  public function red() { return $this->r; }
+  public function green() { return $this->g; }
+  public function blue() { return $this->b; }
+  public function alpha() { return $this->a; }
+  public function opacity() { return $this->a; }
+  public function h() { $this->valuesTo('hsl')[0]; }
+  public function hue() { return $this->h(); }
+  public function s() { return $this->valuesTo('hsl')[1]; }
+  public function saturation() { return $this->s(); }
+  public function l() { return $this->valuesTo('hsl')[2]; }
+  public function lightness() { return $this->l(); }
+  public function w() { return $this->valuesTo('hwb')[1]; }
+  public function whiteness() { return $this->w(); }
+  public function bk() { return $this->valuesTo('hwb')[2]; }
+  public function blackness() { return $this->bk(); }
+  public function ciel() { return $this->valuesTo('lab')[0]; }
+  public function CIElightness() { $this->ciel(); }
+  public function ciea() { return $this->valuesTo('lab')[1]; }
+  public function cieb() { return $this->valuesTo('lab')[2]; }
+  public function ciec() { return $this->valuesTo('lch')[1]; }
+  public function CIEchroma() { return $this->ciec(); }
+  public function cieh() { return $this->valuesTo('lch')[2]; }
+  public function CIEhue() { return $this->cieh(); }
 
-  public function s() { return self::rgb2hsl($this->values())[1]; }
-
-  public function l() { return self::rgb2hsl($this->values())[2]; }
-
-  public function w() { return self::hsl2hwb(self::rgb2hsl($this->values()))[1]; }
-
-  public function bk() { return self::hsl2hwb(self::rgb2hsl($this->values()))[2]; }
-
-  public function ciel() { return self::rgb2lab($this->values())[0]; }
-
-  public function ciea() { return self::rgb2lab($this->values())[1]; }
-
-  public function cieb() { return self::rgb2lab($this->values())[2]; }
-
-  public function ciec() { return self::lab2lch(self::rgb2lab($this->values()))[1]; }
-
-  public function cieh() { return self::lab2lch(self::rgb2lab($this->values()))[2]; }
-
-  /** Luminance of the color. */
-  // (source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
   public function luminance() {
     if ($this->a < 1) throw new Exception('The luminance of a transparent color would be meaningless');
-    $rgb = self::gamRGB_linRGB($this->values());
-    return 0.2126 * $rgb[0] + 0.7152 * $rgb[1] + 0.0722 * $rgb[2];
+    return Utils::luminance($this->values());
   }
 
 
 
-  /************************************/
-  /* Conversion between color formats */
-  /************************************/
+  /***********************************/
+  /* Conversion between color spaces */
+  /***********************************/
 
 
-  /* Utility functions for conversion */
-  // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
-  //                   & https://drafts.csswg.org/css-color-4/utilities.js
-  //                   & https://drafts.csswg.org/css-color-4/conversions.js
+  /** Converts the color values from one color space to another. */
+  public static function convert($startSpace, $endSpace, $values) {
+    if ($startSpace === $endSpace) return $values;
 
-  private static function gamRGB_linRGB($rgb) {
-    return array_map(function($x) {
-      $sign = $x < 0 ? -1 : 1;
-      return (abs($x) < 0.04045) ? $x / 12.92 : $sign * pow((abs($x) + 0.055) / 1.055, 2.4);
-    }, $rgb);
+    // Find the shortest sequence of functions to convert between color spaces
+    $graph = array_map(fn($s) => (object)['id' => $s['id'], 'links' => $s['functionsTo'], 'visited' => false, 'predecessorID' => null], self::COLOR_SPACES);
+    try { $path = Utils::findShortestPath($graph, $startSpace, $endSpace); }
+    catch (Exception $error) {
+      switch ($error) {
+        case 'No path found': throw new Exception("Conversion from $startSpace space to $endSpace space is impossible");
+        case 'start does not exist': throw new Exception("$startSpace is not a supported color space");
+        case 'end does not exist': throw new Exception("$endSpace is not a supported color space");
+        default: throw new Exception($error);
+      }
+    }
+
+    // Apply these functions to the color values.
+    $result = $values;
+    while (count($path) > 1) {
+      $start = array_shift($path);
+      $end = $path[0];
+      $functionName = str_replace('-', '', "${start}_to_${end}");
+      $result = Utils::{$functionName}($result);
+    }
+
+    return $result;
   }
 
-  private static function linRGB_gamRGB($rgb) {
-    return array_map(function($x) {
-      $sign = $x < 0 ? -1 : 1;
-      return (abs($x) > 0.0031308) ? $sign * (1.055 * pow(abs($x), 1 / 2.4) - 0.055) : 12.92 * $x;
-    }, $rgb);
+
+  /** Converts the r, g, b values of the color to another color space or CSS format. */
+  public function valuesTo($space, $options = null) {
+    if ($options === null) $options = new stdClass();
+    $clamp = $options->clamp ?? false;
+    if ($clamp) {
+      $S = self::getSpace($space);
+      $values = self::toGamut($S->id, $values);
+    }
+    return $values;
   }
 
-  private static function linRGB_d65XYZ($rgb) {
-    [$r, $g, $b] = $rgb;
-    return [
-      0.41239079926595934 * $r + 0.357584339383878 * $g + 0.1804807884018343 * $b,
-      0.21263900587151027 * $r + 0.715168678767756 * $g + 0.07219231536073371 * $b,
-      0.01933081871559182 * $r + 0.11919477979462598 * $g + 0.9505321522496607 * $b
-    ];
-  }
 
-  private static function d65XYZ_linRGB($xyz) {
-    [$x, $y, $z] = $xyz;
-    return [
-      3.2409699419045226 * $x - 1.537383177570094 * $y - 0.4986107602930034 * $z,
-      -0.9692436362808796 * $x + 1.8759675015077202 * $y + 0.04155505740717559 * $z,
-      0.05563007969699366 * $x - 0.20397695888897652 * $y + 1.0569715142428786 * $z
-    ];
-  }
+  /* Clamping to a color space */
 
-  private static function d65XYZ_d50XYZ($xyz) {
-    [$x, $y, $z] = $xyz;
-    return [
-      1.0479298208405488 * $x + 0.022946793341019088 * $y - 0.05019222954313557 * $z,
-      0.029627815688159344 * $x + 0.990434484573249 * $y - 0.01707382502938514 * $z,
-      -0.009243058152591178 * $x + 0.015055144896577895 * $y + 0.7518742899580008 * $z
-    ];
-  }
 
-  private static function d50XYZ_d65XYZ($xyz) {
-    [$x, $y, $z] = $xyz;
-    return [
-      0.9554734527042182 * $x - 0.023098536874261423 * $y + 0.0632593086610217 * $z,
-      -0.028369706963208136 * $x + 1.0099954580058226 * $y + 0.021041398966943008 * $z,
-      0.012314001688319899 * $x - 0.020507696433477912 * $y + 1.3303659366080753 * $z
-    ];
-  }
+  /** Checks whether parsed values in valueSpace color space correspond to a color in the spaceID color space. */
+  public static function inGamut($spaceID, $values, $valueSpace = 'srgb', $options = null) {
+    if ($options === null) $options = new stdClass();
+    $tolerance = $options->tolerance ?? .0001;
 
-  private static function d50XYZ_LAB($xyz) {
-    $ε = 216/24389;
-    $κ = 24389/27;
-    $w = [0.96422, 1, 0.82521];
-
-    $x = $xyz[0] / $w[0];
-    $y = $xyz[1] / $w[1];
-    $z = $xyz[2] / $w[2];
-    
-    $f = function($x) use ($ε, $κ) { return ($x > $ε) ? pow($x, 1/3) : ($κ * $x + 16) / 116; };
-    $f0 = $f($x); $f1 = $f($y); $f2 = $f($z);
-    return [
-      (116 * $f1 - 16) / 100,
-      500 * ($f0 - $f1),
-      200 * ($f1 - $f2)
-    ];
-  }
-
-  private static function LAB_d50XYZ($lab) {
-    $ε = 216/24389;
-    $κ = 24389/27;
-    $w = [0.96422, 1, 0.82521];
-
-    [$ciel, $ciea, $cieb] = $lab;
-    $ciel = 100 * $ciel;
-    $f1 = ($ciel + 16) / 116;
-    $f0 = $ciea / 500 + $f1;
-    $f2 = $f1 - $cieb / 200;
-
-    $x = ($f0 ** 3 > $ε) ? $f0 ** 3 : (116 * $f0 - 16) / $κ;
-    $y = ($ciel > $κ * $ε) ? (($ciel + 16) / 116) ** 3 : $ciel / $κ;
-    $z = ($f2 ** 3 > $ε) ? $f2 ** 3 : (116 * $f2 - 16) / $κ;
-    return [$x * $w[0], $y * $w[1], $z * $w[2]];
-  }
-
-  /** Checks whether the given r, g and b values would make a color in sRGB space. */
-  private static function inSRGB($rgb) {
-    $ε = .00001;
-    foreach($rgb as $v) {
-      if ($v > (0 - $ε) && $v < (1 + $ε)) continue;
-      return false;
+    $space = self::getSpace($spaceID);
+    $convertedValues = self::convert($valueSpace, $space['id'], $values);
+    foreach($convertedValues as $k => $v) {
+      if ($v < ($space->gamut[$k][0] - $tolerance) || $v > $space->gamut[$k][1] + $tolerance) return false;
     }
     return true;
   }
 
-  /** Clamps parsed r, g and b values to sRGB space by clamping their chroma. */
-  private static function clampToSRGB($rgb) {
-    // Source of the math: https://css.land/lch/lch.js
-    if (self::inSRGB($rgb)) return $rgb;
-    $lch = self::lab2lch(self::rgb2lab($rgb));
 
-    $τ = .0001;
-    $Cmin = 0;
-    $Cmax = $lch[1];
-    $lch[1] = $lch[1] / 2;
+  /** Clamps parsed values in valueSpaceID color space to the spaceID color space. */
+  public static function toGamut($spaceID, $values, $valueSpaceID, $options = null) {
+    if ($options === null) $options = new stdClass();
+    $method = $options->method ?? 'chroma';
 
-    $condition = function($_lch) { return self::inSRGB(self::lab2rgb(self::lch2lab($_lch))); };
-    while ($Cmax - $Cmin > $τ) {
-      if ($condition($lch)) $Cmin = $lch[1];
-      else                  $Cmax = $lch[1];
-      $lch[1] = ($Cmin + $Cmax) / 2;
-    }
+    $space = self::getSpace($spaceID);
+    $valueSpace = self::getSpace($valueSpaceID);
+    if (self::inGamut($space['id'], $values, $valueSpace->id, (object)['tolerance' => 0])) return $values;
 
-    return self::lab2rgb(self::lch2lab($lch));
-  }
-
-
-  /* Actual conversion functions */
-
-
-  private static function rgb2hsl($rgb) {
-    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
-    [$r, $g, $b] = $rgb;
-    
-    $max = max($r, $g, $b);
-    $min = min($r, $g, $b);
-    $chroma = $max - $min;
-    
-    $l = ($max + $min) / 2;
-    
-    if ($chroma === .0) $h = .0;
-    else {
-      switch($max) {
-        case $r: $h = ($g - $b) / $chroma; break;
-        case $g: $h = ($b - $r) / $chroma + 2; break;
-        case $b: $h = ($r - $g) / $chroma + 4; break;
+    // Naively clamp the values
+    if ($method === 'naive') {
+      $clampSpaceID = $space['id'];
+      $convertedValues = self::convert($valueSpace->id, $clampSpaceID, $values);
+      $clampedValues = [];
+      foreach($convertedValues as $k => $v) {
+        $clampedValues[] = max($space->gamut[$k][0], min($v, $space->gamut[$k][1]));
       }
-      $h = 60.0 * $h;
-      if ($h < .0) $h += 360.0;
     }
 
-    if ($l === .0 || $l === 1.0) $s = .0;
-    elseif ($l <= 0.5)           $s = $chroma / (2.0 * $l);
-    else                         $s = $chroma / (2.0 - 2.0 * $l);
-    
-    return [$h, $s, $l];
-  }
+    // Let's reduce the chroma until the color is in the color space
+    else {
+      $clampSpaceID = 'lch';
+      $lch = self::convert($valueSpace->id, 'lch', $values);
 
+      $τ = .01;
+      $Cmin = 0;
+      $Cmax = $lch[1];
+      $lch[1] = $lch[1] / 2;
 
-  private static function hsl2rgb($hsl) {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
-    [$h, $s, $l] = $hsl;
+      while($Cmax - $Cmin > $τ) {
+        $naive = self::toGamut($space['id'], $lch, 'lch', (object)['method' => 'naive']);
 
-    $m = $s * min($l, 1.0 - $l);
+        // If the color is close to the color space border
+        if (self::distance($naive, $lch, (object)['method' => 'CIEDE2000']) < 2 + $τ)
+          $Cmin = $lch[1];
+        else
+          $Cmax = $lch[1];
+        $lch[1] = ($Cmin + $Cmax) / 2;
+      }
 
-    $rgb = [0, 8, 4];
-    for ($i = 0; $i <= 2; $i++) {
-      $k = fmod($rgb[$i] + $h / 30, 12);
-      $rgb[$i] = $l - $m * max(min($k - 3, 9 - $k, 1), -1);
+      // Final naive clamp to get in the color space if the color is still just outside the border
+      $clampedValues = self::toGamut($space['id'], $lch, 'lch', (object)['method' => 'naive']);
     }
 
-    return $rgb;
-  }
-
-
-  private static function hsl2hwb($hsl) {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
-    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
-    [$h, $s, $l] = $hsl;
-
-    $v = $l + $s * min($l, 1.0 - $l);
-    if ($v === .0) $_s = .0;
-    else           $_s = 2.0 - 2.0 * $l / $v;
-
-    $w = (1.0 - $_s) * $v;
-    $bk = 1.0 - $v;
-
-    return [$h, $w, $bk];
-  }
-
-
-  private static function hwb2hsl($hwb) {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
-    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
-    [$h, $w, $bk] = $hwb;
-
-    $_w = $w; $_bk = $bk;
-    if ($w + $bk > 1.0) {
-      $_w = $w / ($w + $bk);
-      $_bk = $bk / ($w + $bk);
-    }
-
-    $v = 1.0 - $_bk;
-    if ($_bk === 1.0) $_s = .0;
-    else              $_s = 1.0 - $_w / $v;
-
-    $l = $v - $v * $_s / 2;
-    if ($l === .0 || $l === 1.0) $s = .0;
-    else                         $s = ($v - $l) / min($l, 1.0 - $l);
-
-    return [$h, $s, $l];
-  }
-
-
-  private static function rgb2lab($rgb) {
-    // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
-    //                   & https://drafts.csswg.org/css-color-4/utilities.js
-    //                   & https://drafts.csswg.org/css-color-4/conversions.js
-    return self::d50XYZ_LAB(self::d65XYZ_d50XYZ(self::linRGB_d65XYZ(self::gamRGB_linRGB($rgb))));
-  }
-
-
-  private static function lab2rgb($lab) {
-    // Source of the math: https://css.land/lch/lch.js
-    //                   & https://drafts.csswg.org/css-color-4/utilities.js
-    //                   & https://drafts.csswg.org/css-color-4/conversions.js
-    return self::linRGB_gamRGB(self::d65XYZ_linRGB(self::d50XYZ_d65XYZ(self::LAB_d50XYZ($lab))));
-  }
-
-
-  private static function lab2lch($lab) {
-    [$ciel, $ciea, $cieb] = $lab;
-    $ciec = sqrt($ciea ** 2 + $cieb ** 2);
-    $cieh = self::parse(atan2($cieb, $ciea) * 180 / pi(), 'cieh');
-
-    return [$ciel, $ciec, $cieh];
-  }
-
-
-  private static function lch2lab($lch) {
-    [$ciel, $ciec, $cieh] = $lch;
-    $ciea = $ciec * cos($cieh * pi() / 180);
-    $cieb = $ciec * sin($cieh * pi() / 180);
-
-    return [$ciel, $ciea, $cieb];
+    // Send the values back in the same color space we found them in
+    return self::convert($clampSpaceID, $valueSpace->id, $clampedValues);
   }
 
 
@@ -907,15 +725,13 @@ class Couleur
   /** Modifies a color by changing a specific property. */
   public function change($propriete, $valeur, $options = null) {
     if ($options === null) $options = new stdClass();
-    $replace = ($options === true) ? true : (isset($options->replace) ? $options->replace : false);
-    $scale = isset($options->scale) ? $options->scale : false;
-    $val = $scale ? self::parse($valeur) : self::parse($valeur, $propriete, false);
-    $changedColor = new self($this->rgb());
+    $action = $options->action ?? null;
+    $replace = $action === 'replace';
+    $scale = $action === 'scale';
+    $val = $scale ? self::parse($valeur) : self::parse($valeur, $propriete, (object)['clamp' => false]);
+    $changedColor = new self($this);
 
-    switch ($propriete) {
-      case 'r': case 'g': case 'b': case 'a': $oldVal = $this->{$propriete}; break;
-      default:                                $oldVal = $this->{$propriete}();
-    }
+    $oldVal = $this->{$propriete}();
     $newVal = $replace ? $val : ($scale ? $oldVal * $val : $oldVal + $val);
     $methodName = "set" . strtoupper($propriete);
     $changedColor->{$methodName}($newVal);
@@ -924,18 +740,12 @@ class Couleur
 
   /** Modifies a color by replacing the value of a specific property. */
   public function replace($propriete, $valeur) {
-    $options = new stdClass();
-    $options->replace = true;
-    $options->scale = false;
-    return $this->change($propriete, $valeur, $options);
+    return $this->change($propriete, $valeur, (object)['action' => 'replace']);
   }
 
   /** Modifies a color by scaling the value of a specific property by a percentage. */
   public function scale($propriete, $valeur) {
-    $options = new stdClass();
-    $options->replace = false;
-    $options->scale = true;
-    return $this->change($propriete, $valeur, $options);
+    return $this->change($propriete, $valeur, (object)['action' => 'scale']);
   }
 
   /** The complementary color. */
@@ -1154,8 +964,8 @@ class Couleur
       $powBack = 0.55; $powText = 0.58;
       $SAPC = $compute($Lback, $Ltext, $powBack, $powText);
       $result = ($SAPC < $lowClip) ? 0
-              : ($SAPC < $lowTrigger) ? $SAPC * (1 - $lowOffset * $invLowTrigger)
-              : $SAPC - $lowOffset;
+              : (($SAPC < $lowTrigger) ? $SAPC * (1 - $lowOffset * $invLowTrigger)
+              : $SAPC - $lowOffset);
     }
 
     // for light text on dark background
@@ -1163,8 +973,8 @@ class Couleur
       $powBack = 0.62; $powText = 0.57;
       $SAPC = $compute($Lback, $Ltext, $powBack, $powText);
       $result = ($SAPC > -$lowClip) ? 0
-              : ($SAPC > -$lowTrigger) ? $SAPC * (1 - $lowOffset * $invLowTrigger)
-              : $SAPC + $lowOffset;
+              : (($SAPC > -$lowTrigger) ? $SAPC * (1 - $lowOffset * $invLowTrigger)
+              : $SAPC + $lowOffset);
     }
 
     return $result * 100;
@@ -1370,82 +1180,149 @@ class Couleur
   /** Whether colors should be clamped to sRGB space. */
   public const MUST_CLAMP_TO_SRGB = true;
 
+  public const COLOR_SPACES = array(
+    array(
+      'id' =>'srgb',
+      'whitepoint' =>'d65',
+      'CSSformat' =>'rgb',
+      'gamut' =>[ [0, 1], [0, 1], [0, 1] ],
+      'functionsTo' =>['lin_srgb', 'hsl']
+    ), array(
+      'id' => 'lin_srgb',
+      'functionsTo' => ['srgb', 'd65xyz']
+    ), array(
+      'id' => 'hsl',
+      'whitepoint' => 'd65',
+      'CSSformat' => 'hsl',
+      'gamut' => [ [0, 360], [0, 1], [0, 1] ],
+      'functionsTo' => ['srgb', 'hwb']
+    ), array(
+      'id' => 'hwb',
+      'whitepoint' => 'd65',
+      'CSSformat' => 'hwb',
+      'gamut' => [ [0, 360], [0, 1], [0, 1] ],
+      'functionsTo' => ['hsl']
+    ), array(
+      'id' => 'lab',
+      'whitepoint' => 'd50',
+      'CSSformat' => 'lab',
+      'gamut' => [ [0, 4], [-INF, INF], [-INF, INF] ],
+      'functionsTo' => ['xyz', 'lch']
+    ), array(
+      'id' => 'lch',
+      'whitepoint' => 'd50',
+      'CSSformat' => 'lch',
+      'gamut' => [ [0, 4], [0, +INF], [0, 360] ],
+      'functionsTo' => ['lab']
+    ), array(
+      'id' => 'xyz',
+      'whitepoint' => 'd50',
+      'CSSformat' => 'color',
+      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
+      'functionsTo' => ['lab', 'd65xyz', 'lin_prophoto-rgb']
+    ), array(
+      'id' => 'd65xyz',
+      'whitepoint' => 'd65',
+      'functionsTo' => ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020']
+    ), array(
+      'id' => 'display-p3',
+      'whitepoint' => 'd65',
+      'CSSformat' => 'color',
+      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
+      'functionsTo' => ['lin_display-p3']
+    ), array(
+      'id' => 'lin_display-p3',
+      'functionsTo' => ['display-p3', 'd65xyz']
+    ), array(
+      'id' => 'a98-rgb',
+      'whitepoint' => 'd65',
+      'CSSformat' => 'color',
+      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
+      'functionsTo' => ['lin_a98-rgb']
+    ), array(
+      'id' => 'lin_a98-rgb',
+      'functionsTo' => ['a98-rgb', 'd65xyz']
+    ), array(
+      'id' => 'prophoto-rgb',
+      'whitepoint' => 'd50',
+      'CSSformat' => 'color',
+      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
+      'functionsTo' => ['lin_prophoto-rgb']
+    ), array(
+      'id' => 'lin_prophoto-rgb',
+      'functionsTo' => ['prophoto-rgb', 'xyz']
+    ), array(
+      'id' => 'rec2020',
+      'whitepoint' => 'd65',
+      'CSSformat' => 'color',
+      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
+      'functionsTo' => ['lin_rec2020']
+    ), array(
+      'id' => 'lin_rec2020',
+      'functionsTo' => ['rec2020', 'd65xyz']
+    )
+  );
+
   /** Array of supported syntaxes. */
   private const FORMATS = array(
     array(
-      'id' => 'HEX',
+      'id' => 'hex',
       'syntaxes' => array(
         // #abc or #ABC
         '/^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/',
-        // #aabbcc or #AABBCC
-        '/^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/'
-      )
-    ), array(
-      'id' => 'HEXA',
-      'syntaxes' => array(
         // #abcd or #ABCD
         '/^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/',
+        // #aabbcc or #AABBCC
+        '/^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/',
         // #aabbccdd or #AABBCCDD
         '/^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/'
       )
     ), array(
-      'id' => 'RGB',
+      'id' => 'rgb',
       'syntaxes' => array(
-        // rgb(255, 255, 255) or rgb(255,255,255)
+        // rgb(255, 255, 255) (spaces not required)
         '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.')\\)$/',
-        // rgb(100%, 100%, 100%) or rgb(100%,100%,100%)
+        // rgba(255, 255, 255, .5) or rgba(255, 255, 255, 50%) (spaces not required)
+        '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNP.')\\)$/',
+        // rgb(100%, 100%, 100%) (spaces not required)
         '/^rgba?\\(('.self::vPer.'), ?('.self::vPer.'), ?('.self::vPer.')\\)$/',
+        // rgba(100%, 100%, 100%, .5) or rgba(100%, 100%, 100%, 50%) (spaces not required)
+        '/^rgba?\\(('.self::vPer.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
         // rgb(255 255 255)
         '/^rgba?\\(('.self::vNum.') ('.self::vNum.') ('.self::vNum.')\\)$/',
-        // rgb(100% 100% 100%)
-        '/^rgba?\\(('.self::vPer.') ('.self::vPer.') ('.self::vPer.')\\)$/'
-      )
-    ), array(
-      'id' => 'RGBA',
-      'syntaxes' => array(
-        // rgba(255, 255, 255, .5) or rgba(255, 255, 255, 50%) (espaces optionnels)
-        '/^rgba?\\(('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNum.'), ?('.self::vNP.')\\)$/',
-        // rgba(100%, 100%, 100%, .5) or rgba(100%, 100%, 100%, 50%) (espaces optionnels)
-        '/^rgba?\\(('.self::vPer.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
         // rgba(255 255 255 / 50%) or rgba(255 255 255 / .5)
         '/^rgba?\\(('.self::vNum.') ('.self::vNum.') ('.self::vNum.') ?\\/ ?('.self::vNP.')\\)$/',
+        // rgb(100% 100% 100%)
+        '/^rgba?\\(('.self::vPer.') ('.self::vPer.') ('.self::vPer.')\\)$/',
         // rgba(100% 100% 100% / 50%) or rgba(100% 100% 100% / .5)
         '/^rgba?\\(('.self::vPer.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
-      'id' => 'HSL',
+      'id' => 'hsl',
       'syntaxes' => array(
         // hsl(<angle>, 100%, 100%)
         '/^hsla?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.')\\)$/',
-        // hsl(<angle> 100% 100%)
-        '/^hsla?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.')\\)$/'
-      )
-    ), array(
-      'id' => 'HSLA',
-      'syntaxes' => array(
         // hsla(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
         '/^hsla?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
+        // hsl(<angle> 100% 100%)
+        '/^hsla?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.')\\)$/',
         // hsla(<angle> 100% 100% / .5) or hsl(<angle> 100% 100% / 50%)
         '/^hsla?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
-      'id' => 'HWB',
+      'id' => 'hwb',
       'syntaxes' => array(
         // hwb(<angle>, 100%, 100%)
         '/^hwba?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.')\\)$/',
-        // hwb(<angle> 100% 100%)
-        '/^hwba?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.')\\)$/'
-      )
-    ), array(
-      'id' => 'HWBA',
-      'syntaxes' => array(
         // hwba(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
         '/^hwba?\\(('.self::vAng.'), ?('.self::vPer.'), ?('.self::vPer.'), ?('.self::vNP.')\\)$/',
+        // hwb(<angle> 100% 100%)
+        '/^hwba?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.')\\)$/',
         // hwba(<angle> 100% 100% / .5) or hsl(<angle> 100% 100% / 50%)
         '/^hwba?\\(('.self::vAng.') ('.self::vPer.') ('.self::vPer.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
-      'id' => 'LAB',
+      'id' => 'lab',
       'syntaxes' => array(
         // lab(300% 25 40)
         '/^lab\\(('.self::vPer.') ('.self::vNum.') ('.self::vNum.')\\)$/',
@@ -1453,7 +1330,7 @@ class Couleur
         '/^lab\\(('.self::vPer.') ('.self::vNum.') ('.self::vNum.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
-      'id' => 'LCH',
+      'id' => 'lch',
       'syntaxes' => array(
         // lch(300% 25 <angle>)
         '/^lch\\(('.self::vPer.') ('.self::vNum.') ('.self::vAng.')\\)$/',
@@ -1461,7 +1338,15 @@ class Couleur
         '/^lch\\(('.self::vPer.') ('.self::vNum.') ('.self::vAng.') ?\\/ ?('.self::vNP.')\\)$/'
       )
     ), array(
-      'id' => 'NAME',
+      'id' => 'color',
+      'syntaxes' => array(
+        // color(display-p3 -0.6112 1.0079 -0.2192)
+        '/^color\\(([a-zA-Z0-9_-]+?) ('.self::vNum.') ('.self::vNum.') ('.self::vNum.')\\)$/',
+        // color(display-p3 -0.6112 1.0079 -0.2192 / .5)
+        '/^color\\(([a-zA-Z0-9_-]+?) ('.self::vNum.') ('.self::vNum.') ('.self::vNum.') ?\\/ ?('.self::vNP.')\\)$/'
+      )
+    ), array(
+      'id' => 'name',
       'syntaxes' => array(
         // white or WHITE or WhiTe
         '/^[A-Za-z]+$/'
@@ -1477,4 +1362,351 @@ class Couleur
 
   /** List of named colors in CSS. */
   public const COULEURS_NOMMEES = array('transparent' => '00000000', 'aliceblue' => 'f0f8ff', 'antiquewhite' => 'faebd7', 'aqua' => '00ffff', 'aquamarine' => '7fffd4', 'azure' => 'f0ffff', 'beige' => 'f5f5dc', 'bisque' => 'ffe4c4', 'black' => '000000', 'blanchedalmond' => 'ffebcd', 'blue' => '0000ff', 'blueviolet' => '8a2be2', 'brown' => 'a52a2a', 'burlywood' => 'deb887', 'cadetblue' => '5f9ea0', 'chartreuse' => '7fff00', 'chocolate' => 'd2691e', 'coral' => 'ff7f50', 'cornflowerblue' => '6495ed', 'cornsilk' => 'fff8dc', 'crimson' => 'dc143c', 'cyan' => '00ffff', 'darkblue' => '00008b', 'darkcyan' => '008b8b', 'darkgoldenrod' => 'b8860b', 'darkgray' => 'a9a9a9', 'darkgrey' => 'a9a9a9', 'darkgreen' => '006400', 'darkkhaki' => 'bdb76b', 'darkmagenta' => '8b008b', 'darkolivegreen' => '556b2f', 'darkorange' => 'ff8c00', 'darkorchid' => '9932cc', 'darkred' => '8b0000', 'darksalmon' => 'e9967a', 'darkseagreen' => '8fbc8f', 'darkslateblue' => '483d8b', 'darkslategray' => '2f4f4f', 'darkslategrey' => '2f4f4f', 'darkturquoise' => '00ced1', 'darkviolet' => '9400d3', 'deeppink' => 'ff1493', 'deepskyblue' => '00bfff', 'dimgray' => '696969', 'dimgrey' => '696969', 'dodgerblue' => '1e90ff', 'firebrick' => 'b22222', 'floralwhite' => 'fffaf0', 'forestgreen' => '228b22', 'fuchsia' => 'ff00ff', 'gainsboro' => 'dcdcdc', 'ghostwhite' => 'f8f8ff', 'gold' => 'ffd700', 'goldenrod' => 'daa520', 'gray' => '808080', 'grey' => '808080', 'green' => '008000', 'greenyellow' => 'adff2f', 'honeydew' => 'f0fff0', 'hotpink' => 'ff69b4', 'indianred' => 'cd5c5c', 'indigo' => '4b0082', 'ivory' => 'fffff0', 'khaki' => 'f0e68c', 'lavender' => 'e6e6fa', 'lavenderblush' => 'fff0f5', 'lawngreen' => '7cfc00', 'lemonchiffon' => 'fffacd', 'lightblue' => 'add8e6', 'lightcoral' => 'f08080', 'lightcyan' => 'e0ffff', 'lightgoldenrodyellow' => 'fafad2', 'lightgray' => 'd3d3d3', 'lightgrey' => 'd3d3d3', 'lightgreen' => '90ee90', 'lightpink' => 'ffb6c1', 'lightsalmon' => 'ffa07a', 'lightseagreen' => '20b2aa', 'lightskyblue' => '87cefa', 'lightslategray' => '778899', 'lightslategrey' => '778899', 'lightsteelblue' => 'b0c4de', 'lightyellow' => 'ffffe0', 'lime' => '00ff00', 'limegreen' => '32cd32', 'linen' => 'faf0e6', 'magenta' => 'ff00ff', 'maroon' => '800000', 'mediumaquamarine' => '66cdaa', 'mediumblue' => '0000cd', 'mediumorchid' => 'ba55d3', 'mediumpurple' => '9370d8', 'mediumseagreen' => '3cb371', 'mediumslateblue' => '7b68ee', 'mediumspringgreen' => '00fa9a', 'mediumturquoise' => '48d1cc', 'mediumvioletred' => 'c71585', 'midnightblue' => '191970', 'mintcream' => 'f5fffa', 'mistyrose' => 'ffe4e1', 'moccasin' => 'ffe4b5', 'navajowhite' => 'ffdead', 'navy' => '000080', 'oldlace' => 'fdf5e6', 'olive' => '808000', 'olivedrab' => '6b8e23', 'orange' => 'ffa500', 'orangered' => 'ff4500', 'orchid' => 'da70d6', 'palegoldenrod' => 'eee8aa', 'palegreen' => '98fb98', 'paleturquoise' => 'afeeee', 'palevioletred' => 'd87093', 'papayawhip' => 'ffefd5', 'peachpuff' => 'ffdab9', 'peru' => 'cd853f', 'pink' => 'ffc0cb', 'plum' => 'dda0dd', 'powderblue' => 'b0e0e6', 'purple' => '800080', 'rebeccapurple' => '663399', 'red' => 'ff0000', 'rosybrown' => 'bc8f8f', 'royalblue' => '4169e1', 'saddlebrown' => '8b4513', 'salmon' => 'fa8072', 'sandybrown' => 'f4a460', 'seagreen' => '2e8b57', 'seashell' => 'fff5ee', 'sienna' => 'a0522d', 'silver' => 'c0c0c0', 'skyblue' => '87ceeb', 'slateblue' => '6a5acd', 'slategray' => '708090', 'slategrey' => '708090', 'snow' => 'fffafa', 'springgreen' => '00ff7f', 'steelblue' => '4682b4', 'tan' => 'd2b48c', 'teal' => '008080', 'thistle' => 'd8bfd8', 'tomato' => 'ff6347', 'turquoise' => '40e0d0', 'violet' => 'ee82ee', 'wheat' => 'f5deb3', 'white' => 'ffffff', 'whitesmoke' => 'f5f5f5', 'yellow' => 'ffff00', 'yellowgreen' => '9acd32');  
+}
+
+class Utils {
+  public static function pad($s) {
+    return (strlen($s) < 2) ? '0' . $s : $s;
+  }
+
+  public static function angleToRange($h) {
+    while ($h < .0)    $h +- 360.0;
+    while ($h > 360.0) $h -= 360.0;
+    return (float) $h;
+  }
+
+  public static function pRound($_x, $n = 5) {
+    $x = (float) $_x;
+    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -$x) + 1) : 1;
+    $precision = (int) ($n - $intDigits);
+    return (float) round($x, $precision);
+  }
+
+
+
+  /***********************************/
+  /* Conversion between color spaces */
+  /***********************************/
+
+  /* srgb */
+
+  public static function srgb_to_lin_srgb($rgb) {
+    return array_map(function($x) {
+      $sign = $x < 0 ? -1 : 1;
+      return (abs($x) < 0.04045) ? $x / 12.92 : $sign * pow((abs($x) + 0.055) / 1.055, 2.4);
+    }, $rgb);
+  }
+
+  public static function lin_srgb_to_srgb($rgb) {
+    return array_map(function($x) {
+      $sign = $x < 0 ? -1 : 1;
+      return (abs($x) > 0.0031308) ? $sign * (1.055 * pow(abs($x), 1 / 2.4) - 0.055) : 12.92 * $x;
+    }, $rgb);
+  }
+
+  public static function lin_srgb_to_d65xyz($rgb) {
+    [$r, $g, $b] = $rgb;
+    return [
+      0.41239079926595934 * $r + 0.357584339383878 * $g + 0.1804807884018343 * $b,
+      0.21263900587151027 * $r + 0.715168678767756 * $g + 0.07219231536073371 * $b,
+      0.01933081871559182 * $r + 0.11919477979462598 * $g + 0.9505321522496607 * $b
+    ];
+  }
+
+  public static function d65xyz_to_lin_srgb($xyz) {
+    [$x, $y, $z] = $xyz;
+    return [
+      3.2409699419045226 * $x - 1.537383177570094 * $y - 0.4986107602930034 * $z,
+      -0.9692436362808796 * $x + 1.8759675015077202 * $y + 0.04155505740717559 * $z,
+      0.05563007969699366 * $x - 0.20397695888897652 * $y + 1.0569715142428786 * $z
+    ];
+  }
+
+  /* hsl */
+
+  public static function srgb_to_hsl($rgb) {
+    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
+    [$r, $g, $b] = $rgb;
+    
+    $max = max($r, $g, $b);
+    $min = min($r, $g, $b);
+    $chroma = $max - $min;
+    
+    $l = ($max + $min) / 2;
+    
+    if ($chroma === .0) $h = .0;
+    else {
+      switch($max) {
+        case $r: $h = ($g - $b) / $chroma; break;
+        case $g: $h = ($b - $r) / $chroma + 2; break;
+        case $b: $h = ($r - $g) / $chroma + 4; break;
+      }
+      $h = 60.0 * $h;
+      while ($h < .0)    $h += 360.0;
+      while ($h > 360.0) $h -= 360.0;
+
+    }
+
+    if ($l === .0 || $l === 1.0) $s = .0;
+    elseif ($l <= 0.5)           $s = $chroma / (2.0 * $l);
+    else                         $s = $chroma / (2.0 - 2.0 * $l);
+    
+    return [$h, $s, $l];
+  }
+
+  public static function hsl_to_srgb($hsl) {
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
+    [$h, $s, $l] = $hsl;
+
+    $m = $s * min($l, 1.0 - $l);
+
+    $rgb = [0, 8, 4];
+    for ($i = 0; $i <= 2; $i++) {
+      $k = fmod($rgb[$i] + $h / 30, 12);
+      $rgb[$i] = $l - $m * max(min($k - 3, 9 - $k, 1), -1);
+    }
+
+    return $rgb;
+  }
+
+  /* hwb */
+
+  public static function hsl_to_hwb($hsl) {
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
+    [$h, $s, $l] = $hsl;
+
+    $v = $l + $s * min($l, 1.0 - $l);
+    if ($v === .0) $_s = .0;
+    else           $_s = 2.0 - 2.0 * $l / $v;
+
+    $w = (1.0 - $_s) * $v;
+    $bk = 1.0 - $v;
+
+    return [$h, $w, $bk];
+  }
+
+
+  public static function hwb_to_hsl($hwb) {
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
+    [$h, $w, $bk] = $hwb;
+
+    $_w = $w; $_bk = $bk;
+    if ($w + $bk > 1.0) {
+      $_w = $w / ($w + $bk);
+      $_bk = $bk / ($w + $bk);
+    }
+
+    $v = 1.0 - $_bk;
+    if ($_bk === 1.0) $_s = .0;
+    else              $_s = 1.0 - $_w / $v;
+
+    $l = $v - $v * $_s / 2;
+    if ($l === .0 || $l === 1.0) $s = .0;
+    else                         $s = ($v - $l) / min($l, 1.0 - $l);
+
+    return [$h, $s, $l];
+  }
+
+  /* display-p3 */
+
+  public static function displayp3_to_lin_displayp3($rgb) { return self::srgb_to_lin_srgb($rgb); }
+  public static function lin_displayp3_to_displayp3($rgb) { return self::lin_srgb_to_srgb($rgb); }
+
+  public static function lin_displayp3_to_d65xyz($rgb) {
+    [$r, $g, $b] = $rgb;
+    return [
+      0.4865709486482162 * $r + 0.26566769316909306 * $g + 0.1982172852343625 * $b,
+		  0.2289745640697488 * $r + 0.6917385218365064 * $g + 0.079286914093745 * $b,
+		  0.0000000000000000 * $r + 0.04511338185890264 * $g + 1.043944368900976 * $b
+    ];
+  }
+
+  public static function d65xyz_to_lin_displayp3($xyz) {
+    [$x, $y, $z] = $xyz;
+    return [
+      2.493496911941425 * $x + -0.9313836179191239 * $y + -0.40271078445071684 * $z,
+		  -0.8294889695615747 * $x + 1.7626640603183463 * $y +  0.023624685841943577 * $z,
+		  0.03584583024378447 * $x + -0.07617238926804182 * $y + 0.9568845240076872 * $z
+    ];
+  }
+
+  /* prophoto-rgb */
+
+  public static function prophotorgb_to_lin_prophotorgb($rgb) {
+    foreach($rgb as $k => $v) {
+      $sign = $v < 0 ? -1 : 1;
+      $rgb[$k] = abs($v) <= 16/512 ? $v / 16 : $sign * $v**1.8;
+    }
+    return $rgb;
+  }
+
+  public static function lin_prophotorgb_to_prophotorgb($rgb) {
+    foreach($rgb as $k => $v) {
+      $sign = $v < 0 ? -1 : 1;
+      $rgb[$k] = abs($v) >= 1/512 ? $sign * abs($v)**(1/1.8) : 16 * $v;
+    }
+    return $rgb;
+  }
+
+  public static function lin_prophotorgb_to_xyz($rgb) {
+    [$r, $g, $b] = $rgb;
+    return [
+      0.7977604896723027 * $r + 0.13518583717574031 * $g + 0.0313493495815248 * $b,
+      0.2880711282292934 * $r + 0.7118432178101014 * $g + 0.00008565396060525902 * $b,
+      0.0 * $r + 0.0 * $g + 0.8251046025104601 * $b
+    ];
+  }
+
+  public static function xyz_to_lin_prophotorgb($xyz) {
+    [$x, $y, $z] = $xyz;
+    return [
+      1.3457989731028281 * $x + -0.25558010007997534 * $y + -0.05110628506753401 * $z,
+	  	-0.5446224939028347 * $x + 1.5082327413132781 * $y + 0.02053603239147973 * $z,
+	  	0.0 * $x + 0.0 * $y + 1.2119675456389454 * $z
+    ];
+  }
+
+  /* a98-rgb */
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  public static function d65XYZ_d50XYZ($xyz) {
+    [$x, $y, $z] = $xyz;
+    return [
+      1.0479298208405488 * $x + 0.022946793341019088 * $y - 0.05019222954313557 * $z,
+      0.029627815688159344 * $x + 0.990434484573249 * $y - 0.01707382502938514 * $z,
+      -0.009243058152591178 * $x + 0.015055144896577895 * $y + 0.7518742899580008 * $z
+    ];
+  }
+
+  public static function d50XYZ_d65XYZ($xyz) {
+    [$x, $y, $z] = $xyz;
+    return [
+      0.9554734527042182 * $x - 0.023098536874261423 * $y + 0.0632593086610217 * $z,
+      -0.028369706963208136 * $x + 1.0099954580058226 * $y + 0.021041398966943008 * $z,
+      0.012314001688319899 * $x - 0.020507696433477912 * $y + 1.3303659366080753 * $z
+    ];
+  }
+
+  public static function d50XYZ_LAB($xyz) {
+    $ε = 216/24389;
+    $κ = 24389/27;
+    $w = [0.96422, 1, 0.82521];
+
+    $x = $xyz[0] / $w[0];
+    $y = $xyz[1] / $w[1];
+    $z = $xyz[2] / $w[2];
+    
+    $f = function($x) use ($ε, $κ) { return ($x > $ε) ? pow($x, 1/3) : ($κ * $x + 16) / 116; };
+    $f0 = $f($x); $f1 = $f($y); $f2 = $f($z);
+    return [
+      (116 * $f1 - 16) / 100,
+      500 * ($f0 - $f1),
+      200 * ($f1 - $f2)
+    ];
+  }
+
+  public static function LAB_d50XYZ($lab) {
+    $ε = 216/24389;
+    $κ = 24389/27;
+    $w = [0.96422, 1, 0.82521];
+
+    [$ciel, $ciea, $cieb] = $lab;
+    $ciel = 100 * $ciel;
+    $f1 = ($ciel + 16) / 116;
+    $f0 = $ciea / 500 + $f1;
+    $f2 = $f1 - $cieb / 200;
+
+    $x = ($f0 ** 3 > $ε) ? $f0 ** 3 : (116 * $f0 - 16) / $κ;
+    $y = ($ciel > $κ * $ε) ? (($ciel + 16) / 116) ** 3 : $ciel / $κ;
+    $z = ($f2 ** 3 > $ε) ? $f2 ** 3 : (116 * $f2 - 16) / $κ;
+    return [$x * $w[0], $y * $w[1], $z * $w[2]];
+  }
+
+  /** Checks whether the given r, g and b values would make a color in sRGB space. */
+  public static function inSRGB($rgb) {
+    $ε = .00001;
+    foreach($rgb as $v) {
+      if ($v > (0 - $ε) && $v < (1 + $ε)) continue;
+      return false;
+    }
+    return true;
+  }
+
+  /** Clamps parsed r, g and b values to sRGB space by clamping their chroma. */
+  public static function clampToSRGB($rgb) {
+    // Source of the math: https://css.land/lch/lch.js
+    if (self::inSRGB($rgb)) return $rgb;
+    $lch = self::lab2lch(self::rgb2lab($rgb));
+
+    $τ = .0001;
+    $Cmin = 0;
+    $Cmax = $lch[1];
+    $lch[1] = $lch[1] / 2;
+
+    $condition = function($_lch) { return self::inSRGB(self::lab2rgb(self::lch2lab($_lch))); };
+    while ($Cmax - $Cmin > $τ) {
+      if ($condition($lch)) $Cmin = $lch[1];
+      else                  $Cmax = $lch[1];
+      $lch[1] = ($Cmin + $Cmax) / 2;
+    }
+
+    return self::lab2rgb(self::lch2lab($lch));
+  }
+
+
+  /* Actual conversion functions */
+
+
+  
+
+
+  
+
+
+  public static function rgb2lab($rgb) {
+    // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
+    //                   & https://drafts.csswg.org/css-color-4/utilities.js
+    //                   & https://drafts.csswg.org/css-color-4/conversions.js
+    return self::d50XYZ_LAB(self::d65XYZ_d50XYZ(self::linRGB_d65XYZ(self::gamRGB_linRGB($rgb))));
+  }
+
+
+  public static function lab2rgb($lab) {
+    // Source of the math: https://css.land/lch/lch.js
+    //                   & https://drafts.csswg.org/css-color-4/utilities.js
+    //                   & https://drafts.csswg.org/css-color-4/conversions.js
+    return self::linRGB_gamRGB(self::d65XYZ_linRGB(self::d50XYZ_d65XYZ(self::LAB_d50XYZ($lab))));
+  }
+
+
+  public static function lab2lch($lab) {
+    [$ciel, $ciea, $cieb] = $lab;
+    $ciec = sqrt($ciea ** 2 + $cieb ** 2);
+    $cieh = self::parse(atan2($cieb, $ciea) * 180 / pi(), 'cieh');
+
+    return [$ciel, $ciec, $cieh];
+  }
+
+
+  public static function lch2lab($lch) {
+    [$ciel, $ciec, $cieh] = $lch;
+    $ciea = $ciec * cos($cieh * pi() / 180);
+    $cieb = $ciec * sin($cieh * pi() / 180);
+
+    return [$ciel, $ciea, $cieb];
+  }
 }
