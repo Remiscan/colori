@@ -1345,9 +1345,9 @@ class Utils {
     return (strlen($s) < 2) ? '0' . $s : $s;
   }
 
-  public static function angleToRange(float|int $angle): float {
-    while ($angle < .0)    $angle +- 360.0;
-    while ($angle > 360.0) $angle -= 360.0;
+  public static function angleToRange(float $angle): float {
+    while ($angle < 0)   $angle += 360;
+    while ($angle > 360) $angle -= 360;
     return (float) $angle;
   }
 
