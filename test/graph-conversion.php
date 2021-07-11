@@ -63,7 +63,7 @@ $version = version();
 </table>
 
 <script type="module">
-  import { default as Couleur, Utils as Utils } from '../colori--<?=$version?>.js';
+  import { default as Couleur, Utils as Utils, Graph as Graph } from '../colori--<?=$version?>.js';
 
   const colorSpaces = Couleur.colorSpaces;
   let max = 0;
@@ -89,22 +89,15 @@ $version = version();
 
   function performTest(tests, table) {
     for (const test of tests) {
-      const graph = Couleur.colorSpaces.map(space => {
-        return {
-          id: space.id,
-          links: space.functionsTo,
-          visited: false,
-          predecessorID: null
-        };
-      });
+      const graph = new Graph(Couleur.colorSpaces);
 
       const tr = document.createElement('tr');
       let result;
       const start = performance.now();
       try {
-        result = Utils.findShortestPath(graph, ...test.ids);
+        result = graph.shortestPath(...test.ids);
       } catch (error) {
-        result = [];
+        console.log(error);
       }
       const duration = performance.now() - start;
       let verif = '';

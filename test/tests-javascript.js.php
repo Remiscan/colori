@@ -1,6 +1,7 @@
 // ▼ ES modules cache-busted grâce à PHP
 /*<?php ob_start();?>*/
 
+import Couleur from '../colori.js';
 import Colour from '../colori.js';
 
 /*<?php $imports = ob_get_clean();
@@ -10,11 +11,14 @@ echo versionizeFiles($imports, __DIR__); ?>*/
 
 
 const tolerance = .03;
+const distancePrecise = 1;
+const distanceProche = 5;
 
 export default class Test {
   constructor(fonction = null, resultatAttendu = {}, ordre = 0) {
     this.fonction = fonction;
     this.resultatAttendu = resultatAttendu;
+    this.resultatReel = null;
     this.ordre = ordre;
     this.tested = false;
     this.time = null;
@@ -32,7 +36,6 @@ export default class Test {
       return this.resultatReel;
     }
     catch (error) {
-      if (this.resultatAttendu !== 'Error') console.error(error);
       this.time = performance.now() - time;
       return ['Error', error];
     }
@@ -45,11 +48,11 @@ export default class Test {
 
   // Checks if the test results fit the expected results
   validate() {
-    const resultat = (typeof this.resultat === 'object' && this.resultat !== null && this.resultat[0] === 'Error') ? this.resultat[0]
-                                                                                                                : this.resultat;
+    let resultat = this.resultat;
+    const isError = (typeof resultat === 'object' && resultat !== null && resultat[0] === 'Error');
     
     // If result is an error, check if we expected one
-    if (resultat === 'Error')
+    if (isError === true)
       return this.resultatAttendu === 'Error';
 
     // If result is an array
@@ -57,7 +60,7 @@ export default class Test {
       let res = false;
       try {
         // If the array contains colors / color strings, check if they're all the same
-        res = resultat.every((co, k) => Colour.same(co, this.resultatAttendu[k]));
+        res = resultat.every((co, k) => Colour.same(co, this.resultatAttendu[k], distanceProche));
       } catch (error) {
         // If not, just compare them
         res = resultat.every((e, k) => e === this.resultatAttendu[k]);
@@ -78,7 +81,7 @@ export default class Test {
     // Else, try to make colors from the result and expected result and check if they're the same
     else {
       let res = false;
-      try { res = Colour.same(resultat, this.resultatAttendu); }
+      try { res = Colour.same(resultat, this.resultatAttendu, distanceProche); }
       catch (error) { res = resultat === this.resultatAttendu; }
       return res;
     }
@@ -87,18 +90,9 @@ export default class Test {
 
   // Checks if two objects with a similar structure to a Colour are the same
   static sameColorObject(couleur1, couleur2) {
-    var c1Props = Object.getOwnPropertyNames(couleur1);
-    var c2Props = Object.getOwnPropertyNames(couleur2);
-  
-    if (c1Props.length != c2Props.length) return false;
-  
-    for (var i = 0; i < c1Props.length; i++) {
-      var prop = c1Props[i];
-      if (!['r', 'g', 'b'].includes(prop)) continue;
-      if (Math.abs(couleur1[prop] - couleur2[prop]) > tolerance) return false;
-    }
-  
-    return true;
+    const c1 = [couleur1.r, couleur1.g, couleur1.b, couleur1.a];
+    const c2 = [couleur2.r, couleur2.g, couleur2.b, couleur2.a];
+    return Couleur.same(c1, c2, distanceProche);
   }
 
 

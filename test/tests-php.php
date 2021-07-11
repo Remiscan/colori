@@ -5,6 +5,8 @@ require_once '../colori.php';
 
 class Test {
   const TOLERANCE = .03;
+  const DISTANCE_PRECISE = 1;
+  const DISTANCE_PROCHE = 5;
 
   function __construct($fonction = null, $resultatAttendu = null, $nophp = false, $ordre = 0) {
     // Convert JavaScript text to PHP test
@@ -14,16 +16,10 @@ class Test {
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
       $fonction
     );
-    $methods = ['blend', 'contrast', 'contrastedText', 'improveContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'greyscale', 'grayscale', 'sepia', 'gradient', 'distance', 'same', 'unblend', 'whatToBlend', 'APCAcontrast'];
+    $methods = ['blend', 'contrast', 'contrastedText', 'improveContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'greyscale', 'grayscale', 'sepia', 'gradient', 'distance', 'same', 'unblend', 'whatToBlend'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $methods), 
       array_map(function($x) { return '->' . $x; }, $methods),
-      $f
-    );
-    $vars = ['couleur', 'testContraste', 'testChangeHue', 'testLab'];
-    $f = str_replace(
-      array_map(function($x) { return $x; }, $vars),
-      array_map(function($x) { return '$' . $x; }, $vars),
       $f
     );
     $f = str_replace(
@@ -31,31 +27,29 @@ class Test {
       ['Couleur::', 'Couleur'],
       $f
     );
-    $f = str_replace(
-      ['{ scale: true }', '{ scale: false }', '{ replace: true }', '{ replace: false }', '{ lower: true }'],
-      ['(object)["scale"=>true]', '(object)["scale"=>false]', '(object)["replace"=>true]', '(object)["replace"=>false]', '(object)["lower"=>true]'],
-      $f
-    );
+    $f = preg_replace('/\{ ([A-Za-z0-9_-]+?): (.+?) \}/', '$1: $2', $f);
 
     $this->fonction = $f;
     $this->resultatAttendu = $resultatAttendu;
+    $this->resultatReel = null;
     $this->nophp = $nophp;
     $this->ordre = $ordre;
+    $this->tested = false;
     $this->time = null;
   }
 
   public function resultat() {
-    $time = microtime(true);
+    $time = microtime(true); // in case the inner test fails
     try {
-      $result = eval("return " . $this->fonction . ";");
-      $this->time = microtime(true) - $time;
-      return $result;
+      if ($this->tested !== true) {
+        $time = microtime(true);
+        $this->resultatReel = eval("return " . $this->fonction . ";");
+        $this->time = microtime(true) - $time;
+        $this->tested = true;
+      }
+      return $this->resultatReel;
     }
-    catch (Error $error) {
-      $this->time = microtime(true) - $time;
-      return ['Error', $error];
-    }
-    catch (Exception $error) {
+    catch (Throwable $error) {
       $this->time = microtime(true) - $time;
       return ['Error', $error];
     }
@@ -68,32 +62,30 @@ class Test {
 
   // Checks if the test results fit the expected results
   public function validate() {
-    try {
-      $resultat = $this->resultat();
-      $resultat = (is_array($resultat) && $resultat[0] === 'Error') ? $resultat[0] : $resultat;
-    } catch(ParseError $error) {
-      return false;
-    }
+    $resultat = $this->resultat();
+    $isError = (is_array($resultat) && $resultat[0] === 'Error');
 
     // If result is an error, check if we expected one
-    if ($resultat === 'Error')
+    if ($isError === true)
       return $this->resultatAttendu === 'Error';
 
     // If result is an array
     elseif (is_array($resultat)) {
-      $res = true;
+      $res = false;
       try {
         // If the array contains colors / color strings, check if they're all the same
+        $res = true;
         foreach($resultat as $k => $c) {
-          $res = $res && (Couleur::same($c, $this->resultatAttendu[$k]));
+          $res = $res && (Couleur::same($c, $this->resultatAttendu[$k], self::DISTANCE_PROCHE));
         }
-      } catch (Exception $e) {
+      } catch (Throwable $e) {
         // If not, just compare them
+        $res = true;
         foreach($resultat as $k => $e) {
           $res = $res && ($e === $this->resultatAttendu[$k]);
         }
       }
-      return true;
+      return $res;
     }
       
     // If expected result is an object, check if it has the same properties and values as the result
@@ -108,24 +100,19 @@ class Test {
 
     // Else, try to make colors from the result and expected result and check if they're the same
     else {
-      try { $tempResult = Couleur::same($resultat, $this->resultatAttendu); }
-      catch (Exception $error) {}
-      catch (Error $error) {}
-      return $tempResult ?? $resultat === $this->resultatAttendu;
+      $res = false;
+      try { $res = Couleur::same($resultat, $this->resultatAttendu); }
+      catch (Throwable $error) { $res = $resultat === $this->resultatAttendu; }
+      return $res;
     }
   }
 
 
   // Checks if two objects with a similar structure to a Colour are the same
   static public function sameColorObject($couleur1, $couleur2) {
-    $c1 = get_object_vars($couleur1);
-    $c2 = get_object_vars($couleur2);
-    foreach($c1 as $p => $v) {
-      $v1 = (float) $v;
-      $v2 = (float) $c2[$p];
-      if (abs($v1 - $v2) > self::TOLERANCE) return false;
-    }
-    return true;
+    $c1 = [$couleur1->r, $couleur1->g, $couleur1->b, $couleur1->a];
+    $c2 = [$couleur2->r, $couleur2->g, $couleur2->b, $couleur2->a];
+    return Couleur::same($c1, $c2, self::DISTANCE_PROCHE);
   }
 
 
@@ -133,7 +120,9 @@ class Test {
   public function populate() {
     $validation = $this->validate();
     $resultat = $this->resultat();
-    if (is_array($resultat) && $resultat[0] === 'Error') $resultat[1] = htmlspecialchars($resultat[1]);
+
+    $isError = is_array($resultat) && $resultat[0] === 'Error';
+    if ($isError) $resultat[1] = htmlspecialchars($resultat[1]);
     $titre = $this->nom();
     $time = $this->time;
 
@@ -147,7 +136,7 @@ class Test {
     $backgroundColor = '';
     $textColor = ''; $gradient = '';
     try {
-      if (is_array($resultat)) {
+      if (is_array($resultat) && !$isError) {
         $gradient = 'linear-gradient(to right, ' . (implode(', ', array_map(function($c) { return (new Couleur($c))->rgb(); }, $resultat))) . ')';
         $backgroundColor = new Couleur($resultat[0]);
       } else {
