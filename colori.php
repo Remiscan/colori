@@ -248,7 +248,7 @@ class Couleur
   /* GENERAL GETTER */
 
   /** Creates a string containing the CSS expression of a color. */
-  public static function expr(string $format, array $rgba, ?int $precision = 0, bool $clamp = true): string {
+  public static function makeExpr(string $format, array $rgba, ?int $precision = 0, bool $clamp = true): string {
     $space = self::getSpace(str_replace('color-', '', $format));
     $values = self::convert('srgb', $space['id'], array_slice($rgba, 0, 3));
     if ($clamp) $values = self::toGamut($space['id'], $values, $space['id']);
@@ -288,6 +288,11 @@ class Couleur
         if ($a < 1.0) return "${format}(${x} ${y} ${z} / ${a})";
         else          return "${format}(${x} ${y} ${z})";
     }
+  }
+
+  public function expr(string $spaceID, ?int $precision = 0, bool $clamp = true): string {
+    $values = $this->values(); $values[] = $this->a;
+    return self::makeExpr($spaceID, $values, precision: $precision, clamp: $clamp);
   }
 
 
@@ -370,7 +375,7 @@ class Couleur
   /** Calculates all properties of the color from its functional RGB expression. */
   private function setRgb(array $rgba): void { $this->set($rgba, ['r', 'g', 'b'], 'rgb'); }
   private function setRgba(array $rgba): void { $this->setRgb($rgba); }
-  public function rgb(): string { return self::expr('rgb', [...$this->values(), $this->a], precision: 2); }
+  public function rgb(): string { return self::makeExpr('rgb', [...$this->values(), $this->a], precision: 2); }
   public function rgba(): string { return $this->rgb(); }
 
 
@@ -380,7 +385,7 @@ class Couleur
   private function setHsl(array $hsla): void { $this->set($hsla, ['h', 's', 'l'], 'hsl'); }
   public function hsl(): string {  
     $values = $this->values(); $values[] = $this->a;
-    return self::expr('hsl', $values, precision: 2);
+    return self::makeExpr('hsl', $values, precision: 2);
   }
   public function hsla(): string { return $this->hsl(); }
 
@@ -391,7 +396,7 @@ class Couleur
   private function setHwb(array $hwba): void { $this->set($hwba, ['h', 'w', 'b'], 'hwb'); }
   public function hwb(): string {
     $values = $this->values(); $values[] = $this->a;
-    return self::expr('hwb', $values, precision: 2);
+    return self::makeExpr('hwb', $values, precision: 2);
   }
 
 
@@ -401,7 +406,7 @@ class Couleur
   private function setLab(array $laba): void { $this->set($laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
   public function lab(): string {
     $values = $this->values(); $values[] = $this->a;
-    return self::expr('lab', $values, precision: 2);
+    return self::makeExpr('lab', $values, precision: 2);
   }
 
 
@@ -411,7 +416,7 @@ class Couleur
   private function setLch(array $lcha): void { $this->set($lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
   public function lch(): string {
     $values = $this->values(); $values[] = $this->a;
-    return self::expr('lch', $values, precision: 2);
+    return self::makeExpr('lch', $values, precision: 2);
   }
 
 
