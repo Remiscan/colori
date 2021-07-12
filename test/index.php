@@ -19,6 +19,16 @@ foreach($_tests as $k => $test) {
   <head>
     <style>
       html { color-scheme: light dark; }
+      .yes { background-color: palegreen; }
+      .close { background-color: gold; }
+      .no { background-color: pink; }
+      
+      @media (prefers-color-scheme: dark) {
+        body {color: white; }
+        .yes { background-color: <?php $c = new Couleur('palegreen'); echo $c->replace('a', '.2')->hsl(); ?>; }
+        .close { background-color: <?php $c = new Couleur('gold'); echo $c->replace('a', '.2')->hsl(); ?>; }
+        .no { background-color: <?php $c = new Couleur('pink'); echo $c->replace('a', '.2')->hsl(); ?>;}
+      }
 
       body {
         width: 100%;
@@ -58,8 +68,6 @@ foreach($_tests as $k => $test) {
       span, pre { padding: 0 1rem; }
       pre { white-space: pre-wrap; }
 
-      .yes { background-color: palegreen; }
-      .no { background-color: pink; }
       .no>pre:nth-of-type(1) { color: darkred; }
 
       aside {
@@ -68,14 +76,11 @@ foreach($_tests as $k => $test) {
       }
 
       @media (prefers-color-scheme: dark) {
-        body { color: white; }
         h3 {
           background-image: var(--gradient, linear-gradient(to right, var(--color, #333) 0 100%)),
                             var(--echiquier-transparence);
         }
 
-        .yes { background-color: <?php $c = new Couleur('palegreen'); echo $c->replace('a', '.2')->hsl(); ?>; }
-        .no { background-color: <?php $c = new Couleur('pink'); echo $c->replace('a', '.2')->hsl(); ?>; }
         .no>pre:nth-of-type(1) { color: pink; }
       }
 
