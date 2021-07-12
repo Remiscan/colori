@@ -285,12 +285,12 @@ export default class Couleur {
    * Will be used by other setters to calculate all color properties.
    * @param {Array.<string|number>} data - Array of unparsed values.
    * @param {string[]} props - Array of color property names the values correspond to.
-   * @param {string} spaceID - Identifier of the color space of the values.
+   * @param {object|string} spaceID - Color space of the values, or its identifier.
    */
   set(data, props, spaceID) {
     const space = Couleur.getSpace(spaceID);
     const values = props.map((p, i) => Couleur.parse(data[i], p));
-    [this.r, this.g, this.b] = Couleur.convert(space.id, 'srgb', values);
+    [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
 
     const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
     this.a = Couleur.parse(isAlpha(data[3]), 'a');
@@ -301,7 +301,7 @@ export default class Couleur {
 
   /**
    * Creates a string containing the CSS expression of a color.
-   * @param {string} format - The identifier of the CSS format of the expression.
+   * @param {object|string} format - Color space of the requested CSS expression, or its identifier.
    * @param {number[]} rgba - The values of the r, g, b, a properties.
    * @param {object} options
    * @param {number} options.precision - How many decimals to display.
@@ -309,9 +309,10 @@ export default class Couleur {
    * @returns {string} The expression of the color in the requested format.
    */
   static expr(format, rgba, { precision = 0, clamp = true } = {}) {
-    const space = Couleur.getSpace(format.replace('color-', ''));
-    let values = Couleur.convert('srgb', space.id, rgba.slice(0, 3));
-    if (clamp) values = Couleur.toGamut(space.id, values, space.id);
+    const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
+    const space = Couleur.getSpace(spaceID);
+    let values = Couleur.convert('srgb', space, rgba.slice(0, 3));
+    if (clamp) values = Couleur.toGamut(space, values, space);
     const a = Couleur.unparse(rgba[3], 'a', { precision });
     values = [...values, a];
 
@@ -637,13 +638,13 @@ export default class Couleur {
 
   /**
    * Converts the color values from one color space to another.
-   * @param {string} startSpaceID - The identifier of the starting color space or CSS format.
-   * @param {string} endSpaceID - The identifier of the color space or CSS format to convert to.
+   * @param {object|string} startSpaceID - Starting color space, or its identifier.
+   * @param {object|string} endSpaceID - Color space to convert to, or its identifier.
    * @param {*} values - Array of color values (without alpha) in startSpaceID color space.
    * @returns {number[]} Array of values in the new color space.
    */
   static convert(startSpaceID, endSpaceID, values) {
-    if (startSpaceID === endSpaceID) return values;
+    if ((startSpaceID.id || startSpaceID) === (endSpaceID.id || endSpaceID)) return values;
     const startSpace = Couleur.getSpace(startSpaceID);
     const endSpace = Couleur.getSpace(endSpaceID);
 
@@ -676,17 +677,15 @@ export default class Couleur {
 
   /**
    * Converts the r, g, b values of the color to another color space.
-   * @param {string} spaceID - The identifier of the desired color space.
+   * @param {object|string} spaceID - Desired color space, or its identifier.
    * @param {object} options
    * @param {boolean} options.clamp - Whether to clamp the values to their new color space.
    * @returns {number[]} The array of converted values.
    */
   valuesTo(spaceID, { clamp = false } = {}) {
-    let values = Couleur.convert('srgb', spaceID, this.values);
-    if (clamp) {
-      const S = Couleur.getSpace(spaceID);
-      values = Couleur.toGamut(S.id, values);
-    }
+    const space = Couleur.getSpace(spaceID);
+    let values = Couleur.convert('srgb', space, this.values);
+    if (clamp) values = Couleur.toGamut(space, values);
     return values;
   }
 
@@ -696,14 +695,14 @@ export default class Couleur {
 
   /**
    * Checks whether parsed values in valueSpaceID color space correspond to a color in the spaceID color space.
-   * @param {string} spaceID - The identifier of the color space.
+   * @param {object|string} spaceID - Color space whose gamut will be checked, or its identifier.
    * @param {number[]} values - Array of parsed values.
-   * @param {string} valueSpace - The identifier of the color space of the given values.
+   * @param {object|string} valueSpaceID - Color space of the given values, or its identifier.
    * @returns {boolean} Whether the corresponding color is in gamut.
    */
   static inGamut(spaceID, values, valueSpaceID = 'srgb', { tolerance = .0001 } = {}) {
     const space = Couleur.getSpace(spaceID);
-    const convertedValues = Couleur.convert(valueSpaceID, space.id, values);
+    const convertedValues = Couleur.convert(valueSpaceID, space, values);
     return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
   }
 
@@ -712,29 +711,29 @@ export default class Couleur {
 
   /**
    * Clamps parsed values in valueSpaceID color space to the spaceID color space.
-   * @param {string} spaceID - The identifier of the color space.
+   * @param {object|string} spaceID - Color space whose gamut will be used, or its identifier.
    * @param {number[]} values - Array of parsed values.
-   * @param {string} valueSpaceID - The identifier of the color space of the given values.
+   * @param {object|string} valueSpaceID - Color space of the given values, or its identifier.
    * @returns {number[]} The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
   static toGamut(spaceID, values, valueSpaceID = 'srgb', { method = 'chroma' } = {}) {
     // Source of the math: https://css.land/lch/lch.js
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
-    if (Couleur.inGamut(space.id, values, valueSpace.id, { tolerance: 0 })) return values;
-    let clampedValues, clampSpaceID;
+    if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 })) return values;
+    let clampedValues, clampSpace;
 
     // Naively clamp the values
     if (method === 'naive') {
-      clampSpaceID = space.id;
-      const convertedValues = Couleur.convert(valueSpace.id, clampSpaceID, values);
+      clampSpace = space;
+      const convertedValues = Couleur.convert(valueSpace, clampSpace, values);
       clampedValues = convertedValues.map((v, k) => Math.max(space.gamut[k][0], Math.min(v, space.gamut[k][1])));
     }
     
     // Let's reduce the chroma until the color is in the color space
     else {
-      clampSpaceID = 'lch';
-      let lch = Couleur.convert(valueSpace.id, 'lch', values);
+      clampSpace = Couleur.getSpace('lch');
+      let lch = Couleur.convert(valueSpace, clampSpace, values);
 
       const τ = .01;
       let Cmin = 0;
@@ -742,7 +741,7 @@ export default class Couleur {
       lch[1] = lch[1] / 2;
 
       while (Cmax - Cmin > τ) {
-        const naive = Couleur.toGamut(space.id, lch, 'lch', { method: 'naive' });
+        const naive = Couleur.toGamut(space, lch, clampSpace, { method: 'naive' });
 
         // If the color is close to the color space border
         if (Couleur.distance(naive, lch, { method: 'CIEDE2000' }) < 2 + τ)
@@ -753,11 +752,11 @@ export default class Couleur {
       }
 
       // Final naive clamp to get in the color space if the color is still just outside the border
-      clampedValues = Couleur.toGamut(space.id, lch, 'lch', { method: 'naive' });
+      clampedValues = Couleur.toGamut(space, lch, clampSpace, { method: 'naive' });
     }
 
     // Send the values back in the same color space we found them in
-    return Couleur.convert(clampSpaceID, valueSpace.id, clampedValues);
+    return Couleur.convert(clampSpace, valueSpace, clampedValues);
   }
 
   /** @see Couleur.toGamut - Non-static version. */
@@ -1225,7 +1224,7 @@ export default class Couleur {
    * @param {color} startColor - The starting color of the gradient.
    * @param {color} endColor - The ending color of the gradient.
    * @param {number} steps - The number of steps in the gradient to go from start to end.
-   * @param {string} spaceID - The identifier of the color space in which to compute the gradient.
+   * @param {object|string} spaceID - Color space in which to compute the gradient, or its identifier.
    * @returns {Couleur[]} The array of (steps + 1) colors in the gradient.
    */
   static gradient(startColor, endColor, steps = 5, spaceID = 'lch') {
@@ -1233,8 +1232,9 @@ export default class Couleur {
     const end = new Couleur(endColor);
     const _steps = Math.max(1, steps);
     const props = [...Couleur.propertiesOf(spaceID), 'a'];
-    const startValues = [...start.valuesTo(spaceID), start.a];
-    const endValues = [...end.valuesTo(spaceID), end.a];
+    const space = Couleur.getSpace(spaceID);
+    const startValues = [...start.valuesTo(space), start.a];
+    const endValues = [...end.valuesTo(space), end.a];
 
     // Calculate by how much each property will be changed at each steap
     const stepList = props.map((prop, k) => {
@@ -1263,12 +1263,12 @@ export default class Couleur {
         else return v;
       });
       const a = next[3];
-      next = Couleur.toGamut(spaceID, next.slice(0, 3), spaceID);
+      next = Couleur.toGamut(space, next.slice(0, 3), space);
       next = [...next, a];
       intermediateColors.push(next);
     }
 
-    return [...intermediateColors.map(c => new Couleur(Couleur.convert(spaceID, 'srgb', c))), end];
+    return [...intermediateColors.map(c => new Couleur(Couleur.convert(space, 'srgb', c))), end];
   }
 
   /** @see Couleur.gradient - Non-static version. */
@@ -1387,7 +1387,13 @@ export default class Couleur {
     ];
   }
 
+  /**
+   * Gets a color space.
+   * @param {string|object} spaceID - Identifier of a color space, or a color space itself.
+   * @returns {object} The corresponding color space object.
+   */
   static getSpace(spaceID) {
+    if (typeof spaceID.id === 'string') return spaceID;
     const id = spaceID === 'rgb' ? 'srgb'
              : spaceID === 'rgba' ? 'srgb'
              : spaceID === 'hsla' ? 'hsl'

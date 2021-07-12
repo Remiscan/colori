@@ -233,14 +233,14 @@ class Couleur
   /* GENERAL SETTER */
 
   /** Will be used by other setters to calculate all color properties. */
-  private function set(array $data, array $props, string $spaceID): void {
+  private function set(array $data, array $props, array|string $spaceID): void {
     $space = self::getSpace($spaceID);
     $values = [];
     for ($i = 0; $i < count($props); $i++) {
       $values[] = self::parse($data[$i], $props[$i]);
     }
 
-    [$this->r, $this->g, $this->b] = self::convert($space['id'], 'srgb', $values);
+    [$this->r, $this->g, $this->b] = self::convert($space, 'srgb', $values);
     $this->a = self::parse($data[3] ?? 1, 'a');
   }
 
@@ -248,10 +248,11 @@ class Couleur
   /* GENERAL GETTER */
 
   /** Creates a string containing the CSS expression of a color. */
-  public static function makeExpr(string $format, array $rgba, ?int $precision = 0, bool $clamp = true): string {
-    $space = self::getSpace(str_replace('color-', '', $format));
-    $values = self::convert('srgb', $space['id'], array_slice($rgba, 0, 3));
-    if ($clamp) $values = self::toGamut($space['id'], $values, $space['id']);
+  public static function makeExpr(array|string $format, array $rgba, ?int $precision = 0, bool $clamp = true): string {
+    $spaceID = is_string($format) ? str_replace('color-', '', $format) : $format;
+    $space = self::getSpace($spaceID);
+    $values = self::convert('srgb', $space, array_slice($rgba, 0, 3));
+    if ($clamp) $values = self::toGamut($space, $values, $space);
     $a = self::unparse($rgba[3], 'a', precision: $precision);
     $values[] = $a;
 
@@ -607,8 +608,8 @@ class Couleur
 
 
   /** Converts the color values from one color space to another. */
-  public static function convert(string $startSpaceID, string $endSpaceID, array $values): array {
-    if ($startSpaceID === $endSpaceID) return $values;
+  public static function convert(array|string $startSpaceID, array|string $endSpaceID, array $values): array {
+    if ((is_string($startSpaceID) ? $startSpaceID : $startSpaceID['id']) === (is_string($endSpaceID) ? $endSpaceID : $endSpaceID['id'])) return $values;
     $startSpace = self::getSpace($startSpaceID);
     $endSpace = self::getSpace($endSpaceID);
 
@@ -638,12 +639,10 @@ class Couleur
 
 
   /** Converts the r, g, b values of the color to another color space or CSS format. */
-  public function valuesTo(string $spaceID, bool $clamp = false): array {
-    $values = self::convert('srgb', $spaceID, $this->values());
-    if ($clamp) {
-      $S = self::getSpace($spaceID);
-      $values = self::toGamut($S->id, $values);
-    }
+  public function valuesTo(array|string $spaceID, bool $clamp = false): array {
+    $space = self::getSpace($spaceID);
+    $values = self::convert('srgb', $space, $this->values());
+    if ($clamp) $values = self::toGamut($space, $values);
     return $values;
   }
 
@@ -652,9 +651,9 @@ class Couleur
 
 
   /** Checks whether parsed values in valueSpace color space correspond to a color in the spaceID color space. */
-  public static function inGamut(string $spaceID, array $values, string $valueSpaceID = 'srgb', float $tolerance = .0001): bool {
+  public static function inGamut(array|string $spaceID, array $values, array|string $valueSpaceID = 'srgb', float $tolerance = .0001): bool {
     $space = self::getSpace($spaceID);
-    $convertedValues = self::convert($valueSpaceID, $space['id'], $values);
+    $convertedValues = self::convert($valueSpaceID, $space, $values);
     foreach($convertedValues as $k => $v) {
       if ($v < ($space['gamut'][$k][0] - $tolerance) || $v > $space['gamut'][$k][1] + $tolerance) return false;
     }
@@ -663,15 +662,15 @@ class Couleur
 
 
   /** Clamps parsed values in valueSpaceID color space to the spaceID color space. */
-  public static function toGamut(string $spaceID, array $values, string $valueSpaceID = 'srgb', string $method = 'chroma'): array {
+  public static function toGamut(array|string $spaceID, array $values, array|string $valueSpaceID = 'srgb', string $method = 'chroma'): array {
     $space = self::getSpace($spaceID);
     $valueSpace = self::getSpace($valueSpaceID);
-    if (self::inGamut($space['id'], $values, $valueSpace['id'], tolerance: 0)) return $values;
+    if (self::inGamut($space, $values, $valueSpace, tolerance: 0)) return $values;
 
     // Naively clamp the values
     if ($method === 'naive') {
-      $clampSpaceID = $space['id'];
-      $convertedValues = self::convert($valueSpace['id'], $clampSpaceID, $values);
+      $clampSpace = $space;
+      $convertedValues = self::convert($valueSpace, $clampSpace, $values);
       $clampedValues = [];
       foreach($convertedValues as $k => $v) {
         $clampedValues[] = max($space['gamut'][$k][0], min($v, $space['gamut'][$k][1]));
@@ -680,8 +679,8 @@ class Couleur
 
     // Let's reduce the chroma until the color is in the color space
     else {
-      $clampSpaceID = 'lch';
-      $lch = self::convert($valueSpace['id'], 'lch', $values);
+      $clampSpace = self::getSpace('lch');
+      $lch = self::convert($valueSpace, $clampSpace, $values);
 
       $τ = .01;
       $Cmin = 0;
@@ -689,10 +688,10 @@ class Couleur
       $lch[1] = $lch[1] / 2;
 
       while($Cmax - $Cmin > $τ) {
-        $naive = self::toGamut($space['id'], $lch, 'lch', method: 'naive');
+        $naive = self::toGamut($space, $lch, $clampSpace, method: 'naive');
 
         // If the color is close to the color space border
-        if (self::distance($naive, $lch,method: 'CIEDE2000') < 2 + $τ)
+        if (self::distance($naive, $lch, method: 'CIEDE2000') < 2 + $τ)
           $Cmin = $lch[1];
         else
           $Cmax = $lch[1];
@@ -700,11 +699,11 @@ class Couleur
       }
 
       // Final naive clamp to get in the color space if the color is still just outside the border
-      $clampedValues = self::toGamut($space['id'], $lch, 'lch', method: 'naive');
+      $clampedValues = self::toGamut($space, $lch, $clampSpace, method: 'naive');
     }
 
     // Send the values back in the same color space we found them in
-    return self::convert($clampSpaceID, $valueSpace['id'], $clampedValues);
+    return self::convert($clampSpace, $valueSpace, $clampedValues);
   }
 
 
@@ -1068,12 +1067,13 @@ class Couleur
 
 
   /** Calculates the intermediate colors a gradient should use to go from one color to another without passing through the "desaturated zone". */
-  public static function gradient(self|array|string $startColor, self|array|string $endColor, int $steps = 5, string $spaceID = 'lch'): array {
+  public static function gradient(self|array|string $startColor, self|array|string $endColor, int $steps = 5, array|string $spaceID = 'lch'): array {
     $start = new self($startColor);
     $end = new self($endColor);
     $steps = max(1, $steps);
     $props = self::propertiesOf($spaceID); $props[] = 'a';
-    $startValues = $start->valuesTo($spaceID); $startValues[] = $start->a;
+    $space = self::getSpace($spaceID);
+    $startValues = $start->valuesTo($space); $startValues[] = $start->a;
 
     // Calculate by how much each property will be changed at each steap
     $stepList = array_map(function($prop) use ($start, $end, $steps) {
@@ -1104,14 +1104,14 @@ class Couleur
         else $next[] = $v;
       }
       $a = $next[3];
-      $next = self::toGamut($spaceID, array_slice($next, 0, 3), $spaceID);
+      $next = self::toGamut($space, array_slice($next, 0, 3), $space);
       $next[] = $a;
       $intermediateColors[] = $next;
     }
 
     $gradient = [];
     foreach($intermediateColors as $c) {
-      $gradient[] = new self(self::convert($spaceID, 'srgb', $c));
+      $gradient[] = new self(self::convert($space, 'srgb', $c));
     }
     $gradient[] = $end;
     return $gradient;
@@ -1223,7 +1223,8 @@ class Couleur
     )
   );
 
-  public static function getSpace($spaceID) {
+  public static function getSpace(array|string $spaceID): array {
+    if (is_array($spaceID)) return $spaceID;
     $id = match ($spaceID) {
       'rgb', 'rgba' => 'srgb',
       'hsla' => 'hsl',
