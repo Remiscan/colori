@@ -54,6 +54,13 @@ class Couleur
   }
 
 
+  /** Makes a Couleur from the argument if it's not one already. */
+  private static function makeInstance(self|array|string $color): self {
+    if ($color instanceof self) return $color;
+    else                        return new self($color);
+  }
+
+
 
   /** Matches the user input with supported color formats. */
   private static function matchSyntax(string $colorString): array {
@@ -248,12 +255,12 @@ class Couleur
   /* GENERAL GETTER */
 
   /** Creates a string containing the CSS expression of a color. */
-  public static function makeExpr(array|string $format, array $rgba, ?int $precision = 0, bool $clamp = true): string {
+  public function expr(array|string $format, ?int $precision = 0, bool $clamp = true): string {
     $spaceID = is_string($format) ? str_replace('color-', '', $format) : $format;
     $space = self::getSpace($spaceID);
-    $values = self::convert('srgb', $space, array_slice($rgba, 0, 3));
+    $values = $this->valuesTo($space);
     if ($clamp) $values = self::toGamut($space, $values, $space);
-    $a = self::unparse($rgba[3], 'a', precision: $precision);
+    $a = self::unparse($this->a, 'a', precision: $precision);
     $values[] = $a;
 
     // If the requested expression is of the color(space, ...) type
@@ -291,9 +298,11 @@ class Couleur
     }
   }
 
-  public function expr(string $spaceID, ?int $precision = 0, bool $clamp = true): string {
-    $values = $this->values(); $values[] = $this->a;
-    return self::makeExpr($spaceID, $values, precision: $precision, clamp: $clamp);
+  /** Creates a string containing the CSS expression of a color from a list of values. */
+  public static function makeExpr(string $format, array $values, array|string $valueSpaceID, ?int $precision = 0, bool $clamp = true): string {
+    $spaceID = is_string($format) ? str_replace('color-', '', $format) : $format;
+    $rgba = self::convert($valueSpaceID, $spaceID, array_slice($values, 0, 3)); $rgba[] = $this->a;
+    return (new self($rgba))->expr($format, precision: $precision, clamp: $clamp);
   }
 
 
@@ -376,7 +385,7 @@ class Couleur
   /** Calculates all properties of the color from its functional RGB expression. */
   private function setRgb(array $rgba): void { $this->set($rgba, ['r', 'g', 'b'], 'rgb'); }
   private function setRgba(array $rgba): void { $this->setRgb($rgba); }
-  public function rgb(): string { return self::makeExpr('rgb', [...$this->values(), $this->a], precision: 2); }
+  public function rgb(): string { return $this->expr('rgb', precision: 2); }
   public function rgba(): string { return $this->rgb(); }
 
 
@@ -384,10 +393,7 @@ class Couleur
 
   /** Calculates all properties of the color from its HSL expression. */
   private function setHsl(array $hsla): void { $this->set($hsla, ['h', 's', 'l'], 'hsl'); }
-  public function hsl(): string {  
-    $values = $this->values(); $values[] = $this->a;
-    return self::makeExpr('hsl', $values, precision: 2);
-  }
+  public function hsl(): string { return $this->expr('hsl', precision: 2); }
   public function hsla(): string { return $this->hsl(); }
 
 
@@ -395,30 +401,21 @@ class Couleur
 
   /** Calculates all properties of the color from its HWB expression. */
   private function setHwb(array $hwba): void { $this->set($hwba, ['h', 'w', 'b'], 'hwb'); }
-  public function hwb(): string {
-    $values = $this->values(); $values[] = $this->a;
-    return self::makeExpr('hwb', $values, precision: 2);
-  }
+  public function hwb(): string { return $this->expr('hwb', precision: 2); }
 
 
   /* LAB */
 
   /** Calculates all properties of the color from its LAB expression. */
   private function setLab(array $laba): void { $this->set($laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
-  public function lab(): string {
-    $values = $this->values(); $values[] = $this->a;
-    return self::makeExpr('lab', $values, precision: 2);
-  }
+  public function lab(): string { return $this->expr('lab', precision: 2); }
 
 
   /* LCH */
 
   /** Calculates all properties of the color from its LCH expression. */
   private function setLch(array $lcha): void { $this->set($lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
-  public function lch(): string {
-    $values = $this->values(); $values[] = $this->a;
-    return self::makeExpr('lch', $values, precision: 2);
-  }
+  public function lch(): string { return $this->expr('lch', precision: 2); }
 
 
   /* PROFILED COLORS */
@@ -774,8 +771,8 @@ class Couleur
 
   /** Blends two colors together. */
   public static function blend(self|array|string $backgroundColor, self|array|string $overlayColor, ?float $alpha = null): self {
-    $background = new self($backgroundColor);
-    $overlay = new self($overlayColor);
+    $background = self::makeInstance($backgroundColor);
+    $overlay = self::makeInstance($overlayColor);
     if ($alpha != null) // if alpha isn't null or undefined
       $overlay->a = self::parse($alpha, 'a');
 
@@ -804,8 +801,8 @@ class Couleur
 
   /** Solves the equation mix = blend(background, overlay) with background unknown. */
   public static function unblend(self|array|string $mixColor, self|array|string $overlayColor, ?float $alpha = null): ?self {
-    $mix = new self($mixColor);
-    $overlay = new self($overlayColor);
+    $mix = self::makeInstance($mixColor);
+    $overlay = self::makeInstance($overlayColor);
     if ($alpha != null) // if alpha isn't null or undefined
       $overlay->a = self::parse($alpha, 'a');
 
@@ -848,8 +845,8 @@ class Couleur
 
   /** Solves the equation mix = blend(background, overlay) with overlay unknown. */
   public static function whatToBlend(self|array|string $backgroundColor, self|array|string $overlayColor, array|float $alphas = [], bool $ignoreTransparent = false): self|array|null {
-    $background = new self($backgroundColor);
-    $mix = new self($overlayColor);
+    $background = self::makeInstance($backgroundColor);
+    $mix = self::makeInstance($overlayColor);
     $overlays = [];
 
     $calculateSolution = function($a) use ($mix, $background) {
@@ -925,9 +922,9 @@ class Couleur
 
   /** Computes the contrast between two colors as defined by WCAG2 or 3. */
   public static function contrast(self|array|string $textColor, self|array|string $backgroundColor, string $method = 'WCAG2'): float {
-    $background = new self($backgroundColor);
+    $background = self::makeInstance($backgroundColor);
     if ($background->a < 1) throw new Exception('The contrast with a transparent background color would be meaningless');
-    $text = new self($textColor);
+    $text = self::makeInstance($textColor);
 
     // If the text is transparent, blend it to the background to get its actual visible color
     if ($text->a < 1) $text = self::blend($background, $text);
@@ -951,15 +948,14 @@ class Couleur
 
   /** Modifies the CIE lightness of a color to give it better contrast with a background color. */
   public function improveContrast(self|array|string $backgroundColor, float $desiredContrast, bool $lower = false, ?string $colorScheme = null, string $method = 'WCAG2'): self {
-    $background = new self($backgroundColor);
+    $background = self::makeInstance($backgroundColor);
     $values = $this->values(); $values[] = $this->a;
-    $movingColor = new self($values);
     $backgroundLab = $background->valuesTo('lab');
-    $movingLab = $movingColor->valuesTo('lab');
+    $movingLab = $this->valuesTo('lab');
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    $contrast = self::contrast($movingColor, $background, method: $method);
+    $contrast = self::contrast($this, $background, method: $method);
     if ($contrast > $desiredContrast)     $directionContrast = -1;
     elseif ($contrast < $desiredContrast) $directionContrast = 1;
     else                                  $directionContrast = 0;
@@ -1037,8 +1033,8 @@ class Couleur
 
   /** Calculates the distance between two colors in a certain format, by adding the difference between each of their properties. */
   public static function distance(self|array|string $color1, self|array|string $color2, string $method = 'CIEDE2000'): float {
-    $color1 = new self($color1);
-    $color2 = new self($color2);
+    $color1 = self::makeInstance($color1);
+    $color2 = self::makeInstance($color2);
     $lab1 = $color1->valuesTo('lab');
     $lab2 = $color2->valuesTo('lab');
 
@@ -1068,8 +1064,8 @@ class Couleur
 
   /** Calculates the intermediate colors a gradient should use to go from one color to another without passing through the "desaturated zone". */
   public static function gradient(self|array|string $startColor, self|array|string $endColor, int $steps = 5, array|string $spaceID = 'lch'): array {
-    $start = new self($startColor);
-    $end = new self($endColor);
+    $start = self::makeInstance($startColor);
+    $end = self::makeInstance($endColor);
     $steps = max(1, $steps);
     $props = self::propertiesOf($spaceID); $props[] = 'a';
     $space = self::getSpace($spaceID);

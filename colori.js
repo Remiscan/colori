@@ -13,8 +13,13 @@ export default class Couleur {
    */
 
   /**
+   * An array of parsed r, g, b, a color values.
+   * @typedef {Array.<number>} colorArray
+   */
+
+  /**
    * A Couleur, or a valid color expression. @see colorString
-   * @typedef {(Couleur|colorString)} color
+   * @typedef {(Couleur|colorArray|colorString)} color
    */
 
   /**
@@ -86,6 +91,17 @@ export default class Couleur {
     }
 
     else throw `Couleur objects can only be created from a string, an array of parsed values, or another Couleur object ; this is not one: ${JSON.stringify(color)}`;
+  }
+
+
+  /**
+   * Makes a Couleur from the argument if it's not one already.
+   * @param {color} color
+   * @returns {Couleur}
+   */
+  static makeInstance(color) {
+    if (color instanceof Couleur) return color;
+    else                          return new Couleur(color);
   }
 
 
@@ -302,18 +318,17 @@ export default class Couleur {
   /**
    * Creates a string containing the CSS expression of a color.
    * @param {object|string} format - Color space of the requested CSS expression, or its identifier.
-   * @param {number[]} rgba - The values of the r, g, b, a properties.
    * @param {object} options
    * @param {number} options.precision - How many decimals to display.
    * @param {string} options.clamp - Which color space the values should be clamped to.
    * @returns {string} The expression of the color in the requested format.
    */
-  static expr(format, rgba, { precision = 0, clamp = true } = {}) {
+  expr(format, { precision = 0, clamp = true } = {}) {
     const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
     const space = Couleur.getSpace(spaceID);
-    let values = Couleur.convert('srgb', space, rgba.slice(0, 3));
+    let values = this.valuesTo(space);
     if (clamp) values = Couleur.toGamut(space, values, space);
-    const a = Couleur.unparse(rgba[3], 'a', { precision });
+    const a = Couleur.unparse(this.a, 'a', { precision });
     values = [...values, a];
 
     // If the requested expression is of the color(space, ...) type
@@ -326,7 +341,7 @@ export default class Couleur {
         } else {
           string += ` ${precision === null ? v : Math.round(10**precision * v) / (10**precision)}`;
         }
-      }
+      } 
       string += `)`;
       return string;
     }
@@ -349,8 +364,19 @@ export default class Couleur {
     }
   }
 
-  /** @see Couleur.expr - Non-static version. */
-  expr(format, options) { return Couleur.expr(format, [...this.values, this.a], options); }
+  /**
+   * Creates a string containing the CSS expression of a color from a list of values.
+   * @param {object|string} format - Color space of the requested CSS expression, or its identifier.
+   * @param {number[]} values - The values of the r, g, b, a properties.
+   * @param {object|string} valueSpaceID - Color space of the given values, or its identifier.
+   * @param {object} options - @see Couleur.expr
+   * @returns {string} The expression of the color in the requested format.
+   */
+  static makeExpr(format, values, valueSpaceID, options) {
+    const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
+    const rgba = [...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)), values[3]];
+    return (new Couleur(rgba)).expr(format, options);
+  }
 
 
   /* ALL VALUES (r, g, b) */
@@ -850,8 +876,8 @@ export default class Couleur {
    * @returns {Couleur} The resulting color.
    */
    static blend(backgroundColor, overlayColor, alpha) {
-    const background = new Couleur(backgroundColor);
-    const overlay = new Couleur(overlayColor);
+    const background = Couleur.makeInstance(backgroundColor);
+    const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
       overlay.a = Couleur.parse(alpha, 'a');
 
@@ -896,8 +922,8 @@ export default class Couleur {
    * @throws if the equation has an infinite amount of solutions.
    */
    static unblend(mixColor, overlayColor, alpha) {
-    const mix = new Couleur(mixColor);
-    const overlay = new Couleur(overlayColor);
+    const mix = Couleur.makeInstance(mixColor);
+    const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
       overlay.a = Couleur.parse(alpha, 'a');
 
@@ -937,7 +963,7 @@ export default class Couleur {
     const background = Couleur.unblend(mix, overlay);
 
     if (colors.length === 0) return background;
-    else                       return Couleur.unblendAll(background, ...colors);
+    else                     return Couleur.unblendAll(background, ...colors);
   }
 
   /** @see Couleur.unblend - Non-static version. */
@@ -952,11 +978,13 @@ export default class Couleur {
    * @param {color} backgroundColor - The background color.
    * @param {color} mixColor - The result of the blend.
    * @param {?number|number[]} alpha - The alpha value(s) you want the solution(s) to have.
+   * @param {object} options
+   * @param {boolean} options.ignoreTransparent - Whether to return the color 'transparent' when it's a solution.
    * @returns {(Couleur|Couleur[]|null)} The solution(s) to the equation.
    */
   static whatToBlend(backgroundColor, mixColor, alphas = [], { ignoreTransparent = false } = {}) {
-    const background = new Couleur(backgroundColor);
-    const mix = new Couleur(mixColor);
+    const background = Couleur.makeInstance(backgroundColor);
+    const mix = Couleur.makeInstance(mixColor);
     let overlays = [];
 
     const calculateSolution = a => {
@@ -1039,9 +1067,9 @@ export default class Couleur {
    * @returns {number} Contrast between the two colors.
    */
   static contrast(textColor, backgroundColor, { method = 'WCAG2' } = {}) {
-    const background = new Couleur(backgroundColor);
+    const background = Couleur.makeInstance(backgroundColor);
     if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
-    let text = new Couleur(textColor);
+    let text = Couleur.makeInstance(textColor);
 
     // If the text is transparent, blend it to the background to get its actual visible color
     if (text.a < 1) text = Couleur.blend(background, text);
@@ -1088,14 +1116,13 @@ export default class Couleur {
    * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
    */
   improveContrast(backgroundColor, desiredContrast, { lower = false, colorScheme = null, method = 'WCAG2' } = {}) {
-    const background = new Couleur(backgroundColor);
-    const movingColor = new Couleur([...this.values, this.a]);
+    const background = Couleur.makeInstance(backgroundColor);
     const backgroundLab = background.valuesTo('lab');
-    const movingLab = movingColor.valuesTo('lab');
+    const movingLab = this.valuesTo('lab');
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    let startContrast = Couleur.contrast(movingColor, background, method);
+    let startContrast = Couleur.contrast(this, background, method);
     let directionContrast;
     if (startContrast > desiredContrast)      directionContrast = -1;
     else if (startContrast < desiredContrast) directionContrast = 1;
@@ -1122,7 +1149,7 @@ export default class Couleur {
     // If desiredContrast can not be reached, return white or black — the one that fits the color scheme.
     else if (!isPossible.raising && !isPossible.lowering) {
       if (_colorScheme === 'light') return new Couleur('black');
-      else                         return new Couleur('white');
+      else                          return new Couleur('white');
     }
     // If desiredContrast can be reached in both directions
     else {
@@ -1182,8 +1209,8 @@ export default class Couleur {
    * @returns {number} The distance between the two colors in sRGB space.
    */
   static distance(color1, color2, { method = 'CIEDE2000' } = {}) { 
-    const colore1 = new Couleur(color1);
-    const colore2 = new Couleur(color2);
+    const colore1 = Couleur.makeInstance(color1);
+    const colore2 = Couleur.makeInstance(color2);
     const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
 
     switch (method) {
@@ -1228,8 +1255,8 @@ export default class Couleur {
    * @returns {Couleur[]} The array of (steps + 1) colors in the gradient.
    */
   static gradient(startColor, endColor, steps = 5, spaceID = 'lch') {
-    const start = new Couleur(startColor);
-    const end = new Couleur(endColor);
+    const start = Couleur.makeInstance(startColor);
+    const end = Couleur.makeInstance(endColor);
     const _steps = Math.max(1, steps);
     const props = [...Couleur.propertiesOf(spaceID), 'a'];
     const space = Couleur.getSpace(spaceID);
