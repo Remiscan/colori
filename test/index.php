@@ -18,9 +18,8 @@ foreach($_tests as $k => $test) {
 <html>
   <head>
     <style>
-      html {
-        color-scheme: dark;
-      }
+      html { color-scheme: light dark; }
+
       body {
         width: 100%;
         height: 100%;
@@ -35,29 +34,19 @@ foreach($_tests as $k => $test) {
           linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
           linear-gradient(to right, #ddd 0% 100%);
       }
-      h2 {
-        grid-row: 2;
-      }
-      h3 {
-        padding: .5em;
-      }
+
+      h2 { grid-row: 2; }
+      h3 { padding: .5em; }
+
       div.js, div.php {
         border-top: 1px solid black;
         border-bottom: 1px solid black;
         overflow: hidden;
       }
-      .yes {
-        background-color: <?php $c = new Couleur('palegreen'); echo $c->replace('a', '.2')->hsl(); ?>;
-      }
-      .no {
-        background-color: <?php $c = new Couleur('pink'); echo $c->replace('a', '.2')->hsl(); ?>;
-      }
-      .php {
-        grid-column: 1;
-      }
-      .js {
-        grid-column: 2;
-      }
+      
+      .php { grid-column: 1; }
+      .js { grid-column: 2; }
+
       h3 {
         background-image: var(--gradient, linear-gradient(to right, var(--color, white) 0 100%)),
                           var(--echiquier-transparence);
@@ -66,31 +55,29 @@ foreach($_tests as $k => $test) {
         background-repeat: no-repeat, repeat, repeat;
       }
 
-      span, pre {
-        padding: 0 1rem;
+      span, pre { padding: 0 1rem; }
+      pre { white-space: pre-wrap; }
+
+      .yes { background-color: palegreen; }
+      .no { background-color: pink; }
+      .no>pre:nth-of-type(1) { color: darkred; }
+
+      aside {
+        grid-row: 1;
+        grid-column: 2;
       }
 
-      pre {
-        white-space: pre-wrap;
-      }
-      .no>pre:nth-of-type(1) {
-        color: darkred;
-      }
       @media (prefers-color-scheme: dark) {
+        body { color: white; }
         h3 {
           background-image: var(--gradient, linear-gradient(to right, var(--color, #333) 0 100%)),
                             var(--echiquier-transparence);
         }
-        .no>pre:nth-of-type(1) {
-          color: pink;
-        }
+
+        .yes { background-color: <?php $c = new Couleur('palegreen'); echo $c->replace('a', '.2')->hsl(); ?>; }
+        .no { background-color: <?php $c = new Couleur('pink'); echo $c->replace('a', '.2')->hsl(); ?>; }
+        .no>pre:nth-of-type(1) { color: pink; }
       }
-      /*pre:nth-of-type(2) {
-        display: none;
-      }
-      .no>pre:nth-of-type(2) {
-        display: block;
-      }*/
 
       ul {
         grid-column: 1 / -1;
@@ -109,17 +96,30 @@ foreach($_tests as $k => $test) {
     <h2 class="php">Tests de colori.php</h2>
 
     <?php
-
+    $failsList = [];
     foreach($tests as $k => $test) {
       if ($test->nophp) continue;
       try {
         $test->populate();
+        if (!$test->validate()) $failsList[] = '<li><a href="#php-'. ($test->ordre + 3) .'">'. $test->nom() .'</a></li>';
       }
       catch (Error $error) { var_dump($error); }
       catch (Exception $error) { var_dump($error); }
       catch (SyntaxError $error) { var_dump($error); }
     }
     ?>
+
+    <aside>
+      <h2>Failed tests</h2>
+      <ul class="failed-php">
+        <li style="list-style: none">PHP (<span class="failed-php-count"><?php echo count($failsList); ?></span>)</li>
+        <?php echo implode('', $failsList); ?>
+      </ul>
+
+      <ul class="failed-js">
+        <li style="list-style: none">JavaScript (<span class="failed-js-count">0</span>)</li>
+      </ul>
+    </aside>
 
     <h2 class="js">Tests de colori.js</h2>
 
@@ -138,7 +138,16 @@ foreach($_tests as $k => $test) {
 
       const tests_json = <?=$tests_json?>;
       const tests = tests_json.map((test, k) => new Test(test.fonction, test.resultatAttendu, k));
-      tests.forEach(test => test.populate());
+      const failsList = document.querySelector('.failed-js');
+      let fails = 0;
+      for (const test of tests) {
+        const valid = test.populate();
+        if (!valid) {   
+          failsList.innerHTML += `<li><a href="#js-${test.ordre + 3}">${test.nom}</a></li>`;
+          fails++;
+        }
+      }
+      document.querySelector('.failed-js-count').innerHTML = fails;
     </script>
   </body>
 </html>

@@ -152,6 +152,7 @@ class Test {
 
     echo <<<DIV
     <div class="php ${class}" style="grid-row: ${row}" data-validate="${validation}">
+      <a id="php-${row}"></a>
       <h3 class="php" style="--color:${backgroundColor}; --gradient:${gradient}; color:${textColor};">${titre}</h3>
       <span class="php">${texte} in ${time} ms</span>
       <pre class="php">Reçu : ${recu}</pre>

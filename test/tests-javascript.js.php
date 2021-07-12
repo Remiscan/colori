@@ -124,6 +124,7 @@ export default class Test {
     backgroundColor = (backgroundColor instanceof Colour) ? backgroundColor.rgb : backgroundColor;
 
     div.innerHTML = `
+      <a id="js-${this.ordre + 3}"></a>
       <h3 class="js" style="--color:${backgroundColor || ''}; --gradient:${gradient}; color:${textColor};">${this.nom}</h3>
       <span class="js">${validation ? '✅ Success' : '❌ Failure'} in ${this.time} ms</span>
       <pre class="js">${'Reçu :\n\n' + JSON.stringify(resultat, null, 2)}</pre>
@@ -131,5 +132,7 @@ export default class Test {
     `;
     
     document.body.appendChild(div);
+
+    return validation;
   }
 }
