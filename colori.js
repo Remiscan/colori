@@ -1090,13 +1090,22 @@ export default class Couleur {
 
 
   /** 
-   * Checks if black or white text would have better contrast with {this}.
-   * @returns {('black'|'white')}
+   * Determines which color scheme ('light' or 'dark') would lead to a better contrast with the color.
+   * The 'light' color scheme means a light background with dark text.
+   * The 'dark' color scheme means a dark background with light text.
+   * @param {string} as - Whether the color is the background or the text color.
+   * @returns {('light'|'dark')}
    */
-  contrastedText() {
-    const Cblack = Math.abs(this.contrast('black', { method: 'apca' }));
-    const Cwhite = Math.abs(this.contrast('white', { method: 'apca' }));
-    return (Cblack >= Cwhite) ? 'black' : 'white';
+  bestColorScheme(as = 'background') {
+    if (as === 'text') {
+      const Cblack = Math.abs(Couleur.contrast(this, 'black', { method: 'apca' }));
+      const Cwhite = Math.abs(Couleur.contrast(this, 'white', { method: 'apca' }));
+      return (Cblack >= Cwhite) ? 'dark' : 'light';
+    } else {
+      const Cblack = Math.abs(Couleur.contrast('black', this, { method: 'apca' }));
+      const Cwhite = Math.abs(Couleur.contrast('white', this, { method: 'apca' }));
+      return (Cblack >= Cwhite) ? 'light' : 'dark';
+    }
   }
 
 

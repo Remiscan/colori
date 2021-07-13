@@ -119,8 +119,9 @@ export default class Test {
       }
     } catch(e) {}
     
-    textColor = (backgroundColor instanceof Colour) ? Colour.blend('white', backgroundColor).contrastedText()
-              : 'initial';
+    textColor = (backgroundColor instanceof Colour) ? (
+                  Colour.blend('white', backgroundColor).bestColorScheme('background') == 'light' ? 'black' : 'white'
+                ) : 'initial';
     backgroundColor = (backgroundColor instanceof Colour) ? backgroundColor.rgb : backgroundColor;
 
     div.innerHTML = `

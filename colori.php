@@ -938,11 +938,17 @@ class Couleur
   }
   
 
-  /** Checks if black or white text would have better contrast with {this}. */
-  public function contrastedText(): string {
-    $Cblack = abs(self::contrast($this, 'black', method: 'apca'));
-    $Cwhite = abs(self::contrast($this, 'white', method: 'apca'));
-    return ($Cblack >= $Cwhite) ? 'black' : 'white';
+  /** Determines which color scheme ('light' or 'dark') would lead to a better contrast with the color. */
+  public function bestColorScheme(string $as = 'background'): string {
+    if ($as === 'text') {
+      $Cblack = abs(self::contrast($this, 'black', method: 'apca'));
+      $Cwhite = abs(self::contrast($this, 'white', method: 'apca'));
+      return ($Cblack >= $Cwhite) ? 'dark' : 'light';
+    } else {
+      $Cblack = abs(self::contrast('black', $this, method: 'apca'));
+      $Cwhite = abs(self::contrast('white', $this, method: 'apca'));
+      return ($Cblack >= $Cwhite) ? 'light' : 'dark';
+    }
   }
 
 

@@ -16,7 +16,7 @@ class Test {
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
       $fonction
     );
-    $methods = ['blend', 'contrast', 'contrastedText', 'improveContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'greyscale', 'grayscale', 'sepia', 'gradient', 'distance', 'same', 'unblend', 'whatToBlend'];
+    $methods = ['blend', 'contrast', 'bestColorScheme', 'improveContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'greyscale', 'grayscale', 'sepia', 'gradient', 'distance', 'same', 'unblend', 'whatToBlend'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $methods), 
       array_map(function($x) { return '->' . $x; }, $methods),
@@ -146,8 +146,9 @@ class Test {
     catch (Exception $error) {}
     catch (Error $error) {}
 
-    $textColor = ($backgroundColor instanceof Couleur) ? Couleur::blend('white', $backgroundColor)->contrastedText()
-               : 'initial';
+    $textColor = ($backgroundColor instanceof Couleur) ? (
+                   Couleur::blend('white', $backgroundColor)->bestColorScheme() === 'light' ? 'black' : 'white'
+                 ): 'initial';
     $backgroundColor = ($backgroundColor instanceof Couleur) ? $backgroundColor->rgb() : $backgroundColor;
 
     echo <<<DIV

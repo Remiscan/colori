@@ -148,8 +148,11 @@
     "fonction": "Colour.contrast('hsl(200, 10%, 10%)', 'lolilol')",
     "resultatAttendu": "Error"
   }, {
-    "fonction": "(new Colour('hsl(200, 10%, 10%)')).contrastedText()",
-    "resultatAttendu": "white"
+    "fonction": "(new Colour('hsl(200, 10%, 10%)')).bestColorScheme('background')",
+    "resultatAttendu": "dark"
+  }, {
+    "fonction": "(new Colour('hsl(200, 10%, 10%)')).bestColorScheme('text')",
+    "resultatAttendu": "light"
   }, {
     "fonction": "(new Colour('hsl(350, 25%, 52%)')).complement().hsl",
     "resultatAttendu": "hsl(170, 25%, 52%)"
