@@ -15,6 +15,8 @@ jobs:
 
       - name: Auto Minify
         uses: nizarmah/auto-minify@master
+        with:
+          js_engine: uglify-js
 
       # Auto commits minified files to the repository
       - name: Auto committing minified files
