@@ -2,7 +2,10 @@ name: Auto-Minify colori.js
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+    paths:
+      - 'colori.js'
   workflow_dispatch:
 
 jobs:
