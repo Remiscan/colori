@@ -1093,7 +1093,7 @@ export default class Couleur {
    * Determines which color scheme ('light' or 'dark') would lead to a better contrast with the color.
    * The 'light' color scheme means a light background with dark text.
    * The 'dark' color scheme means a dark background with light text.
-   * @param {string} as - Whether the color is the background or the text color.
+   * @param {('background'|'text')} as - Whether the color is the background or the text color.
    * @returns {('light'|'dark')}
    */
   bestColorScheme(as = 'background') {
