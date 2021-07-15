@@ -124,7 +124,7 @@ class Test {
     $isError = is_array($resultat) && $resultat[0] === 'Error';
     if ($isError) $resultat[1] = htmlspecialchars($resultat[1]);
     $titre = $this->nom();
-    $time = $this->time;
+    $time = $this->time * 1000;
 
     $class = $validation ? 'yes' : 'no';
     $texte = $validation ? '✅ Success' : '❌ Failure';
