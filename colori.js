@@ -1348,7 +1348,7 @@ export default class Couleur {
         links: ['lin_srgb', 'hsl']
       }, {
         id: 'lin_srgb',
-        links: ['srgb', 'd65xyz']
+        links: ['srgb', 'd65xyz', 'oklab']
       }, {
         id: 'hsl',
         whitepoint: 'd65',
@@ -1419,6 +1419,16 @@ export default class Couleur {
       }, {
         id: 'lin_rec2020',
         links: ['rec2020', 'd65xyz']
+      }, {
+        id: 'oklab',
+        whitepoint: 'd65',
+        gamut: [ [0, 4], [-Infinity, Infinity], [-Infinity, Infinity] ],
+        links: ['lin_srgb', 'oklch']
+      }, {
+        id: 'oklch',
+        whitepoint: 'd65',
+        gamut: [ [0, 4], [0, +Infinity], [0, 360] ],
+        links: ['oklab']
       }
     ];
   }
@@ -1857,6 +1867,47 @@ const Utils = {
 
     return [ciel, ciea, cieb];
   },
+
+  /* oklab */
+
+  lin_srgb_to_oklab: function(rgb) {
+    // Source of the math: https://bottosson.github.io/posts/oklab/
+    const [r, g, b] = rgb;
+
+    let l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+	  let m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+	  let s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+    l = Math.cbrt(l);
+    m = Math.cbrt(m);
+    s = Math.cbrt(s);
+    
+    const okl = 0.2104542553 * l + 0.7936177850 * m + -0.0040720468 * s;
+    const oka = 1.9779984951 * l + -2.4285922050 * m + 0.4505937099 * s;
+    const okb = 0.0259040371 * l + 0.7827717662 * m + -0.8086757660 * s;
+
+    return [okl, oka, okb];
+  },
+
+  oklab_to_lin_srgb: function(lab) {
+    // Source of the math: https://bottosson.github.io/posts/oklab/
+    const [okl, oka, okb] = lab;
+
+    let l = okl + 0.3963377774 * oka + 0.2158037573 * okb;
+    let m = okl + -0.1055613458 * oka + -0.0638541728 * okb;
+    let s = okl + -0.0894841775 * oka + -1.2914855480 * okb;
+    l = l**3;
+    m = m**3;
+    s = s**3;
+
+    const r = 4.0767416621 * l + -3.3077115913 * m + 0.2309699292 * s;
+    const g = -1.2684380046 * l + 2.6097574011 * m + -0.3413193965 * s;
+    const b = -0.0041960863 * l + -0.7034186147 * m + 1.7076147010 * s;
+
+    return [r, g, b];
+  },
+
+  oklab_to_oklch: function(lab) { return this.lab_to_lch(lab); },
+  oklch_to_oklab: function(lch) { return this.lch_to_lab(lch); },
 
   /* Bradford transform */
 
