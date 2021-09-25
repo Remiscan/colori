@@ -89,4 +89,7 @@ $version = version();
       `;
     }
   }
+
+  const c = new Couleur('color(--oklab 1.000 0.000 0.000)');
+  console.log(c.valuesTo('d65xyz'));
 </script>

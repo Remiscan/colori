@@ -539,7 +539,11 @@ export default class Couleur {
         rgb = Couleur.convert(spaceID, 'srgb', rgb);
         break;
       default:
-        throw `The ${JSON.stringify(spaceID)} color space is not supported`;
+        if (spaceID.startsWith('--')) {
+          const id = spaceID.substring(2);
+          rgb = Couleur.convert(id, 'srgb', rgb);
+        }
+        else throw `The ${JSON.stringify(spaceID)} color space is not supported`;
     }
 
     const values = [...rgb, a];
