@@ -528,8 +528,8 @@ export default class Couleur {
    * @param {Array.<string|number>} rgba - The parsed values of the r, g, b, a properties.
    */
   setColor(spaceID, rgba) {
-    let rgb = rgba.slice(0, 3);
-    const a = rgba[3];
+    let rgb = rgba.slice(0, 3).map(v => Couleur.parse(v));
+    const a = Couleur.parse(rgba[3]);
 
     const clamp = v => Math.max(0, Math.min(v, 1));
     switch (spaceID) {
