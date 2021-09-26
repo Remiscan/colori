@@ -767,7 +767,7 @@ export default class Couleur {
     }
     
     // Let's reduce the LCH chroma until the color is in the color space.
-    else {
+    else if (method === 'chroma') {
       // Source of the math: https://github.com/LeaVerou/color.js/blob/master/src/color.js
       clampSpace = Couleur.getSpace('lch');
       let lch = Couleur.convert(valueSpace, clampSpace, values);
@@ -788,9 +788,11 @@ export default class Couleur {
         lch[1] = (Cmin + Cmax) / 2;
       }
 
-      // Final naive clamp to get in the color space if the color is still just outside the border
-      clampedValues = Couleur.toGamut(space, lch, clampSpace, { method: 'naive' });
+      clampedValues = lch;
     }
+
+    // Final naive clamp to get in the color space if the color is still just outside the border
+    if (method !== 'naive') clampedValues = Couleur.toGamut(space, clampedValues, clampSpace, { method: 'naive' });
 
     // Send the values back in the same color space we found them in
     return Couleur.convert(clampSpace, valueSpace, clampedValues);
