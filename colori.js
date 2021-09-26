@@ -534,7 +534,7 @@ export default class Couleur {
     const clamp = v => Math.max(0, Math.min(v, 1));
     switch (spaceID) {
       case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
-        rgb = rgb.map(v => clamp(v));
+        //rgb = rgb.map(v => clamp(v));
       case 'xyz':
         rgb = Couleur.convert(spaceID, 'srgb', rgb);
         break;
