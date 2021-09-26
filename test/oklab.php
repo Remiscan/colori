@@ -110,6 +110,9 @@ require_once '../colori.php';
 
 <h2>Testing Palette generation</h2>
 
+<label for="hue">Hue (<span id="hue-value"></span>)</label>
+<input type="range" id="hue" min="0" max="360" step="1" value="62">
+
 <div class="paletContainer"></div>
 
 <script type="module">
@@ -263,19 +266,17 @@ require_once '../colori.php';
 
   const generator = function(hue) {
     const lightnesses = [
-      1.0,
-      0.9880873963836093,
-      0.9551400440214246,
-      0.9127904082618294,
-      0.8265622041716898,
-      0.7412252673769428,
-      0.653350946076347,
-      0.5624050605208273,
-      0.48193149058901036,
-      0.39417829080418526,
-      0.3091856317280812,
-      0.22212874192541768,
-      0.0
+      .9880873963836093,
+      .9551400440214246,
+      .9127904082618294,
+      .8265622041716898,
+      .7412252673769428,
+      .653350946076347,
+      .5624050605208273,
+      .48193149058901036,
+      .39417829080418526,
+      .3091856317280812,
+      .22212874192541768
     ];
     const baseChroma = 0.1328123146401862;
     const chromas = [
@@ -287,10 +288,12 @@ require_once '../colori.php';
     ];
 
     return chromas.map((ch, k) => {
+      const h = k < 4 ? hue : (hue + 60);
+      console.log(h);
       return {
         lightnesses: lightnesses,
         chroma: ch,
-        hue: k < 3 ? hue : hue + 60
+        hue: h
       };
     });
   };
@@ -305,14 +308,36 @@ require_once '../colori.php';
 
 
 
-  const pal = new Palette(62);
-  for (const nuances of pal.colors) {
-    let html = `<div class="palet">`;
-    for (const color of nuances) {
-      const textColor = color.bestColorScheme() === 'dark' ? 'white' : 'black';
-      html += `<div style="--color: ${color.hsl}; color: ${textColor}" data-rgba="${color.values.join(' ; ')}">Text</div>`;
+  function updatePalet(hue) {
+    const container = document.querySelector('.paletContainer');
+    container.innerHTML = '';
+    document.querySelector('#hue-value').innerHTML = hue;
+
+    let pal = new Palette(parseFloat(hue));
+
+    for (const nuances of pal.colors) {
+      let html = `<div class="palet">`;
+      for (const color of nuances) {
+        const textColor = color.bestColorScheme() === 'dark' ? 'white' : 'black';
+        html += `<div style="--color: ${color.hsl}; color: ${textColor}" data-values="${color.values.join(' ; ')}" data-rgb="${color.rgb}" data-oklch="${color.valuesTo('oklch').join(' ; ')}">Text</div>`;
+      }
+      html += `</div>`;
+      container.innerHTML += html;
     }
-    html += `</div>`;
-    document.querySelector('.paletContainer').innerHTML += html;
   }
+
+  const range = document.querySelector('#hue');
+  range.addEventListener('change', event => {
+    updatePalet(range.value);
+  });
+  updatePalet(range.value); // init
+  
+
+  const white = new Couleur('color(--oklch 1 0.08854157553403602 121.99998679095636)');
+  const quasiwhite = new Couleur('color(--oklch 0.9999999938584008 0.08854157553403602 121.99998679095636)');
+
+  console.log(white.valuesTo('oklch'), quasiwhite.valuesTo('oklch'));
+
+  console.log(Couleur.convert('oklch', 'lin_srgb', [1, 0.08854157553403602, 121.99998679095636]));
+  console.log(Couleur.convert('oklch', 'lin_srgb', [1, 0, 121.99998679095636]));
 </script>
