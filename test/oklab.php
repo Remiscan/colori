@@ -289,7 +289,6 @@ require_once '../colori.php';
 
     return chromas.map((ch, k) => {
       const h = k < 4 ? hue : (hue + 60);
-      console.log(h);
       return {
         lightnesses: lightnesses,
         chroma: ch,
@@ -319,7 +318,8 @@ require_once '../colori.php';
       let html = `<div class="palet">`;
       for (const color of nuances) {
         const textColor = color.bestColorScheme() === 'dark' ? 'white' : 'black';
-        html += `<div style="--color: ${color.hsl}; color: ${textColor}" data-values="${color.values.join(' ; ')}" data-rgb="${color.rgb}" data-oklch="${color.valuesTo('oklch').join(' ; ')}">Text</div>`;
+        const contrast = Couleur.contrast(textColor, color, { method: 'apca' });
+        html += `<div style="--color: ${color.hsl}; color: ${textColor}" data-values="${color.values.join(' ; ')}" data-rgb="${color.rgb}" data-oklch="${color.valuesTo('oklch').join(' ; ')}">${Math.round(100 * contrast) / 100}</div>`;
       }
       html += `</div>`;
       container.innerHTML += html;
@@ -335,9 +335,4 @@ require_once '../colori.php';
 
   const white = new Couleur('color(--oklch 1 0.08854157553403602 121.99998679095636)');
   const quasiwhite = new Couleur('color(--oklch 0.9999999938584008 0.08854157553403602 121.99998679095636)');
-
-  console.log(white.valuesTo('oklch'), quasiwhite.valuesTo('oklch'));
-
-  console.log(Couleur.convert('oklch', 'lin_srgb', [1, 0.08854157553403602, 121.99998679095636]));
-  console.log(Couleur.convert('oklch', 'lin_srgb', [1, 0, 121.99998679095636]));
 </script>
