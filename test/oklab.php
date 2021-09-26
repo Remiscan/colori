@@ -110,8 +110,9 @@ require_once '../colori.php';
 
 <h2>Testing Palette generation</h2>
 
-<label for="hue">Hue (<span id="hue-value"></span>)</label>
+<label for="hue">Hue</label>
 <input type="range" id="hue" min="0" max="360" step="1" value="62">
+<span id="hue-value"></span>
 
 <div class="paletContainer"></div>
 
