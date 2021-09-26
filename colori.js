@@ -767,8 +767,8 @@ export default class Couleur {
     }
     
     // Let's reduce the LCH chroma until the color is in the color space.
-    // Source of the math: https://github.com/LeaVerou/color.js/blob/master/src/color.js
     else {
+      // Source of the math: https://github.com/LeaVerou/color.js/blob/master/src/color.js
       clampSpace = Couleur.getSpace('lch');
       let lch = Couleur.convert(valueSpace, clampSpace, values);
 
@@ -1632,8 +1632,8 @@ const Utils = {
 
   // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
   //                   & https://drafts.csswg.org/css-color/#predefined-to-predefined
-  //                   & https://drafts.csswg.org/css-color-4/utilities.js
-  //                   & https://drafts.csswg.org/css-color-4/conversions.js
+  //                   & https://github.com/w3c/csswg-drafts/blob/main/css-color-4/utilities.js
+  //                   & https://github.com/w3c/csswg-drafts/blob/main/css-color-4/conversions.js
 
   /* srgb */
 
@@ -1913,9 +1913,9 @@ const Utils = {
   },
 
   /* oklab */
+  // Source of the math: https://bottosson.github.io/posts/gamutclipping/
 
   lin_srgb_to_oklab: function(rgb) {
-    // Source of the math: https://bottosson.github.io/posts/oklab/
     const [r, g, b] = rgb;
 
     let l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
@@ -1933,7 +1933,6 @@ const Utils = {
   },
 
   oklab_to_lin_srgb: function(lab) {
-    // Source of the math: https://bottosson.github.io/posts/oklab/
     const [okl, oka, okb] = lab;
 
     let l = okl + 0.3963377774 * oka + 0.2158037573 * okb;
