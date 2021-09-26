@@ -2205,7 +2205,7 @@ const Utils = {
  */
 // Source of the math: https://bottosson.github.io/posts/gamutclipping/
 const oklabGamut = {
-  maxSaturation: (a, b) => {
+  maxSaturation: function(a, b) {
     let k0, k1, k2, k3, k4, wl, wm, ws;
 
     // If red goes negative first
@@ -2252,8 +2252,8 @@ const oklabGamut = {
   },
 
 
-  cusp: (a, b) => {
-    const Scusp = oklabGamut.maxSaturation(a, b);
+  cusp: function(a, b) {
+    const Scusp = this.maxSaturation(a, b);
 
     const rgbMax = Utils.oklab_to_lin_srgb([1, Scusp * a, Scusp * b]);
     const Lcusp = Math.cbrt(1 / Math.max(...rgbMax));
@@ -2263,8 +2263,8 @@ const oklabGamut = {
   },
 
 
-  gamutIntersection: (a, b, L1, C1, L0) => {
-    const [Lcusp, Ccusp] = oklabGamut.cusp(a, b);
+  gamutIntersection: function(a, b, L1, C1, L0) {
+    const [Lcusp, Ccusp] = this.cusp(a, b);
 
     let t;
     if (((L1 - L0) * Ccusp - (Lcusp - L0) * C1) <= 0) {
@@ -2316,7 +2316,7 @@ const oklabGamut = {
   },
 
 
-  clip: (rgb) => {
+  clip: function(rgb) {
     if (rgb.every(v => v > 0 && v < 1)) return rgb;
     
     const [okl, oka, okb] = Utils.lin_srgb_to_oklab(Utils.srgb_to_lin_srgb(rgb));
@@ -2331,7 +2331,7 @@ const oklabGamut = {
     const e1 = .5 + Math.abs(Ld) + α * C;
     const L0 = .5 * (1 + Math.sign(Ld) * (e1 - Math.sqrt(e1 * e1 - 2 * Math.abs(Ld))));
     
-    const t = oklabGamut.gamutIntersection(a, b, okl, C, L0);
+    const t = this.gamutIntersection(a, b, okl, C, L0);
     const Lclipped = L0 * (1 - t) + t * okl;
     const Cclipped = t * C;
     
