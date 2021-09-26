@@ -116,8 +116,7 @@ require_once '../colori.php';
   // ▼ ES modules cache-busted grâce à PHP
   /*<?php ob_start();?>*/
 
-  import { default as Couleur, Utils as Utils } from '../colori.js';
-  //import Palette from '../palette.js';
+  import { default as Couleur, Utils as Utils, Palette as DefPalette } from '../colori.js';
 
   /*<?php $imports = ob_get_clean();
   require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
@@ -262,59 +261,58 @@ require_once '../colori.php';
 
 
 
-  class Palette {
-    /**
-     * Create a Palette from a bunch of neutral and accent colors.
-     * @param {(number|object)[]} values - Hue values, or { hue, chroma } objects.
-     */
-    constructor(...values) {
-      const colors = values.map(n => {
-        const hue = typeof n === 'number' ? n : (n.hue || null);
-        const chroma = n.chroma || null;
-        return { hue, chroma };
-      });
+  const generator = function(hue) {
+    const lightnesses = [
+      1.0,
+      0.9880873963836093,
+      0.9551400440214246,
+      0.9127904082618294,
+      0.8265622041716898,
+      0.7412252673769428,
+      0.653350946076347,
+      0.5624050605208273,
+      0.48193149058901036,
+      0.39417829080418526,
+      0.3091856317280812,
+      0.22212874192541768,
+      0.0
+    ];
+    const baseChroma = 0.1328123146401862;
+    const chromas = [
+      baseChroma / 12,
+      baseChroma / 6,
+      baseChroma,
+      baseChroma / 3,
+      baseChroma * 2 / 3
+    ];
 
-      this.colors = []; // Will be an array of arrays of color nuances.
+    return chromas.map((ch, k) => {
+      return {
+        lightnesses: lightnesses,
+        chroma: ch,
+        hue: k < 3 ? hue : hue + 60
+      };
+    });
+  };
 
-      // Create the nuances of each color.
-      // Create the nuances of each color.
-      for (const color of colors) {
-        const nuances = [];
-        const { hue, chroma } = color;
 
-        const lightnesses = [1.0, 0.9880873963836093, 0.9551400440214246, 0.9127904082618294, 0.8265622041716898, 0.7412252673769428, 0.653350946076347, 0.5624050605208273, 0.48193149058901036, 0.39417829080418526, 0.3091856317280812, 0.22212874192541768, 0.0];
-        // Voir là pour les valeurs de chroma et lightness https://github.com/kdrag0n/android12-extensions/blob/733f394cddfaa40142c311bba4ab3ae2782162f8/app/src/main/java/dev/kdrag0n/android12ext/monet/theme/MaterialYouTargets.kt
 
-        for (const lightness of lightnesses) {
-          const newColor = new Couleur(`color(--oklch ${lightness} ${chroma} ${hue})`);
-          nuances.push(newColor);
-        }
-
-        this.colors.push(nuances);
-      }
+  class Palette extends DefPalette {
+    constructor(hue) {
+      super(hue, generator);
     }
   }
 
 
 
-
-  const cols = [
-    (new Couleur('#9A8F8B')).valuesTo('oklch'),
-    (new Couleur('#9E8E81')).valuesTo('oklch'),
-    (new Couleur('#D17B02')).valuesTo('oklch'),
-    (new Couleur('#A78B73')).valuesTo('oklch'),
-    (new Couleur('#8B9759')).valuesTo('oklch')
-  ];
-  const vals = cols.map(c => { return { hue: c[2], chroma: c[1] }; });
-  const pal = new Palette(...vals);
+  const pal = new Palette(62);
   for (const nuances of pal.colors) {
     let html = `<div class="palet">`;
     for (const color of nuances) {
       const textColor = color.bestColorScheme() === 'dark' ? 'white' : 'black';
-      html += `<div style="--color: ${color.hsl}; color: ${textColor}" data-color="${color.values.join(' ; ')}">Text</div>`;
+      html += `<div style="--color: ${color.hsl}; color: ${textColor}" data-rgba="${color.values.join(' ; ')}">Text</div>`;
     }
     html += `</div>`;
     document.querySelector('.paletContainer').innerHTML += html;
   }
-  //console.log(pal.colors.map(arr => arr.map(c => c.hsl)));
 </script>

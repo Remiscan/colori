@@ -1558,6 +1558,35 @@ export default class Couleur {
 
 
 /**
+ * PALET GENERATION
+ */
+class Palette {
+  /**
+   * Creates a palette from a hue.
+   * @param {number} hue - The hue of the main color of the palette in OKLAB color space. 
+   * @param {function} generator - A function that generates an array of { lightnesses, chroma, hue } objects.
+   */
+  constructor(hue, generator = () => []) {
+    this.colors = []; // Will be an array of arrays of color nuances.
+    const colors = generator(hue);
+
+    // Create the nuances of each color.
+    for (const color of colors) {
+      const nuances = [];
+      for (const lightness of color.lightnesses) {
+        const newColor = new Couleur(`color(--oklch ${lightness} ${color.chroma} ${color.hue})`);
+        nuances.push(newColor);
+      }
+      this.colors.push(nuances);
+    }
+  }
+}
+
+
+
+
+
+/**
  * UTILITY FUNCTIONS
  */
 const Utils = {
@@ -2226,4 +2255,4 @@ class Graph {
 
 
 
-export { Utils, Graph };
+export { Utils, Palette, Graph };
