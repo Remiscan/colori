@@ -1,0 +1,28 @@
+{
+  "name": "colori",
+  "version": "1.0.0",
+  "description": "**colori** is a module to convert (between CSS-supported formats) and manipulate colors. It is available in JavaScript or in PHP.",
+  "main": "colori.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://Remiscan: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@github.com/Remiscan/colori.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Remiscan/colori/issues"
+  },
+  "homepage": "https://github.com/Remiscan/colori#readme",
+  "devDependencies": {
+    "webpack": "^5.54.0",
+    "webpack-cli": "^4.8.0"
+  }
+}

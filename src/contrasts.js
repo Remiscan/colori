@@ -1,4 +1,4 @@
-import Conversion from "./conversion";
+import Conversion from './conversion.js';
 
 
 
@@ -18,7 +18,7 @@ const Contrasts = {
    * @returns {number} Contrast between the two colors, in [1, 21].
    */
   // Source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
-  WCAG2contrast: function(rgbText, rgbBack) {
+  WCAG2: function(rgbText, rgbBack) {
     const L1 = this.luminance(rgbText);
     const L2 = this.luminance(rgbBack);
     return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
@@ -32,7 +32,7 @@ const Contrasts = {
    * @returns {number} Contrast between the two colors.
    */
   // Source of the math: https://github.com/Myndex/SAPC-APCA
-  APCAcontrast: function(rgbText, rgbBack) {
+  APCA: function(rgbText, rgbBack) {
     // 1. Compute luminances
     const coeffs = [0.2126729, 0.7151522, 0.0721750];
     const gamma = 2.4;

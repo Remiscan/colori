@@ -1,3 +1,7 @@
+import Couleur from './couleur.js';
+
+
+
 class Palette {
   /**
    * Creates a palette from a hue.

@@ -1,10 +1,10 @@
+// Valid CSS values RegExp string (according to https://www.w3.org/TR/css-syntax/#typedef-number-token)
+const numberExp = '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?';
 const RegExps = {
-  // Valid CSS values RegExp string (according to https://www.w3.org/TR/css-syntax/#typedef-number-token)
-  number: '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?',
-  percentage: this.number + '%',
-  numberOrPercentage: this.number + '%?',
-  angle: this.number + '(?:deg|grad|rad|turn)?',
-  property: Couleur.properties.join('|')
+  number: numberExp,
+  percentage: numberExp + '%',
+  numberOrPercentage: numberExp + '%?',
+  angle: numberExp + '(?:deg|grad|rad|turn)?'
 };
 
 
