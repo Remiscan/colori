@@ -1,8 +1,19 @@
+import Utils from './src/utils.js';
+import Graph from './src/graph.js';
+import Contrasts from './src/contrasts.js';
+import oklabGamut from './src/oklab-gamut.js';
+import colorSpaces from './src/color-spaces';
+import namedColors from './src/named-colors';
+import { RegExps as ValueRegExps, CSSformats } from './src/css-formats';
+
+
+
 /**
  * Colori module
  * @author Remiscan <https://remiscan.fr>
  * @module colori.js
  */
+
 export default class Couleur {
   /* TYPE DEFINITIONS */
 
@@ -116,15 +127,15 @@ export default class Couleur {
     
     // Predetermine the format, to save regex-matching time
     let format;
-    if (tri.slice(0, 1) === '#') format = Couleur.formats[0];
+    if (tri.slice(0, 1) === '#') format = CSSformats[0];
     else switch (tri) {
-      case 'rgb': format = Couleur.formats[1]; break;
-      case 'hsl': format = Couleur.formats[2]; break;
-      case 'hwb': format = Couleur.formats[3]; break;
-      case 'lab': format = Couleur.formats[4]; break;
-      case 'lch': format = Couleur.formats[5]; break;
-      case 'col': format = Couleur.formats[6]; break;
-      default:    format = Couleur.formats[7];
+      case 'rgb': format = CSSformats[1]; break;
+      case 'hsl': format = CSSformats[2]; break;
+      case 'hwb': format = CSSformats[3]; break;
+      case 'lab': format = CSSformats[4]; break;
+      case 'lch': format = CSSformats[5]; break;
+      case 'col': format = CSSformats[6]; break;
+      default:    format = CSSformats[7];
     }
 
     // Check if the given string matches any color syntax
@@ -160,12 +171,12 @@ export default class Couleur {
     // to [0, 1]
     if (prop === 'a') {
       // If n is a percentage
-      if (new RegExp('^' + Couleur.vPer + '$').test(value)) {
+      if (new RegExp('^' + ValueRegExps.percentage + '$').test(value)) {
         if (clamp)  return Math.max(0, Math.min(parseFloat(value) / 100, 1));
         else        return parseFloat(value) / 100;
       }
       // If n is a number
-      else if (new RegExp('^' + Couleur.vNum + '$').test(value)) {
+      else if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
         if (clamp)  return Math.max(0, Math.min(value, 1));
         else        return parseFloat(value);
       }
@@ -178,12 +189,12 @@ export default class Couleur {
     // to [0, 1]
     else if (['r', 'g', 'b'].includes(prop)) {
       // If n is a percentage
-      if (new RegExp('^' + Couleur.vPer + '$').test(value)) {
+      if (new RegExp('^' + ValueRegExps.percentage + '$').test(value)) {
         if (clamp)  return Math.max(0, Math.min(parseFloat(value) / 100, 1));
         else        return parseFloat(value) / 100;
       }
       // If n is a number
-      else if (new RegExp('^' + Couleur.vNum + '$').test(value)) {
+      else if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
         if (clamp)  return Math.max(0, Math.min(value / 255, 1));
         else        return value / 255;
       }
@@ -197,11 +208,11 @@ export default class Couleur {
     else if(['h', 'cieh'].includes(prop)) {
       let h = parseFloat(value);
       // If n is a number
-      if (new RegExp('^' + Couleur.vNum + '$').test(value)) {
+      if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
         return Utils.angleToRange(h);
       }
       // If n is an angle
-      if ((new RegExp('^' + Couleur.vAng + '$').test(value))) {
+      if ((new RegExp('^' + ValueRegExps.angle + '$').test(value))) {
         if (String(value).slice(-3) === 'deg') {} // necessary to accept deg values
         else if (String(value).slice(-4) === 'grad')
           h = h * 360 / 400;
@@ -221,7 +232,7 @@ export default class Couleur {
     // to [0, 1]
     else if(['s', 'l', 'w', 'bk', 'ciel'].includes(prop)) {
       // If n is a percentage
-      if (new RegExp('^' + Couleur.vPer + '$').test(value)) {
+      if (new RegExp('^' + ValueRegExps.percentage + '$').test(value)) {
         if (clamp)  return Math.max(0, Math.min(parseFloat(value) / 100, 1));
         else        return parseFloat(value) / 100;
       }
@@ -232,7 +243,7 @@ export default class Couleur {
     // any number
     else if(['ciea', 'cieb'].includes(prop)) {
       // If n is a number
-      if (new RegExp('^' + Couleur.vNum + '$').test(value)) {
+      if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
         return parseFloat(value);
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
@@ -243,7 +254,7 @@ export default class Couleur {
     // clamped to [0, +Inf[
     else if (prop === 'ciec') {
       // If n is a number
-      if (new RegExp('^' + Couleur.vNum + '$').test(value)) {
+      if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
         if (clamp)  return Math.max(0, value);
         else        return parseFloat(value);
       }
@@ -255,11 +266,11 @@ export default class Couleur {
     // to any number (so that 0% becomes 0 and 100% becomes 1)
     else {
       // If n is a percentage
-      if (new RegExp('^' + Couleur.vPer + '$').test(value)) {
+      if (new RegExp('^' + ValueRegExps.percentage + '$').test(value)) {
         return parseFloat(value) / 100;
       }
       // If n is a number
-      else if (new RegExp('^' + Couleur.vNum + '$').test(value)) {
+      else if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
         return parseFloat(value);
       }
       else throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
@@ -531,7 +542,7 @@ export default class Couleur {
     let rgb = rgba.slice(0, 3).map(v => Couleur.parse(v));
     const a = Couleur.parse(rgba[3]);
 
-    const clamp = v => Math.max(0, Math.min(v, 1));
+    //const clamp = v => Math.max(0, Math.min(v, 1));
     switch (spaceID) {
       case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
         //rgb = rgb.map(v => clamp(v));
@@ -656,7 +667,7 @@ export default class Couleur {
 
   get luminance() {
     if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
-    return Utils.luminance(this.values);
+    return Contrasts.luminance(this.values);
   }
 
 
@@ -1350,104 +1361,11 @@ export default class Couleur {
 
   /** @returns {string[]} Array of all color property short names. */
   static get properties() {
-    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh']
+    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
   }
 
   /** @returns {{id: string, whitepoint: string, prefix: string, otherFormat: string[]}} Supported color spaces. */
-  static get colorSpaces() {
-    return [
-      {
-        id: 'srgb',
-        whitepoint: 'd65',
-        CSSformat: 'rgb',
-        gamut: [ [0, 1], [0, 1], [0, 1] ],
-        links: ['lin_srgb', 'hsl']
-      }, {
-        id: 'lin_srgb',
-        links: ['srgb', 'd65xyz', 'oklab']
-      }, {
-        id: 'hsl',
-        whitepoint: 'd65',
-        CSSformat: 'hsl',
-        gamut: [ [0, 360], [0, 1], [0, 1] ],
-        links: ['srgb', 'hwb']
-      }, {
-        id: 'hwb',
-        whitepoint: 'd65',
-        CSSformat: 'hwb',
-        gamut: [ [0, 360], [0, 1], [0, 1] ],
-        links: ['hsl']
-      }, {
-        id: 'lab',
-        whitepoint: 'd50',
-        CSSformat: 'lab',
-        gamut: [ [0, 4], [-Infinity, Infinity], [-Infinity, Infinity] ],
-        links: ['xyz', 'lch']
-      }, {
-        id: 'lch',
-        whitepoint: 'd50',
-        CSSformat: 'lch',
-        gamut: [ [0, 4], [0, +Infinity], [0, 360] ],
-        links: ['lab']
-      }, {
-        id: 'xyz',
-        whitepoint: 'd50',
-        CSSformat: 'color',
-        gamut: [ [-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
-        links: ['lab', 'd65xyz', 'lin_prophoto-rgb']
-      }, {
-        id: 'd65xyz',
-        whitepoint: 'd65',
-        links: ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020']
-      }, {
-        id: 'display-p3',
-        whitepoint: 'd65',
-        CSSformat: 'color',
-        gamut: [ [0, 1], [0, 1], [0, 1] ],
-        links: ['lin_display-p3']
-      }, {
-        id: 'lin_display-p3',
-        links: ['display-p3', 'd65xyz']
-      }, {
-        id: 'a98-rgb',
-        whitepoint: 'd65',
-        CSSformat: 'color',
-        gamut: [ [0, 1], [0, 1], [0, 1] ],
-        links: ['lin_a98-rgb']
-      }, {
-        id: 'lin_a98-rgb',
-        links: ['a98-rgb', 'd65xyz']
-      }, {
-        id: 'prophoto-rgb',
-        whitepoint: 'd50',
-        CSSformat: 'color',
-        gamut: [ [0, 1], [0, 1], [0, 1] ],
-        links: ['lin_prophoto-rgb']
-      }, {
-        id: 'lin_prophoto-rgb',
-        links: ['prophoto-rgb', 'xyz']
-      }, {
-        id: 'rec2020',
-        whitepoint: 'd65',
-        CSSformat: 'color',
-        gamut: [ [0, 1], [0, 1], [0, 1] ],
-        links: ['lin_rec2020']
-      }, {
-        id: 'lin_rec2020',
-        links: ['rec2020', 'd65xyz']
-      }, {
-        id: 'oklab',
-        whitepoint: 'd65',
-        gamut: [ [0, 4], [-Infinity, Infinity], [-Infinity, Infinity] ],
-        links: ['lin_srgb', 'oklch']
-      }, {
-        id: 'oklch',
-        whitepoint: 'd65',
-        gamut: [ [0, 4], [0, +Infinity], [0, 360] ],
-        links: ['oklab']
-      }
-    ];
-  }
+  static get colorSpaces() { return colorSpaces; }
 
   /**
    * Gets a color space.
@@ -1464,954 +1382,11 @@ export default class Couleur {
   }
 
   /** @returns {{id: string, syntaxes: RegExp[]}[]} Array of supported syntaxes. */
-  static get formats() {
-    return [
-      {
-        id: 'hex',
-        syntaxes: [
-          // #abc or #ABC
-          /^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/,
-          // #abcd or #ABCD
-          /^#([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})([a-fA-F0-9]{1})$/,
-          // #aabbcc or #AABBCC
-          /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/,
-          // #aabbccdd or #AABBCCDD
-          /^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/
-        ]
-      }, {
-        id: 'rgb',
-        syntaxes: [
-          // rgb(255, 255, 255) (spaces not required)
-          new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum})\\)$`),
-          // rgb(255, 255, 255, .5) or rgb(255, 255, 255, 50%) (spaces not required)
-          new RegExp(`^rgba?\\((${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNum}), ?(${Couleur.vNP})\\)$`),
-          // rgb(100%, 100%, 100%) (spaces not required)
-          new RegExp(`^rgba?\\((${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)$`),
-          // rgb(100%, 100%, 100%, .5) or rgb(100%, 100%, 100%, 50%) (spaces not required)
-          new RegExp(`^rgba?\\((${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
-          // rgb(255 255 255)
-          new RegExp(`^rgba?\\((${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum})\\)$`),
-          // rgba(255 255 255 / 50%) or rgba(255 255 255 / .5)
-          new RegExp(`^rgba?\\((${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum}) ?\\/ ?(${Couleur.vNP})\\)$`),
-          // rgb(100% 100% 100%)
-          new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer})\\)$`),
-          // rgba(100% 100% 100% / 50%) or rgba(100% 100% 100% / .5)
-          new RegExp(`^rgba?\\((${Couleur.vPer}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
-        ]
-      }, {
-        id: 'hsl',
-        syntaxes: [
-          // hsl(<angle>, 100%, 100%)
-          new RegExp(`^hsla?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer})\\)$`),
-          // hsla(<angle>, 100%, 100%, .5) or hsla(<angle>, 100%, 100%, 50%)
-          new RegExp(`^hsla?\\((${Couleur.vAng}), ?(${Couleur.vPer}), ?(${Couleur.vPer}), ?(${Couleur.vNP})\\)$`),
-          // hsl(<angle> 100% 100%)
-          new RegExp(`^hsla?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer})\\)$`),
-          // hsla(<angle> 100% 100% / .5) or hsl(<angle> 100% 100% / 50%)
-          new RegExp(`^hsla?\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
-        ]
-      }, {
-        id: 'hwb',
-        syntaxes: [
-          // hwb(<angle> 100% 100%)
-          new RegExp(`^hwb\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer})\\)$`),
-          // hwba(<angle> 100% 100% / .5) or hsl(<angle> 100% 100% / 50%)
-          new RegExp(`^hwb\\((${Couleur.vAng}) (${Couleur.vPer}) (${Couleur.vPer}) ?\\/ ?(${Couleur.vNP})\\)$`)
-        ]
-      }, {
-        id: 'lab',
-        syntaxes: [
-          // lab(300% 25 40)
-          new RegExp(`^lab\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vNum})\\)$`),
-          // lab(300% 25 40 / .5)
-          new RegExp(`^lab\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vNum}) ?\\/ ?(${Couleur.vNP})\\)$`)
-        ]
-      }, {
-        id: 'lch',
-        syntaxes: [
-          // lch(300% 25 <angle>)
-          new RegExp(`^lch\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vAng})\\)$`),
-          // lch(300% 25 <angle> / .5)
-          new RegExp(`^lch\\((${Couleur.vPer}) (${Couleur.vNum}) (${Couleur.vAng}) ?\\/ ?(${Couleur.vNP})\\)$`)
-        ]
-      }, {
-        id: 'color',
-        syntaxes: [
-          // color(display-p3 -0.6112 1.0079 -0.2192)
-          new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum})\\)$`),
-          // color(display-p3 -0.6112 1.0079 -0.2192 / .5)
-          new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${Couleur.vNum}) (${Couleur.vNum}) (${Couleur.vNum}) ?\\/ ?(${Couleur.vNP})\\)$`)
-        ]
-      }, {
-        id: 'name',
-        syntaxes: [
-          // white or WHITE or WhiTe
-          /^[A-Za-z]+$/
-        ]
-      }
-    ];
-  }
-
-  // Valid CSS values RegExp string (according to https://www.w3.org/TR/css-syntax/#typedef-number-token)
-  static get vNum() { return '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?'; } // number (r, g, b)
-  static get vPer() { return Couleur.vNum + '%'; } // percent (r, g, b, s, l, w, bk)
-  static get vNP() { return Couleur.vNum + '%?'; } // number or percent (a)
-  static get vAng() { return Couleur.vNum + '(?:deg|grad|rad|turn)?'; } // angle (h)
-  static get vProp() { return Couleur.properties.join('|'); } // noms des propriétés (r, g, b, etc)
+  static get formats() { return CSSformats; }
 
   /** @returns {Object} List of named colors in CSS. */
-  static get couleursNommees() {
-    return { aliceblue: 'f0f8ff', antiquewhite: 'faebd7', aqua: '00ffff', aquamarine: '7fffd4', azure: 'f0ffff', beige: 'f5f5dc', bisque: 'ffe4c4', black: '000000', blanchedalmond: 'ffebcd', blue: '0000ff', blueviolet: '8a2be2', brown: 'a52a2a', burlywood: 'deb887', cadetblue: '5f9ea0', chartreuse: '7fff00', chocolate: 'd2691e', coral: 'ff7f50', cornflowerblue: '6495ed', cornsilk: 'fff8dc', crimson: 'dc143c', cyan: '00ffff', darkblue: '00008b', darkcyan: '008b8b', darkgoldenrod: 'b8860b', darkgray: 'a9a9a9', darkgrey: 'a9a9a9', darkgreen: '006400', darkkhaki: 'bdb76b', darkmagenta: '8b008b', darkolivegreen: '556b2f', darkorange: 'ff8c00', darkorchid: '9932cc', darkred: '8b0000', darksalmon: 'e9967a', darkseagreen: '8fbc8f', darkslateblue: '483d8b', darkslategray: '2f4f4f', darkslategrey: '2f4f4f', darkturquoise: '00ced1', darkviolet: '9400d3', deeppink: 'ff1493', deepskyblue: '00bfff', dimgray: '696969', dimgrey: '696969', dodgerblue: '1e90ff', firebrick: 'b22222', floralwhite: 'fffaf0', forestgreen: '228b22', fuchsia: 'ff00ff', gainsboro: 'dcdcdc', ghostwhite: 'f8f8ff', gold: 'ffd700', goldenrod: 'daa520', gray: '808080', grey: '808080', green: '008000', greenyellow: 'adff2f', honeydew: 'f0fff0', hotpink: 'ff69b4', indianred: 'cd5c5c', indigo: '4b0082', ivory: 'fffff0', khaki: 'f0e68c', lavender: 'e6e6fa', lavenderblush: 'fff0f5', lawngreen: '7cfc00', lemonchiffon: 'fffacd', lightblue: 'add8e6', lightcoral: 'f08080', lightcyan: 'e0ffff', lightgoldenrodyellow: 'fafad2', lightgray: 'd3d3d3', lightgrey: 'd3d3d3', lightgreen: '90ee90', lightpink: 'ffb6c1', lightsalmon: 'ffa07a', lightseagreen: '20b2aa', lightskyblue: '87cefa', lightslategray: '778899', lightslategrey: '778899', lightsteelblue: 'b0c4de', lightyellow: 'ffffe0', lime: '00ff00', limegreen: '32cd32', linen: 'faf0e6', magenta: 'ff00ff', maroon: '800000', mediumaquamarine: '66cdaa', mediumblue: '0000cd', mediumorchid: 'ba55d3', mediumpurple: '9370d8', mediumseagreen: '3cb371', mediumslateblue: '7b68ee', mediumspringgreen: '00fa9a', mediumturquoise: '48d1cc', mediumvioletred: 'c71585', midnightblue: '191970', mintcream: 'f5fffa', mistyrose: 'ffe4e1', moccasin: 'ffe4b5', navajowhite: 'ffdead', navy: '000080', oldlace: 'fdf5e6', olive: '808000', olivedrab: '6b8e23', orange: 'ffa500', orangered: 'ff4500', orchid: 'da70d6', palegoldenrod: 'eee8aa', palegreen: '98fb98', paleturquoise: 'afeeee', palevioletred: 'd87093', papayawhip: 'ffefd5', peachpuff: 'ffdab9', peru: 'cd853f', pink: 'ffc0cb', plum: 'dda0dd', powderblue: 'b0e0e6', purple: '800080', rebeccapurple: '663399', red: 'ff0000', rosybrown: 'bc8f8f', royalblue: '4169e1', saddlebrown: '8b4513', salmon: 'fa8072', sandybrown: 'f4a460', seagreen: '2e8b57', seashell: 'fff5ee', sienna: 'a0522d', silver: 'c0c0c0', skyblue: '87ceeb', slateblue: '6a5acd', slategray: '708090', slategrey: '708090', snow: 'fffafa', springgreen: '00ff7f', steelblue: '4682b4', tan: 'd2b48c', teal: '008080', thistle: 'd8bfd8', tomato: 'ff6347', turquoise: '40e0d0', violet: 'ee82ee', wheat: 'f5deb3', white: 'ffffff', whitesmoke: 'f5f5f5', yellow: 'ffff00', yellowgreen: '9acd32' };
-  }
+  static get couleursNommees() { return namedColors; }
 }
-
-
-
-
-
-/**
- * PALET GENERATION
- */
-class Palette {
-  /**
-   * Creates a palette from a hue.
-   * @param {number} hue - The hue of the main color of the palette in OKLAB color space. 
-   * @param {function} generator - A function that generates an array of { lightnesses, chroma, hue } objects.
-   * @param {object} options
-   * @param {string?} options.clampSpace - Color space to which the generated colors will be clamped. Null to disable clamping.
-   */
-  constructor(hue, generator = () => [], { clampSpace = 'srgb' } = {}) {
-    this.colors = []; // Will be an array of arrays of color nuances.
-    const colors = generator(hue);
-
-    // Create the nuances of each color.
-    for (const color of colors) {
-      const nuances = [];
-      for (const lightness of color.lightnesses) {
-        let rgb = Couleur.convert('oklch', 'srgb', [lightness, color.chroma, color.hue]);
-        console.log(rgb);
-        if (clampSpace != null) rgb = Couleur.toGamut(clampSpace, rgb);
-        const newColor = new Couleur(`color(srgb ${rgb.join(' ')})`);
-        nuances.push(newColor);
-      }
-      this.colors.push(nuances);
-    }
-  }
-}
-
-
-
-
-
-/**
- * UTILITY FUNCTIONS
- */
-const Utils = {
-  /** Pads a string of length 1 with a zero. */
-  pad: function(s) { return (s.length < 2) ? `0${s}` : s; },
-
-  /** Brings an angle in degrees to [0, 360]. */
-  angleToRange: function(angle) {
-    let h = angle;
-    while (h < 0)   h += 360;
-    while (h > 360) h -= 360;
-    return h;
-  },
-
-  /** Returns a float precise to the nth decimal. */
-  pRound: function(number, precision = 5) {
-    let x = (typeof number === 'number') ? number : Number(number);
-    return Number(parseFloat(x.toPrecision(precision)));
-  },
-
-
-
-  /***********************************/
-  /* Conversion between color spaces */
-  /***********************************/
-
-  /**
-   * All of these functions take an array of parsed color values (without alpha),
-   * and return an array of parsed color values (without alpha) converted into the 
-   * desired color space or CSS format.
-   */
-
-  // Source of the math: https://www.w3.org/TR/css-color-4/#rgb-to-lab
-  //                   & https://drafts.csswg.org/css-color/#predefined-to-predefined
-  //                   & https://github.com/w3c/csswg-drafts/blob/main/css-color-4/utilities.js
-  //                   & https://github.com/w3c/csswg-drafts/blob/main/css-color-4/conversions.js
-
-  /* srgb */
-
-  srgb_to_lin_srgb: function(rgb) {
-    return rgb.map(x => (Math.abs(x) < 0.04045) ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4));
-  },
-
-  lin_srgb_to_srgb: function(rgb) {
-    return rgb.map(x => (Math.abs(x) > 0.0031308) ? (Math.sign(x) || 1) * (1.055 * Math.pow(Math.abs(x), 1 / 2.4) - 0.055) : 12.92 * x);
-  },
-
-  lin_srgb_to_d65xyz: function(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.41239079926595934 * r + 0.357584339383878 * g + 0.1804807884018343 * b,
-      0.21263900587151027 * r + 0.715168678767756 * g + 0.07219231536073371 * b,
-      0.01933081871559182 * r + 0.11919477979462598 * g + 0.9505321522496607 * b
-    ];
-  },
-
-  d65xyz_to_lin_srgb: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      3.2409699419045226 * x + -1.537383177570094 * y + -0.4986107602930034 * z,
-      -0.9692436362808796 * x + 1.8759675015077202 * y + 0.04155505740717559 * z,
-      0.05563007969699366 * x + -0.20397695888897652 * y + 1.0569715142428786 * z
-    ];
-  },
-
-  /* hsl */
-
-  srgb_to_hsl: function(rgb) {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach
-    const [r, g, b] = rgb; // all in [0, 1]
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const chroma = max - min;
-
-    const l = (max + min) / 2;
-
-    let h;
-    if (chroma === 0) h = 0;
-    else switch (max) {
-      case r: h = (g - b) / chroma; break;
-      case g: h = (b - r) / chroma + 2; break;
-      case b: h = (r - g) / chroma + 4; break;
-    }
-    h = 60 * h;
-    while (h < 0)   h += 360;
-    while (h > 360) h -= 360;
-
-    let s;
-    if (l === 0 || l === 1) s = 0;
-    else if (l <= 0.5)      s = chroma / (2 * l);
-    else                    s = chroma / (2 - 2 * l);
-
-    return [h, s, l]; // h in [0, 360], s & l in [0, 1]
-  },
-
-  hsl_to_srgb: function(hsl) {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
-    const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
-
-    const m = s * Math.min(l, 1 - l);
-    const k = n => (n + h / 30) % 12;
-    const f = n => l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
-
-    const r = f(0);
-    const g = f(8);
-    const b = f(4);
-
-    return [r, g, b]; // all in [0, 1]
-  },
-
-  /* hwb */
-
-  hsl_to_hwb: function(hsl) {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
-    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
-    const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
-
-    let _s;
-    const v = l + s * Math.min(l, 1 - l);
-    if (v === 0) _s = 0;
-    else         _s = 2 - 2 * l / v;
-
-    const w = (1 - _s) * v;
-    const bk = 1 - v;
-
-    return [h, w, bk]; // h in [0, 360], w & bk in [0, 1]
-  },
-
-  hwb_to_hsl: function(hwb) {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
-    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
-    const [h, w, bk] = hwb; // h in [0, 360], w & bk in [0, 1]
-
-    let _w = w, _bk = bk;
-    if (w + bk > 1) {
-      _w = w / (w + bk);
-      _bk = bk / (w + bk);
-    }
-
-    let _s;
-    const v = 1 - _bk;
-    if (_bk === 1) _s = 0;
-    else           _s = 1 - _w / v;
-
-    let s;
-    const l = v - v * _s / 2;
-    if (l === 0 || l === 1) s = 0;
-    else                    s = (v - l) / Math.min(l, 1 - l);
-
-    return [h, s, l]; // h in [0, 360], s & l in [0, 1]
-  },
-
-  /* display-p3 */
-
-  displayp3_to_lin_displayp3: function(rgb) { return this.srgb_to_lin_srgb(rgb); },
-  lin_displayp3_to_displayp3: function(rgb) { return this.lin_srgb_to_srgb(rgb); },
-  
-  lin_displayp3_to_d65xyz: function(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.4865709486482162 * r + 0.26566769316909306 * g + 0.1982172852343625 * b,
-		  0.2289745640697488 * r + 0.6917385218365064 * g + 0.079286914093745 * b,
-		  0.0000000000000000 * r + 0.04511338185890264 * g + 1.043944368900976 * b
-    ];
-  },
-
-  d65xyz_to_lin_displayp3: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      2.493496911941425 * x + -0.9313836179191239 * y + -0.40271078445071684 * z,
-		  -0.8294889695615747 * x + 1.7626640603183463 * y +  0.023624685841943577 * z,
-		  0.03584583024378447 * x + -0.07617238926804182 * y + 0.9568845240076872 * z
-    ];
-  },
-
-  /* prophoto-rgb */
-
-  prophotorgb_to_lin_prophotorgb: function(rgb) {
-    return rgb.map(v => Math.abs(v) <= 16/512 ? v / 16 : (Math.sign(v) || 1) * Math.pow(v, 1.8));
-  },
-
-  lin_prophotorgb_to_prophotorgb: function(rgb) {
-    return rgb.map(v => Math.abs(v) >= 1/512 ? (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1/1.8) : 16 * v);
-  },
-
-  lin_prophotorgb_to_xyz: function(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
-      0.2880711282292934 * r + 0.7118432178101014 * g + 0.00008565396060525902 * b,
-      0.0 * r + 0.0 * g + 0.8251046025104601 * b
-    ];
-  },
-
-  xyz_to_lin_prophotorgb: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
-	  	-0.5446224939028347 * x + 1.5082327413132781 * y + 0.02053603239147973 * z,
-	  	0.0 * x + 0.0 * y + 1.2119675456389454 * z
-    ];
-  },
-
-  /* a98-rgb */
-
-  a98rgb_to_lin_a98rgb: function(rgb) {
-    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 563/256));
-  },
-
-  lin_a98rgb_to_a98rgb: function(rgb) {
-    return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 256/563));
-  },
-
-  lin_a98rgb_to_d65xyz: function(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.5766690429101305 * r + 0.1855582379065463 * g + 0.1882286462349947 * b,
-      0.29734497525053605 * r + 0.6273635662554661 * g + 0.07529145849399788 * b,
-      0.02703136138641234 * r + 0.07068885253582723 * g + 0.9913375368376388 * b
-    ];
-  },
-
-  d65xyz_to_lin_a98rgb: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      2.0415879038107465 * x + -0.5650069742788596 * y + -0.34473135077832956 * z,
-      -0.9692436362808795 * x + 1.8759675015077202 * y + 0.04155505740717557 * z,
-      0.013444280632031142 * x + -0.11836239223101838 * y + 1.0151749943912054 * z
-    ];
-  },
-
-  /* rec2020 */
-
-  rec2020_to_lin_rec2020: function(rgb) {
-    const e = 1.09929682680944;
-    return rgb.map(v => Math.abs(v) < 0.018053968510807 * 4.5 ? v / 4.5 : (Math.sign(v) || 1) * Math.pow(Math.abs(v) + e - 1, 1/0.45));
-  },
-
-  lin_rec2020_to_rec2020: function(rgb) {
-    const e = 1.09929682680944;
-    return rgb.map(v => Math.abs(v) > 0.018053968510807 ? (Math.sign(v) || 1) * (e * Math.pow(Math.abs(v), 0.45) - (e - 1)) : 4.5 * v);
-  },
-
-  lin_rec2020_to_d65xyz: function(rgb) {
-    const [r, g, b] = rgb;
-    return [
-      0.6369580483012914 * r + 0.14461690358620832 * g + 0.1688809751641721 * b,
-		  0.2627002120112671 * r + 0.6779980715188708 * g + 0.05930171646986196 * b,
-		  0.000000000000000 * r + 0.028072693049087428 * g + 1.060985057710791 * b
-    ];
-  },
-
-  d65xyz_to_lin_rec2020: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      1.7166511879712674 * x + -0.35567078377639233 * y + -0.25336628137365974 * z,
-		  -0.6666843518324892 * x + 1.6164812366349395 * y + 0.01576854581391113 * z,
-		  0.017639857445310783 * x + -0.042770613257808524 * y + 0.9421031212354738 * z
-    ];
-  },
-
-  /* lab */
-
-  xyz_to_lab: function(xyz) {
-    const ε = 216/24389;
-    const κ = 24389/27;
-    const w = [0.96422, 1, 0.82521];
-
-    const [x, y, z] = xyz.map((v, k) => v / w[k]);
-    const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
-    const [f0, f1, f2] = [x, y, z].map(v => f(v));
-    return [
-      (116 * f1 - 16) / 100,
-      500 * (f0 - f1),
-      200 * (f1 - f2)
-    ];
-  },
-
-  lab_to_xyz: function(lab) {
-    const ε = 216/24389;
-    const κ = 24389/27;
-    const w = [0.96422, 1, 0.82521];
-
-    let [ciel, ciea, cieb] = lab;
-    ciel = 100 * ciel;
-    const f1 = (ciel + 16) / 116;
-    const f0 = ciea / 500 + f1;
-    const f2 = f1 - cieb / 200;
-
-    const x = (f0 ** 3 > ε) ? f0 ** 3 : (116 * f0 - 16) / κ;
-    const y = (ciel > κ * ε) ? ((ciel + 16) / 116) ** 3 : ciel / κ;
-    const z = (f2 ** 3 > ε) ? f2 ** 3 : (116 * f2 - 16) / κ;
-    return [x, y, z].map((v, k) => v * w[k]);
-  },
-
-  lab_to_lch: function(lab) {
-    const [ciel, ciea, cieb] = lab;
-    const ciec = Math.sqrt(ciea ** 2 + cieb ** 2);
-    let cieh = Math.atan2(cieb, ciea) * 180 / Math.PI;
-    while (cieh < 0)   cieh += 360;
-    while (cieh > 360) cieh -= 360;
-
-    return [ciel, ciec, cieh];
-  },
-
-  lch_to_lab: function(lch) {
-    const [ciel, ciec, cieh] = lch;
-    const ciea = ciec * Math.cos(cieh * Math.PI / 180);
-    const cieb = ciec * Math.sin(cieh * Math.PI / 180);
-
-    return [ciel, ciea, cieb];
-  },
-
-  /* oklab */
-  // Source of the math: https://bottosson.github.io/posts/gamutclipping/
-
-  lin_srgb_to_oklab: function(rgb) {
-    const [r, g, b] = rgb;
-
-    let l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
-	  let m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
-	  let s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
-    l = Math.cbrt(l);
-    m = Math.cbrt(m);
-    s = Math.cbrt(s);
-    
-    const okl = 0.2104542553 * l + 0.7936177850 * m + -0.0040720468 * s;
-    const oka = 1.9779984951 * l + -2.4285922050 * m + 0.4505937099 * s;
-    const okb = 0.0259040371 * l + 0.7827717662 * m + -0.8086757660 * s;
-
-    return [okl, oka, okb];
-  },
-
-  oklab_to_lin_srgb: function(lab) {
-    const [okl, oka, okb] = lab;
-
-    let l = okl + 0.3963377774 * oka + 0.2158037573 * okb;
-    let m = okl + -0.1055613458 * oka + -0.0638541728 * okb;
-    let s = okl + -0.0894841775 * oka + -1.2914855480 * okb;
-    l = l**3;
-    m = m**3;
-    s = s**3;
-
-    const r = 4.0767416621 * l + -3.3077115913 * m + 0.2309699292 * s;
-    const g = -1.2684380046 * l + 2.6097574011 * m + -0.3413193965 * s;
-    const b = -0.0041960863 * l + -0.7034186147 * m + 1.7076147010 * s;
-
-    return [r, g, b];
-  },
-
-  oklab_to_oklch: function(lab) { return this.lab_to_lch(lab); },
-  oklch_to_oklab: function(lch) { return this.lch_to_lab(lch); },
-
-  /* Bradford transform */
-
-  d65xyz_to_xyz: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      1.0479298208405488 * x + 0.022946793341019088 * y + -0.05019222954313557 * z,
-      0.029627815688159344 * x + 0.990434484573249 * y + -0.01707382502938514 * z,
-      -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z
-    ];
-  },
-
-  xyz_to_d65xyz: function(xyz) {
-    const [x, y, z] = xyz;
-    return [
-      0.9554734527042182 * x + -0.023098536874261423 * y + 0.0632593086610217 * z,
-      -0.028369706963208136 * x + 1.0099954580058226 * y + 0.021041398966943008 * z,
-      0.012314001688319899 * x + -0.020507696433477912 * y + 1.3303659366080753 * z
-    ];
-  },
-
-
-
-  /**********************/
-  /* Contrast functions */
-  /**********************/
-
-
-  /** @returns {number} Luminance of the color. */
-  // Source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
-  luminance: function(rgb) {
-    const linrgb = this.srgb_to_lin_srgb(rgb);
-    return 0.2126 * linrgb[0] + 0.7152 * linrgb[1] + 0.0722 * linrgb[2];
-  },
-
-
-  /**
-   * Computes the contrast between two colors as defined by WCAG2.
-   * @param {number[]} rgbText - Array of r, g, b values of the text.
-   * @param {number[]} rgbBack - Array of r, g, b values of the background.
-   * @returns {number} Contrast between the two colors, in [1, 21].
-   */
-  // Source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
-  WCAG2contrast: function(rgbText, rgbBack) {
-    const L1 = this.luminance(rgbText);
-    const L2 = this.luminance(rgbBack);
-    return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
-  },
-
-
-  /**
-   * Computes the SAPC/APCA contrast between two colors as defined by WCAG3.
-   * @param {number[]} rgbText - Array of r, g, b values of the text.
-   * @param {number[]} rgbBack - Array of r, g, b values of the background.
-   * @returns {number} Contrast between the two colors.
-   */
-  // Source of the math: https://github.com/Myndex/SAPC-APCA
-  APCAcontrast: function(rgbText, rgbBack) {
-    // 1. Compute luminances
-    const coeffs = [0.2126729, 0.7151522, 0.0721750];
-    const gamma = 2.4;
-    const luminance = rgb => rgb.reduce((sum, v, i) => sum + Math.pow(v, gamma) * coeffs[i], 0);
-    let [Ltext, Lback] = [rgbText, rgbBack].map(rgb => luminance(rgb));
-
-    // 2. Clamp luminances
-    const blackClampTrigger = 0.03;
-    const blackClampPow = 1.45;
-    [Ltext, Lback] = [Ltext, Lback].map(L => L > blackClampTrigger ? L : L + Math.pow(blackClampTrigger - L, blackClampPow));
-
-    const δLmin = 0.0005;
-    if (Math.abs(Ltext - Lback) < δLmin) return 0;
-
-    // 3. Compute contrast
-    let result;
-    const scale = 1.25;
-    const compute = (Lback, Ltext, powBack, powText) => (Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * scale;
-    const lowClip = 0.001, lowTrigger = 0.078, lowOffset = 0.06, invLowTrigger = 12.82051282051282;
-
-    // for dark text on light background
-    if (Lback > Ltext) {
-      const powBack = 0.55, powText = 0.58;
-      const SAPC = compute(Lback, Ltext, powBack, powText);
-      result = (SAPC < lowClip) ? 0
-             : (SAPC < lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
-             : SAPC - lowOffset;
-    }
-
-    // for light text on dark background
-    else {
-      const powBack = 0.62, powText = 0.57;
-      const SAPC = compute(Lback, Ltext, powBack, powText);
-      result = (SAPC > -lowClip) ? 0
-             : (SAPC > -lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
-             : SAPC + lowOffset;
-    }
-
-    return result * 100;
-  },
-
-
-
-  /**********************/
-  /* Distance functions */
-  /**********************/
-
-
-  /**
-   * Computes the CIEDE2000 distance between two colors.
-   * @param {number[]} - Array of parsed LAB values of the first color (i.e. l in [0, 1]).
-   * @param {number[]} - Array of parsed LAB values of the second color (i.e. l in [0, 1]).
-   * @returns {number} Distance between the cwo colors.
-   */
-  CIEDE2000: function([l1, a1, b1], [l2, a2, b2]) {
-    // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
-    const L1 = 100 * l1, L2 = 100 * l2;
-    const C1 = Math.sqrt(a1 ** 2 + b1 ** 2);
-    const C2 = Math.sqrt(a2 ** 2 + b2 ** 2);
-
-    const mC = (C1 + C2) / 2,
-          G = 0.5 * (1 - Math.sqrt(mC ** 7 / (mC ** 7 + 25 ** 7))),
-          aa1 = (1 + G) * a1,
-          aa2 = (1 + G) * a2,
-          CC1 = Math.sqrt(aa1 ** 2 + b1 ** 2),
-          CC2 = Math.sqrt(aa2 ** 2 + b2 ** 2);
-    let hh1 = CC1 === 0 ? 0 : Math.atan2(b1, aa1) * 180 / Math.PI,
-        hh2 = CC2 === 0 ? 0 : Math.atan2(b2, aa2) * 180 / Math.PI;
-    while (hh1 < 0) hh1 += 360; while (hh1 > 360) hh1 -= 360;
-    while (hh2 < 0) hh2 += 360; while (hh2 > 360) hh2 -= 360;
-
-    const dL = L2 - L1,
-          dC = CC2 - CC1;
-    const dhh = (CC1 * CC2 === 0) ? 0
-              : (Math.abs(hh2 - hh1) <= 180) ? hh2 - hh1
-              : (hh2 - hh1 > 180) ? hh2 - hh1 - 360
-              : hh2 - hh1 + 360;
-    const dH = 2 * Math.sqrt(CC1 * CC2) * Math.sin((Math.PI / 180) * (dhh / 2));
-
-    const mL = (L1 + L2) / 2,
-          mCC = (CC1 + CC2) / 2;
-    const mhh = (CC1 * CC2 === 0) ? hh1 + hh2
-              : (Math.abs(hh2 - hh1) <= 180) ? (hh1 + hh2) / 2
-              : (hh1 + hh2 >= 360) ? (hh1 + hh2 - 360) / 2
-              : (hh1 + hh2 + 360) / 2;
-    const T = 1 - 0.17 * Math.cos((Math.PI / 180) * (mhh - 30))
-                + 0.24 * Math.cos((Math.PI / 180) * (2 * mhh))
-                + 0.32 * Math.cos((Math.PI / 180) * (3 * mhh + 6))
-                - 0.20 * Math.cos((Math.PI / 180) * (4 * mhh - 63)),
-          dTH = 30 * Math.exp(-1 * ((mhh - 275) / 25) ** 2),
-          RC = 2 * Math.sqrt(mCC ** 7 / (mCC ** 7 + 25 ** 7)),
-          SL = 1 + (0.015 * (mL - 50) ** 2) / Math.sqrt(20 + (mL - 50) ** 2),
-          SC = 1 + 0.045 * mCC,
-          SH = 1 + 0.015 * mCC * T,
-          RT = -1 * Math.sin((Math.PI / 180) * (2 * dTH)) * RC;
-
-    return Math.sqrt(
-      (dL / SL) ** 2
-      + (dC / SC) ** 2
-      + (dH / SH) ** 2
-      + RT * (dC / SC) * (dH / SH)
-    );
-  },
-
-
-
-  /*******************/
-  /* Other functions */
-  /*******************/
-
-
-  /* TYPE DEFINITIONS */
-
-  /**
-   * Graph that will be traversed by a path finding algorithm.
-   * @typedef {DefaultGraphNode[]} Graph
-   */
-
-  /**
-   * Node in a graph that will be traversed by a path finding algorithm.
-   * @typedef {object} DefaultGraphNode
-   * @property {string} id - The identifier of the node.
-   * @property {false} visited - Whether the node has been visited by the path finding algorithm yet.
-   * @property {null} predecessorID - Will ultimately contain the identifier of the predecessor of the node after a path has been found.
-   */
-
-
-
-  /**
-   * Finds the shortest path between two graph nodes.
-   * Each graph node needs to have the following properties:
-   * node.id, node.visited = false and node.predecessorID = null
-   * @param {Graph} graph - The graph.
-   * @param {string} startID - The identifier of the source node.
-   * @param {string} endID - The identifier of the destination node.
-   * @returns {string[]} Array of nodes from source to destination.
-   */
-   findShortestPath: function(graph, startID, endID) {
-    // Source of the math: https://en.wikipedia.org/wiki/Breadth-first_search  
-    if (startID === endID) return [];
-  
-    const [start, end] = [startID, endID].map(e => graph.find(node => node.id === e));
-    if (typeof start === 'undefined') throw `Node ${JSON.stringify(startID)} does not exist`;
-    if (typeof end === 'undefined')   throw `Node ${JSON.stringify(endID)} does not exist`;
-
-    const queue = [start];
-    start.visited = true;
-    
-    // Let's build a breadth-first tree until we find the destination.
-    let found = false;
-    walk: while (queue.length > 0) {
-      const current = queue.shift();
-      if (current.id === end.id) {
-        found = true;
-        break walk;
-      }
-  
-      for (const neighbourID of current.links) {
-        const neighbour = graph.find(node => node.id === neighbourID);
-        if (neighbour.visited === false) {
-          neighbour.visited = true;
-          neighbour.predecessorID = current.id;
-          queue.push(neighbour);
-        }
-      }
-    }
-  
-    if (!found) throw `No path found from ${JSON.stringify(startID)} to ${JSON.stringify(endID)}`;
-  
-    // Let's backtrack through the tree to find the path.
-    const path = [];
-    path.push(end.id);
-    let current = end;
-    while (current.predecessorID != null) {
-      path.push(current.predecessorID);
-      current = graph.find(node => node.id === current.predecessorID)
-    }
-    return path.reverse();
-  }
-};
-
-
-
-
-
-/**
- * oklab gamut clipping
- */
-// Source of the math: https://bottosson.github.io/posts/gamutclipping/
-const oklabGamut = {
-  maxSaturation: function(a, b) {
-    let k0, k1, k2, k3, k4, wl, wm, ws;
-
-    // If red goes negative first
-    if (-1.88170328 * a - 0.80936493 * b > 1) {
-        k0 = 1.19086277; k1 = 1.76576728; k2 = 0.59662641; k3 = 0.75515197; k4 = 0.56771245;
-        wl = 4.0767416621; wm = -3.3077115913; ws = 0.2309699292;
-    }
-    // If green goes negative first
-    else if (1.81444104 * a - 1.19445276 * b > 1) {
-        k0 = 0.73956515; k1 = -0.45954404; k2 = 0.08285427; k3 = 0.12541070; k4 = 0.14503204;
-        wl = -1.2684380046; wm = 2.6097574011; ws = -0.3413193965;
-    }
-    // If blue goes negative first
-    else {
-        k0 = 1.35733652; k1 = -0.00915799; k2 = -1.15130210; k3 = -0.50559606; k4 = 0.00692167;
-        wl = -0.0041960863; wm = -0.7034186147; ws = +1.7076147010;
-    }
-
-    // Approximate max saturation
-    let S = k0 + k1 * a + k2 * b + k3 * a * a + k4 * a * b;
-
-    // Do one step Halley's method to get closer
-    const k_l = 0.3963377774 * a + 0.2158037573 * b;
-    const k_m = -0.1055613458 * a - 0.0638541728 * b;
-    const k_s = -0.0894841775 * a - 1.2914855480 * b;
-
-    const [l_, m_, s_] = [k_l, k_m, k_s].map(v => 1 + S * v);
-    const [l, m, s] = [l_, m_, s_].map(v => v ** 3);
-
-    const l_dS = 3 * k_l * l_ * l_,
-          m_dS = 3 * k_m * m_ * m_,
-          s_dS = 3 * k_s * s_ * s_;
-
-    const l_dS2 = 6 * k_l * k_l * l_,
-          m_dS2 = 6 * k_m * k_m * m_,
-          s_dS2 = 6 * k_s * k_s * s_;
-
-    const f  = wl * l     + wm * m     + ws * s,
-          f1 = wl * l_dS  + wm * m_dS  + ws * s_dS,
-          f2 = wl * l_dS2 + wm * m_dS2 + ws * s_dS2;
-
-    S = S - f * f1 / (f1*f1 - 0.5 * f * f2);
-    return S;
-  },
-
-
-  cusp: function(a, b) {
-    const Scusp = this.maxSaturation(a, b);
-
-    const rgbMax = Utils.oklab_to_lin_srgb([1, Scusp * a, Scusp * b]);
-    const Lcusp = Math.cbrt(1 / Math.max(...rgbMax));
-    const Ccusp = Lcusp * Scusp;
-
-    return [Lcusp, Ccusp];
-  },
-
-
-  gamutIntersection: function(a, b, L1, C1, L0) {
-    const [Lcusp, Ccusp] = this.cusp(a, b);
-
-    let t;
-    if (((L1 - L0) * Ccusp - (Lcusp - L0) * C1) <= 0) {
-      t = Ccusp * L0 / (C1 * Lcusp + Ccusp * (L0 - L1));
-    } else {
-      t = Ccusp * (L0 - 1) / (C1 * (Lcusp - 1) + Ccusp * (L0 - L1));
-
-      const dL = L1 - L0,
-            dC = C1;
-      
-      const k_l = 0.3963377774 * a + 0.2158037573 * b,
-            k_m = -0.1055613458 * a - 0.0638541728 * b,
-            k_s = -0.0894841775 * a - 1.2914855480 * b;
-
-      const [l_dt, m_dt, s_dt] = [k_l, k_m, k_s].map(v => dL + dC * v);
-
-      for (let i = 0; i < 2; i++) {
-        const L = L0 * (1 - t) + t * L1;
-        const C = t * C1;
-
-        const [l_, m_, s_] = [k_l, k_m, k_s].map(v => L + C * v);
-        const [l, m, s] = [l_, m_, s_].map(v => v ** 3);
-        const ldt = 3 * l_dt * l_ * l_,
-              mdt = 3 * m_dt * m_ * m_,
-              sdt = 3 * s_dt * s_ * s_;
-        const ldt2 = 6 * l_dt * l_dt * l_,
-              mdt2 = 6 * m_dt * m_dt * m_,
-              sdt2 = 6 * s_dt * s_dt * s_;
-
-        const term = (v1, v2, v3) => {
-          const w = v1 * l + v2 * m + v3 * s - 1,
-                w1 = v1 * ldt + v2 * mdt + v3 * sdt,
-                w2 = v1 * ldt2 + v2 * mdt2 + v3 * sdt2;
-
-          const u = w1 / (w1 * w1 - .5 * w * w2);
-          const t = u >= 0 ? (-w * u) : Number.MAX_VALUE;
-          return t;
-        };
-
-        const t_r = term(4.0767416621, -3.3077115913, 0.2309699292);
-        const t_g = term(-1.2684380046, 2.6097574011, -0.3413193965);
-        const t_b = term(-0.0041960863, -0.7034186147, 1.7076147010);
-
-        t += Math.min(t_r, t_g, t_b);
-      }
-    }
-
-    return t;
-  },
-
-
-  clip: function(rgb) {
-    if (rgb.every(v => v > 0 && v < 1)) return rgb;
-    
-    const [okl, oka, okb] = Utils.lin_srgb_to_oklab(Utils.srgb_to_lin_srgb(rgb));
-    const [x, okc, okh] = Utils.oklab_to_oklch([okl, oka, okb]);
-    
-    const τ = .00001;
-    const α = .05;
-    const C = Math.max(τ, okc);
-    const a = oka / C, b = okb / C;
-    
-    const Ld = okl - .5;
-    const e1 = .5 + Math.abs(Ld) + α * C;
-    const L0 = .5 * (1 + Math.sign(Ld) * (e1 - Math.sqrt(e1 * e1 - 2 * Math.abs(Ld))));
-    
-    const t = this.gamutIntersection(a, b, okl, C, L0);
-    const Lclipped = L0 * (1 - t) + t * okl;
-    const Cclipped = t * C;
-    
-    const clampedValues = Utils.lin_srgb_to_srgb(Utils.oklab_to_lin_srgb([Lclipped, Cclipped * a, Cclipped * b]));
-    return clampedValues;
-  }
-};
-
-
-
-
-
-/** Graph node in a graph that will be traversed by a path finding algorithm. */
-class GraphNode {
-  constructor(object) {
-    this.id = object.id;
-    this.links = object.links;
-    this.visited = false;
-    this.predecessorID = null;
-  }
-
-  visit() { this.visited = true; }
-  follow(node) { this.predecessorID = node.id; }
-}
-
-/** Graph that will be traversed by a path finding algorithm. */
-class Graph {
-  constructor(array) {
-    this.nodes = array.map(e => new GraphNode(e));
-  }
-
-  getNode(id) {
-    const node = this.nodes.find(node => node.id === id);
-    if (typeof node === 'undefined') throw `Node ${JSON.stringify(id)} does not exist`;
-    return node;
-  }
-
-  shortestPath(startID, endID) {
-    // Source of the math: https://en.wikipedia.org/wiki/Breadth-first_search  
-    if (startID === endID) return [];
-  
-    const start = this.getNode(startID);
-    const end = this.getNode(endID);
-
-    const queue = [start];
-    start.visit();
-    
-    // Let's build a breadth-first tree until we find the destination.
-    let found = false;
-    walk: while (queue.length > 0) {
-      const current = queue.shift();
-      if (current.id === end.id) {
-        found = true;
-        break walk;
-      }
-  
-      for (const neighbourID of current.links) {
-        const neighbour = this.getNode(neighbourID);
-        if (neighbour.visited === false) {
-          neighbour.visit();
-          neighbour.follow(current);
-          queue.push(neighbour);
-        }
-      }
-    }
-  
-    if (!found) throw `No path found from ${JSON.stringify(start.id)} to ${JSON.stringify(end.id)}`;
-  
-    // Let's backtrack through the tree to find the path.
-    const path = [end.id];
-    let current = end;
-    while (current.predecessorID != null) {
-      path.push(current.predecessorID);
-      current = this.getNode(current.predecessorID);
-    }
-    return path.reverse();
-  }
-}
-
-
 
 
 
