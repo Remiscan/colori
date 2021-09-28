@@ -9,7 +9,7 @@ export default {
     }, {
       file: 'colori.min.js',
       format: 'es',
-      plugins: [terser()]
+      plugins: [terser({ keep_classnames: true, mangle: false, compress: false })]
     }
   ]
 };
