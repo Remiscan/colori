@@ -2,7 +2,7 @@ import Couleur from './couleur.js';
 
 
 
-class Palette {
+export default class Palette {
   /**
    * Creates a palette from a hue.
    * @param {number} hue - The hue of the main color of the palette in OKLAB color space. 
@@ -27,7 +27,3 @@ class Palette {
     }
   }
 }
-
-
-
-export default Palette;

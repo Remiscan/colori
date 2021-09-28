@@ -14,7 +14,7 @@ class GraphNode {
 
 
 /** Graph that will be traversed by a path finding algorithm. */
-class Graph {
+export default class Graph {
   constructor(array) {
     this.nodes = array.map(e => new GraphNode(e));
   }
@@ -66,7 +66,3 @@ class Graph {
     return path.reverse();
   }
 }
-
-
-
-export default Graph;

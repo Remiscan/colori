@@ -1,9 +1,9 @@
-import Utils from './utils.js';
-import Conversion from './conversion.js';
+import * as Utils from './utils.js';
+import * as Conversions from './conversion.js';
 import Graph from './graph.js';
-import Contrasts from './contrasts.js';
-import Distances from './distances.js';
-import oklabGamut from './oklab-gamut.js';
+import * as Contrasts from './contrasts.js';
+import * as Distances from './distances.js';
+import * as OklabGamut from './oklab-gamut.js';
 import colorSpaces from './color-spaces.js';
 import namedColors from './named-colors.js';
 import { RegExps as ValueRegExps, CSSformats } from './css-formats.js';
@@ -710,8 +710,8 @@ export default class Couleur {
       const start = path.shift();
       const end = path[0];
       const functionName = `${start}_to_${end}`.replace(/-/g, '');
-      if (!Conversion[functionName]) console.log(functionName);
-      result = Conversion[functionName](result);
+      if (!Conversions[functionName]) console.log(functionName);
+      result = Conversions[functionName](result);
     }
 
     return result;
@@ -776,7 +776,7 @@ export default class Couleur {
     else if (method === 'oklab') {
       clampSpace = Couleur.getSpace('srgb');
       const rgb = Couleur.convert(valueSpace, clampSpace, values);
-      clampedValues = oklabGamut.clip(rgb);
+      clampedValues = OklabGamut.clip(rgb);
     }
     
     // Let's reduce the LCH chroma until the color is in the color space.
