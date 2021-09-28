@@ -2460,7 +2460,6 @@ class Palette {
       const nuances = [];
       for (const lightness of color.lightnesses) {
         let rgb = Couleur.convert('oklch', 'srgb', [lightness, color.chroma, color.hue]);
-        console.log(rgb);
         if (clampSpace != null) rgb = Couleur.toGamut(clampSpace, rgb);
         const newColor = new Couleur(`color(srgb ${rgb.join(' ')})`);
         nuances.push(newColor);
