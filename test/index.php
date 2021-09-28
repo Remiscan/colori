@@ -2,7 +2,7 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-require_once '../colori.php';
+require_once '../dist/colori.php';
 require_once 'tests-php.php';
 
 
@@ -133,7 +133,7 @@ foreach($_tests as $k => $test) {
       // ▼ ES modules cache-busted grâce à PHP
       /*<?php ob_start();?>*/
 
-      import Colour from '../colori.js';
+      import Colour from '../dist/colori.js';
       import Test from './tests-javascript.js.php';
 
       /*<?php $imports = ob_get_clean();

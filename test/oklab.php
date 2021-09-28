@@ -1,5 +1,5 @@
 <?php
-require_once '../colori.php';
+require_once '../dist/colori.php';
 ?>
 
 <style>
@@ -120,7 +120,7 @@ require_once '../colori.php';
   // ▼ ES modules cache-busted grâce à PHP
   /*<?php ob_start();?>*/
 
-  import { default as Couleur, Palette as DefPalette } from '../colori.js';
+  import { default as Couleur, Palette as DefPalette } from '../dist/colori.js';
 
   /*<?php $imports = ob_get_clean();
   require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';

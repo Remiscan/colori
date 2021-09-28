@@ -2,7 +2,7 @@
 // Calcule la version du site
 function version()
 {
-  $listeFichiers = ['../colori.js'];
+  $listeFichiers = ['../dist/colori.js'];
   $versionFichiers = 0;
   foreach($listeFichiers as $fichier)
   {
@@ -55,7 +55,7 @@ $version = version();
 <div class="duree">3682561 colors checked in 94764 ms</div>
 
 <script type="module">
-  import Couleur from '../colori--<?=$version?>.js';
+  import Couleur from '../dist/colori--<?=$version?>.js';
 
   const props = ['s', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec'];
   const max = {};

@@ -1,13 +1,13 @@
 import { terser } from 'rollup-plugin-terser';
 
 export default {
-  input: 'src/main.js',
+  input: 'src/js/main.js',
   output: [
     {
-      file: 'colori.js',
+      file: 'dist/colori.js',
       format: 'es'
     }, {
-      file: 'colori.min.js',
+      file: 'dist/colori.min.js',
       format: 'es',
       plugins: [terser({ keep_classnames: true, mangle: false, compress: false })]
     }
