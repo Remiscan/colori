@@ -1,8 +1,8 @@
 <?php
-require_once '../colori.php';
+require_once '../dist/colori.php';
 function version()
 {
-  $listeFichiers = ['../colori.js'];
+  $listeFichiers = ['../dist/colori.js'];
   $versionFichiers = 0;
   foreach($listeFichiers as $fichier)
   {
@@ -67,7 +67,8 @@ $version = version();
 </table>
 
 <script type="module">
-  import { default as Couleur, Utils as Utils, Graph as Graph } from '../colori--<?=$version?>.js';
+  import Couleur from '../dist/colori--<?=$version?>.js';
+  import Graph from '../src/js/graph.js';
 
   const colorSpaces = Couleur.colorSpaces;
   let max = 0;

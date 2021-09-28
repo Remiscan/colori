@@ -1,7 +1,6 @@
 import Couleur from './couleur.js';
-import Graph from './graph.js';
 import Palette from './palette.js';
-import Utils from './utils.js';
+import Conversion from './conversion.js';
 
 export default Couleur;
-export { Graph, Palette, Utils };
+export { Palette, Conversion };

@@ -2470,4 +2470,4 @@ class Palette {
   }
 }
 
-export { Graph, Palette, Utils, Couleur as default };
+export { Conversion, Palette, Couleur as default };
