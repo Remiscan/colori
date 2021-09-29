@@ -5,11 +5,13 @@ export default {
   output: [
     {
       file: 'dist/colori.js',
-      format: 'es'
+      format: 'es',
+      preferConst: true
     }, {
       file: 'dist/colori.min.js',
       format: 'es',
-      plugins: [terser({ keep_classnames: true, mangle: false, compress: false })]
+      plugins: [terser()],
+      preferConst: true
     }
   ]
 };

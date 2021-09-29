@@ -374,7 +374,7 @@ function xyz_to_d65xyz(xyz) {
   ];
 }
 
-var Conversions = /*#__PURE__*/Object.freeze({
+const Conversions = /*#__PURE__*/Object.freeze({
   __proto__: null,
   srgb_to_lin_srgb: srgb_to_lin_srgb,
   lin_srgb_to_srgb: lin_srgb_to_srgb,
@@ -1000,7 +1000,7 @@ const RegExps = {
 
 
 
-const CSSformats = [
+const Formats = [
   {
     id: 'hex',
     syntaxes: [
@@ -1085,6 +1085,12 @@ const CSSformats = [
     ]
   }
 ];
+
+const cssFormats = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  RegExps: RegExps,
+  Formats: Formats
+});
 
 /**
  * Colori module
@@ -1205,15 +1211,15 @@ class Couleur {
     
     // Predetermine the format, to save regex-matching time
     let format;
-    if (tri.slice(0, 1) === '#') format = CSSformats[0];
+    if (tri.slice(0, 1) === '#') format = Couleur.formats[0];
     else switch (tri) {
-      case 'rgb': format = CSSformats[1]; break;
-      case 'hsl': format = CSSformats[2]; break;
-      case 'hwb': format = CSSformats[3]; break;
-      case 'lab': format = CSSformats[4]; break;
-      case 'lch': format = CSSformats[5]; break;
-      case 'col': format = CSSformats[6]; break;
-      default:    format = CSSformats[7];
+      case 'rgb': format = Couleur.formats[1]; break;
+      case 'hsl': format = Couleur.formats[2]; break;
+      case 'hwb': format = Couleur.formats[3]; break;
+      case 'lab': format = Couleur.formats[4]; break;
+      case 'lch': format = Couleur.formats[5]; break;
+      case 'col': format = Couleur.formats[6]; break;
+      default:    format = Couleur.formats[7];
     }
 
     // Check if the given string matches any color syntax
@@ -2460,7 +2466,7 @@ class Couleur {
   }
 
   /** @returns {{id: string, syntaxes: RegExp[]}[]} Array of supported syntaxes. */
-  static get formats() { return CSSformats; }
+  static get formats() { return Formats; }
 
   /** @returns {Object} List of named colors in CSS. */
   static get couleursNommees() { return namedColors; }
@@ -2492,4 +2498,4 @@ class Palette {
   }
 }
 
-export { Conversions, Palette, Couleur as default };
+export { cssFormats as CSSFormats, Conversions, Palette, Couleur as default };
