@@ -27,9 +27,7 @@ export default class Graph {
   }
 
   cleanUp() {
-    for (const node of this.nodes) {
-      node.unvisit();
-    }
+    for (const node of this.nodes) { node.unvisit(); }
   }
 
   shortestPath(startID, endID) {
