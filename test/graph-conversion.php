@@ -49,7 +49,7 @@ $version = version();
   </tbody>
 </table>
 
-<h2>Automatic test of pathfinding performance (max: <span class='max'></span>)</h2>
+<h2>Automatic test of pathfinding performance (graph creation: <span class='init'></span>, longest path search: <span class='max'></span>)</h2>
 
 <table>
   <thead>
@@ -94,17 +94,20 @@ $version = version();
 
   function performTest(tests, table) {
     for (const test of tests) {
+      let start = performance.now();
       const graph = new Graph(Couleur.colorSpaces);
+      let duration = performance.now() - start;
+      document.querySelector('.init').innerHTML = `${duration} ms`;
 
       const tr = document.createElement('tr');
       let result;
-      const start = performance.now();
+      start = performance.now();
       try {
         result = graph.shortestPath(...test.ids);
       } catch (error) {
         console.log(error);
       }
-      const duration = performance.now() - start;
+      duration = performance.now() - start;
       let verif = '';
       if (test.expected) verif = test.expected.every((e, k) => e === result[k]);
 
