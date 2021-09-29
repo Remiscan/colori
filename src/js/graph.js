@@ -80,7 +80,7 @@ export default class Graph {
 
     const visit = node => {
       if (node.visited === true) return;
-      if (node.visited === 'temp') throw 'The graph is not a directed acyclical graph';
+      if (node.visited === 'temp') throw 'The graph is not a directed acyclic graph';
 
       node.visit('temp'); // Mark visit as temporary to detect if we loop back to this node
       for (const link of node.links) { visit(link); }
