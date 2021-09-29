@@ -9,7 +9,7 @@ const RegExps = {
 
 
 
-const CSSformats = [
+const Formats = [
   {
     id: 'hex',
     syntaxes: [
@@ -97,4 +97,4 @@ const CSSformats = [
 
 
 
-export { RegExps, CSSformats };
+export { RegExps, Formats };
