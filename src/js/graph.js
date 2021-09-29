@@ -10,6 +10,7 @@ class GraphNode {
   visit(mark = true) { this.visited = mark; }
   unvisit() { this.visited = false; }
   follow(node) { this.predecessorID = node.id; }
+  unfollow() { this.predecessorID = null; }
 }
 
 
@@ -27,7 +28,10 @@ export default class Graph {
   }
 
   cleanUp() {
-    for (const node of this.nodes) { node.unvisit(); }
+    for (const node of this.nodes) {
+      node.unvisit();
+      node.unfollow();
+    }
   }
 
   shortestPath(startID, endID) {

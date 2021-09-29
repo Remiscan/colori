@@ -29,6 +29,9 @@
     public function follow(GraphNode $node): void {
       $this->predecessorID = $node->id();
     }
+    public function unfollow(): void {
+      $this->predecessorID = null;
+    }
   }
 
 
@@ -59,6 +62,7 @@
     public function cleanUp(): void {
       foreach($this->nodes as $node) {
         $node->unvisit();
+        $node->unfollow();
       }
     }
 
