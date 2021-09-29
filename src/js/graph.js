@@ -7,7 +7,8 @@ class GraphNode {
     this.predecessorID = null;
   }
 
-  visit() { this.visited = true; }
+  visit(mark = true) { this.visited = mark; }
+  unvisit() { this.visited = false; }
   follow(node) { this.predecessorID = node.id; }
 }
 
@@ -23,6 +24,12 @@ export default class Graph {
     const node = this.nodes.find(node => node.id === id);
     if (typeof node === 'undefined') throw `Node ${JSON.stringify(id)} does not exist`;
     return node;
+  }
+
+  cleanUp() {
+    for (const node of this.nodes) {
+      node.unvisit();
+    }
   }
 
   shortestPath(startID, endID) {
@@ -63,6 +70,33 @@ export default class Graph {
       path.push(current.predecessorID);
       current = this.getNode(current.predecessorID);
     }
+
+    this.cleanUp();
     return path.reverse();
+  }
+
+  topologicalOrder() {
+    // Source of the math: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+    const orderedList = [];
+    const unvisitedNodes = [...this.nodes];
+
+    const visit = node => {
+      if (node.visited === true) return;
+      if (node.visited === 'temp') throw 'The graph is not a directed acyclical graph';
+
+      node.visit('temp'); // Mark visit as temporary to detect if we loop back to this node
+      for (const link of node.links) { visit(link); }
+      node.visit(true);
+
+      orderedList.push(node);
+    }
+
+    while (unvisitedNodes.length > 0) {
+      const current = unvisitedNodes.shift();
+      visit(current);
+    }
+
+    this.cleanUp();
+    return orderedList.reverse();
   }
 }

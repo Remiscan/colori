@@ -1,23 +1,99 @@
 <?php
- namespace colori\utils {
+ namespace colori {
 
 
-  function pad(string $s): string {
-    return (strlen($s) < 2) ? '0' . $s : $s;
-  }
-
-  function angleToRange(float $angle): float {
-    while ($angle < 0)   $angle += 360;
-    while ($angle > 360) $angle -= 360;
-    return (float) $angle;
-  }
-
-  function pRound(float $number, int $precision = 5): float {
-    $x = (float) $number;
-    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -$x) + 1) : 1;
-    $precision = (int) ($precision - $intDigits);
-    return (float) round($x, $precision);
-  }
+  const COLOR_SPACES = array(
+    array(
+      'id' =>'srgb',
+      'whitepoint' =>'d65',
+      'CSSformat' =>'rgb',
+      'gamut' =>[ [0, 1], [0, 1], [0, 1] ],
+      'links' =>['lin_srgb', 'hsl']
+    ), array(
+      'id' => 'lin_srgb',
+      'links' => ['srgb', 'd65xyz', 'oklab']
+    ), array(
+      'id' => 'hsl',
+      'whitepoint' => 'd65',
+      'CSSformat' => 'hsl',
+      'gamut' => [ [0, 360], [0, 1], [0, 1] ],
+      'links' => ['srgb', 'hwb']
+    ), array(
+      'id' => 'hwb',
+      'whitepoint' => 'd65',
+      'CSSformat' => 'hwb',
+      'gamut' => [ [0, 360], [0, 1], [0, 1] ],
+      'links' => ['hsl']
+    ), array(
+      'id' => 'lab',
+      'whitepoint' => 'd50',
+      'CSSformat' => 'lab',
+      'gamut' => [ [0, 4], [-INF, INF], [-INF, INF] ],
+      'links' => ['xyz', 'lch']
+    ), array(
+      'id' => 'lch',
+      'whitepoint' => 'd50',
+      'CSSformat' => 'lch',
+      'gamut' => [ [0, 4], [0, +INF], [0, 360] ],
+      'links' => ['lab']
+    ), array(
+      'id' => 'xyz',
+      'whitepoint' => 'd50',
+      'CSSformat' => 'color',
+      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
+      'links' => ['lab', 'd65xyz', 'lin_prophoto-rgb']
+    ), array(
+      'id' => 'd65xyz',
+      'whitepoint' => 'd65',
+      'links' => ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020']
+    ), array(
+      'id' => 'display-p3',
+      'whitepoint' => 'd65',
+      'CSSformat' => 'color',
+      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
+      'links' => ['lin_display-p3']
+    ), array(
+      'id' => 'lin_display-p3',
+      'links' => ['display-p3', 'd65xyz']
+    ), array(
+      'id' => 'a98-rgb',
+      'whitepoint' => 'd65',
+      'CSSformat' => 'color',
+      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
+      'links' => ['lin_a98-rgb']
+    ), array(
+      'id' => 'lin_a98-rgb',
+      'links' => ['a98-rgb', 'd65xyz']
+    ), array(
+      'id' => 'prophoto-rgb',
+      'whitepoint' => 'd50',
+      'CSSformat' => 'color',
+      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
+      'links' => ['lin_prophoto-rgb']
+    ), array(
+      'id' => 'lin_prophoto-rgb',
+      'links' => ['prophoto-rgb', 'xyz']
+    ), array(
+      'id' => 'rec2020',
+      'whitepoint' => 'd65',
+      'CSSformat' => 'color',
+      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
+      'links' => ['lin_rec2020']
+    ), array(
+      'id' => 'lin_rec2020',
+      'links' => ['rec2020', 'd65xyz']
+    ), array(
+      'id' => 'oklab',
+      'whitepoint' => 'd65',
+      'gamut' => [ [0, 4], [-INF, +INF], [-INF, +INF] ],
+      'links' => ['lin_srgb', 'oklch']
+    ), array(
+      'id' => 'oklch',
+      'whitepoint' => 'd65',
+      'gamut' => [ [0, 4], [0, +INF], [0, 360] ],
+      'links' => ['oklab']
+    )
+  );
 
 
 } namespace colori\conversions {
@@ -402,103 +478,6 @@
   }
 
 
-} namespace colori {
-
-
-  class GraphNode {
-    private string $id;
-    private bool $visited;
-    private ?string $predecessorID;
-    private array $links;
-
-    public function __construct(array $array) {
-      $this->id = $array['id'];
-      $this->visited = false;
-      $this->predecessorID = null;
-      $this->links = $array['links'];
-    }
-
-    public function id(): string { return $this->id; }
-    public function visited(): bool { return $this->visited; }
-    public function links(): array { return $this->links; }
-    public function predecessorID(): ?string { return $this->predecessorID; }
-
-    public function visit(): void {
-      $this->visited = true;
-    }
-
-    public function follow(GraphNode $node): void {
-      $this->predecessorID = $node->id();
-    }
-  }
-
-
-  class Graph {
-    private array $nodes;
-    private array $shortestPaths;
-
-    public function __construct(array $array) {
-      $this->nodes = [];
-      foreach ($array as $e) {
-        $this->nodes[] = new GraphNode($e);
-      }
-    }
-
-    public static function array_find(callable $callback, array $array): mixed {
-      foreach($array as $k => $v) {
-        if ($callback($v, $k)) return $v;
-      }
-      return null;
-    }
-
-    public function getNode(string $id): GraphNode {
-      $node = self::array_find(fn($node) => $node->id() === $id, $this->nodes);
-      if ($node === null) throw new Exception("Node ". json_encode($id) ." does not exist");
-      return $node;
-    }
-
-    public function shortestPath(string $startID, string $endID): array {
-      if ($startID === $endID) return $this->shortestPath = [];
-
-      $start = $this->getNode($startID);
-      $end = $this->getNode($endID);
-
-      $queue = [$start];
-      $start->visit();
-
-      // Let's build a breadth-first tree until we find the destination.
-      $found = false;
-      while (count($queue) > 0) {
-        $current = array_shift($queue);
-        if ($current->id() === $end->id()) {
-          $found = true;
-          break;
-        }
-
-        foreach ($current->links() as $neighbourID) {
-          $neighbour = $this->getNode($neighbourID);
-          if ($neighbour->visited() === false) {
-            $neighbour->visit();
-            $neighbour->follow($current);
-            $queue[] = $neighbour;
-          }
-        }
-      }
-
-      if (!$found) throw new Exception("No path found from ". json_encode($startID) ." to ". json_encode($endID));
-
-      // Let's backtrack through the tree to find the path.
-      $path = [$end->id()];
-      $current = $end;
-      while ($current->predecessorID() != null) {
-        $path[] = $current->predecessorID();
-        $current = $this->getNode($current->predecessorID());
-      }
-      return array_reverse($path);
-    }
-  }
-
-
 } namespace colori\contrasts {
 
 
@@ -563,6 +542,160 @@
     }
 
     return (float) $result * 100;
+  }
+
+
+} namespace colori\utils {
+
+
+  function pad(string $s): string {
+    return (strlen($s) < 2) ? '0' . $s : $s;
+  }
+
+  function angleToRange(float $angle): float {
+    while ($angle < 0)   $angle += 360;
+    while ($angle > 360) $angle -= 360;
+    return (float) $angle;
+  }
+
+  function pRound(float $number, int $precision = 5): float {
+    $x = (float) $number;
+    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -$x) + 1) : 1;
+    $precision = (int) ($precision - $intDigits);
+    return (float) round($x, $precision);
+  }
+
+
+} namespace colori {
+
+
+  class GraphNode {
+    private string $id;
+    private bool $visited;
+    private ?string $predecessorID;
+    private array $links;
+
+    public function __construct(array $array) {
+      $this->id = $array['id'];
+      $this->visited = false;
+      $this->predecessorID = null;
+      $this->links = $array['links'];
+    }
+
+    public function id(): string { return $this->id; }
+    public function visited(): bool { return $this->visited; }
+    public function links(): array { return $this->links; }
+    public function predecessorID(): ?string { return $this->predecessorID; }
+
+    public function visit(mixed $mark = true): void {
+      $this->visited = $mark;
+    }
+    public function unvisit(): void {
+      $this->visited = false;
+    }
+
+    public function follow(GraphNode $node): void {
+      $this->predecessorID = $node->id();
+    }
+  }
+
+
+  class Graph {
+    private array $nodes;
+    private array $shortestPaths;
+
+    public function __construct(array $array) {
+      $this->nodes = [];
+      foreach ($array as $e) {
+        $this->nodes[] = new GraphNode($e);
+      }
+    }
+
+    public static function array_find(callable $callback, array $array): mixed {
+      foreach($array as $k => $v) {
+        if ($callback($v, $k)) return $v;
+      }
+      return null;
+    }
+
+    public function getNode(string $id): GraphNode {
+      $node = self::array_find(fn($node) => $node->id() === $id, $this->nodes);
+      if ($node === null) throw new \Exception("Node ". json_encode($id) ." does not exist");
+      return $node;
+    }
+
+    public function cleanUp(): void {
+      foreach($this->nodes as $node) {
+        $node->unvisit();
+      }
+    }
+
+    public function shortestPath(string $startID, string $endID): array {
+      if ($startID === $endID) return $this->shortestPath = [];
+
+      $start = $this->getNode($startID);
+      $end = $this->getNode($endID);
+
+      $queue = [$start];
+      $start->visit();
+
+      // Let's build a breadth-first tree until we find the destination.
+      $found = false;
+      while (count($queue) > 0) {
+        $current = array_shift($queue);
+        if ($current->id() === $end->id()) {
+          $found = true;
+          break;
+        }
+
+        foreach ($current->links() as $neighbourID) {
+          $neighbour = $this->getNode($neighbourID);
+          if ($neighbour->visited() === false) {
+            $neighbour->visit();
+            $neighbour->follow($current);
+            $queue[] = $neighbour;
+          }
+        }
+      }
+
+      if (!$found) throw new Exception("No path found from ". json_encode($startID) ." to ". json_encode($endID));
+
+      // Let's backtrack through the tree to find the path.
+      $path = [$end->id()];
+      $current = $end;
+      while ($current->predecessorID() != null) {
+        $path[] = $current->predecessorID();
+        $current = $this->getNode($current->predecessorID());
+      }
+
+      $this->cleanUp();
+      return array_reverse($path);
+    }
+
+    public function topologicalOrder(): array {
+      // Source of the math: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+      $orderedList = [];
+      $unvisitedNodes = $this->nodes;
+
+      $visit = function(GraphNode $node) use (&$visit, &$orderedList, &$unvisitedNodes): void {
+        if ($node->visited() === true) return;
+        if ($node->visited() === 'temp') throw new \Exception("The graph is not a directed acyclical graph");
+
+        $node->visit('temp'); // Mark visit as temporary to detect if we loop back to this node
+        foreach ($node->links() as $link) { $visit($this->getNode($link)); }
+        $node->visit(true);
+
+        $orderedList[] = $node;
+      };
+
+      while (count($unvisitedNodes) > 0) {
+        $current = array_shift($unvisitedNodes);
+        $visit($current);
+      }
+
+      $this->cleanUp();
+      return array_reverse($orderedList);
+    }
   }
 
 
@@ -777,103 +910,6 @@
     $clampedValues = \colori\conversions\lin_srgb_to_srgb(\colori\conversions\oklab_to_lin_srgb([$Lclipped, $Cclipped * $a, $Cclipped * $b]));
     return $clampedValues;
   }
-
-
-} namespace colori {
-
-
-  const COLOR_SPACES = array(
-    array(
-      'id' =>'srgb',
-      'whitepoint' =>'d65',
-      'CSSformat' =>'rgb',
-      'gamut' =>[ [0, 1], [0, 1], [0, 1] ],
-      'links' =>['lin_srgb', 'hsl']
-    ), array(
-      'id' => 'lin_srgb',
-      'links' => ['srgb', 'd65xyz', 'oklab']
-    ), array(
-      'id' => 'hsl',
-      'whitepoint' => 'd65',
-      'CSSformat' => 'hsl',
-      'gamut' => [ [0, 360], [0, 1], [0, 1] ],
-      'links' => ['srgb', 'hwb']
-    ), array(
-      'id' => 'hwb',
-      'whitepoint' => 'd65',
-      'CSSformat' => 'hwb',
-      'gamut' => [ [0, 360], [0, 1], [0, 1] ],
-      'links' => ['hsl']
-    ), array(
-      'id' => 'lab',
-      'whitepoint' => 'd50',
-      'CSSformat' => 'lab',
-      'gamut' => [ [0, 4], [-INF, INF], [-INF, INF] ],
-      'links' => ['xyz', 'lch']
-    ), array(
-      'id' => 'lch',
-      'whitepoint' => 'd50',
-      'CSSformat' => 'lch',
-      'gamut' => [ [0, 4], [0, +INF], [0, 360] ],
-      'links' => ['lab']
-    ), array(
-      'id' => 'xyz',
-      'whitepoint' => 'd50',
-      'CSSformat' => 'color',
-      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['lab', 'd65xyz', 'lin_prophoto-rgb']
-    ), array(
-      'id' => 'd65xyz',
-      'whitepoint' => 'd65',
-      'links' => ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020']
-    ), array(
-      'id' => 'display-p3',
-      'whitepoint' => 'd65',
-      'CSSformat' => 'color',
-      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
-      'links' => ['lin_display-p3']
-    ), array(
-      'id' => 'lin_display-p3',
-      'links' => ['display-p3', 'd65xyz']
-    ), array(
-      'id' => 'a98-rgb',
-      'whitepoint' => 'd65',
-      'CSSformat' => 'color',
-      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
-      'links' => ['lin_a98-rgb']
-    ), array(
-      'id' => 'lin_a98-rgb',
-      'links' => ['a98-rgb', 'd65xyz']
-    ), array(
-      'id' => 'prophoto-rgb',
-      'whitepoint' => 'd50',
-      'CSSformat' => 'color',
-      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
-      'links' => ['lin_prophoto-rgb']
-    ), array(
-      'id' => 'lin_prophoto-rgb',
-      'links' => ['prophoto-rgb', 'xyz']
-    ), array(
-      'id' => 'rec2020',
-      'whitepoint' => 'd65',
-      'CSSformat' => 'color',
-      'gamut' => [ [0, 1], [0, 1], [0, 1] ],
-      'links' => ['lin_rec2020']
-    ), array(
-      'id' => 'lin_rec2020',
-      'links' => ['rec2020', 'd65xyz']
-    ), array(
-      'id' => 'oklab',
-      'whitepoint' => 'd65',
-      'gamut' => [ [0, 4], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['lin_srgb', 'oklch']
-    ), array(
-      'id' => 'oklch',
-      'whitepoint' => 'd65',
-      'gamut' => [ [0, 4], [0, +INF], [0, 360] ],
-      'links' => ['oklab']
-    )
-  );
 
 
 } namespace colori {

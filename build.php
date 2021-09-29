@@ -1,24 +1,41 @@
 <?php
-$files = [
-  'utils.php',
-  'conversion.php',
-  'graph.php',
-  'contrasts.php',
-  'distances.php',
-  'oklab-gamut.php',
-  'color-spaces.php',
-  'named-colors.php',
-  'css-formats.php',
-  'couleur.php',
-  'palette.php',
-  'main.php'
-];
+require_once './src/php/graph.php';
+
+
+$source = './src/php';
 $destination = './dist/colori.php';
+$files = array_diff(scandir($source), array('.', '..'));
 
-echo "Starting to build $destination ...<br>";
-
+// Build a list of modules and their dependencies
+$modules = [];
 foreach($files as $k => $file) {
   // Get file contents
+  $content = file_get_contents("./src/php/$file");
+
+  // Get dependencies list
+  $links = [];
+  preg_match_all('/require_once (.*?);/', $content, $matches);
+  foreach($matches[1] as $path) {
+    preg_match('/\/([^\/]*?)\.php/', $path, $idMatches);
+    $links[] = $idMatches[1];
+  }
+  $modules[] = [
+    'id' => str_replace('.php', '', $file),
+    'links' => $links
+  ];
+}
+
+// Build a graph with these modules, and get a topological order
+$modulesGraph = new colori\Graph($modules);
+$orderedModules = $modulesGraph->topologicalOrder();
+$orderedModules = array_reverse(array_map(function ($mod) { return $mod->id(); }, $orderedModules));
+
+// Build colori.php by bundling the modules together
+echo "Starting to build $destination ...<br>";
+
+foreach($orderedModules as $k => $module) {
+  // Get file contents
+  $file = $module.'.php';
   $content = file_get_contents("./src/php/$file");
   echo "File $file opened<br>";
 

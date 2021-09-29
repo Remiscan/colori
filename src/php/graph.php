@@ -19,8 +19,11 @@
     public function links(): array { return $this->links; }
     public function predecessorID(): ?string { return $this->predecessorID; }
 
-    public function visit(): void {
-      $this->visited = true;
+    public function visit(mixed $mark = true): void {
+      $this->visited = $mark;
+    }
+    public function unvisit(): void {
+      $this->visited = false;
     }
 
     public function follow(GraphNode $node): void {
@@ -49,8 +52,14 @@
 
     public function getNode(string $id): GraphNode {
       $node = self::array_find(fn($node) => $node->id() === $id, $this->nodes);
-      if ($node === null) throw new Exception("Node ". json_encode($id) ." does not exist");
+      if ($node === null) throw new \Exception("Node ". json_encode($id) ." does not exist");
       return $node;
+    }
+
+    public function cleanUp(): void {
+      foreach($this->nodes as $node) {
+        $node->unvisit();
+      }
     }
 
     public function shortestPath(string $startID, string $endID): array {
@@ -90,7 +99,34 @@
         $path[] = $current->predecessorID();
         $current = $this->getNode($current->predecessorID());
       }
+
+      $this->cleanUp();
       return array_reverse($path);
+    }
+
+    public function topologicalOrder(): array {
+      // Source of the math: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+      $orderedList = [];
+      $unvisitedNodes = $this->nodes;
+
+      $visit = function(GraphNode $node) use (&$visit, &$orderedList, &$unvisitedNodes): void {
+        if ($node->visited() === true) return;
+        if ($node->visited() === 'temp') throw new \Exception("The graph is not a directed acyclical graph");
+
+        $node->visit('temp'); // Mark visit as temporary to detect if we loop back to this node
+        foreach ($node->links() as $link) { $visit($this->getNode($link)); }
+        $node->visit(true);
+
+        $orderedList[] = $node;
+      };
+
+      while (count($unvisitedNodes) > 0) {
+        $current = array_shift($unvisitedNodes);
+        $visit($current);
+      }
+
+      $this->cleanUp();
+      return array_reverse($orderedList);
     }
   }
 
