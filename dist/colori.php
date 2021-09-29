@@ -20,9 +20,7 @@
   }
 
 
-}
-
- namespace colori\conversions {
+} namespace colori\conversions {
 
 
   /* srgb */
@@ -383,7 +381,6 @@
   function oklch_to_oklab(array $lch): array { return lch_to_lab($lch); }
 
 
-
   /* Bradford transform */
 
   function d65xyz_to_xyz(array $xyz): array {
@@ -405,9 +402,7 @@
   }
 
 
-}
-
- namespace colori {
+} namespace colori {
 
 
   class GraphNode {
@@ -504,12 +499,7 @@
   }
 
 
-}
-
- namespace colori\contrasts {
-
-
-  
+} namespace colori\contrasts {
 
 
   function luminance(array $rgb): float {
@@ -576,9 +566,7 @@
   }
 
 
-}
-
- namespace colori\distances {
+} namespace colori\distances {
 
 
   function CIEDE2000(array $lab1, array $lab2): float {
@@ -635,12 +623,7 @@
   }
 
 
-}
-
- namespace colori\oklab_gamut {
-
-
-  
+} namespace colori\oklab_gamut {
 
 
   // Source of the math: https://bottosson.github.io/posts/gamutclipping/
@@ -796,9 +779,7 @@
   }
 
 
-}
-
- namespace colori {
+} namespace colori {
 
 
   const COLOR_SPACES = array(
@@ -895,9 +876,7 @@
   );
 
 
-}
-
- namespace colori {
+} namespace colori {
 
 
   const NAMED_COLORS = array(
@@ -1052,9 +1031,7 @@
   );
 
 
-}
-
- namespace colori {
+} namespace colori {
 
 
   class CSSFormats {
@@ -1163,20 +1140,7 @@
   }
 
 
-}
-
- namespace colori {
-
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
+} namespace colori {
 
 
   class Couleur
@@ -1239,7 +1203,6 @@
       if ($color instanceof self) return $color;
       else                        return new self($color);
     }
-
 
 
     /** Matches the user input with supported color formats. */
@@ -1409,7 +1372,6 @@
       }
       return (string) $unparsed;
     }
-
 
 
     /*****************************************/
@@ -1624,7 +1586,6 @@
     }
 
 
-
     /********************************************/
     /* Setters and getters for color properties */
     /********************************************/
@@ -1782,7 +1743,6 @@
     }
 
 
-
     /***********************************/
     /* Conversion between color spaces */
     /***********************************/
@@ -1895,7 +1855,6 @@
       // Send the values back in the same color space we found them in
       return self::convert($clampSpace, $valueSpace, $clampedValues);
     }
-
 
 
     /********************************/
@@ -2313,7 +2272,6 @@
     }
 
 
-
     /**************/
     /* Color data */
     /**************/
@@ -2355,12 +2313,7 @@
   }
 
 
-}
-
- namespace colori {
-
-
-  
+} namespace colori {
 
 
   class Palette {
@@ -2385,13 +2338,8 @@
   }
 
 
-}
-
- namespace {
-  
-  
+} namespace {
 
   class Couleur extends colori\Couleur {}
   class Palette extends colori\Palette {}
 }
-

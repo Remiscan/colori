@@ -24,14 +24,15 @@ foreach($files as $k => $file) {
 
   // Remove php tags
   $content = str_replace('<?php', '', $content);
-  $content .= "\n\n";
 
   // Remove all occurrences of require_once
-  preg_match_all('/require_once (.*?);/', $content, $matches);
+  preg_match_all('/(?: *?)require_once (.*?);\r?\n/', $content, $matches);
   foreach($matches[0] as $match) {
     echo "Removing require_once...<br>";
     $content = str_replace($match, '', $content);
   }
+  // Remove excessive new lines
+  $content = preg_replace('/((?:\r?\n){3})(\r?\n)*/', '$1', $content);
 
   // Write the content to the destination file
   if ($k === 0) file_put_contents($destination, "<?php\n");
