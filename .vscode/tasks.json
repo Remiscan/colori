@@ -1,16 +1,14 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "type": "npm",
-      "script": "build",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": [],
-      "label": "npm: build",
-      "detail": "rollup -c"
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"command": "deno run --allow-read --allow-write --allow-net --allow-env --unstable rollup.js",
+			"label": "deno: run rollup.js",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
 }
