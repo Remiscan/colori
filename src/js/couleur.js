@@ -694,7 +694,7 @@ export default class Couleur {
     // Find the shortest sequence of functions to convert between color spaces
     let path;
     const graph = new Graph(Couleur.colorSpaces);
-    try { path = graph.shortestPath(startSpace.id, endSpace.id); }
+    try { path = graph.shortestPath(startSpace.id, endSpace.id).map(node => node.id); }
     catch (error) {
       switch (error) {
         case `Node ${startSpace.id} does not exist`: throw `${JSON.stringify(startSpace.id)} is not a supported color space`;

@@ -629,7 +629,10 @@
 
       // Find the shortest sequence of functions to convert between color spaces
       $graph = new Graph(self::COLOR_SPACES);
-      try { $path = $graph->shortestPath($startSpace['id'], $endSpace['id']); }
+      try {
+        $path = $graph->shortestPath($startSpace['id'], $endSpace['id']);
+        $path = array_map(function ($node) { return $node->id(); }, $path);
+      }
       catch (\Exception $error) {
         switch ($error) {
           case 'No path found': throw new \Exception("Conversion from ". json_encode($startSpaceID) ." space to ". json_encode($endSpaceID) ." space is impossible");

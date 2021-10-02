@@ -103,7 +103,7 @@ $version = version();
       let result;
       start = performance.now();
       try {
-        result = graph.shortestPath(...test.ids);
+        result = graph.shortestPath(...test.ids).map(node => node.id);
       } catch (error) {
         console.log(error);
       }

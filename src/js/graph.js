@@ -8,13 +8,13 @@ class GraphNode {
     this.id = object.id;
     this.links = object.links;
     this.visited = false;
-    this.predecessorID = null;
+    this.predecessor = null;
   }
 
   visit(mark = true) { this.visited = mark; }
   unvisit() { this.visited = false; }
-  follow(node) { this.predecessorID = node.id; }
-  unfollow() { this.predecessorID = null; }
+  follow(node) { this.predecessor = node; }
+  unfollow() { this.predecessor = null; }
 }
 
 
@@ -52,7 +52,7 @@ export default class Graph {
    * Finds the shortest path between two nodes.
    * @param {string} startID - Identifier of the first node.
    * @param {string} endID - Identifier of the last node.
-   * @returns {string[]} An array of node IDs, ordered from first to last along the shortest path.
+   * @returns {GraphNode[]} An array of node IDs, ordered from first to last along the shortest path.
    */
   shortestPath(startID, endID) {
     // Source of the math: https://en.wikipedia.org/wiki/Breadth-first_search  
@@ -86,11 +86,11 @@ export default class Graph {
     if (!found) throw `No path found from ${JSON.stringify(start.id)} to ${JSON.stringify(end.id)}`;
   
     // Let's backtrack through the tree to find the path.
-    const path = [end.id];
+    const path = [end];
     let current = end;
-    while (current.predecessorID != null) {
-      path.push(current.predecessorID);
-      current = this.getNode(current.predecessorID);
+    while (current.predecessor != null) {
+      path.push(current.predecessor);
+      current = current.predecessor;
     }
 
     this.cleanUp();

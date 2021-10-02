@@ -578,14 +578,14 @@
     public function __construct(array $array) {
       $this->id = $array['id'];
       $this->visited = false;
-      $this->predecessorID = null;
+      $this->predecessor = null;
       $this->links = $array['links'];
     }
 
     public function id(): string { return $this->id; }
     public function visited(): bool { return $this->visited; }
     public function links(): array { return $this->links; }
-    public function predecessorID(): ?string { return $this->predecessorID; }
+    public function predecessor(): ?GraphNode { return $this->predecessor; }
 
     public function visit(mixed $mark = true): void {
       $this->visited = $mark;
@@ -595,10 +595,10 @@
     }
 
     public function follow(GraphNode $node): void {
-      $this->predecessorID = $node->id();
+      $this->predecessor = $node;
     }
     public function unfollow(): void {
-      $this->predecessorID = null;
+      $this->predecessor = null;
     }
   }
 
@@ -665,11 +665,11 @@
       if (!$found) throw new Exception("No path found from ". json_encode($startID) ." to ". json_encode($endID));
 
       // Let's backtrack through the tree to find the path.
-      $path = [$end->id()];
+      $path = [$end];
       $current = $end;
-      while ($current->predecessorID() != null) {
-        $path[] = $current->predecessorID();
-        $current = $this->getNode($current->predecessorID());
+      while ($current->predecessor() != null) {
+        $path[] = $current->predecessor();
+        $current = $current->predecessor();
       }
 
       $this->cleanUp();
@@ -1796,7 +1796,10 @@
 
       // Find the shortest sequence of functions to convert between color spaces
       $graph = new Graph(self::COLOR_SPACES);
-      try { $path = $graph->shortestPath($startSpace['id'], $endSpace['id']); }
+      try {
+        $path = $graph->shortestPath($startSpace['id'], $endSpace['id']);
+        $path = array_map(function ($node) { return $node->id(); }, $path);
+      }
       catch (\Exception $error) {
         switch ($error) {
           case 'No path found': throw new \Exception("Conversion from ". json_encode($startSpaceID) ." space to ". json_encode($endSpaceID) ." space is impossible");
