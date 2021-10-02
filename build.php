@@ -31,13 +31,13 @@ $orderedModules = $modulesGraph->topologicalOrder();
 $orderedModules = array_reverse(array_map(function ($mod) { return $mod->id(); }, $orderedModules));
 
 // Build colori.php by bundling the modules together
-echo "Starting to build $destination ...<br>";
+echo "Starting to build $destination ...\n";
 
 foreach($orderedModules as $k => $module) {
   // Get file contents
   $file = $module.'.php';
   $content = file_get_contents("./src/php/$file");
-  echo "File $file opened<br>";
+  echo "File $file opened\n";
 
   // Remove php tags
   $content = str_replace('<?php', '', $content);
@@ -45,7 +45,7 @@ foreach($orderedModules as $k => $module) {
   // Remove all occurrences of require_once
   preg_match_all('/(?: *?)require_once (.*?);\r?\n/', $content, $matches);
   foreach($matches[0] as $match) {
-    echo "Removing require_once...<br>";
+    echo "Removing require_once...\n";
     $content = str_replace($match, '', $content);
   }
   // Remove excessive new lines
@@ -54,7 +54,7 @@ foreach($orderedModules as $k => $module) {
   // Write the content to the destination file
   if ($k === 0) file_put_contents($destination, "<?php\n");
   file_put_contents($destination, $content, FILE_APPEND);
-  echo "File $file appended to colori.php<br>";
+  echo "File $file appended to colori.php\n";
 }
 
-echo "$destination built !";
+echo "$destination built !\n";

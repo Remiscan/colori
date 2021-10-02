@@ -11,8 +11,18 @@
       }
     }, {
       "type": "shell",
-      "command": "deno run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable rollup.watch.js",
-      "label": "deno: run rollup.watch.js",
+      "command": "deno run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable auto.build.rollup.js",
+      "label": "deno: run auto.build.rollup.js",
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "reveal": "silent"
+      }
+    }, {
+      "type": "shell",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-env auto.build.php.js",
+      "label": "deno: run auto.build.php.js",
       "runOptions": {
         "runOn": "folderOpen"
       },
