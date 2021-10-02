@@ -1,4 +1,4 @@
-Some portions of **colori** have been inspired or derived from:
+Some portions of **colori** have been inspired by / based on:
 
 - [w3c/csswg-drafts](https://github.com/w3c/csswg-drafts) (W3C Software and Document License)
 - [Myndex/SAPC-APCA](https://github.com/Myndex/SAPC-APCA) (APCA calculation licensed under the W3C Software and Document License)
