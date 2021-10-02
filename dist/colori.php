@@ -597,6 +597,9 @@
     public function follow(GraphNode $node): void {
       $this->predecessorID = $node->id();
     }
+    public function unfollow(): void {
+      $this->predecessorID = null;
+    }
   }
 
 
@@ -627,6 +630,7 @@
     public function cleanUp(): void {
       foreach($this->nodes as $node) {
         $node->unvisit();
+        $node->unfollow();
       }
     }
 
@@ -679,7 +683,7 @@
 
       $visit = function(GraphNode $node) use (&$visit, &$orderedList, &$unvisitedNodes): void {
         if ($node->visited() === true) return;
-        if ($node->visited() === 'temp') throw new \Exception("The graph is not a directed acyclical graph");
+        if ($node->visited() === 'temp') throw new \Exception("The graph is not a directed acyclic graph");
 
         $node->visit('temp'); // Mark visit as temporary to detect if we loop back to this node
         foreach ($node->links() as $link) { $visit($this->getNode($link)); }
