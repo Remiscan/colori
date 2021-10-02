@@ -10,7 +10,7 @@ $files = array_diff(scandir($source), array('.', '..'));
 $modules = [];
 foreach($files as $k => $file) {
   // Get file contents
-  $content = file_get_contents("./src/php/$file");
+  $content = file_get_contents("$source/$file");
 
   // Get dependencies list
   $links = [];
@@ -36,7 +36,7 @@ echo "Starting to build $destination ...\n";
 foreach($orderedModules as $k => $module) {
   // Get file contents
   $file = $module.'.php';
-  $content = file_get_contents("./src/php/$file");
+  $content = file_get_contents("$source/$file");
   echo "File $file opened\n";
 
   // Remove php tags
