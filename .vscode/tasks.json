@@ -1,24 +1,24 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "shell",
-			"command": "deno run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable rollup.js",
-			"label": "deno: run rollup.js",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		}, {
-			"type": "shell",
-			"command": "deno run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable rollup.watch.js",
-			"label": "deno: run rollup.watch.js",
-			"runOptions": {
-				"runOn": "folderOpen"
-			},
-			"presentation": {
-				"reveal": "silent"
-			}
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "command": "deno run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable rollup.js",
+      "label": "deno: run rollup.js",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }, {
+      "type": "shell",
+      "command": "deno run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable rollup.watch.js",
+      "label": "deno: run rollup.watch.js",
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "reveal": "silent"
+      }
+    }
+  ]
 }
