@@ -10,13 +10,13 @@ class Test {
 
   function __construct($fonction = null, $resultatAttendu = null, $nophp = false, $ordre = 0) {
     // Convert JavaScript text to PHP test
-    $exGetters = ['name', 'exactName', 'hexa', 'hex', 'rgba', 'rgb', 'hsla', 'hsl', 'hwba', 'hwb', 'laba', 'lab', 'lcha', 'lch', 'luminance'];
+    $exGetters = ['name', 'exactName', 'hexa', 'hex', 'rgba', 'rgb', 'hsla', 'hsl', 'hwba', 'hwb', 'laba', 'lab', 'lcha', 'lch', 'luminance', 'values'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $exGetters), 
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
       $fonction
     );
-    $methods = ['blend', 'contrast', 'bestColorScheme', 'improveContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'greyscale', 'grayscale', 'sepia', 'gradient', 'distance', 'same', 'unblend', 'whatToBlend'];
+    $methods = ['blend', 'contrast', 'bestColorScheme', 'improveContrast', 'change', 'replace', 'scale', 'complement', 'invert', 'negative', 'greyscale', 'grayscale', 'sepia', 'gradient', 'distance', 'same', 'unblend', 'whatToBlend', 'toGamut'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $methods), 
       array_map(function($x) { return '->' . $x; }, $methods),

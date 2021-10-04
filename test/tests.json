@@ -282,5 +282,11 @@
   }, {
     "fonction": "Colour.contrast('#aaa', '#aaa')",
     "resultatAttendu": 0
+  }, {
+    "fonction": "(new Colour('lab(92% -45 9)')).rgb",
+    "resultatAttendu": "rgb(128.58, 255, 212.79)"
+  }, {
+    "fonction": "(new Colour('lab(92% -45 9)'))",
+    "resultatAttendu": [ 0.49651550606582623, 1.0018661032584417, 0.8340622807429307 ]
   }
 ]

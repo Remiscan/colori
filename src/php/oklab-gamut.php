@@ -2,6 +2,7 @@
 
 
   require_once __DIR__ . '/conversion.php';
+  require_once __DIR__ . '/utils.php';
 
 
   // Source of the math: https://bottosson.github.io/posts/gamutclipping/
@@ -60,7 +61,7 @@
     $Scusp = maxSaturation($a, $b);
 
     $rgbMax = \colori\conversions\oklab_to_lin_srgb([1, $Scusp * $a, $Scusp * $b]);
-    $Lcusp = pow(1 / max($rgbMax), 1/3);
+    $Lcusp = \colori\utils\invRoot(1 / max($rgbMax), 3);
     $Ccusp = $Lcusp * $Scusp;
 
     return [$Lcusp, $Ccusp];

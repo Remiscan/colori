@@ -327,9 +327,9 @@ export function oklab_to_lin_srgb(lab: number[]): number[] {
   let l = okl + 0.3963377774 * oka + 0.2158037573 * okb;
   let m = okl + -0.1055613458 * oka + -0.0638541728 * okb;
   let s = okl + -0.0894841775 * oka + -1.2914855480 * okb;
-  l = l**3;
-  m = m**3;
-  s = s**3;
+  l = l ** 3;
+  m = m ** 3;
+  s = s ** 3;
 
   const r = 4.0767416621 * l + -3.3077115913 * m + 0.2309699292 * s;
   const g = -1.2684380046 * l + 2.6097574011 * m + -0.3413193965 * s;

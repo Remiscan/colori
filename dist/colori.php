@@ -96,6 +96,33 @@
   );
 
 
+} namespace colori\utils {
+
+
+  function pad(string $s): string {
+    return (strlen($s) < 2) ? '0' . $s : $s;
+  }
+
+  function angleToRange(float $angle): float {
+    while ($angle < 0)   $angle += 360;
+    while ($angle > 360) $angle -= 360;
+    return (float) $angle;
+  }
+
+  function pRound(float $number, int $precision = 5): float {
+    $x = (float) $number;
+    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -$x) + 1) : 1;
+    $precision = (int) ($precision - $intDigits);
+    return (float) round($x, $precision);
+  }
+
+  function invRoot(float $number, int $exponent): float {
+    $sign = $number < 0 ? -1 : 1;
+    if ($sign === -1 && $exponent % 2 === 0) return NAN;
+    return $sign * pow(abs($number), 1 / $exponent);
+  }
+
+
 } namespace colori\conversions {
 
 
@@ -104,14 +131,14 @@
   function srgb_to_lin_srgb(array $rgb): array {
     return array_map(function($x) {
       $sign = $x < 0 ? -1 : 1;
-      return (abs($x) < 0.04045) ? $x / 12.92 : $sign * pow((abs($x) + 0.055) / 1.055, 2.4);
+      return (abs($x) < 0.04045) ? $x / 12.92 : $sign * ((abs($x) + 0.055) / 1.055) ** 2.4;
     }, $rgb);
   }
 
   function lin_srgb_to_srgb(array $rgb): array {
     return array_map(function($x) {
       $sign = $x < 0 ? -1 : 1;
-      return (abs($x) > 0.0031308) ? $sign * (1.055 * pow(abs($x), 1 / 2.4) - 0.055) : 12.92 * $x;
+      return (abs($x) > 0.0031308) ? $sign * (1.055 * (abs($x) ** (1 / 2.4)) - 0.055) : 12.92 * $x;
     }, $rgb);
   }
 
@@ -371,7 +398,7 @@
     $y = $xyz[1] / $w[1];
     $z = $xyz[2] / $w[2];
     
-    $f = function($x) use ($ε, $κ) { return ($x > $ε) ? pow($x, 1/3) : ($κ * $x + 16) / 116; };
+    $f = function($x) use ($ε, $κ) { return ($x > $ε) ? $x ** (1/3) : ($κ * $x + 16) / 116; };
     $f0 = $f($x); $f1 = $f($y); $f2 = $f($z);
     return [
       (116 * $f1 - 16) / 100,
@@ -425,9 +452,9 @@
     $l = 0.4122214708 * $r + 0.5363325363 * $g + 0.0514459929 * $b;
     $m = 0.2119034982 * $r + 0.6806995451 * $g + 0.1073969566 * $b;
     $s = 0.0883024619 * $r + 0.2817188376 * $g + 0.6299787005 * $b;
-    $l = pow($l, 1/3);
-    $m = pow($m, 1/3);
-    $s = pow($s, 1/3);
+    $l = \colori\utils\invRoot($l, 3);
+    $m = \colori\utils\invRoot($m, 3);
+    $s = \colori\utils\invRoot($s, 3);
       
     $okl = 0.2104542553 * $l + 0.7936177850 * $m + -0.0040720468 * $s;
     $oka = 1.9779984951 * $l + -2.4285922050 * $m + 0.4505937099 * $s;
@@ -442,9 +469,9 @@
     $l = $okl + 0.3963377774 * $oka + 0.2158037573 * $okb;
     $m = $okl + -0.1055613458 * $oka + -0.0638541728 * $okb;
     $s = $okl + -0.0894841775 * $oka + -1.2914855480 * $okb;
-    $l = $l**3;
-    $m = $m**3;
-    $s = $s**3;
+    $l = $l ** 3;
+    $m = $m ** 3;
+    $s = $s ** 3;
 
     $r = 4.0767416621 * $l + -3.3077115913 * $m + 0.2309699292 * $s;
     $g = -1.2684380046 * $l + 2.6097574011 * $m + -0.3413193965 * $s;
@@ -542,27 +569,6 @@
     }
 
     return (float) $result * 100;
-  }
-
-
-} namespace colori\utils {
-
-
-  function pad(string $s): string {
-    return (strlen($s) < 2) ? '0' . $s : $s;
-  }
-
-  function angleToRange(float $angle): float {
-    while ($angle < 0)   $angle += 360;
-    while ($angle > 360) $angle -= 360;
-    return (float) $angle;
-  }
-
-  function pRound(float $number, int $precision = 5): float {
-    $x = (float) $number;
-    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -$x) + 1) : 1;
-    $precision = (int) ($precision - $intDigits);
-    return (float) round($x, $precision);
   }
 
 
@@ -819,7 +825,7 @@
     $Scusp = maxSaturation($a, $b);
 
     $rgbMax = \colori\conversions\oklab_to_lin_srgb([1, $Scusp * $a, $Scusp * $b]);
-    $Lcusp = pow(1 / max($rgbMax), 1/3);
+    $Lcusp = \colori\utils\invRoot(1 / max($rgbMax), 3);
     $Ccusp = $Lcusp * $Scusp;
 
     return [$Lcusp, $Ccusp];
