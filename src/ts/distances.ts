@@ -1,8 +1,8 @@
 /**
  * Computes the CIEDE2000 distance between two colors.
- * @param {number[]} - Array of parsed LAB values of the first color (i.e. l in [0, 1]).
- * @param {number[]} - Array of parsed LAB values of the second color (i.e. l in [0, 1]).
- * @returns {number} Distance between the cwo colors.
+ * @param lab1 Array of parsed LAB values of the first color (i.e. l in [0, 1]).
+ * @param lab2 Array of parsed LAB values of the second color (i.e. l in [0, 1]).
+ * @returns Distance between the cwo colors.
  */
 export function CIEDE2000([l1, a1, b1]: number[], [l2, a2, b2]: number[]): number {
   // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf

@@ -2,7 +2,7 @@ import * as Conversions from './conversion.js';
 
 
 
-/** @returns {number} Luminance of the color. */
+/** @returns Luminance of the color. */
 // Source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
 export function luminance(rgb: number[]): number {
   const linrgb = Conversions.srgb_to_lin_srgb(rgb);
@@ -12,9 +12,9 @@ export function luminance(rgb: number[]): number {
 
 /**
  * Computes the contrast between two colors as defined by WCAG2.
- * @param {number[]} rgbText - Array of r, g, b values of the text.
- * @param {number[]} rgbBack - Array of r, g, b values of the background.
- * @returns {number} Contrast between the two colors, in [1, 21].
+ * @param rgbText Array of r, g, b values of the text.
+ * @param rgbBack Array of r, g, b values of the background.
+ * @returns Contrast between the two colors, in [1, 21].
  */
 // Source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
 export function WCAG2(rgbText: number[], rgbBack: number[]): number {
@@ -26,9 +26,9 @@ export function WCAG2(rgbText: number[], rgbBack: number[]): number {
 
 /**
  * Computes the SAPC/APCA contrast between two colors as defined by WCAG3.
- * @param {number[]} rgbText - Array of r, g, b values of the text.
- * @param {number[]} rgbBack - Array of r, g, b values of the background.
- * @returns {number} Contrast between the two colors.
+ * @param rgbText Array of r, g, b values of the text.
+ * @param rgbBack Array of r, g, b values of the background.
+ * @returns Contrast between the two colors.
  */
 // Source of the math: https://github.com/Myndex/SAPC-APCA
 export function APCA(rgbText: number[], rgbBack: number[]): number {

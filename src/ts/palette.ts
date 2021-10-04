@@ -7,10 +7,10 @@ export default class Palette {
 
   /**
    * Creates a palette from a hue.
-   * @param {number} hue - The hue of the main color of the palette in OKLAB color space. 
-   * @param {function} generator - A function that generates an array of { lightnesses, chroma, hue } objects.
-   * @param {object} options
-   * @param {string?} options.clampSpace - Color space to which the generated colors will be clamped. Null to disable clamping.
+   * @param hue The hue of the main color of the palette in OKLAB color space. 
+   * @param generator A function that generates an array of { lightnesses, chroma, hue } objects.
+   * @param options
+   * @param options.clampSpace Color space to which the generated colors will be clamped. Null to disable clamping.
    */
   constructor(hue: number, generator: (hue: number) => Array<{ lightnesses: number[], chroma: number, hue: number}> = () => [], options: { clampSpace: string } = { clampSpace: 'srgb' }) {
     const colors = generator(hue);

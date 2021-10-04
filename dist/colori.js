@@ -354,7 +354,7 @@ class GraphNode {
     predecessor = null;
     /**
      * Builds a graph node from an object.
-     * @param {object} object - An { id, links } object.
+     * @param object An { id, links } object.
      */
     constructor(object) {
         this.id = object.id;
@@ -370,15 +370,15 @@ class Graph {
     nodes;
     /**
      * Builds a graph from an array.
-     * @param {object[]} array - Array of { id, links } objects.
+     * @param array Array of { id, links } objects.
      */
     constructor(array) {
         this.nodes = array.map(e => new GraphNode(e));
     }
     /**
      * Finds a node.
-     * @param {string} id - Identifier of the desired node.
-     * @returns {GraphNode} The corresponding node.
+     * @param id Identifier of the desired node.
+     * @returns The corresponding node.
      */
     getNode(id) {
         const node = this.nodes.find(node => node.id === id);
@@ -395,9 +395,9 @@ class Graph {
     }
     /**
      * Finds the shortest path between two nodes.
-     * @param {string} startID - Identifier of the first node.
-     * @param {string} endID - Identifier of the last node.
-     * @returns {GraphNode[]} An array of node IDs, ordered from first to last along the shortest path.
+     * @param startID Identifier of the first node.
+     * @param endID Identifier of the last node.
+     * @returns An array of node IDs, ordered from first to last along the shortest path.
      */
     shortestPath(startID, endID) {
         // Source of the math: https://en.wikipedia.org/wiki/Breadth-first_search  
@@ -438,7 +438,7 @@ class Graph {
     }
     /**
      * Lists the graph nodes in a topological order.
-     * @returns {GraphNode[]} The array of ordered graph nodes.
+     * @returns The array of ordered graph nodes.
      */
     topologicalOrder() {
         // Source of the math: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
@@ -465,7 +465,7 @@ class Graph {
     }
 }
 
-/** @returns {number} Luminance of the color. */
+/** @returns Luminance of the color. */
 // Source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
 function luminance(rgb) {
     const linrgb = srgb_to_lin_srgb(rgb);
@@ -473,9 +473,9 @@ function luminance(rgb) {
 }
 /**
  * Computes the contrast between two colors as defined by WCAG2.
- * @param {number[]} rgbText - Array of r, g, b values of the text.
- * @param {number[]} rgbBack - Array of r, g, b values of the background.
- * @returns {number} Contrast between the two colors, in [1, 21].
+ * @param rgbText Array of r, g, b values of the text.
+ * @param rgbBack Array of r, g, b values of the background.
+ * @returns Contrast between the two colors, in [1, 21].
  */
 // Source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
 function WCAG2(rgbText, rgbBack) {
@@ -485,9 +485,9 @@ function WCAG2(rgbText, rgbBack) {
 }
 /**
  * Computes the SAPC/APCA contrast between two colors as defined by WCAG3.
- * @param {number[]} rgbText - Array of r, g, b values of the text.
- * @param {number[]} rgbBack - Array of r, g, b values of the background.
- * @returns {number} Contrast between the two colors.
+ * @param rgbText Array of r, g, b values of the text.
+ * @param rgbBack Array of r, g, b values of the background.
+ * @returns Contrast between the two colors.
  */
 // Source of the math: https://github.com/Myndex/SAPC-APCA
 function APCA(rgbText, rgbBack) {
@@ -529,9 +529,9 @@ function APCA(rgbText, rgbBack) {
 
 /**
  * Computes the CIEDE2000 distance between two colors.
- * @param {number[]} - Array of parsed LAB values of the first color (i.e. l in [0, 1]).
- * @param {number[]} - Array of parsed LAB values of the second color (i.e. l in [0, 1]).
- * @returns {number} Distance between the cwo colors.
+ * @param lab1 Array of parsed LAB values of the first color (i.e. l in [0, 1]).
+ * @param lab2 Array of parsed LAB values of the second color (i.e. l in [0, 1]).
+ * @returns Distance between the cwo colors.
  */
 function CIEDE2000([l1, a1, b1], [l2, a2, b2]) {
     // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
@@ -1035,7 +1035,7 @@ class Couleur {
      * Creates a new Couleur object that contains r, g, b, a properties of the color.
      * These properties will take their values from sRGB color space, even if they're out of bounds.
      * (This means values <0 or >1 can be stored — they can be clamped to a specific color space when needed.)
-     * @param {color} color - Color expression in a supported format.
+     * @param color Color expression in a supported format.
      * @throws {string} when the parameter isn't a valid color string.
      */
     constructor(color) {
@@ -1083,8 +1083,8 @@ class Couleur {
     }
     /**
      * Makes a Couleur from the argument if it's not one already.
-     * @param {color} color
-     * @returns {Couleur}
+     * @param color
+     * @returns
      */
     static makeInstance(color) {
         if (color instanceof Couleur)
@@ -1094,8 +1094,8 @@ class Couleur {
     }
     /**
      * Matches the user input with supported color formats.
-     * @param {colorString} colorString - Color expression in a supported format.
-     * @returns {object} Recognized syntax.
+     * @param colorString Color expression in a supported format.
+     * @returns Recognized syntax.
      * @throws {string} when {couleur} is not in a valid format.
      */
     static matchSyntax(colorString) {
@@ -1145,11 +1145,11 @@ class Couleur {
     }
     /**
      * Parses a number / percentage / angle into the correct format to store it.
-     * @param {number|string} value - The value to parse.
-     * @param {colorProperty|null} prop - The color property that has n as its value.
-     * @param {object} options
-     * @param {boolean} options.clamp - Whether the value should de clamped to its color space bounds.
-     * @returns {number} The properly parsed number.
+     * @param value The value to parse.
+     * @param prop The color property that has n as its value.
+     * @param options
+     * @param options.clamp Whether the value should de clamped to its color space bounds.
+     * @returns The properly parsed number.
      */
     static parse(value, prop = null, options = { clamp: true }) {
         const val = String(value);
@@ -1281,11 +1281,11 @@ class Couleur {
     }
     /**
      * Unparses a value to the format that would be used in a CSS expression.
-     * @param {number} value - Value to unparse.
-     * @param {colorProperty|null} prop - Name of the property that has the value.
-     * @param {object} options
-     * @param {number} options.precision - How many decimals to display.
-     * @returns {string} The unparsed value, ready to insert in a CSS expression.
+     * @param value Value to unparse.
+     * @param prop Name of the property that has the value.
+     * @param options
+     * @param options.precision How many decimals to display.
+     * @returns The unparsed value, ready to insert in a CSS expression.
      */
     static unparse(value, prop, options = { precision: 0 }) {
         const precision = options.precision;
@@ -1312,9 +1312,9 @@ class Couleur {
     /* GENERAL SETTER */
     /**
      * Will be used by other setters to calculate all color properties.
-     * @param {Array.<string|number>} data - Array of unparsed values.
-     * @param {colorProperty[]} props - Array of color property names the values correspond to.
-     * @param {colorSpaceOrID} spaceID - Color space of the values, or its identifier.
+     * @param data Array of unparsed values.
+     * @param props Array of color property names the values correspond to.
+     * @param spaceID Color space of the values, or its identifier.
      */
     set(data, props, spaceID) {
         const space = Couleur.getSpace(spaceID);
@@ -1326,11 +1326,11 @@ class Couleur {
     /* GENERAL GETTER */
     /**
      * Creates a string containing the CSS expression of a color.
-     * @param {string} format - Identifier of the color space of the requested CSS expression.
-     * @param {object} options
-     * @param {number} options.precision - How many decimals to display.
-     * @param {boolean} options.clamp - Which color space the values should be clamped to.
-     * @returns {string} The expression of the color in the requested format.
+     * @param format Identifier of the color space of the requested CSS expression.
+     * @param options
+     * @param options.precision How many decimals to display.
+     * @param options.clamp Which color space the values should be clamped to.
+     * @returns The expression of the color in the requested format.
      */
     expr(format, options = { precision: 0, clamp: true }) {
         const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
@@ -1380,11 +1380,11 @@ class Couleur {
     }
     /**
      * Creates a string containing the CSS expression of a color from a list of values.
-     * @param {string} format - Identifier of the color space of the requested CSS expression.
-     * @param {number[]} values - The values of the r, g, b, a properties.
-     * @param {colorSpaceOrID} valueSpaceID - Color space of the given values, or its identifier.
-     * @param {object} options - @see Couleur.expr
-     * @returns {string} The expression of the color in the requested format.
+     * @param format Identifier of the color space of the requested CSS expression.
+     * @param values The values of the r, g, b, a properties.
+     * @param valueSpaceID Color space of the given values, or its identifier.
+     * @param options @see Couleur.expr
+     * @returns The expression of the color in the requested format.
      */
     static makeExpr(format, values, valueSpaceID, options) {
         const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
@@ -1392,10 +1392,10 @@ class Couleur {
         return (new Couleur(rgba)).expr(format, options);
     }
     /* ALL VALUES (r, g, b) */
-    /** @returns {number[]} The array of r, g, b values of the color in sRGB color space. */
+    /** @returns The array of r, g, b values of the color in sRGB color space. */
     get values() { return [this.r, this.g, this.b]; }
     /* NAME */
-    /** @returns {?string} The approximate name of the color. */
+    /** @returns The approximate name of the color. */
     get name() {
         if (this.a === 1) {
             const allNames = Couleur.couleursNommees;
@@ -1413,7 +1413,7 @@ class Couleur {
         else
             return null;
     }
-    /** @returns {?string} The exact name of the color. */
+    /** @returns The exact name of the color. */
     get exactName() {
         if (this.a === 1) {
             const allNames = Couleur.couleursNommees;
@@ -1432,7 +1432,7 @@ class Couleur {
     /* RGB (hexadecimal) */
     /**
      * Calculates all properties of the color from its hexadecimal expression.
-     * @param {string[]} - The hexadecimal values of the r, g, b, a properties.
+     * @param hexa The hexadecimal values of the r, g, b, a properties.
      */
     setHex(hexa) {
         let r, g, b, a;
@@ -1450,7 +1450,7 @@ class Couleur {
         a = parseInt(a, 16) / 255;
         this.set([r, g, b, a], ['r', 'g', 'b'], 'srgb');
     }
-    /** @returns {string} Hexadecimal expression of the color. */
+    /** @returns Hexadecimal expression of the color. */
     get hex() {
         const values = Couleur.toGamut('srgb', this.values);
         const rgb = [...values, this.a].map(v => pad(Math.round(v * 255).toString(16)));
@@ -1462,50 +1462,50 @@ class Couleur {
     /* RGB (functional) */
     /**
      * Calculates all properties of the color from its functional RGB expression.
-     * @param {Array.<string|number>} rgba - The unparsed values of the r, g, b, a properties.
+     * @param rgba The unparsed values of the r, g, b, a properties.
      */
     setRgb(rgba) { this.set(rgba, ['r', 'g', 'b'], 'srgb'); }
-    /** @returns {string} RGB expression of the color. */
+    /** @returns RGB expression of the color. */
     get rgb() { return this.expr('rgb', { precision: 2 }); }
     get rgba() { return this.rgb; }
     /* HSL */
     /**
      * Calculates all properties of the color from its HSL expression.
-     * @param {Array.<string|number>} hsla - The unparsed values of the h, s, l, a properties.
+     * @param hsla The unparsed values of the h, s, l, a properties.
      */
     setHsl(hsla) { this.set(hsla, ['h', 's', 'l'], 'hsl'); }
-    /** @returns {string} HSL expression of the color. */
+    /** @returns HSL expression of the color. */
     get hsl() { return this.expr('hsl', { precision: 2 }); }
     get hsla() { return this.hsl; }
     /* HWB */
     /**
      * Calculates all properties of the color from its HWB expression.
-     * @param {Array.<string|number>} hwba - The unparsed values of the h, w, bk, a properties.
+     * @param hwba The unparsed values of the h, w, bk, a properties.
      */
     setHwb(hwba) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
-    /** @returns {string} HWB expression of the color. */
+    /** @returns HWB expression of the color. */
     get hwb() { return this.expr('hwb', { precision: 2 }); }
     /* LAB */
     /**
      * Calculates all properties of the color from its LAB expression.
-     * @param {Array.<string|number>} laba - The unparsed values of the ciel, ciea, cieb, a properties.
+     * @param laba The unparsed values of the ciel, ciea, cieb, a properties.
      */
     setLab(laba) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
-    /** @returns {string} LAB expression of the color. */
+    /** @returns LAB expression of the color. */
     get lab() { return this.expr('lab', { precision: 2 }); }
     /* LCH */
     /**
      * Calculates all properties of the color from its LCH expression.
-     * @param {Array.<string|number>} - The unparsed values of the ciel, ciec, cieh, a properties.
+     * @param lcha The unparsed values of the ciel, ciec, cieh, a properties.
      */
     setLch(lcha) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
-    /** @returns {string} LCH expression of the color. */
+    /** @returns LCH expression of the color. */
     get lch() { return this.expr('lch', { precision: 2 }); }
     /* PROFILED COLORS */
     /**
      * Calculates all properties of the color from its functional color() expression.
-     * @param {string} spaceID -
-     * @param {Array.<string|number>} rgba - The parsed values of the r, g, b, a properties.
+     * @param spaceID
+     * @param rgba The parsed values of the r, g, b, a properties.
      */
     setColor(spaceID, rgba) {
         let rgb = rgba.slice(0, 3).map(v => Couleur.parse(v));
@@ -1537,7 +1537,7 @@ class Couleur {
     /********************************************/
     /**
      * Recalculates the r, g, b properties of the color after modifying one of its other properties.
-     * @param {number} val - The parsed new value of the property.
+     * @param val The parsed new value of the property.
      */
     set h(val) {
         const [x, s, l] = this.valuesTo('hsl');
@@ -1597,7 +1597,7 @@ class Couleur {
         this.setLch([ciel, ciec, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
     }
     set CIEhue(val) { this.cieh = val; }
-    /** @returns {number} Gets the parsed value of one of the color properties. */
+    /** @returns Gets the parsed value of one of the color properties. */
     get red() { return this.r; }
     get green() { return this.g; }
     get blue() { return this.b; }
@@ -1631,10 +1631,10 @@ class Couleur {
     /***********************************/
     /**
      * Converts the color values from one color space to another.
-     * @param {colorSpaceOrID} startSpaceID - Starting color space, or its identifier.
-     * @param {colorSpaceOrID} endSpaceID - Color space to convert to, or its identifier.
-     * @param {number[]} values - Array of color values (without alpha) in startSpaceID color space.
-     * @returns {number[]} Array of values in the new color space.
+     * @param startSpaceID Starting color space, or its identifier.
+     * @param endSpaceID Color space to convert to, or its identifier.
+     * @param values Array of color values (without alpha) in startSpaceID color space.
+     * @returns Array of values in the new color space.
      */
     static convert(startSpaceID, endSpaceID, values) {
         if ((typeof startSpaceID === typeof endSpaceID && startSpaceID === endSpaceID)
@@ -1671,10 +1671,10 @@ class Couleur {
     }
     /**
      * Converts the r, g, b values of the color to another color space.
-     * @param {colorSpaceOrID} spaceID - Desired color space, or its identifier.
-     * @param {object} options
-     * @param {boolean} options.clamp - Whether to clamp the values to their new color space.
-     * @returns {number[]} The array of converted values.
+     * @param spaceID Desired color space, or its identifier.
+     * @param options
+     * @param options.clamp Whether to clamp the values to their new color space.
+     * @returns The array of converted values.
      */
     valuesTo(spaceID, options = { clamp: false }) {
         const space = Couleur.getSpace(spaceID);
@@ -1686,10 +1686,10 @@ class Couleur {
     /* Clamping to a color space */
     /**
      * Checks whether parsed values in valueSpaceID color space correspond to a color in the spaceID color space.
-     * @param {colorSpaceOrID} spaceID - Color space whose gamut will be checked, or its identifier.
-     * @param {number[]} values - Array of parsed values.
-     * @param {colorSpaceOrID} valueSpaceID - Color space of the given values, or its identifier.
-     * @returns {boolean} Whether the corresponding color is in gamut.
+     * @param spaceID Color space whose gamut will be checked, or its identifier.
+     * @param values Array of parsed values.
+     * @param valueSpaceID Color space of the given values, or its identifier.
+     * @returns Whether the corresponding color is in gamut.
      */
     static inGamut(spaceID, values, valueSpaceID = 'srgb', options = { tolerance: .0001 }) {
         const space = Couleur.getSpace(spaceID);
@@ -1701,10 +1701,10 @@ class Couleur {
     inGamut(spaceID, options) { return Couleur.inGamut(spaceID, this.values, 'srgb', options); }
     /**
      * Clamps parsed values in valueSpaceID color space to the spaceID color space.
-     * @param {colorSpaceOrID} spaceID - Color space whose gamut will be used, or its identifier.
-     * @param {number[]} values - Array of parsed values.
-     * @param {colorSpaceOrID} valueSpaceID - Color space of the given values, or its identifier.
-     * @returns {number[]} The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
+     * @param spaceID Color space whose gamut will be used, or its identifier.
+     * @param values Array of parsed values.
+     * @param valueSpaceID Color space of the given values, or its identifier.
+     * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
      */
     static toGamut(spaceID, values, valueSpaceID = 'srgb', options = { method: 'oklab' }) {
         const space = Couleur.getSpace(spaceID);
@@ -1759,13 +1759,13 @@ class Couleur {
     /* Color modification */
     /**
      * Modifies a color by changing a specific property.
-     * @param {colorProperty} prop - The color property that will be changed.
-     * @param {(string|number)} value - The value that will be added to the property.
-     * @param {Object} options
-     * @param {string?} options.action - 'replace' if the value should replace the previous value of the property,
+     * @param prop The color property that will be changed.
+     * @param value The value that will be added to the property.
+     * @param options
+     * @param options.action 'replace' if the value should replace the previous value of the property,
      *                                   'scale' if the value should be multiplied to the previous value of the property,
      *                                   null if the value should be added to the previous value of the property.
-     * @returns {Couleur} The modified color.
+     * @returns The modified color.
      */
     change(prop, value, options = { action: null }) {
         const replace = options.action === 'replace';
@@ -1780,9 +1780,9 @@ class Couleur {
     /**
      * Modifies a color by replacing the value of a specific property.
      * This is an alias to change() with options.replace = true
-     * @param {colorProperty} prop - The color property that will be changed.
-     * @param {(string|number)} value - The value that will replace the previous value of the property.
-     * @returns {Couleur} The modified color.
+     * @param prop The color property that will be changed.
+     * @param value The value that will replace the previous value of the property.
+     * @returns The modified color.
      */
     replace(prop, value) {
         return this.change(prop, value, { action: 'replace' });
@@ -1790,25 +1790,25 @@ class Couleur {
     /**
      * Modifies a color by scaling the value of a specific property by a percentage.
      * This is an alias to change() with options.scale = true
-     * @param {colorProperty} prop - The color property that will be changed.
-     * @param {(string|number)} value - The percentage that will be multiplied to the previous value of the property.
-     * @returns {Couleur} The modified color.
+     * @param prop The color property that will be changed.
+     * @param value The percentage that will be multiplied to the previous value of the property.
+     * @returns The modified color.
      */
     scale(prop, value) {
         return this.change(prop, value, { action: 'scale' });
     }
-    /** @returns {Couleur} The complementary color. */
+    /** @returns The complementary color. */
     complement() { return this.change('h', 180); }
-    /** @returns {Couleur} The inverse color. */
+    /** @returns The inverse color. */
     negative() { return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
     invert() { return this.negative(); }
-    /** @returns {Couleur} The shade of grey of the color. */
+    /** @returns The shade of grey of the color. */
     greyscale() {
         const L = 255 * this.replace('a', 1).luminance;
         return new Couleur(`rgb(${L}, ${L}, ${L}, ${this.a})`);
     }
     grayscale() { return this.greyscale(); }
-    /** @returns {Couleur} The sepia tone of the color. */
+    /** @returns The sepia tone of the color. */
     sepia() {
         const r = Math.min(0.393 * this.r + 0.769 * this.g + 0.189 * this.b, 1);
         const g = Math.min(0.349 * this.r + 0.686 * this.g + 0.168 * this.b, 1);
@@ -1818,10 +1818,10 @@ class Couleur {
     /* Color blending */
     /**
      * Blends two colors together.
-     * @param {color} backgroundColor - Background color.
-     * @param {color} overlayColor - Overlay color.
-     * @param {number|string} alpha - Alpha value that will replace overlay's.
-     * @returns {Couleur} The resulting color.
+     * @param backgroundColor Background color.
+     * @param overlayColor Overlay color.
+     * @param alpha Alpha value that will replace overlay's.
+     * @returns The resulting color.
      */
     static blend(backgroundColor, overlayColor, alpha) {
         const background = Couleur.makeInstance(backgroundColor);
@@ -1841,7 +1841,7 @@ class Couleur {
     /**
      * Blends colors together, in the order they were given.
      * @param  {...color} colors - Colors to blend.
-     * @returns {Couleur} The resulting color.
+     * @returns The resulting color.
      */
     static blendAll(...colors) {
         if (colors.length < 2)
@@ -1861,8 +1861,8 @@ class Couleur {
     /**
      * Solves the equation mix = blend(background, overlay) with background unknown.
      * @param  {color} mixColor - The result of the blend.
-     * @param {color} overlayColor - Color that was mixed with background to create mix.
-     * @returns {?Couleur} The background that is solution to the equation, if it has one.
+     * @param overlayColor Color that was mixed with background to create mix.
+     * @returns The background that is solution to the equation, if it has one.
      * @throws if the equation has an infinite amount of solutions.
      */
     static unblend(mixColor, overlayColor, alpha) {
@@ -1899,7 +1899,7 @@ class Couleur {
     /**
      * Solves the equation mix = blendAll(background, ...overlays) with background unknown.
      * @param  {...color} colors - Colors to unblend.
-     * @returns {?Couleur} The solution to the equation, if it has one.
+     * @returns The solution to the equation, if it has one.
      * @throws if the equation has an infinite amount of solutions.
      */
     static unblendAll(...colors) {
@@ -1919,12 +1919,12 @@ class Couleur {
     unblendAll(...colors) { return Couleur.unblendAll(this, ...colors); }
     /**
      * Solves the equation mix = blend(background, overlay) with overlay unknown.
-     * @param {color} backgroundColor - The background color.
-     * @param {color} mixColor - The result of the blend.
-     * @param {?number|number[]} alpha - The alpha value(s) you want the solution(s) to have.
-     * @param {object} options
-     * @param {boolean} options.ignoreTransparent - Whether to return the color 'transparent' when it's a solution.
-     * @returns {(Couleur|Couleur[]|null)} The solution(s) to the equation.
+     * @param backgroundColor The background color.
+     * @param mixColor The result of the blend.
+     * @param alpha The alpha value(s) you want the solution(s) to have.
+     * @param options
+     * @param options.ignoreTransparent Whether to return the color 'transparent' when it's a solution.
+     * @returns The solution(s) to the equation.
      */
     static whatToBlend(backgroundColor, mixColor, alphas = [], options = { ignoreTransparent: false }) {
         const background = Couleur.makeInstance(backgroundColor);
@@ -2011,11 +2011,11 @@ class Couleur {
     /* Color comparison */
     /**
      * Computes the contrast between two colors as defined by WCAG2 or 3.
-     * @param {color} textColor - First color (for text over a background, this is the text color).
-     * @param {color} backgroundColor - Second color (for text over a background, this is the background color).
-     * @param {object} options
-     * @param {string} options.method - Whether to use the new APCA or the old WCAG2 method.
-     * @returns {number} Contrast between the two colors.
+     * @param textColor First color (for text over a background, this is the text color).
+     * @param backgroundColor Second color (for text over a background, this is the background color).
+     * @param options
+     * @param options.method Whether to use the new APCA or the old WCAG2 method.
+     * @returns Contrast between the two colors.
      */
     static contrast(textColor, backgroundColor, options = { method: 'WCAG2' }) {
         const background = Couleur.makeInstance(backgroundColor);
@@ -2043,8 +2043,8 @@ class Couleur {
      * Determines which color scheme ('light' or 'dark') would lead to a better contrast with the color.
      * The 'light' color scheme means a light background with dark text.
      * The 'dark' color scheme means a dark background with light text.
-     * @param {('background'|'text')} as - Whether the color is the background or the text color.
-     * @returns {('light'|'dark')}
+     * @param as Whether the color is the background or the text color.
+     * @returns
      */
     bestColorScheme(as = 'background') {
         if (as === 'text') {
@@ -2060,18 +2060,18 @@ class Couleur {
     }
     /**
      * Modifies the CIE lightness of a color to give it better contrast with a background color.
-     * @param {color} backgroundColor - The color with which contrast will be measured and improved.
-     * @param {number} desiredContrast - The contrast value to reach.
-     * @param {Object} options
-     * @param {boolean?} options.lower - Whether contrast should be lowered if it's already bigger than desiredContrast.
+     * @param backgroundColor The color with which contrast will be measured and improved.
+     * @param desiredContrast The contrast value to reach.
+     * @param options
+     * @param options.lower Whether contrast should be lowered if it's already bigger than desiredContrast.
      *                                   If true, and contrast is higher from the start, it will be lowered until it reaches desiredContrast.
      *                                   If false, and contrast is higher from the start, nothing will be done.
-     * @param {string?} options.colorScheme - Whether the color should be darker than the background color (colorScheme = 'light')
+     * @param options.colorScheme Whether the color should be darker than the background color (colorScheme = 'light')
      *                                        or lighter than the background color (colorScheme = 'dark').
      *                                        If null, the starting color scheme will be preserved (i.e. if the color starts darker
      *                                        than the background color, it will stay darker.)
-     * @param {string?} options.method - The method to use to compute the contrast.
-     * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
+     * @param options.method The method to use to compute the contrast.
+     * @returns The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
      */
     improveContrast(backgroundColor, desiredContrast, options = { lower: false, colorScheme: null, method: 'WCAG2' }) {
         const background = Couleur.makeInstance(backgroundColor);
@@ -2168,11 +2168,11 @@ class Couleur {
     }
     /**
      * Computes the distance between two colors.
-     * @param {color} color1
-     * @param {color} color2
-     * @param {object} options
-     * @param {string} options.method - The method to use to compute the distance.
-     * @returns {number} The distance between the two colors in sRGB space.
+     * @param color1
+     * @param color2
+     * @param options
+     * @param options.method The method to use to compute the distance.
+     * @returns The distance between the two colors in sRGB space.
      */
     static distance(color1, color2, options = { method: 'CIEDE2000' }) {
         const colore1 = Couleur.makeInstance(color1);
@@ -2191,10 +2191,10 @@ class Couleur {
     distance(color, options) { return Couleur.distance(this, color, options); }
     /**
      * Determines if two colors are the same, with a certain tolerance.
-     * @param {color} color1
-     * @param {color} color2
-     * @param {number} tolerance - The minimum distance between the two colors to consider them different.
-     * @returns {boolean} Whether the two colors are considered the same.
+     * @param color1
+     * @param color2
+     * @param tolerance The minimum distance between the two colors to consider them different.
+     * @returns Whether the two colors are considered the same.
      */
     static same(color1, color2, tolerance = 1) {
         if (Couleur.distance(color1, color2) > tolerance)
@@ -2207,11 +2207,11 @@ class Couleur {
     /* Other functions */
     /**
      * Calculates the intermediate colors a gradient should use to go from one color to another without passing through the "desaturated zone".
-     * @param {color} startColor - The starting color of the gradient.
-     * @param {color} endColor - The ending color of the gradient.
-     * @param {number} steps - The number of steps in the gradient to go from start to end.
-     * @param {string} spaceID - Identifier of the color space in which to compute the gradient.
-     * @returns {Couleur[]} The array of (steps + 1) colors in the gradient.
+     * @param startColor The starting color of the gradient.
+     * @param endColor The ending color of the gradient.
+     * @param steps The number of steps in the gradient to go from start to end.
+     * @param spaceID Identifier of the color space in which to compute the gradient.
+     * @returns The array of (steps + 1) colors in the gradient.
      */
     static gradient(startColor, endColor, steps = 5, spaceID = 'lch') {
         const start = Couleur.makeInstance(startColor);
@@ -2263,8 +2263,8 @@ class Couleur {
     /**************/
     /**
      * Gets the list of the short names of color properties used in a given CSS format.
-     * @param {string} format - Name of the color format.
-     * @returns {colorProperty[]} Array of color property names.
+     * @param format Name of the color format.
+     * @returns Array of color property names.
      */
     static propertiesOf(format) {
         switch (format) {
@@ -2283,16 +2283,16 @@ class Couleur {
             default: return [];
         }
     }
-    /** @returns {string[]} Array of all color property short names. */
+    /** @returns Array of all color property short names. */
     static get properties() {
         return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
     }
-    /** @returns {{id: string, whitepoint: string, prefix: string, otherFormat: string[]}} Supported color spaces. */
+    /** @returns} Supported color spaces. */
     static get colorSpaces() { return colorSpaces; }
     /**
      * Gets a color space.
-     * @param {string|object} spaceID - Identifier of a color space, or a color space itself.
-     * @returns {object} The corresponding color space object.
+     * @param spaceID Identifier of a color space, or a color space itself.
+     * @returns The corresponding color space object.
      */
     static getSpace(spaceID) {
         if (typeof spaceID !== 'string')
@@ -2303,9 +2303,9 @@ class Couleur {
                     : spaceID;
         return Couleur.colorSpaces.find(sp => sp.id == id);
     }
-    /** @returns {CSSFormat[]} Array of supported syntaxes. */
+    /** @returns Array of supported syntaxes. */
     static get formats() { return Formats; }
-    /** @returns {object} List of named colors in CSS. */
+    /** @returns List of named colors in CSS. */
     static get couleursNommees() { return namedColors; }
 }
 
@@ -2313,10 +2313,10 @@ class Palette {
     colors = []; // Will be an array of arrays of color nuances.
     /**
      * Creates a palette from a hue.
-     * @param {number} hue - The hue of the main color of the palette in OKLAB color space.
-     * @param {function} generator - A function that generates an array of { lightnesses, chroma, hue } objects.
-     * @param {object} options
-     * @param {string?} options.clampSpace - Color space to which the generated colors will be clamped. Null to disable clamping.
+     * @param hue The hue of the main color of the palette in OKLAB color space.
+     * @param generator A function that generates an array of { lightnesses, chroma, hue } objects.
+     * @param options
+     * @param options.clampSpace Color space to which the generated colors will be clamped. Null to disable clamping.
      */
     constructor(hue, generator = () => [], options = { clampSpace: 'srgb' }) {
         const colors = generator(hue);
