@@ -1869,7 +1869,7 @@
       }
 
       // Let's reduce the chroma until the color is in the color space
-      else {
+      elseif ($method === 'chroma') {
         $clampSpace = self::getSpace('lch');
         $lch = self::convert($valueSpace, $clampSpace, $values);
 

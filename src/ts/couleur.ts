@@ -742,7 +742,7 @@ export default class Couleur {
    * @param valueSpaceID Color space of the given values, or its identifier.
    * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
-  static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'oklab' } = {}): number[] {
+  static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'oklab' }: { method?: 'oklab'|'chroma'|'naive' } = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
     if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 })) return values;
