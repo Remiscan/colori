@@ -143,7 +143,7 @@ export default class Couleur {
    * @param options.clamp Whether the value should de clamped to its color space bounds.
    * @returns The properly parsed number.
    */
-  static parse(value: number | string, prop: colorProperty | null = null, options: { clamp: boolean } = { clamp: true }): number {
+  static parse(value: number | string, prop: colorProperty | null = null, { clamp = true }: { clamp?: boolean } = {}): number {
     const val = String(value);
     const nval = parseFloat(val);
 
@@ -154,13 +154,13 @@ export default class Couleur {
     if (prop === 'a') {
       // If n is a percentage
       if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-        if (options.clamp)  return Math.max(0, Math.min(nval / 100, 1));
-        else                return nval / 100;
+        if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
+        else        return nval / 100;
       }
       // If n is a number
       else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-        if (options.clamp)  return Math.max(0, Math.min(nval, 1));
-        else                return nval;
+        if (clamp)  return Math.max(0, Math.min(nval, 1));
+        else        return nval;
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
     }
@@ -172,13 +172,13 @@ export default class Couleur {
     else if (['r', 'g', 'b'].includes(prop)) {
       // If n is a percentage
       if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-        if (options.clamp)  return Math.max(0, Math.min(nval / 100, 1));
-        else                return nval / 100;
+        if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
+        else        return nval / 100;
       }
       // If n is a number
       else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-        if (options.clamp)  return Math.max(0, Math.min(nval / 255, 1));
-        else                return nval / 255;
+        if (clamp)  return Math.max(0, Math.min(nval / 255, 1));
+        else        return nval / 255;
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
     }
@@ -215,8 +215,8 @@ export default class Couleur {
     else if(['s', 'l', 'w', 'bk', 'ciel'].includes(prop)) {
       // If n is a percentage
       if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-        if (options.clamp)  return Math.max(0, Math.min(nval / 100, 1));
-        else                return nval / 100;
+        if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
+        else        return nval / 100;
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
     }
@@ -237,8 +237,8 @@ export default class Couleur {
     else if (prop === 'ciec') {
       // If n is a number
       if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-        if (options.clamp)  return Math.max(0, nval);
-        else                return nval;
+        if (clamp)  return Math.max(0, nval);
+        else        return nval;
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
     }
@@ -268,8 +268,7 @@ export default class Couleur {
    * @param options.precision How many decimals to display.
    * @returns The unparsed value, ready to insert in a CSS expression.
    */
-  static unparse(value: number, prop: colorProperty | null, options: { precision: number } = { precision: 0 }): string {
-    const precision = options.precision;
+  static unparse(value: number, prop: colorProperty | null, { precision = 0 }: { precision?: number } = {}): string {
     switch (prop) {
       case 'r': case 'g': case 'b':
         return precision === null ? `${255 * value}` : `${Math.round(10**precision * 255 * value) / (10**precision)}`;
@@ -317,13 +316,12 @@ export default class Couleur {
    * @param options.clamp Which color space the values should be clamped to.
    * @returns The expression of the color in the requested format.
    */
-  expr(format: string, options: { precision: number, clamp?: boolean } = { precision: 0, clamp: true }): string {
+  expr(format: string, { precision = 0, clamp = true }: { precision?: number, clamp?: boolean } = {}): string {
     const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
     const space = Couleur.getSpace(spaceID);
-    const precision = options.precision;
 
     let values = this.valuesTo(space);
-    if (options.clamp) values = Couleur.toGamut(space, values, space);
+    if (clamp) values = Couleur.toGamut(space, values, space);
     const a = Number(Couleur.unparse(this.a, 'a', { precision }));
     values = [...values, a];
 
@@ -368,7 +366,7 @@ export default class Couleur {
    * @param options @see Couleur.expr
    * @returns The expression of the color in the requested format.
    */
-  static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options: { precision: number, clamp?: boolean }): string {
+  static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options = {}): string {
     const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
     const rgba = [...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)), values[3]];
     return (new Couleur(rgba)).expr(format, options);
@@ -709,10 +707,10 @@ export default class Couleur {
    * @param options.clamp Whether to clamp the values to their new color space.
    * @returns The array of converted values.
    */
-  valuesTo(spaceID: colorSpaceOrID, options: { clamp: boolean } = {clamp: false }): number[] {
+  valuesTo(spaceID: colorSpaceOrID, {clamp = false }: { clamp?: boolean } = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     let values = Couleur.convert('srgb', space, this.values);
-    if (options.clamp) values = Couleur.toGamut(space, values);
+    if (clamp) values = Couleur.toGamut(space, values);
     return values;
   }
 
@@ -727,15 +725,14 @@ export default class Couleur {
    * @param valueSpaceID Color space of the given values, or its identifier.
    * @returns Whether the corresponding color is in gamut.
    */
-  static inGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', options: { tolerance: number } = { tolerance: .0001 }): boolean {
+  static inGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { tolerance = .0001 } = {}): boolean {
     const space = Couleur.getSpace(spaceID);
     const convertedValues = Couleur.convert(valueSpaceID, space, values);
-    const tolerance = options.tolerance;
     return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
   }
 
   /** @see Couleur.inGamut - Non-static version. */
-  inGamut(spaceID: colorSpaceOrID, options: { tolerance: number }) { return Couleur.inGamut(spaceID, this.values, 'srgb', options); }
+  inGamut(spaceID: colorSpaceOrID, options = {}) { return Couleur.inGamut(spaceID, this.values, 'srgb', options); }
 
   /**
    * Clamps parsed values in valueSpaceID color space to the spaceID color space.
@@ -744,12 +741,11 @@ export default class Couleur {
    * @param valueSpaceID Color space of the given values, or its identifier.
    * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
-  static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', options: { method: string } = { method: 'oklab' }): number[] {
+  static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'oklab' } = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
     if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 })) return values;
     let clampedValues: number[], clampSpace: ColorSpace;
-    const method = options.method;
 
     // Naively clamp the values
     if (method === 'naive') {
@@ -820,9 +816,9 @@ export default class Couleur {
    *                                   null if the value should be added to the previous value of the property.
    * @returns The modified color.
    */
-   change(prop: colorProperty, value: string | number, options: { action: string | null } = { action: null }): Couleur {
-    const replace = options.action === 'replace';
-    const scale = options.action === 'scale';
+   change(prop: colorProperty, value: string | number, { action = null }: { action?: string | null } = {}): Couleur {
+    const replace = action === 'replace';
+    const scale = action === 'scale';
     const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, { clamp: false });
     const changedColor = new Couleur(this);
 
@@ -994,7 +990,7 @@ export default class Couleur {
    * @param options.ignoreTransparent Whether to return the color 'transparent' when it's a solution.
    * @returns The solution(s) to the equation.
    */
-  static whatToBlend(backgroundColor: color, mixColor: color, alphas: number | Array<number|string> = [], options: { ignoreTransparent: boolean } = { ignoreTransparent: false }): Couleur | null {
+  static whatToBlend(backgroundColor: color, mixColor: color, alphas: number | Array<number|string> = [], { ignoreTransparent = false }: { ignoreTransparent?: boolean } = {}): Couleur | null {
     const background = Couleur.makeInstance(backgroundColor);
     const mix = Couleur.makeInstance(mixColor);
     let overlays = [];
@@ -1056,7 +1052,7 @@ export default class Couleur {
 
     let result = requestedAlphas.length > 0 ? overlays.filter(c => requestedAlphas.includes(c.a))
                                             : overlays;
-    if (options.ignoreTransparent) result = result.filter(a => a > 0);
+    if (ignoreTransparent) result = result.filter(a => a > 0);
 
     return result.length === 0 ? null
          : result.length === 1 ? result[0]
@@ -1078,7 +1074,7 @@ export default class Couleur {
    * @param options.method Whether to use the new APCA or the old WCAG2 method.
    * @returns Contrast between the two colors.
    */
-  static contrast(textColor: color, backgroundColor: color, options: { method: string } = { method: 'WCAG2' }): number {
+  static contrast(textColor: color, backgroundColor: color, { method = 'WCAG2' }: { method?: string } = {}): number {
     const background = Couleur.makeInstance(backgroundColor);
     if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
     let text = Couleur.makeInstance(textColor);
@@ -1086,7 +1082,7 @@ export default class Couleur {
     // If the text is transparent, blend it to the background to get its actual visible color
     if (text.a < 1) text = Couleur.blend(background, text);
 
-    switch (options.method.toLowerCase()) {
+    switch (method.toLowerCase()) {
       case 'wcag3': case 'sapc': case 'apca':
         return Contrasts.APCA(text.values, background.values);
       case 'wcag2':
@@ -1096,7 +1092,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.contrast - Non-static version. */
-  contrast(backgroundColor: color, options: { method: string }): number {
+  contrast(backgroundColor: color, options): number {
     return Couleur.contrast(this, backgroundColor, options);
   }
 
@@ -1136,11 +1132,10 @@ export default class Couleur {
    * @param options.method The method to use to compute the contrast.
    * @returns The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
    */
-  improveContrast(backgroundColor: color, desiredContrast: number, options: { lower: boolean, colorScheme: string | null, method: string } = { lower: false, colorScheme: null, method: 'WCAG2' }): Couleur {
+  improveContrast(backgroundColor: color, desiredContrast: number, { lower = false, colorScheme = null, method = 'WCAG2' }: { lower?: boolean, colorScheme?: string | null, method?: string } = {}): Couleur {
     const background = Couleur.makeInstance(backgroundColor);
     const backgroundLab = background.valuesTo('lab');
     const movingLab = this.valuesTo('lab');
-    const method = options.method;
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
@@ -1150,10 +1145,10 @@ export default class Couleur {
     else if (startContrast < desiredContrast) directionContrast = 1;
     else                                      directionContrast = 0;
     // If the contrast is already higher than desired, and lowering it is not allowed, return the color as is.
-    if ((directionContrast < 0 && options.lower === false) || (directionContrast === 0)) return this;
+    if ((directionContrast < 0 && lower === false) || (directionContrast === 0)) return this;
 
     // Let's detect the color scheme if it isn't given.
-    const _colorScheme = options.colorScheme || ((backgroundLab[0] < movingLab[0]) ? 'dark' : 'light');
+    const _colorScheme = colorScheme || ((backgroundLab[0] < movingLab[0]) ? 'dark' : 'light');
 
     // Let's measure the contrast of the background with black and white to know if
     // desiredContrast can be reached by lowering or raising the color's CIE lightness.
@@ -1230,12 +1225,12 @@ export default class Couleur {
    * @param options.method The method to use to compute the distance.
    * @returns The distance between the two colors in sRGB space.
    */
-  static distance(color1: color, color2: color, options: { method: string } = { method: 'CIEDE2000' }): number { 
+  static distance(color1: color, color2: color, { method = 'CIEDE2000' }: { method?: string } = {}): number { 
     const colore1 = Couleur.makeInstance(color1);
     const colore2 = Couleur.makeInstance(color2);
     const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
 
-    switch (options.method) {
+    switch (method) {
       case 'CIEDE2000':
         return Distances.CIEDE2000(lab1, lab2);
       case 'euclidean':
@@ -1246,7 +1241,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.distance - Non-static version. */
-  distance(color: color, options: { method: string }) { return Couleur.distance(this, color, options); }
+  distance(color: color, options) { return Couleur.distance(this, color, options); }
 
 
   /**

@@ -12,7 +12,7 @@ export default class Palette {
    * @param options
    * @param options.clampSpace Color space to which the generated colors will be clamped. Null to disable clamping.
    */
-  constructor(hue: number, generator: (hue: number) => Array<{ lightnesses: number[], chroma: number, hue: number}> = () => [], options: { clampSpace: string } = { clampSpace: 'srgb' }) {
+  constructor(hue: number, generator: (hue: number) => Array<{ lightnesses: number[], chroma: number, hue: number}> = () => [], { clampSpace = 'srgb' }: { clampSpace?: string } = {}) {
     const colors = generator(hue);
 
     // Create the nuances of each color.
@@ -20,7 +20,7 @@ export default class Palette {
       const nuances: Couleur[] = [];
       for (const lightness of color.lightnesses) {
         let rgb = Couleur.convert('oklch', 'srgb', [lightness, color.chroma, color.hue]);
-        if (options.clampSpace != null) rgb = Couleur.toGamut(options.clampSpace, rgb);
+        if (clampSpace != null) rgb = Couleur.toGamut(clampSpace, rgb);
         const newColor = new Couleur(`color(srgb ${rgb.join(' ')})`);
         nuances.push(newColor);
       }
