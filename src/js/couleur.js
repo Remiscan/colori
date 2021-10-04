@@ -1157,7 +1157,7 @@ export default class Couleur {
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    let startContrast = Couleur.contrast(this, background, method);
+    let startContrast = Couleur.contrast(this, background, { method });
     let directionContrast;
     if (startContrast > desiredContrast)      directionContrast = -1;
     else if (startContrast < desiredContrast) directionContrast = 1;
@@ -1170,8 +1170,8 @@ export default class Couleur {
 
     // Let's measure the contrast of the background with black and white to know if
     // desiredContrast can be reached by lowering or raising the color's CIE lightness.
-    const cBlack = Couleur.contrast(background, 'black', method);
-    const cWhite = Couleur.contrast(background, 'white', method);
+    const cBlack = Couleur.contrast(background, 'black', { method });
+    const cWhite = Couleur.contrast(background, 'white', { method });
     const isPossible = {
       lowering: (directionContrast > 0) ? Math.abs(cBlack) >= desiredContrast : Math.abs(cBlack) <= desiredContrast,
       raising: (directionContrast > 0) ? Math.abs(cWhite) >= desiredContrast : Math.abs(cWhite) <= desiredContrast
@@ -1206,7 +1206,7 @@ export default class Couleur {
       // Let's try to raise contrast by increasing or reducing CIE lightness.
       const ciel = (CIELmin + CIELmax) / 2;
       const newValues = movingLab; newValues[0] = ciel;
-      const newContrast = Couleur.contrast(Couleur.convert('lab', 'srgb', newValues), background, method);
+      const newContrast = Couleur.contrast(Couleur.convert('lab', 'srgb', newValues), background, { method });
 
       // If the new contrast hasn't gone over its desired value
       const condition = (directionContrast > 0) ? (Math.abs(newContrast) < desiredContrast) : (Math.abs(newContrast) > desiredContrast);
@@ -1225,7 +1225,7 @@ export default class Couleur {
 
     let result = new Couleur(Couleur.convert('lab', 'srgb', movingLab));
     // If the color we find has its contrast slightly below the desired value, push it further.
-    if (Math.abs(Couleur.contrast(result, background, method)) < desiredContrast) {
+    if (Math.abs(Couleur.contrast(result, background, { method })) < desiredContrast) {
       if (directionCIEL > 0) movingLab[0] = CIELmax;
       else                   movingLab[0] = CIELmin;
     }
