@@ -288,5 +288,11 @@
   }, {
     "fonction": "(new Colour('lab(92% -45 9)'))",
     "resultatAttendu": [ 0.49651550606582623, 1.0018661032584417, 0.8340622807429307 ]
+  }, {
+    "fonction": "(new Colour('oklab(91.5% -12.8 2.49)')).rgb",
+    "resultatAttendu": "rgb(127, 255, 212)"
+  }, {
+    "fonction": "(new Colour('oklch(91.5% 13.04 169)')).rgb",
+    "resultatAttendu": "rgb(127, 255, 212)"
   }
 ]

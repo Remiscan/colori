@@ -73,6 +73,12 @@ export default class Couleur {
         case 'lch':
           this.setLch([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
           break;
+        case 'oklab':
+          this.setOklab([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
+          break;
+        case 'oklch':
+          this.setOklch([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
+          break;
         case 'color':
           this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
           break;
@@ -114,8 +120,12 @@ export default class Couleur {
       case 'hwb': format = Couleur.formats[3]; break;
       case 'lab': format = Couleur.formats[4]; break;
       case 'lch': format = Couleur.formats[5]; break;
-      case 'col': format = Couleur.formats[6]; break;
-      default:    format = Couleur.formats[7];
+      case 'okl': {
+        if (colorString.startsWith('oklab')) { format = Couleur.formats[6]; break; }
+        if (colorString.startsWith('oklch')) { format = Couleur.formats[7]; break; }
+      } break;
+      case 'col': format = Couleur.formats[8]; break;
+      default:    format = Couleur.formats[9];
     }
 
     // Check if the given string matches any color syntax
@@ -188,7 +198,7 @@ export default class Couleur {
     // from any angle or any number
     // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
     // to [0, 360]
-    else if(['h', 'cieh'].includes(prop)) {
+    else if(['h', 'cieh', 'okh'].includes(prop)) {
       let h = nval;
       // If n is a number
       if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
@@ -213,7 +223,7 @@ export default class Couleur {
     // from any %
     // clamped to [0, 100]%
     // to [0, 1]
-    else if(['s', 'l', 'w', 'bk', 'ciel'].includes(prop)) {
+    else if(['s', 'l', 'w', 'bk', 'ciel', 'okl'].includes(prop)) {
       // If n is a percentage
       if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
         if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
@@ -240,6 +250,16 @@ export default class Couleur {
       if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
         if (clamp)  return Math.max(0, nval);
         else        return nval;
+      }
+      else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
+    }
+
+    // OKLAB axes & chroma values:
+    // any number
+    else if (['oka', 'okb', 'okc'].includes(prop)) {
+      // If n is a number
+      if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        return nval / 100;
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
     }
@@ -273,8 +293,10 @@ export default class Couleur {
     switch (prop) {
       case 'r': case 'g': case 'b':
         return precision === null ? `${255 * value}` : `${Math.round(10**precision * 255 * value) / (10**precision)}`;
-      case 's': case 'l': case 'w': case 'bk': case 'ciel':
+      case 's': case 'l': case 'w': case 'bk': case 'ciel': case 'okl':
         return precision === null ? `${100 * value}%` : `${Math.round(10**precision * 100 * value) / (10**precision)}%`;
+      case 'oka': case 'okb': case 'okc':
+        return precision === null ? `${100 * value}` : `${Math.round(10**precision * 100 * value) / (10**precision)}`;
       case 'a':
         return precision === null ? `${value}` : `${Math.round(10**Math.max(precision, 2) * value) / (10**Math.max(precision, 2))}`;
       default:
@@ -512,34 +534,59 @@ export default class Couleur {
   get lch(): string { return this.expr('lch', { precision: 2 }); }
 
 
+  /* OKLAB */
+
+  /**
+   * Calculates all properties of the color from its OKLAB expression.
+   * @param oklaba The unparsed values of the okl, oka, okb, a properties.
+   */
+  setOklab(oklaba: Array<string|number>) { this.set(oklaba, ['okl', 'oka', 'okb'], 'oklab'); }
+
+  /** @returns OKLAB expression of the color. */
+  get oklab(): string { return this.expr('oklab', { precision: 2 }); }
+
+
+  /* OKLCH */
+
+  /**
+   * Calculates all properties of the color from its OKLAB expression.
+   * @param oklcha The unparsed values of the okl, oka, okb, a properties.
+   */
+   setOklch(oklcha: Array<string|number>) { this.set(oklcha, ['okl', 'okc', 'okh'], 'oklch'); }
+
+   /** @returns OKLAB expression of the color. */
+   get oklch(): string { return this.expr('oklch', { precision: 2 }); }
+
+
   /* PROFILED COLORS */
 
   /**
    * Calculates all properties of the color from its functional color() expression.
    * @param spaceID 
-   * @param rgba The parsed values of the r, g, b, a properties.
+   * @param values The parsed values of the color's properties.
    */
-  setColor(spaceID: string, rgba: Array<string|number>): void {
-    let rgb = rgba.slice(0, 3).map(v => Couleur.parse(v));
-    const a = Couleur.parse(rgba[3]);
+  setColor(spaceID: string, values: Array<string|number>): void {
+    let vals = values.slice(0, 3).map(v => Couleur.parse(v));
+    const a = Couleur.parse(values[3]);
 
     //const clamp = v => Math.max(0, Math.min(v, 1));
     switch (spaceID) {
       case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
         //rgb = rgb.map(v => clamp(v));
+      case 'oklab': case 'oklch':
       case 'xyz':
-        rgb = Couleur.convert(spaceID, 'srgb', rgb);
+        vals = Couleur.convert(spaceID, 'srgb', vals);
         break;
       default:
         if (spaceID.startsWith('--')) {
           const id = spaceID.substring(2);
-          rgb = Couleur.convert(id, 'srgb', rgb);
+          vals = Couleur.convert(id, 'srgb', vals);
         }
         else throw `The ${JSON.stringify(spaceID)} color space is not supported`;
     }
 
-    const values = [...rgb, a];
-    return this.set(values, [null, null, null], 'srgb');
+    const rgba = [...vals, a];
+    return this.set(rgba, [null, null, null], 'srgb');
   }
 
 

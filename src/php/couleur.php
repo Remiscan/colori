@@ -55,6 +55,12 @@
           case 'lch':
             $this->setLch([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
             break;
+          case 'oklab':
+            $this->setOklab([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
+            break;
+          case 'oklch':
+            $this->setOklch([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
+            break;
           case 'color':
             $this->setColor($format['data'][1], [$format['data'][2], $format['data'][3], $format['data'][4], $format['data'][5] ?? 1]);
             break;
@@ -87,8 +93,12 @@
         case 'hwb': $format = self::formats()[3]; break;
         case 'lab': $format = self::formats()[4]; break;
         case 'lch': $format = self::formats()[5]; break;
-        case 'col': $format = self::formats()[6]; break;
-        default:    $format = self::formats()[7];
+        case 'okl':
+          if (str_starts_with($colorString, 'oklab')) { $format = self::formats()[6]; break; }
+          if (str_starts_with($colorString, 'oklch')) { $format = self::formats()[7]; break; }
+          break;
+        case 'col': $format = self::formats()[8]; break;
+        default:    $format = self::formats()[9];
       }
 
       // Check if the given string matches any color syntax
@@ -151,7 +161,7 @@
       // from any angle or any number
       // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
       // to [0, 1]
-      elseif (in_array($prop, ['h', 'cieh'])) {
+      elseif (in_array($prop, ['h', 'cieh', 'okh'])) {
         $h = floatval($value);
         // If n is a number
         if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
@@ -176,7 +186,7 @@
       // from any %
       // clamped to [0, 100]%
       // to [0, 1]
-      elseif (in_array($prop, ['s', 'l', 'w', 'bk', 'ciel'])) {
+      elseif (in_array($prop, ['s', 'l', 'w', 'bk', 'ciel', 'okl'])) {
         // If n is a percentage
         if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
           if ($clamp) return max(0, min(floatval($value) / 100, 1));
@@ -203,6 +213,16 @@
         if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
           if ($clamp) return max(0, $value);
           else        return floatval($value);
+        }
+        else throw new \Exception("Invalid ". json_encode($prop) ." value: ". $value);
+      }
+
+      // OKLAB axes & chroma values:
+      // any number
+      elseif (in_array($prop, ['oka', 'okb', 'okc'])) {
+        // If n is a number
+        if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+          return floatval($value) / 100;
         }
         else throw new \Exception("Invalid ". json_encode($prop) ." value: ". $value);
       }
@@ -234,6 +254,8 @@
         case 's': case 'l': case 'w': case 'bk': case 'ciel':
           $unparsed = $precision === null ? (100 * $value).'%' : (round(10**$precision * 100 * $value) / (10**$precision)).'%';
           break;
+        case 'oka': case 'okb': case 'okc':
+          $unparsed = $precision === null ? (100 * $value) : round(10**$precision * 100 * $value) / (10**$precision);
         case 'a':
           $unparsed = $precision === null ? $value : round(10**max($precision, 2) * $value) / (10**max($precision, 2));
           break;
@@ -427,29 +449,44 @@
     public function lch(): string { return $this->expr('lch', precision: 2); }
 
 
+    /* OKLAB */
+
+    /** Calculates all properties of the color from its OKLAB expression. */
+    private function setOklab(array $oklaba): void { $this->set($oklaba, ['okl', 'oka', 'okb'], 'oklab'); }
+    public function oklab(): string { return $this->expr('oklab', precision: 2); }
+
+
+    /* OKLCH */
+
+    /** Calculates all properties of the color from its OKLCH expression. */
+    private function setOklch(array $oklcha): void { $this->set($oklcha, ['okl', 'okc', 'okh'], 'oklch'); }
+    public function oklch(): string { return $this->expr('oklch', precision: 2); }
+
+
     /* PROFILED COLORS */
     /** Calculates all properties of the color from its functional color() expression. */
-    private function setColor(string $spaceID, array $rgba): void {
-      $rgb = array_slice($rgba, 0, 3);
-      $a = $rgba[3];
+    private function setColor(string $spaceID, array $values): void {
+      $vals = array_slice($values, 0, 3);
+      $a = $values[3];
 
       //$clamp = fn($v) => max(0, min($v, 1));
       switch ($spaceID) {
         case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
           //$rgb = array_map($clamp, $rgb);
+        case 'oklab': case 'oklch':
         case 'xyz':
-          $rgb = self::convert($spaceID, 'srgb', $rgb);
+          $vals = self::convert($spaceID, 'srgb', $vals);
           break;
         default:
           if (str_starts_with($spaceID, '--')) {
             $id = substr($spaceID, 2);
-            $rgb = self::convert($id, 'srgb', $rgb);
+            $vals = self::convert($id, 'srgb', $vals);
           }
           else throw new \Exception("The ". json_encode($spaceID) ." color space is not supported");
       }
 
-      $values = $rgb; $rgba[] = $a;
-      $this->set($values, [null, null, null], 'srgb');
+      $rgba = $vals; $rgba[] = $a;
+      $this->set($rgba, [null, null, null], 'srgb');
     }
 
 

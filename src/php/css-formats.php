@@ -88,6 +88,22 @@
             '/^lch\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('angle').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
           )
         ), array(
+          'id' => 'oklab',
+          'syntaxes' => array(
+            // oklab(50% -25 40)
+            '/^oklab\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('number').')\\)$/',
+            // oklab(50% -25 40 / .5)
+            '/^oklab\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('number').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
+          )
+        ), array(
+          'id' => 'oklch',
+          'syntaxes' => array(
+            // oklch(50% 25 <angle>)
+            '/^oklch\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('angle').')\\)$/',
+            // oklch(50% 25 <angle> / .5)
+            '/^oklch\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('angle').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
+          )
+        ), array(
           'id' => 'color',
           'syntaxes' => array(
             // color(display-p3 -0.6112 1.0079 -0.2192)

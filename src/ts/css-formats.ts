@@ -84,6 +84,22 @@ const Formats: Format[] = [
       new RegExp(`^lch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
     ]
   }, {
+    id: 'oklab',
+    syntaxes: [
+      // oklab(50% -25 40)
+      new RegExp(`^oklab\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.number})\\)$`),
+      // oklab(50% -25 40 / .5)
+      new RegExp(`^oklab\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.number}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+    ]
+  }, {
+    id: 'oklch',
+    syntaxes: [
+      // oklch(50% 25 <angle>)
+      new RegExp(`^oklch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle})\\)$`),
+      // oklch(50% 25 <angle> / .5)
+      new RegExp(`^oklch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+    ]
+  }, {
     id: 'color',
     syntaxes: [
       // color(display-p3 -0.6112 1.0079 -0.2192)
