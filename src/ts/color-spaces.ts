@@ -1,4 +1,4 @@
-interface ColorSpace {
+export interface ColorSpace {
   id: string,
   whitepoint?: string,
   CSSformat?: string,

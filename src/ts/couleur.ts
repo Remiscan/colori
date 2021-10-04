@@ -4,7 +4,7 @@ import Graph from './graph.js';
 import * as Contrasts from './contrasts.js';
 import * as Distances from './distances.js';
 import * as OklabGamut from './oklab-gamut.js';
-import colorSpaces from './color-spaces.js';
+import colorSpaces, { ColorSpace } from './color-spaces.js';
 import namedColors from './named-colors.js';
 import { RegExps as ValueRegExps, Formats } from './css-formats.js';
 
@@ -14,6 +14,7 @@ type colorString = string;
 type colorArray = number[];
 type color = Couleur | colorArray | colorString;
 type colorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
+type colorSpaceOrID = ColorSpace | string;
 
 /**
  * Colori module
@@ -31,7 +32,7 @@ export default class Couleur {
    * Creates a new Couleur object that contains r, g, b, a properties of the color.
    * These properties will take their values from sRGB color space, even if they're out of bounds.
    * (This means values <0 or >1 can be stored — they can be clamped to a specific color space when needed.)
-   * @param {colorString|number[]|Couleur} color - Color expression in a supported format.
+   * @param {color} color - Color expression in a supported format.
    * @throws {string} when the parameter isn't a valid color string.
    */
   constructor(color: color) {
@@ -96,11 +97,11 @@ export default class Couleur {
 
   /**
    * Matches the user input with supported color formats.
-   * @param {string} colorString - Color expression in a supported format.
-   * @returns {Object} Recognized syntax.
+   * @param {colorString} colorString - Color expression in a supported format.
+   * @returns {object} Recognized syntax.
    * @throws {string} when {couleur} is not in a valid format.
    */
-  static matchSyntax(colorString: colorString) {
+  static matchSyntax(colorString: colorString): { id: string, data: Array<string|number|null> } {
     const tri = colorString.slice(0, 3);
     
     // Predetermine the format, to save regex-matching time
@@ -136,27 +137,30 @@ export default class Couleur {
 
   /**
    * Parses a number / percentage / angle into the correct format to store it.
-   * @param {(string|number)} value - The value to parse.
-   * @param {?string} prop - The color property that has n as its value.
+   * @param {number|string} value - The value to parse.
+   * @param {colorProperty|null} prop - The color property that has n as its value.
    * @param {object} options
    * @param {boolean} options.clamp - Whether the value should de clamped to its color space bounds.
    * @returns {number} The properly parsed number.
    */
-  static parse(value: number | string, prop: string | null = null, options: { clamp: boolean } = { clamp: true }) {
+  static parse(value: number | string, prop: colorProperty | null = null, options: { clamp: boolean } = { clamp: true }): number {
+    const val = String(value);
+    const nval = parseFloat(val);
+
     // Alpha values:
     // from any % or any number
     // clamped to [0, 100]% or [0, 1]
     // to [0, 1]
     if (prop === 'a') {
       // If n is a percentage
-      if (new RegExp('^' + ValueRegExps.percentage + '$').test(value)) {
-        if (options.clamp)  return Math.max(0, Math.min(parseFloat(value) / 100, 1));
-        else        return parseFloat(value) / 100;
+      if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+        if (options.clamp)  return Math.max(0, Math.min(nval / 100, 1));
+        else                return nval / 100;
       }
       // If n is a number
-      else if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
-        if (options.clamp)  return Math.max(0, Math.min(value, 1));
-        else        return parseFloat(value);
+      else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        if (options.clamp)  return Math.max(0, Math.min(nval, 1));
+        else                return nval;
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
     }
@@ -167,14 +171,14 @@ export default class Couleur {
     // to [0, 1]
     else if (['r', 'g', 'b'].includes(prop)) {
       // If n is a percentage
-      if (new RegExp('^' + ValueRegExps.percentage + '$').test(value)) {
-        if (options.clamp)  return Math.max(0, Math.min(parseFloat(value) / 100, 1));
-        else        return parseFloat(value) / 100;
+      if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+        if (options.clamp)  return Math.max(0, Math.min(nval / 100, 1));
+        else                return nval / 100;
       }
       // If n is a number
-      else if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
-        if (options.clamp)  return Math.max(0, Math.min(value / 255, 1));
-        else        return value / 255;
+      else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        if (options.clamp)  return Math.max(0, Math.min(nval / 255, 1));
+        else                return nval / 255;
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
     }
@@ -184,19 +188,19 @@ export default class Couleur {
     // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
     // to [0, 360]
     else if(['h', 'cieh'].includes(prop)) {
-      let h = parseFloat(value);
+      let h = nval;
       // If n is a number
-      if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
+      if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
         return Utils.angleToRange(h);
       }
       // If n is an angle
-      if ((new RegExp('^' + ValueRegExps.angle + '$').test(value))) {
-        if (String(value).slice(-3) === 'deg') {} // necessary to accept deg values
-        else if (String(value).slice(-4) === 'grad')
+      if ((new RegExp('^' + ValueRegExps.angle + '$').test(val))) {
+        if (val.slice(-3) === 'deg') {} // necessary to accept deg values
+        else if (val.slice(-4) === 'grad')
           h = h * 360 / 400;
-        else if (String(value).slice(-3) === 'rad')
+        else if (val.slice(-3) === 'rad')
           h = h * 180 / Math.PI;
-        else if (String(value).slice(-4) === 'turn')
+        else if (val.slice(-4) === 'turn')
           h = h * 360;
         else throw `Invalid angle value: ${JSON.stringify(value)}`;
         return Utils.angleToRange(h);
@@ -210,9 +214,9 @@ export default class Couleur {
     // to [0, 1]
     else if(['s', 'l', 'w', 'bk', 'ciel'].includes(prop)) {
       // If n is a percentage
-      if (new RegExp('^' + ValueRegExps.percentage + '$').test(value)) {
-        if (options.clamp)  return Math.max(0, Math.min(parseFloat(value) / 100, 1));
-        else        return parseFloat(value) / 100;
+      if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+        if (options.clamp)  return Math.max(0, Math.min(nval / 100, 1));
+        else                return nval / 100;
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
     }
@@ -221,8 +225,8 @@ export default class Couleur {
     // any number
     else if(['ciea', 'cieb'].includes(prop)) {
       // If n is a number
-      if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
-        return parseFloat(value);
+      if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        return nval;
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
     }
@@ -232,9 +236,9 @@ export default class Couleur {
     // clamped to [0, +Inf[
     else if (prop === 'ciec') {
       // If n is a number
-      if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
-        if (options.clamp)  return Math.max(0, value);
-        else        return parseFloat(value);
+      if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        if (options.clamp)  return Math.max(0, nval);
+        else                return nval;
       }
       else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
     }
@@ -244,12 +248,12 @@ export default class Couleur {
     // to any number (so that 0% becomes 0 and 100% becomes 1)
     else {
       // If n is a percentage
-      if (new RegExp('^' + ValueRegExps.percentage + '$').test(value)) {
-        return parseFloat(value) / 100;
+      if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+        return nval / 100;
       }
       // If n is a number
-      else if (new RegExp('^' + ValueRegExps.number + '$').test(value)) {
-        return parseFloat(value);
+      else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        return nval;
       }
       else throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
     }
@@ -259,12 +263,13 @@ export default class Couleur {
   /**
    * Unparses a value to the format that would be used in a CSS expression.
    * @param {number} value - Value to unparse.
-   * @param {string} prop - Name of the property that has the value.
+   * @param {colorProperty|null} prop - Name of the property that has the value.
    * @param {object} options
    * @param {number} options.precision - How many decimals to display.
    * @returns {string} The unparsed value, ready to insert in a CSS expression.
    */
-  static unparse(value, prop, { precision = 0 } = {}) {
+  static unparse(value: number, prop: colorProperty | null, options: { precision: number } = { precision: 0 }): string {
+    const precision = options.precision;
     switch (prop) {
       case 'r': case 'g': case 'b':
         return precision === null ? `${255 * value}` : `${Math.round(10**precision * 255 * value) / (10**precision)}`;
@@ -289,10 +294,10 @@ export default class Couleur {
   /**
    * Will be used by other setters to calculate all color properties.
    * @param {Array.<string|number>} data - Array of unparsed values.
-   * @param {string[]} props - Array of color property names the values correspond to.
-   * @param {object|string} spaceID - Color space of the values, or its identifier.
+   * @param {colorProperty[]} props - Array of color property names the values correspond to.
+   * @param {colorSpaceOrID} spaceID - Color space of the values, or its identifier.
    */
-  set(data, props, spaceID) {
+  set(data: Array<string|number>, props: colorProperty[], spaceID: colorSpaceOrID) {
     const space = Couleur.getSpace(spaceID);
     const values = props.map((p, i) => Couleur.parse(data[i], p));
     [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
@@ -306,18 +311,20 @@ export default class Couleur {
 
   /**
    * Creates a string containing the CSS expression of a color.
-   * @param {object|string} format - Color space of the requested CSS expression, or its identifier.
+   * @param {string} format - Identifier of the color space of the requested CSS expression.
    * @param {object} options
    * @param {number} options.precision - How many decimals to display.
-   * @param {string} options.clamp - Which color space the values should be clamped to.
+   * @param {boolean} options.clamp - Which color space the values should be clamped to.
    * @returns {string} The expression of the color in the requested format.
    */
-  expr(format, { precision = 0, clamp = true } = {}) {
+  expr(format: string, options: { precision: number, clamp: boolean } = { precision: 0, clamp: true }): string {
     const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
     const space = Couleur.getSpace(spaceID);
+    const precision = options.precision;
+
     let values = this.valuesTo(space);
-    if (clamp) values = Couleur.toGamut(space, values, space);
-    const a = Couleur.unparse(this.a, 'a', { precision });
+    if (options.clamp) values = Couleur.toGamut(space, values, space);
+    const a = Number(Couleur.unparse(this.a, 'a', { precision }));
     values = [...values, a];
 
     // If the requested expression is of the color(space, ...) type
@@ -355,13 +362,13 @@ export default class Couleur {
 
   /**
    * Creates a string containing the CSS expression of a color from a list of values.
-   * @param {object|string} format - Color space of the requested CSS expression, or its identifier.
+   * @param {string} format - Identifier of the color space of the requested CSS expression.
    * @param {number[]} values - The values of the r, g, b, a properties.
-   * @param {object|string} valueSpaceID - Color space of the given values, or its identifier.
+   * @param {colorSpaceOrID} valueSpaceID - Color space of the given values, or its identifier.
    * @param {object} options - @see Couleur.expr
    * @returns {string} The expression of the color in the requested format.
    */
-  static makeExpr(format, values, valueSpaceID, options) {
+  static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options: { precision: number, clamp: boolean }): string {
     const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
     const rgba = [...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)), values[3]];
     return (new Couleur(rgba)).expr(format, options);
@@ -371,13 +378,13 @@ export default class Couleur {
   /* ALL VALUES (r, g, b) */
 
   /** @returns {number[]} The array of r, g, b values of the color in sRGB color space. */
-  get values() { return [this.r, this.g, this.b]; }
+  get values(): number[] { return [this.r, this.g, this.b]; }
 
 
   /* NAME */
 
   /** @returns {?string} The approximate name of the color. */
-  get name() {
+  get name(): string | null {
     if (this.a === 1) {
       const allNames = Couleur.couleursNommees;
       const [r, g, b] = [255 * this.r, 255 * this.g, 255 * this.b];
@@ -393,7 +400,7 @@ export default class Couleur {
   }
 
   /** @returns {?string} The exact name of the color. */
-  get exactName() {
+  get exactName(): string | null {
     if (this.a === 1) {
       const allNames = Couleur.couleursNommees;
       const hex6 = this.hex.slice(1);
@@ -413,7 +420,7 @@ export default class Couleur {
    * Calculates all properties of the color from its hexadecimal expression.
    * @param {string[]} - The hexadecimal values of the r, g, b, a properties.
    */
-  set hex(hexa: number[]) {
+  set hex(hexa: Array<string|number>) {
     let r, g, b, a;
     
     r = hexa[0];
@@ -434,7 +441,7 @@ export default class Couleur {
 
     this.rgb = [r, g, b, a];
   }
-  set hexa(hexa: number[]) { this.hex = hexa; }
+  set hexa(hexa: Array<string|number>) { this.hex = hexa; }
 
   /** @returns {string} Hexadecimal expression of the color. */
   get hex(): string {
@@ -451,12 +458,12 @@ export default class Couleur {
    * Calculates all properties of the color from its functional RGB expression.
    * @param {Array.<string|number>} rgba - The unparsed values of the r, g, b, a properties.
    */
-  set rgb(rgba) { this.set(rgba, ['r', 'g', 'b'], 'srgb'); }
-  set rgba(rgba) { this.rgb = rgba; }
+  set rgb(rgba: Array<string|number>) { this.set(rgba, ['r', 'g', 'b'], 'srgb'); }
+  set rgba(rgba: Array<string|number>) { this.rgb = rgba; }
 
   /** @returns {string} RGB expression of the color. */
-  get rgb() { return this.expr('rgb', { precision: 2 }); }
-  get rgba() { return this.rgb; }
+  get rgb(): string { return this.expr('rgb', { precision: 2 }); }
+  get rgba(): string { return this.rgb; }
 
 
   /* HSL */
@@ -465,12 +472,12 @@ export default class Couleur {
    * Calculates all properties of the color from its HSL expression.
    * @param {Array.<string|number>} hsla - The unparsed values of the h, s, l, a properties.
    */
-  set hsl(hsla) { this.set(hsla, ['h', 's', 'l'], 'hsl') }
-  set hsla(hsla) { this.hsl = hsla; }
+  set hsl(hsla: Array<string|number>) { this.set(hsla, ['h', 's', 'l'], 'hsl') }
+  set hsla(hsla: Array<string|number>) { this.hsl = hsla; }
 
   /** @returns {string} HSL expression of the color. */
-  get hsl() { return this.expr('hsl', { precision: 2 }); }
-  get hsla() { return this.hsl; }
+  get hsl(): string { return this.expr('hsl', { precision: 2 }); }
+  get hsla(): string { return this.hsl; }
 
 
   /* HWB */
@@ -479,10 +486,10 @@ export default class Couleur {
    * Calculates all properties of the color from its HWB expression.
    * @param {Array.<string|number>} hwba - The unparsed values of the h, w, bk, a properties.
    */
-  set hwb(hwba) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
+  set hwb(hwba: Array<string|number>) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
 
   /** @returns {string} HWB expression of the color. */
-  get hwb() { return this.expr('hwb', { precision: 2 }); }
+  get hwb(): string { return this.expr('hwb', { precision: 2 }); }
 
 
   /* LAB */
@@ -491,10 +498,10 @@ export default class Couleur {
    * Calculates all properties of the color from its LAB expression.
    * @param {Array.<string|number>} laba - The unparsed values of the ciel, ciea, cieb, a properties.
    */
-  set lab(laba) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
+  set lab(laba: Array<string|number>) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
 
   /** @returns {string} LAB expression of the color. */
-  get lab() { return this.expr('lab', { precision: 2 }); }
+  get lab(): string { return this.expr('lab', { precision: 2 }); }
 
 
   /* LCH */
@@ -503,10 +510,10 @@ export default class Couleur {
    * Calculates all properties of the color from its LCH expression.
    * @param {Array.<string|number>} - The unparsed values of the ciel, ciec, cieh, a properties.
    */
-  set lch(lcha) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
+  set lch(lcha: Array<string|number>) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
 
   /** @returns {string} LCH expression of the color. */
-  get lch() { return this.expr('lch', { precision: 2 }); }
+  get lch(): string { return this.expr('lch', { precision: 2 }); }
 
 
   /* PROFILED COLORS */
@@ -516,7 +523,7 @@ export default class Couleur {
    * @param {string} spaceID - 
    * @param {Array.<string|number>} rgba - The parsed values of the r, g, b, a properties.
    */
-  setColor(spaceID, rgba) {
+  setColor(spaceID: string, rgba: Array<string|number>): void {
     let rgb = rgba.slice(0, 3).map(v => Couleur.parse(v));
     const a = Couleur.parse(rgba[3]);
 
@@ -550,100 +557,100 @@ export default class Couleur {
    * Recalculates the r, g, b properties of the color after modifying one of its other properties.
    * @param {number} val - The parsed new value of the property.
    */
-  set h(val) {
+  set h(val: number) {
     const [x, s, l] = this.valuesTo('hsl');
     const props = [...Couleur.propertiesOf('hsl'), 'a'];
     this.hsl = [val, s, l, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
-  set hue(val) { this.h = val; }
+  set hue(val: number) { this.h = val; }
 
-  set s(val) {
+  set s(val: number) {
     const [h, x, l] = this.valuesTo('hsl');
     const props = [...Couleur.propertiesOf('hsl'), 'a'];
     this.hsl = [h, val, l, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
-  set saturation(val) { this.s = val; }
+  set saturation(val: number) { this.s = val; }
 
-  set l(val) {
+  set l(val: number) {
     const [h, s, x] = this.valuesTo('hsl');
     const props = [...Couleur.propertiesOf('hsl'), 'a']
     this.hsl = [h, s, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
-  set lightness(val) { this.l = val; }
+  set lightness(val: number) { this.l = val; }
 
-  set w(val) {
+  set w(val: number) {
     const [h, x, bk] = this.valuesTo('hwb');
     const props = [...Couleur.propertiesOf('hwb'), 'a'];
     this.hwb = [h, val, bk, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
-  set whiteness(val) { this.w = val; }
+  set whiteness(val: number) { this.w = val; }
 
-  set bk(val) {
+  set bk(val: number) {
     const [h, w, x] = this.valuesTo('hwb');
     const props = [...Couleur.propertiesOf('hwb'), 'a'];
     this.hwb = [h, w, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
-  set blackness(val) { this.bk = val; }
+  set blackness(val: number) { this.bk = val; }
 
-  set ciel(val) {
+  set ciel(val: number) {
     const [x, ciea, cieb] = this.valuesTo('lab');
     const props = [...Couleur.propertiesOf('lch'), 'a'];
     this.lab = [val, ciea, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
-  set CIElightness(val) { this.ciel = val; }
+  set CIElightness(val: number) { this.ciel = val; }
 
-  set ciea(val) {
+  set ciea(val: number) {
     const [ciel, x, cieb] = this.valuesTo('lab');
     const props = [...Couleur.propertiesOf('lab'), 'a'];
     this.lab = [ciel, val, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
 
-  set cieb(val) {
+  set cieb(val: number) {
     const [ciel, ciea, x] = this.valuesTo('lab');
     const props = [...Couleur.propertiesOf('lab'), 'a'];
     this.lab = [ciel, ciea, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
 
-  set ciec(val) {
+  set ciec(val: number) {
     const [ciel, x, cieh] = this.valuesTo('lch');
     const props = [...Couleur.propertiesOf('lch'), 'a'];
     this.lch = [ciel, val, cieh, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
-  set CIEchroma(val) { this.ciec = val; }
+  set CIEchroma(val: number) { this.ciec = val; }
 
-  set cieh(val) {
+  set cieh(val: number) {
     const [ciel, ciec, x] = this.valuesTo('lch');
     const props = [...Couleur.propertiesOf('lch'), 'a'];
     this.lch = [ciel, ciec, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
-  set CIEhue(val) { this.cieh = val; }
+  set CIEhue(val: number) { this.cieh = val; }
 
   /** @returns {number} Gets the parsed value of one of the color properties. */
-  get red() { return this.r; }
-  get green() { return this.g; }
-  get blue() { return this.b; }
-  get alpha() { return this.a; }
-  get opacity() { return this.a; }
-  get h() { return this.valuesTo('hsl')[0]; }
-  get hue() { return this.h; }
-  get s() { return this.valuesTo('hsl')[1]; }
-  get saturation() { return this.s; }
-  get l() { return this.valuesTo('hsl')[2]; }
-  get lightness() { return this.l; }
-  get w() { return this.valuesTo('hwb')[1]; }
-  get whiteness() { return this.w; }
-  get bk() { return this.valuesTo('hwb')[2]; }
-  get whiteness() { return this.w; }
-  get ciel() { return this.valuesTo('lab')[0]; }
-  get CIElightness() { return this.ciel; }
-  get ciea() { return this.valuesTo('lab')[1]; }
-  get cieb() { return this.valuesTo('lab')[2]; }
-  get ciec() { return this.valuesTo('lch')[1]; }
-  get CIEchroma() { return this.ciec; }
-  get cieh() { return this.valuesTo('lch')[2]; }
-  get CIEhue() { return this.cieh; }
+  get red(): number { return this.r; }
+  get green(): number { return this.g; }
+  get blue(): number { return this.b; }
+  get alpha(): number { return this.a; }
+  get opacity(): number { return this.a; }
+  get h(): number { return this.valuesTo('hsl')[0]; }
+  get hue(): number { return this.h; }
+  get s(): number { return this.valuesTo('hsl')[1]; }
+  get saturation(): number { return this.s; }
+  get l(): number { return this.valuesTo('hsl')[2]; }
+  get lightness(): number { return this.l; }
+  get w(): number { return this.valuesTo('hwb')[1]; }
+  get whiteness(): number { return this.w; }
+  get bk(): number { return this.valuesTo('hwb')[2]; }
+  get blackness(): number { return this.w; }
+  get ciel(): number { return this.valuesTo('lab')[0]; }
+  get CIElightness(): number { return this.ciel; }
+  get ciea(): number { return this.valuesTo('lab')[1]; }
+  get cieb(): number { return this.valuesTo('lab')[2]; }
+  get ciec(): number { return this.valuesTo('lch')[1]; }
+  get CIEchroma(): number { return this.ciec; }
+  get cieh(): number { return this.valuesTo('lch')[2]; }
+  get CIEhue(): number { return this.cieh; }
 
-  get luminance() {
+  get luminance(): number {
     if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
     return Contrasts.luminance(this.values);
   }
@@ -657,12 +664,12 @@ export default class Couleur {
 
   /**
    * Converts the color values from one color space to another.
-   * @param {object|string} startSpaceID - Starting color space, or its identifier.
-   * @param {object|string} endSpaceID - Color space to convert to, or its identifier.
-   * @param {*} values - Array of color values (without alpha) in startSpaceID color space.
+   * @param {colorSpaceOrID} startSpaceID - Starting color space, or its identifier.
+   * @param {colorSpaceOrID} endSpaceID - Color space to convert to, or its identifier.
+   * @param {number[]} values - Array of color values (without alpha) in startSpaceID color space.
    * @returns {number[]} Array of values in the new color space.
    */
-  static convert(startSpaceID, endSpaceID, values) {
+  static convert(startSpaceID: colorSpaceOrID, endSpaceID: colorSpaceOrID, values: number[]): number[] {
     if ((startSpaceID.id || startSpaceID) === (endSpaceID.id || endSpaceID)) return values;
     const startSpace = Couleur.getSpace(startSpaceID);
     const endSpace = Couleur.getSpace(endSpaceID);
@@ -696,15 +703,15 @@ export default class Couleur {
 
   /**
    * Converts the r, g, b values of the color to another color space.
-   * @param {object|string} spaceID - Desired color space, or its identifier.
+   * @param {colorSpaceOrID} spaceID - Desired color space, or its identifier.
    * @param {object} options
    * @param {boolean} options.clamp - Whether to clamp the values to their new color space.
    * @returns {number[]} The array of converted values.
    */
-  valuesTo(spaceID, { clamp = false } = {}) {
+  valuesTo(spaceID: colorSpaceOrID, options: { clamp: boolean } = {clamp: false }): number[] {
     const space = Couleur.getSpace(spaceID);
     let values = Couleur.convert('srgb', space, this.values);
-    if (clamp) values = Couleur.toGamut(space, values);
+    if (options.clamp) values = Couleur.toGamut(space, values);
     return values;
   }
 
@@ -714,32 +721,34 @@ export default class Couleur {
 
   /**
    * Checks whether parsed values in valueSpaceID color space correspond to a color in the spaceID color space.
-   * @param {object|string} spaceID - Color space whose gamut will be checked, or its identifier.
+   * @param {colorSpaceOrID} spaceID - Color space whose gamut will be checked, or its identifier.
    * @param {number[]} values - Array of parsed values.
-   * @param {object|string} valueSpaceID - Color space of the given values, or its identifier.
+   * @param {colorSpaceOrID} valueSpaceID - Color space of the given values, or its identifier.
    * @returns {boolean} Whether the corresponding color is in gamut.
    */
-  static inGamut(spaceID, values, valueSpaceID = 'srgb', { tolerance = .0001 } = {}) {
+  static inGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', options: { tolerance: number } = { tolerance: .0001 }): boolean {
     const space = Couleur.getSpace(spaceID);
     const convertedValues = Couleur.convert(valueSpaceID, space, values);
+    const tolerance = options.tolerance;
     return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
   }
 
   /** @see Couleur.inGamut - Non-static version. */
-  inGamut(spaceID, options) { return Couleur.inGamut(spaceID, this.values, 'srgb', options); }
+  inGamut(spaceID: colorSpaceOrID, options: { tolerance: number }) { return Couleur.inGamut(spaceID, this.values, 'srgb', options); }
 
   /**
    * Clamps parsed values in valueSpaceID color space to the spaceID color space.
-   * @param {object|string} spaceID - Color space whose gamut will be used, or its identifier.
+   * @param {colorSpaceOrID} spaceID - Color space whose gamut will be used, or its identifier.
    * @param {number[]} values - Array of parsed values.
-   * @param {object|string} valueSpaceID - Color space of the given values, or its identifier.
+   * @param {colorSpaceOrID} valueSpaceID - Color space of the given values, or its identifier.
    * @returns {number[]} The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
-  static toGamut(spaceID, values, valueSpaceID = 'srgb', { method = 'oklab' } = {}) {
+  static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', options: { method: string } = { method: 'oklab' }): number[] {
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
     if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 })) return values;
-    let clampedValues, clampSpace;
+    let clampedValues: number[], clampSpace: ColorSpace;
+    const method = options.method;
 
     // Naively clamp the values
     if (method === 'naive') {
@@ -788,7 +797,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.toGamut - Non-static version. */
-  toGamut(spaceID) { return Couleur.toGamut(spaceID, this.values, 'srgb'); }
+  toGamut(spaceID: colorSpaceOrID): number[] { return Couleur.toGamut(spaceID, this.values, 'srgb'); }
 
 
 
@@ -1322,9 +1331,9 @@ export default class Couleur {
   /**
    * Gets the list of the short names of color properties used in a given CSS format.
    * @param {string} format - Name of the color format.
-   * @returns {string[]} Array of color property names.
+   * @returns {colorProperty[]} Array of color property names.
    */
-  static propertiesOf(format) {
+  static propertiesOf(format: string): colorProperty[] {
     switch(format) {
       case 'rgb': case 'rgba': return ['r', 'g', 'b'];
       case 'hsl': case 'hsla': return ['h', 's', 'l'];
