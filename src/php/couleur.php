@@ -377,9 +377,6 @@
       $this->setRgb([$r, $g, $b, $a]);
     }
 
-    /** Alias to the hex setter. */
-    private function setHexa(array $hexa): void { $this->setHex($hex); }
-
     /** Hexadecimal expression of the color. */
     public function hex(): string {
       $values = self::toGamut('srgb', $this->values());
@@ -397,7 +394,6 @@
 
     /** Calculates all properties of the color from its functional RGB expression. */
     private function setRgb(array $rgba): void { $this->set($rgba, ['r', 'g', 'b'], 'rgb'); }
-    private function setRgba(array $rgba): void { $this->setRgb($rgba); }
     public function rgb(): string { return $this->expr('rgb', precision: 2); }
     public function rgba(): string { return $this->rgb(); }
 
@@ -702,7 +698,7 @@
       }
 
       // Let's reduce the chroma until the color is in the color space
-      else {
+      elseif ($method === 'chroma') {
         $clampSpace = self::getSpace('lch');
         $lch = self::convert($valueSpace, $clampSpace, $values);
 
