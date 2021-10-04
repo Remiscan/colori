@@ -101,11 +101,11 @@ export default class Couleur {
    * @returns {object} Recognized syntax.
    * @throws {string} when {couleur} is not in a valid format.
    */
-  static matchSyntax(colorString: colorString): { id: string, data: Array<string|number|null> } {
+  static matchSyntax(colorString: colorString): { id: string, data: string[] } {
     const tri = colorString.slice(0, 3);
     
     // Predetermine the format, to save regex-matching time
-    let format;
+    let format: CSSFormat;
     if (tri.slice(0, 1) === '#') format = Couleur.formats[0];
     else switch (tri) {
       case 'rgb': format = Couleur.formats[1]; break;
@@ -122,7 +122,7 @@ export default class Couleur {
       const result = colorString.match(syntaxe);
       if (result != null && result[0] === colorString) {
         if (format.id === 'name') {
-          if (colorString === 'transparent') return { id: 'rgb', data: [null, 0, 0, 0, 0] };
+          if (colorString === 'transparent') return { id: 'rgb', data: [null, '0', '0', '0', '0'] };
           const allNames = Couleur.couleursNommees;
           const name = colorString.toLowerCase();
           if (name in allNames) return Couleur.matchSyntax('#' + allNames[name]);
@@ -317,7 +317,7 @@ export default class Couleur {
    * @param {boolean} options.clamp - Which color space the values should be clamped to.
    * @returns {string} The expression of the color in the requested format.
    */
-  expr(format: string, options: { precision: number, clamp: boolean } = { precision: 0, clamp: true }): string {
+  expr(format: string, options: { precision: number, clamp?: boolean } = { precision: 0, clamp: true }): string {
     const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
     const space = Couleur.getSpace(spaceID);
     const precision = options.precision;
@@ -368,7 +368,7 @@ export default class Couleur {
    * @param {object} options - @see Couleur.expr
    * @returns {string} The expression of the color in the requested format.
    */
-  static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options: { precision: number, clamp: boolean }): string {
+  static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options: { precision: number, clamp?: boolean }): string {
     const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
     const rgba = [...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)), values[3]];
     return (new Couleur(rgba)).expr(format, options);
