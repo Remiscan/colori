@@ -1,3 +1,6 @@
+// Problematic: setter can't take a different type than what the getter returns
+// https://github.com/microsoft/TypeScript/issues/43662
+
 import * as Utils from './utils.js';
 import * as Conversions from './conversion.js';
 import Graph from './graph.js';
