@@ -142,10 +142,10 @@
     "fonction": "(new Colour('hsl(200, 10%, 10%)')).luminance",
     "resultatAttendu": 0.0102
   }, {
-    "fonction": "Colour.contrast('hsl(200, 10%, 10%)', 'rgb(58, 184, 74)')",
+    "fonction": "Colour.contrast('hsl(200, 10%, 10%)', 'rgb(58, 184, 74)', { method: 'WCAG2' })",
     "resultatAttendu": 6.7566
   }, {
-    "fonction": "Colour.contrast('hsl(200, 10%, 10%)', 'lolilol')",
+    "fonction": "Colour.contrast('hsl(200, 10%, 10%)', 'lolilol', { method: 'WCAG2' })",
     "resultatAttendu": "Error"
   }, {
     "fonction": "(new Colour('hsl(200, 10%, 10%)')).bestColorScheme('background')",
@@ -214,22 +214,22 @@
     "fonction": "(new Colour('lab(92% -45 9)')).change('cieh', '20deg').lch",
     "resultatAttendu": "lch(92% 45 189)"
   }, {
-    "fonction": "Colour.contrast('hsl(230, 25%, 10%)', 'hsl(55, 85%, 80%)')",
+    "fonction": "Colour.contrast('hsl(230, 25%, 10%)', 'hsl(55, 85%, 80%)', { method: 'WCAG2' })",
     "resultatAttendu": 15.511
   }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 17).lab",
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 17, { method: 'WCAG2' }).lab",
     "resultatAttendu": "lab(97.67% -7.32 38.92)"
   }, {
-    "fonction": "Colour.contrast('hsl(53, 100%, 92%)', 'hsl(230, 25%, 10%)')",
+    "fonction": "Colour.contrast('hsl(53, 100%, 92%)', 'hsl(230, 25%, 10%)', { method: 'WCAG2' })",
     "resultatAttendu": 17.213
   }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 12).hsl",
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 12, { method: 'WCAG2' }).hsl",
     "resultatAttendu": "hsl(55, 85%, 80%)"
   }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 12, { lower: true }).lab",
+    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 12, { lower: true, method: 'WCAG2' }).lab",
     "resultatAttendu": "hsl(55, 57%, 71%)"
   }, {
-    "fonction": "Colour.contrast('hsl(55, 57%, 71%)', 'hsl(230, 25%, 10%)')",
+    "fonction": "Colour.contrast('hsl(55, 57%, 71%)', 'hsl(230, 25%, 10%)', { method: 'WCAG2' })",
     "resultatAttendu": 12.4
   }, {
     "fonction": "Colour.gradient('lightgreen', 'blue').map(c => c.lch)",
@@ -268,10 +268,10 @@
     "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(255, 128, 0)')",
     "resultatAttendu": true
   }, {
-    "fonction": "Colour.contrast('#888', '#fff', { method: 'apca' })",
+    "fonction": "Colour.contrast('#888', '#fff')",
     "resultatAttendu": 66.89346308821438
   }, {
-    "fonction": "Colour.contrast('#aaa', '#000', { method: 'apca' })",
+    "fonction": "Colour.contrast('#aaa', '#000')",
     "resultatAttendu": -60.438571788907524
   }, {
     "fonction": "Colour.contrast('#def', '#123', { method: 'apca' })",
@@ -280,7 +280,7 @@
     "fonction": "Colour.contrast('#123', '#234', { method: 'apca' })",
     "resultatAttendu": 1.276075977788573
   }, {
-    "fonction": "Colour.contrast('#aaa', '#aaa', { method: 'apca' })",
+    "fonction": "Colour.contrast('#aaa', '#aaa')",
     "resultatAttendu": 0
   }
 ]

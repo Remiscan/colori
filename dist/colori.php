@@ -2116,7 +2116,7 @@
 
 
     /** Computes the contrast between two colors as defined by WCAG2 or 3. */
-    public static function contrast(self|array|string $textColor, self|array|string $backgroundColor, string $method = 'WCAG2'): float {
+    public static function contrast(self|array|string $textColor, self|array|string $backgroundColor, string $method = 'APCA'): float {
       $background = self::makeInstance($backgroundColor);
       if ($background->a < 1) throw new \Exception('The contrast with a transparent background color would be meaningless');
       $text = self::makeInstance($textColor);
@@ -2148,7 +2148,7 @@
 
 
     /** Modifies the CIE lightness of a color to give it better contrast with a background color. */
-    public function improveContrast(self|array|string $backgroundColor, float $desiredContrast, bool $lower = false, ?string $colorScheme = null, string $method = 'WCAG2'): self {
+    public function improveContrast(self|array|string $backgroundColor, float $desiredContrast, bool $lower = false, ?string $colorScheme = null, string $method = 'APCA'): self {
       $background = self::makeInstance($backgroundColor);
       $values = $this->values(); $values[] = $this->a;
       $backgroundLab = $background->valuesTo('lab');

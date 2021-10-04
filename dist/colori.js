@@ -2045,7 +2045,7 @@ class Couleur {
      * @param options.method Whether to use the new APCA or the old WCAG2 method.
      * @returns Contrast between the two colors.
      */
-    static contrast(textColor, backgroundColor, { method = 'WCAG2' } = {}) {
+    static contrast(textColor, backgroundColor, { method = 'APCA' } = {}) {
         const background = Couleur.makeInstance(backgroundColor);
         if (background.a < 1)
             throw `The contrast with a transparent background color would be meaningless`;
@@ -2101,7 +2101,7 @@ class Couleur {
      * @param options.method The method to use to compute the contrast.
      * @returns The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
      */
-    improveContrast(backgroundColor, desiredContrast, { lower = false, colorScheme = null, method = 'WCAG2' } = {}) {
+    improveContrast(backgroundColor, desiredContrast, { lower = false, colorScheme = null, method = 'APCA' } = {}) {
         const background = Couleur.makeInstance(backgroundColor);
         const backgroundLab = background.valuesTo('lab');
         const movingLab = this.valuesTo('lab');
