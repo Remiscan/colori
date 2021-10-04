@@ -6,7 +6,7 @@ import * as Distances from './distances.js';
 import * as OklabGamut from './oklab-gamut.js';
 import colorSpaces, { ColorSpace } from './color-spaces.js';
 import namedColors from './named-colors.js';
-import { RegExps as ValueRegExps, Formats } from './css-formats.js';
+import { RegExps as ValueRegExps, Formats, Format as CSSFormat } from './css-formats.js';
 
 
 
@@ -559,68 +559,68 @@ export default class Couleur {
    */
   set h(val: number) {
     const [x, s, l] = this.valuesTo('hsl');
-    const props = [...Couleur.propertiesOf('hsl'), 'a'];
+    const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a'];
     this.hsl = [val, s, l, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
   set hue(val: number) { this.h = val; }
 
   set s(val: number) {
     const [h, x, l] = this.valuesTo('hsl');
-    const props = [...Couleur.propertiesOf('hsl'), 'a'];
+    const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a'];
     this.hsl = [h, val, l, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
   set saturation(val: number) { this.s = val; }
 
   set l(val: number) {
     const [h, s, x] = this.valuesTo('hsl');
-    const props = [...Couleur.propertiesOf('hsl'), 'a']
+    const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a']
     this.hsl = [h, s, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
   set lightness(val: number) { this.l = val; }
 
   set w(val: number) {
     const [h, x, bk] = this.valuesTo('hwb');
-    const props = [...Couleur.propertiesOf('hwb'), 'a'];
+    const props: colorProperty[] = [...Couleur.propertiesOf('hwb'), 'a'];
     this.hwb = [h, val, bk, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
   set whiteness(val: number) { this.w = val; }
 
   set bk(val: number) {
     const [h, w, x] = this.valuesTo('hwb');
-    const props = [...Couleur.propertiesOf('hwb'), 'a'];
+    const props: colorProperty[] = [...Couleur.propertiesOf('hwb'), 'a'];
     this.hwb = [h, w, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
   set blackness(val: number) { this.bk = val; }
 
   set ciel(val: number) {
     const [x, ciea, cieb] = this.valuesTo('lab');
-    const props = [...Couleur.propertiesOf('lch'), 'a'];
+    const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
     this.lab = [val, ciea, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
   set CIElightness(val: number) { this.ciel = val; }
 
   set ciea(val: number) {
     const [ciel, x, cieb] = this.valuesTo('lab');
-    const props = [...Couleur.propertiesOf('lab'), 'a'];
+    const props: colorProperty[] = [...Couleur.propertiesOf('lab'), 'a'];
     this.lab = [ciel, val, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
 
   set cieb(val: number) {
     const [ciel, ciea, x] = this.valuesTo('lab');
-    const props = [...Couleur.propertiesOf('lab'), 'a'];
+    const props: colorProperty[] = [...Couleur.propertiesOf('lab'), 'a'];
     this.lab = [ciel, ciea, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
 
   set ciec(val: number) {
     const [ciel, x, cieh] = this.valuesTo('lch');
-    const props = [...Couleur.propertiesOf('lch'), 'a'];
+    const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
     this.lch = [ciel, val, cieh, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
   set CIEchroma(val: number) { this.ciec = val; }
 
   set cieh(val: number) {
     const [ciel, ciec, x] = this.valuesTo('lch');
-    const props = [...Couleur.propertiesOf('lch'), 'a'];
+    const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
     this.lch = [ciel, ciec, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
   }
   set CIEhue(val: number) { this.cieh = val; }
@@ -670,7 +670,11 @@ export default class Couleur {
    * @returns {number[]} Array of values in the new color space.
    */
   static convert(startSpaceID: colorSpaceOrID, endSpaceID: colorSpaceOrID, values: number[]): number[] {
-    if ((startSpaceID.id || startSpaceID) === (endSpaceID.id || endSpaceID)) return values;
+    if (
+      (typeof startSpaceID === typeof endSpaceID && startSpaceID === endSpaceID)
+      || (typeof startSpaceID === 'string' && typeof endSpaceID !== 'string' && startSpaceID === endSpaceID.id)
+      || (typeof startSpaceID !== 'string' && typeof endSpaceID === 'string' && startSpaceID.id === endSpaceID)
+    ) return values;
     const startSpace = Couleur.getSpace(startSpaceID);
     const endSpace = Couleur.getSpace(endSpaceID);
 
@@ -814,14 +818,14 @@ export default class Couleur {
    * @param {colorProperty} prop - The color property that will be changed.
    * @param {(string|number)} value - The value that will be added to the property.
    * @param {Object} options
-   * @param {boolean} options.action - 'replace' if the value should replace the previous value of the property,
+   * @param {string?} options.action - 'replace' if the value should replace the previous value of the property,
    *                                   'scale' if the value should be multiplied to the previous value of the property,
    *                                   null if the value should be added to the previous value of the property.
    * @returns {Couleur} The modified color.
    */
-   change(prop, value, { action = null } = {}) {
-    const replace = action === 'replace';
-    const scale = action === 'scale';
+   change(prop: colorProperty, value: string | number, options: { action: string | null } = { action: null }): Couleur {
+    const replace = options.action === 'replace';
+    const scale = options.action === 'scale';
     const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, { clamp: false });
     const changedColor = new Couleur(this);
 
@@ -838,7 +842,7 @@ export default class Couleur {
    * @param {(string|number)} value - The value that will replace the previous value of the property.
    * @returns {Couleur} The modified color.
    */
-  replace(prop, value) {
+  replace(prop: colorProperty, value: string | number): Couleur {
     return this.change(prop, value, { action: 'replace' });
   }
 
@@ -849,26 +853,26 @@ export default class Couleur {
    * @param {(string|number)} value - The percentage that will be multiplied to the previous value of the property.
    * @returns {Couleur} The modified color.
    */
-  scale(prop, value) {
+  scale(prop: colorProperty, value: string | number): Couleur {
     return this.change(prop, value, { action: 'scale' });
   }
 
   /** @returns {Couleur} The complementary color. */
-  complement() { return this.change('h', 180); }
+  complement(): Couleur { return this.change('h', 180); }
 
   /** @returns {Couleur} The inverse color. */
-  negative() { return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
-  invert() { return this.negative(); }
+  negative(): Couleur { return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
+  invert(): Couleur { return this.negative(); }
 
   /** @returns {Couleur} The shade of grey of the color. */
-  greyscale() {
+  greyscale(): Couleur {
     const L = 255 * this.replace('a', 1).luminance;
     return new Couleur(`rgb(${L}, ${L}, ${L}, ${this.a})`);
   }
-  grayscale() { return this.greyscale(); }
+  grayscale(): Couleur { return this.greyscale(); }
 
   /** @returns {Couleur} The sepia tone of the color. */
-  sepia() {
+  sepia(): Couleur {
     const r = Math.min(0.393 * this.r + 0.769 * this.g + 0.189 * this.b, 1);
     const g = Math.min(0.349 * this.r + 0.686 * this.g + 0.168 * this.b, 1);
     const b = Math.min(0.272 * this.r + 0.534 * this.g + 0.131 * this.b, 1);
@@ -883,10 +887,10 @@ export default class Couleur {
    * Blends two colors together.
    * @param {color} backgroundColor - Background color.
    * @param {color} overlayColor - Overlay color.
-   * @param {number|string|null} alpha - Alpha value that will replace overlay's.
+   * @param {number|string} alpha - Alpha value that will replace overlay's.
    * @returns {Couleur} The resulting color.
    */
-   static blend(backgroundColor, overlayColor, alpha) {
+   static blend(backgroundColor: color, overlayColor: color, alpha?: number | string): Couleur {
     const background = Couleur.makeInstance(backgroundColor);
     const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
@@ -907,7 +911,7 @@ export default class Couleur {
    * @param  {...color} colors - Colors to blend.
    * @returns {Couleur} The resulting color.
    */
-  static blendAll(...colors) {
+  static blendAll(...colors: color[]): Couleur {
     if (colors.length < 2) throw `You need at least 2 colors to blend`;
     const background = colors.shift();
     const overlay = colors.shift();
@@ -919,10 +923,10 @@ export default class Couleur {
   }
 
   /** @see Couleur.blend - Non-static version. */
-  blend(overlayColor, alpha) { return Couleur.blend(this, overlayColor, alpha); }
+  blend(overlayColor: color, alpha?: number | string): Couleur { return Couleur.blend(this, overlayColor, alpha); }
 
   /** @see Couleur.blendAll - Non-static version. */
-  blendAll(...colors) { return Couleur.blendAll(this, ...colors); }
+  blendAll(...colors: color[]): Couleur { return Couleur.blendAll(this, ...colors); }
 
 
   /**
@@ -932,7 +936,7 @@ export default class Couleur {
    * @returns {?Couleur} The background that is solution to the equation, if it has one.
    * @throws if the equation has an infinite amount of solutions.
    */
-   static unblend(mixColor, overlayColor, alpha) {
+   static unblend(mixColor: color, overlayColor: color, alpha?: number | string): Couleur | null {
     const mix = Couleur.makeInstance(mixColor);
     const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
@@ -966,7 +970,7 @@ export default class Couleur {
    * @returns {?Couleur} The solution to the equation, if it has one.
    * @throws if the equation has an infinite amount of solutions.
    */
-  static unblendAll(...colors) {
+  static unblendAll(...colors: color[]): Couleur {
     if (colors.length < 2) throw `You need at least 2 colors to unblend`;
     const mix = colors.shift();
     const overlay = colors.shift();
@@ -978,10 +982,10 @@ export default class Couleur {
   }
 
   /** @see Couleur.unblend - Non-static version. */
-  unblend(overlayColor, alpha) { return Couleur.unblend(this, overlayColor, alpha); }
+  unblend(overlayColor: color, alpha?: number | string): Couleur { return Couleur.unblend(this, overlayColor, alpha); }
   
   /** @see Couleur.unblendAll - Non-static version. */
-  unblendAll(...colors) { return Couleur.unblendAll(this, ...colors); }
+  unblendAll(...colors: color[]): Couleur { return Couleur.unblendAll(this, ...colors); }
 
 
   /**
@@ -993,7 +997,7 @@ export default class Couleur {
    * @param {boolean} options.ignoreTransparent - Whether to return the color 'transparent' when it's a solution.
    * @returns {(Couleur|Couleur[]|null)} The solution(s) to the equation.
    */
-  static whatToBlend(backgroundColor, mixColor, alphas = [], { ignoreTransparent = false } = {}) {
+  static whatToBlend(backgroundColor: color, mixColor: color, alphas: number | Array<number|string> = [], options: { ignoreTransparent: boolean } = { ignoreTransparent: false }): Couleur | null {
     const background = Couleur.makeInstance(backgroundColor);
     const mix = Couleur.makeInstance(mixColor);
     let overlays = [];
@@ -1054,8 +1058,8 @@ export default class Couleur {
     }
 
     let result = requestedAlphas.length > 0 ? overlays.filter(c => requestedAlphas.includes(c.a))
-                                              : overlays;
-    if (ignoreTransparent) result = result.filter(a => a > 0);
+                                            : overlays;
+    if (options.ignoreTransparent) result = result.filter(a => a > 0);
 
     return result.length === 0 ? null
          : result.length === 1 ? result[0]
@@ -1063,7 +1067,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.whatToBlend - Non-static version. */
-  whatToBlend(mixColor, alphas) { return Couleur.whatToBlend(this, mixColor, alphas); }
+  whatToBlend(mixColor: color, alphas: number | Array<number|string>): Couleur | null { return Couleur.whatToBlend(this, mixColor, alphas); }
 
 
   /* Color comparison */
@@ -1077,7 +1081,7 @@ export default class Couleur {
    * @param {string} options.method - Whether to use the new APCA or the old WCAG2 method.
    * @returns {number} Contrast between the two colors.
    */
-  static contrast(textColor, backgroundColor, { method = 'WCAG2' } = {}) {
+  static contrast(textColor: color, backgroundColor: color, options: { method: string } = { method: 'WCAG2' }): number {
     const background = Couleur.makeInstance(backgroundColor);
     if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
     let text = Couleur.makeInstance(textColor);
@@ -1085,7 +1089,7 @@ export default class Couleur {
     // If the text is transparent, blend it to the background to get its actual visible color
     if (text.a < 1) text = Couleur.blend(background, text);
 
-    switch (method.toLowerCase()) {
+    switch (options.method.toLowerCase()) {
       case 'wcag3': case 'sapc': case 'apca':
         return Contrasts.APCA(text.values, background.values);
       case 'wcag2':
@@ -1095,7 +1099,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.contrast - Non-static version. */
-  contrast(backgroundColor, options) {
+  contrast(backgroundColor: color, options: { method: string }): number {
     return Couleur.contrast(this, backgroundColor, options);
   }
 
@@ -1107,7 +1111,7 @@ export default class Couleur {
    * @param {('background'|'text')} as - Whether the color is the background or the text color.
    * @returns {('light'|'dark')}
    */
-  bestColorScheme(as = 'background') {
+  bestColorScheme(as: 'background'|'text' = 'background'): 'light'|'dark' {
     if (as === 'text') {
       const Cblack = Math.abs(Couleur.contrast(this, 'black', { method: 'apca' }));
       const Cwhite = Math.abs(Couleur.contrast(this, 'white', { method: 'apca' }));
@@ -1135,28 +1139,29 @@ export default class Couleur {
    * @param {string?} options.method - The method to use to compute the contrast.
    * @returns {Couleur} The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
    */
-  improveContrast(backgroundColor, desiredContrast, { lower = false, colorScheme = null, method = 'WCAG2' } = {}) {
+  improveContrast(backgroundColor: color, desiredContrast: number, options: { lower: boolean, colorScheme: string | null, method: string } = { lower: false, colorScheme: null, method: 'WCAG2' }): Couleur {
     const background = Couleur.makeInstance(backgroundColor);
     const backgroundLab = background.valuesTo('lab');
     const movingLab = this.valuesTo('lab');
+    const method = options.method;
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    let startContrast = Couleur.contrast(this, background, method);
+    let startContrast = Couleur.contrast(this, background, { method });
     let directionContrast;
     if (startContrast > desiredContrast)      directionContrast = -1;
     else if (startContrast < desiredContrast) directionContrast = 1;
     else                                      directionContrast = 0;
     // If the contrast is already higher than desired, and lowering it is not allowed, return the color as is.
-    if ((directionContrast < 0 && lower === false) || (directionContrast === 0)) return this;
+    if ((directionContrast < 0 && options.lower === false) || (directionContrast === 0)) return this;
 
     // Let's detect the color scheme if it isn't given.
-    const _colorScheme = colorScheme || ((backgroundLab[0] < movingLab[0]) ? 'dark' : 'light');
+    const _colorScheme = options.colorScheme || ((backgroundLab[0] < movingLab[0]) ? 'dark' : 'light');
 
     // Let's measure the contrast of the background with black and white to know if
     // desiredContrast can be reached by lowering or raising the color's CIE lightness.
-    const cBlack = Couleur.contrast(background, 'black', method);
-    const cWhite = Couleur.contrast(background, 'white', method);
+    const cBlack = Couleur.contrast(background, 'black', { method });
+    const cWhite = Couleur.contrast(background, 'white', { method });
     const isPossible = {
       lowering: (directionContrast > 0) ? Math.abs(cBlack) >= desiredContrast : Math.abs(cBlack) <= desiredContrast,
       raising: (directionContrast > 0) ? Math.abs(cWhite) >= desiredContrast : Math.abs(cWhite) <= desiredContrast
@@ -1180,7 +1185,7 @@ export default class Couleur {
       // If the background is dark and we need to raise the contrast, raise the lightness.
       else if (_colorScheme === 'dark' && directionContrast > 0)  directionCIEL = 1;
       // If the background is dark and we need to lower the contrast, lower the lightness.
-      else                                                       directionCIEL = -1;
+      else                                                        directionCIEL = -1;
     }
 
     const τ = .0001;
@@ -1191,7 +1196,7 @@ export default class Couleur {
       // Let's try to raise contrast by increasing or reducing CIE lightness.
       const ciel = (CIELmin + CIELmax) / 2;
       const newValues = movingLab; newValues[0] = ciel;
-      const newContrast = Couleur.contrast(Couleur.convert('lab', 'srgb', newValues), background, method);
+      const newContrast = Couleur.contrast(Couleur.convert('lab', 'srgb', newValues), background, { method });
 
       // If the new contrast hasn't gone over its desired value
       const condition = (directionContrast > 0) ? (Math.abs(newContrast) < desiredContrast) : (Math.abs(newContrast) > desiredContrast);
@@ -1210,7 +1215,7 @@ export default class Couleur {
 
     let result = new Couleur(Couleur.convert('lab', 'srgb', movingLab));
     // If the color we find has its contrast slightly below the desired value, push it further.
-    if (Math.abs(Couleur.contrast(result, background, method)) < desiredContrast) {
+    if (Math.abs(Couleur.contrast(result, background, { method })) < desiredContrast) {
       if (directionCIEL > 0) movingLab[0] = CIELmax;
       else                   movingLab[0] = CIELmin;
     }
@@ -1228,12 +1233,12 @@ export default class Couleur {
    * @param {string} options.method - The method to use to compute the distance.
    * @returns {number} The distance between the two colors in sRGB space.
    */
-  static distance(color1, color2, { method = 'CIEDE2000' } = {}) { 
+  static distance(color1: color, color2: color, options: { method: string } = { method: 'CIEDE2000' }): number { 
     const colore1 = Couleur.makeInstance(color1);
     const colore2 = Couleur.makeInstance(color2);
     const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
 
-    switch (method) {
+    switch (options.method) {
       case 'CIEDE2000':
         return Distances.CIEDE2000(lab1, lab2);
       case 'euclidean':
@@ -1244,7 +1249,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.distance - Non-static version. */
-  distance(color, options) { return Couleur.distance(this, color, options); }
+  distance(color: color, options: { method: string }) { return Couleur.distance(this, color, options); }
 
 
   /**
@@ -1254,13 +1259,13 @@ export default class Couleur {
    * @param {number} tolerance - The minimum distance between the two colors to consider them different.
    * @returns {boolean} Whether the two colors are considered the same.
    */
-  static same(color1, color2, tolerance = 1) {
+  static same(color1: color, color2: color, tolerance: number = 1): boolean {
     if (Couleur.distance(color1, color2) > tolerance) return false;
     else return true;
   }
 
   /** @see Couleur.same - Non-static version. */
-  same(color) { return Couleur.same(this, color); }
+  same(color: color): boolean { return Couleur.same(this, color); }
 
 
   /* Other functions */
@@ -1271,10 +1276,10 @@ export default class Couleur {
    * @param {color} startColor - The starting color of the gradient.
    * @param {color} endColor - The ending color of the gradient.
    * @param {number} steps - The number of steps in the gradient to go from start to end.
-   * @param {object|string} spaceID - Color space in which to compute the gradient, or its identifier.
+   * @param {string} spaceID - Identifier of the color space in which to compute the gradient.
    * @returns {Couleur[]} The array of (steps + 1) colors in the gradient.
    */
-  static gradient(startColor, endColor, steps = 5, spaceID = 'lch') {
+  static gradient(startColor: color, endColor: color, steps: number = 5, spaceID: string = 'lch'): Couleur[] {
     const start = Couleur.makeInstance(startColor);
     const end = Couleur.makeInstance(endColor);
     const _steps = Math.max(1, steps);
@@ -1320,7 +1325,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.gradient - Non-static version. */
-  gradient(color, steps, format) { return Couleur.gradient(this, color, steps, format); }
+  gradient(color: color, steps: number, format: string): Couleur[] { return Couleur.gradient(this, color, steps, format); }
 
 
 
@@ -1347,20 +1352,20 @@ export default class Couleur {
   }
 
   /** @returns {string[]} Array of all color property short names. */
-  static get properties() {
+  static get properties(): colorProperty[] {
     return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
   }
 
   /** @returns {{id: string, whitepoint: string, prefix: string, otherFormat: string[]}} Supported color spaces. */
-  static get colorSpaces() { return colorSpaces; }
+  static get colorSpaces(): ColorSpace[] { return colorSpaces; }
 
   /**
    * Gets a color space.
    * @param {string|object} spaceID - Identifier of a color space, or a color space itself.
    * @returns {object} The corresponding color space object.
    */
-  static getSpace(spaceID) {
-    if (typeof spaceID.id === 'string') return spaceID;
+  static getSpace(spaceID: colorSpaceOrID): ColorSpace {
+    if (typeof spaceID !== 'string') return spaceID;
     const id = spaceID === 'rgb' ? 'srgb'
              : spaceID === 'rgba' ? 'srgb'
              : spaceID === 'hsla' ? 'hsl'
@@ -1368,9 +1373,9 @@ export default class Couleur {
     return Couleur.colorSpaces.find(sp => sp.id == id);
   }
 
-  /** @returns {{id: string, syntaxes: RegExp[]}[]} Array of supported syntaxes. */
-  static get formats() { return Formats; }
+  /** @returns {CSSFormat[]} Array of supported syntaxes. */
+  static get formats(): CSSFormat[] { return Formats; }
 
-  /** @returns {Object} List of named colors in CSS. */
-  static get couleursNommees() { return namedColors; }
+  /** @returns {object} List of named colors in CSS. */
+  static get couleursNommees(): object { return namedColors; }
 }

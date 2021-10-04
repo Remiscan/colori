@@ -9,7 +9,7 @@ const RegExps = {
 
 
 
-interface Format {
+export interface Format {
   id: string,
   syntaxes: RegExp[]
 };
