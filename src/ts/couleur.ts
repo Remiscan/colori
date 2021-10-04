@@ -22,6 +22,7 @@ type colorSpaceOrID = ColorSpace | string;
  * @module colori.js
  */
 
+/** @class Couleur */
 export default class Couleur {
   r: number;
   g: number;
@@ -1105,13 +1106,14 @@ export default class Couleur {
    * @returns
    */
   bestColorScheme(as: 'background'|'text' = 'background'): 'light'|'dark' {
+    const rgba = [...this.toGamut('srgb'), this.a];
     if (as === 'text') {
-      const Cblack = Math.abs(Couleur.contrast(this, 'black', { method: 'apca' }));
-      const Cwhite = Math.abs(Couleur.contrast(this, 'white', { method: 'apca' }));
+      const Cblack = Math.abs(Couleur.contrast(rgba, 'black', { method: 'apca' }));
+      const Cwhite = Math.abs(Couleur.contrast(rgba, 'white', { method: 'apca' }));
       return (Cblack >= Cwhite) ? 'dark' : 'light';
     } else {
-      const Cblack = Math.abs(Couleur.contrast('black', this, { method: 'apca' }));
-      const Cwhite = Math.abs(Couleur.contrast('white', this, { method: 'apca' }));
+      const Cblack = Math.abs(Couleur.contrast('black', rgba, { method: 'apca' }));
+      const Cwhite = Math.abs(Couleur.contrast('white', rgba, { method: 'apca' }));
       return (Cblack >= Cwhite) ? 'light' : 'dark';
     }
   }
