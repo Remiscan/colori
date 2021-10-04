@@ -640,7 +640,7 @@ export default class Couleur {
   get w(): number { return this.valuesTo('hwb')[1]; }
   get whiteness(): number { return this.w; }
   get bk(): number { return this.valuesTo('hwb')[2]; }
-  get blackness(): number { return this.w; }
+  get blackness(): number { return this.bk; }
   get ciel(): number { return this.valuesTo('lab')[0]; }
   get CIElightness(): number { return this.ciel; }
   get ciea(): number { return this.valuesTo('lab')[1]; }
