@@ -1799,7 +1799,7 @@ class Couleur {
   get w() { return this.valuesTo('hwb')[1]; }
   get whiteness() { return this.w; }
   get bk() { return this.valuesTo('hwb')[2]; }
-  get whiteness() { return this.w; }
+  get blackness() { return this.bk; }
   get ciel() { return this.valuesTo('lab')[0]; }
   get CIElightness() { return this.ciel; }
   get ciea() { return this.valuesTo('lab')[1]; }
