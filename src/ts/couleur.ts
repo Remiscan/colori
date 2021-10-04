@@ -1227,17 +1227,23 @@ export default class Couleur {
    * @param options.method The method to use to compute the distance.
    * @returns The distance between the two colors in sRGB space.
    */
-  static distance(color1: color, color2: color, { method = 'CIEDE2000' }: { method?: string } = {}): number { 
+  static distance(color1: color, color2: color, { method = 'deltaE2000' }: { method?: string } = {}): number { 
     const colore1 = Couleur.makeInstance(color1);
     const colore2 = Couleur.makeInstance(color2);
-    const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
 
     switch (method) {
-      case 'CIEDE2000':
+      case 'CIEDE2000': case 'deltaE2000': {
+        const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
         return Distances.CIEDE2000(lab1, lab2);
+      }
+      case 'deltaEOK': {
+        const [oklab1, oklab2] = [colore1, colore2].map(c => c.valuesTo('oklab'));
+        return Distances.euclidean(oklab1, oklab2);
+      }
       case 'euclidean':
       default: {
-        return lab1.reduce((sum, v, k) => sum + (v - lab2[k]) ** 2);
+        const [rgb1, rgb2] = [colore1, colore2].map(c => c.values);
+        return Distances.euclidean(rgb1, rgb2);
       }
     }
   }
@@ -1253,13 +1259,13 @@ export default class Couleur {
    * @param tolerance The minimum distance between the two colors to consider them different.
    * @returns Whether the two colors are considered the same.
    */
-  static same(color1: color, color2: color, tolerance: number = 1): boolean {
-    if (Couleur.distance(color1, color2) > tolerance) return false;
+  static same(color1: color, color2: color, { tolerance = 1, method = 'deltaE2000' }: { tolerance?: number, method?: string } = {}): boolean {
+    if (Couleur.distance(color1, color2, { method }) > tolerance) return false;
     else return true;
   }
 
   /** @see Couleur.same - Non-static version. */
-  same(color: color): boolean { return Couleur.same(this, color); }
+  same(color: color, options): boolean { return Couleur.same(this, color, options); }
 
 
   /* Other functions */

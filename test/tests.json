@@ -259,7 +259,7 @@
     "fonctionphp": "array_map(function($c) { return $c->hsl(); }, Couleur::gradient('lightgreen', 'blue', 5, 'hsl'))",
     "resultatAttendu": [ "hsl(120, 73%, 75%)", "hsl(144, 79%, 70%)", "hsl(168, 84%, 65%)", "hsl(192, 89%, 60%)", "hsl(216, 95%, 55%)", "hsl(240, 100%, 50%)" ]
   }, {
-    "fonction": "Colour.distance('lab(50% 2.5 0)', 'lab(73% 25 -18)')",
+    "fonction": "Colour.distance('lab(50% 2.5 0)', 'lab(73% 25 -18)', { method: 'deltaE2000' })",
     "resultatAttendu": 27.1492
   }, {
     "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(0, 128, 255)')",

@@ -1,6 +1,15 @@
 <?php namespace colori\distances {
 
 
+  function euclidean(array $vals1, array $vals2): float {
+    $distance = 0;
+    foreach ($vals1 as $k => $v) {
+      $distance += ($v - $vals2[$k]) ** 2;
+    }
+    return $distance;
+  }
+
+
   function CIEDE2000(array $lab1, array $lab2): float {
     // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
     [$l1, $a1, $b1] = $lab1;

@@ -1,4 +1,15 @@
 /**
+ * Computes the euclidean distance between two colors.
+ * @param vals1 Array of parsed values of the first color.
+ * @param vals2 Array of parsed values of the second color.
+ * @returns Distance between the cwo colors.
+ */
+export function euclidean(vals1: number[], vals2: number[]): number {
+  return vals1.reduce((sum, v, k) => sum + (v - vals2[k]) ** 2, 0);
+}
+
+
+/**
  * Computes the CIEDE2000 distance between two colors.
  * @param lab1 Array of parsed LAB values of the first color (i.e. l in [0, 1]).
  * @param lab2 Array of parsed LAB values of the second color (i.e. l in [0, 1]).

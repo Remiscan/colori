@@ -712,6 +712,15 @@
 } namespace colori\distances {
 
 
+  function euclidean(array $vals1, array $vals2): float {
+    $distance = 0;
+    foreach ($vals1 as $k => $v) {
+      $distance += ($v - $vals2[$k]) ** 2;
+    }
+    return $distance;
+  }
+
+
   function CIEDE2000(array $lab1, array $lab2): float {
     // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
     [$l1, $a1, $b1] = $lab1;
@@ -2236,29 +2245,31 @@
 
 
     /** Calculates the distance between two colors in a certain format, by adding the difference between each of their properties. */
-    public static function distance(self|array|string $color1, self|array|string $color2, string $method = 'CIEDE2000'): float {
+    public static function distance(self|array|string $color1, self|array|string $color2, string $method = 'deltaE2000'): float {
       $color1 = self::makeInstance($color1);
       $color2 = self::makeInstance($color2);
-      $lab1 = $color1->valuesTo('lab');
-      $lab2 = $color2->valuesTo('lab');
 
       switch ($method) {
-        case 'CIEDE2000':
+        case 'CIEDE2000': case 'deltaE2000':
+          $lab1 = $color1->valuesTo('lab');
+          $lab2 = $color2->valuesTo('lab');
           return distances\CIEDE2000($lab1, $lab2);
+        case 'deltaEOK':
+          $oklab1 = $color1->valuesTo('oklab');
+          $oklab2 = $color2->valuesTo('oklab');
+          return distances\euclidean($oklab1, $oklab2);
         case 'euclidean':
         default:
-          $dist = 0;
-          foreach($lab1 as $k => $v) {
-            $dist += ($v - $lab2[$k]) ** 2;
-          }
-          return $dist;
+          $rgb1 = $colors1->values();
+          $rgb2 = $colors2->values();
+          return distances\euclidean($rgb1, $rgb2);
       }
     }
 
 
     /** Determines if two colors are the same, with a certain tolerance. */
-    public static function same(self|array|string $color1, self|array|string $color2, float $tolerance = 1): bool {
-      if (self::distance($color1, $color2) > $tolerance) return false;
+    public static function same(self|array|string $color1, self|array|string $color2, float $tolerance = 1, string $method = 'deltaE2000'): bool {
+      if (self::distance($color1, $color2, method: $method) > $tolerance) return false;
       else return true;
     }
 

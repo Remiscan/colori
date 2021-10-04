@@ -547,6 +547,15 @@ const contrasts = /*#__PURE__*/Object.freeze({
 });
 
 /**
+ * Computes the euclidean distance between two colors.
+ * @param vals1 Array of parsed values of the first color.
+ * @param vals2 Array of parsed values of the second color.
+ * @returns Distance between the cwo colors.
+ */
+function euclidean(vals1, vals2) {
+    return vals1.reduce((sum, v, k) => sum + (v - vals2[k]) ** 2, 0);
+}
+/**
  * Computes the CIEDE2000 distance between two colors.
  * @param lab1 Array of parsed LAB values of the first color (i.e. l in [0, 1]).
  * @param lab2 Array of parsed LAB values of the second color (i.e. l in [0, 1]).
@@ -590,6 +599,7 @@ function CIEDE2000([l1, a1, b1], [l2, a2, b2]) {
 
 const distances = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    euclidean: euclidean,
     CIEDE2000: CIEDE2000
 });
 
@@ -2203,16 +2213,23 @@ class Couleur {
      * @param options.method The method to use to compute the distance.
      * @returns The distance between the two colors in sRGB space.
      */
-    static distance(color1, color2, { method = 'CIEDE2000' } = {}) {
+    static distance(color1, color2, { method = 'deltaE2000' } = {}) {
         const colore1 = Couleur.makeInstance(color1);
         const colore2 = Couleur.makeInstance(color2);
-        const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
         switch (method) {
             case 'CIEDE2000':
+            case 'deltaE2000': {
+                const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
                 return CIEDE2000(lab1, lab2);
+            }
+            case 'deltaEOK': {
+                const [oklab1, oklab2] = [colore1, colore2].map(c => c.valuesTo('oklab'));
+                return euclidean(oklab1, oklab2);
+            }
             case 'euclidean':
             default: {
-                return lab1.reduce((sum, v, k) => sum + (v - lab2[k]) ** 2);
+                const [rgb1, rgb2] = [colore1, colore2].map(c => c.values);
+                return euclidean(rgb1, rgb2);
             }
         }
     }
@@ -2225,14 +2242,14 @@ class Couleur {
      * @param tolerance The minimum distance between the two colors to consider them different.
      * @returns Whether the two colors are considered the same.
      */
-    static same(color1, color2, tolerance = 1) {
-        if (Couleur.distance(color1, color2) > tolerance)
+    static same(color1, color2, { tolerance = 1, method = 'deltaE2000' } = {}) {
+        if (Couleur.distance(color1, color2, { method }) > tolerance)
             return false;
         else
             return true;
     }
     /** @see Couleur.same - Non-static version. */
-    same(color) { return Couleur.same(this, color); }
+    same(color, options) { return Couleur.same(this, color, options); }
     /* Other functions */
     /**
      * Calculates the intermediate colors a gradient should use to go from one color to another without passing through the "desaturated zone".
