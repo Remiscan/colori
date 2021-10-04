@@ -692,7 +692,7 @@
 
       // OKLab gamut clipping
       elseif ($method === 'oklab') {
-        $clampSpace = self::getSpace('oklab');
+        $clampSpace = self::getSpace('srgb');
         $rgb = self::convert($valueSpace, $clampSpace, $values);
         $clampedValues = oklab_gamut\clip($rgb);
       }
