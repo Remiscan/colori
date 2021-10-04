@@ -1,6 +1,3 @@
-// Problematic: setter can't take a different type than what the getter returns
-// https://github.com/microsoft/TypeScript/issues/43662
-
 import * as Utils from './utils.js';
 import * as Conversions from './conversion.js';
 import Graph from './graph.js';
@@ -58,22 +55,22 @@ export default class Couleur {
 
       switch (format.id) {
         case 'hex':
-          this.hex = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')];
+          this.setHex([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')]);
           break;
         case 'rgb':
-          this.rgb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          this.setRgb([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
           break;
         case 'hsl':
-          this.hsl = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          this.setHsl([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
           break;
         case 'hwb':
-          this.hwb = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          this.setHwb([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
           break;
         case 'lab':
-          this.lab = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          this.setLab([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
           break;
         case 'lch':
-          this.lch = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          this.setLch([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
           break;
         case 'color':
           this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
@@ -423,7 +420,7 @@ export default class Couleur {
    * Calculates all properties of the color from its hexadecimal expression.
    * @param {string[]} - The hexadecimal values of the r, g, b, a properties.
    */
-  set hex(hexa: Array<string|number>) {
+  setHex(hexa: Array<string|number>) {
     let r, g, b, a;
     
     r = hexa[0];
@@ -442,9 +439,8 @@ export default class Couleur {
     a = (a.length === 1) ? a.repeat(2) : a;
     a = parseInt(a, 16) / 255;
 
-    this.rgb = [r, g, b, a];
+    this.set([r, g, b, a], ['r', 'g', 'b'], 'srgb');
   }
-  set hexa(hexa: Array<string|number>) { this.hex = hexa; }
 
   /** @returns {string} Hexadecimal expression of the color. */
   get hex(): string {
@@ -461,8 +457,7 @@ export default class Couleur {
    * Calculates all properties of the color from its functional RGB expression.
    * @param {Array.<string|number>} rgba - The unparsed values of the r, g, b, a properties.
    */
-  set rgb(rgba: Array<string|number>) { this.set(rgba, ['r', 'g', 'b'], 'srgb'); }
-  set rgba(rgba: Array<string|number>) { this.rgb = rgba; }
+  setRgb(rgba: Array<string|number>) { this.set(rgba, ['r', 'g', 'b'], 'srgb'); }
 
   /** @returns {string} RGB expression of the color. */
   get rgb(): string { return this.expr('rgb', { precision: 2 }); }
@@ -475,8 +470,7 @@ export default class Couleur {
    * Calculates all properties of the color from its HSL expression.
    * @param {Array.<string|number>} hsla - The unparsed values of the h, s, l, a properties.
    */
-  set hsl(hsla: Array<string|number>) { this.set(hsla, ['h', 's', 'l'], 'hsl') }
-  set hsla(hsla: Array<string|number>) { this.hsl = hsla; }
+  setHsl(hsla: Array<string|number>) { this.set(hsla, ['h', 's', 'l'], 'hsl') }
 
   /** @returns {string} HSL expression of the color. */
   get hsl(): string { return this.expr('hsl', { precision: 2 }); }
@@ -489,7 +483,7 @@ export default class Couleur {
    * Calculates all properties of the color from its HWB expression.
    * @param {Array.<string|number>} hwba - The unparsed values of the h, w, bk, a properties.
    */
-  set hwb(hwba: Array<string|number>) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
+  setHwb(hwba: Array<string|number>) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
 
   /** @returns {string} HWB expression of the color. */
   get hwb(): string { return this.expr('hwb', { precision: 2 }); }
@@ -501,7 +495,7 @@ export default class Couleur {
    * Calculates all properties of the color from its LAB expression.
    * @param {Array.<string|number>} laba - The unparsed values of the ciel, ciea, cieb, a properties.
    */
-  set lab(laba: Array<string|number>) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
+  setLab(laba: Array<string|number>) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
 
   /** @returns {string} LAB expression of the color. */
   get lab(): string { return this.expr('lab', { precision: 2 }); }
@@ -513,7 +507,7 @@ export default class Couleur {
    * Calculates all properties of the color from its LCH expression.
    * @param {Array.<string|number>} - The unparsed values of the ciel, ciec, cieh, a properties.
    */
-  set lch(lcha: Array<string|number>) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
+  setLch(lcha: Array<string|number>) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
 
   /** @returns {string} LCH expression of the color. */
   get lch(): string { return this.expr('lch', { precision: 2 }); }
@@ -563,68 +557,68 @@ export default class Couleur {
   set h(val: number) {
     const [x, s, l] = this.valuesTo('hsl');
     const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a'];
-    this.hsl = [val, s, l, this.a].map((v, k) => Couleur.unparse(v, props[k]));
+    this.setHsl([val, s, l, this.a].map((v, k) => Couleur.unparse(v, props[k])));
   }
   set hue(val: number) { this.h = val; }
 
   set s(val: number) {
     const [h, x, l] = this.valuesTo('hsl');
     const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a'];
-    this.hsl = [h, val, l, this.a].map((v, k) => Couleur.unparse(v, props[k]));
+    this.setHsl([h, val, l, this.a].map((v, k) => Couleur.unparse(v, props[k])));
   }
   set saturation(val: number) { this.s = val; }
 
   set l(val: number) {
     const [h, s, x] = this.valuesTo('hsl');
     const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a']
-    this.hsl = [h, s, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
+    this.setHsl([h, s, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
   }
   set lightness(val: number) { this.l = val; }
 
   set w(val: number) {
     const [h, x, bk] = this.valuesTo('hwb');
     const props: colorProperty[] = [...Couleur.propertiesOf('hwb'), 'a'];
-    this.hwb = [h, val, bk, this.a].map((v, k) => Couleur.unparse(v, props[k]));
+    this.setHwb([h, val, bk, this.a].map((v, k) => Couleur.unparse(v, props[k])));
   }
   set whiteness(val: number) { this.w = val; }
 
   set bk(val: number) {
     const [h, w, x] = this.valuesTo('hwb');
     const props: colorProperty[] = [...Couleur.propertiesOf('hwb'), 'a'];
-    this.hwb = [h, w, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
+    this.setHwb([h, w, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
   }
   set blackness(val: number) { this.bk = val; }
 
   set ciel(val: number) {
     const [x, ciea, cieb] = this.valuesTo('lab');
     const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
-    this.lab = [val, ciea, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k]));
+    this.setLab([val, ciea, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k])));
   }
   set CIElightness(val: number) { this.ciel = val; }
 
   set ciea(val: number) {
     const [ciel, x, cieb] = this.valuesTo('lab');
     const props: colorProperty[] = [...Couleur.propertiesOf('lab'), 'a'];
-    this.lab = [ciel, val, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k]));
+    this.setLab([ciel, val, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k])));
   }
 
   set cieb(val: number) {
     const [ciel, ciea, x] = this.valuesTo('lab');
     const props: colorProperty[] = [...Couleur.propertiesOf('lab'), 'a'];
-    this.lab = [ciel, ciea, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
+    this.setLab([ciel, ciea, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
   }
 
   set ciec(val: number) {
     const [ciel, x, cieh] = this.valuesTo('lch');
     const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
-    this.lch = [ciel, val, cieh, this.a].map((v, k) => Couleur.unparse(v, props[k]));
+    this.setLch([ciel, val, cieh, this.a].map((v, k) => Couleur.unparse(v, props[k])));
   }
   set CIEchroma(val: number) { this.ciec = val; }
 
   set cieh(val: number) {
     const [ciel, ciec, x] = this.valuesTo('lch');
     const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
-    this.lch = [ciel, ciec, val, this.a].map((v, k) => Couleur.unparse(v, props[k]));
+    this.setLch([ciel, ciec, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
   }
   set CIEhue(val: number) { this.cieh = val; }
 
