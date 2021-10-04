@@ -9,6 +9,18 @@ function angleToRange(angle) {
         h -= 360;
     return h;
 }
+/** Returns a float precise to the nth decimal. */
+function pRound(number, precision = 5) {
+    let x = (typeof number === 'number') ? number : Number(number);
+    return Number(parseFloat(x.toPrecision(precision)));
+}
+
+const utils = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    pad: pad,
+    angleToRange: angleToRange,
+    pRound: pRound
+});
 
 // All of these functions take an array of parsed color values (without alpha),
 // and return an array of parsed color values (without alpha) converted into the 
@@ -527,6 +539,13 @@ function APCA(rgbText, rgbBack) {
     return result * 100;
 }
 
+const contrasts = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    luminance: luminance,
+    WCAG2: WCAG2,
+    APCA: APCA
+});
+
 /**
  * Computes the CIEDE2000 distance between two colors.
  * @param lab1 Array of parsed LAB values of the first color (i.e. l in [0, 1]).
@@ -568,6 +587,11 @@ function CIEDE2000([l1, a1, b1], [l2, a2, b2]) {
         + (dH / SH) ** 2
         + RT * (dC / SC) * (dH / SH));
 }
+
+const distances = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    CIEDE2000: CIEDE2000
+});
 
 // Source of the math: https://bottosson.github.io/posts/gamutclipping/
 function maxSaturation(a, b) {
@@ -676,6 +700,14 @@ function clip(rgb) {
     const clampedValues = lin_srgb_to_srgb(oklab_to_lin_srgb([Lclipped, Cclipped * a, Cclipped * b]));
     return clampedValues;
 }
+
+const oklabGamut = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    maxSaturation: maxSaturation,
+    cusp: cusp,
+    gamutIntersection: gamutIntersection,
+    clip: clip
+});
 
 const colorSpaces = [
     {
@@ -1151,7 +1183,7 @@ class Couleur {
      * @param options.clamp Whether the value should de clamped to its color space bounds.
      * @returns The properly parsed number.
      */
-    static parse(value, prop = null, options = { clamp: true }) {
+    static parse(value, prop = null, { clamp = true } = {}) {
         const val = String(value);
         const nval = parseFloat(val);
         // Alpha values:
@@ -1161,14 +1193,14 @@ class Couleur {
         if (prop === 'a') {
             // If n is a percentage
             if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
-                if (options.clamp)
+                if (clamp)
                     return Math.max(0, Math.min(nval / 100, 1));
                 else
                     return nval / 100;
             }
             // If n is a number
             else if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                if (options.clamp)
+                if (clamp)
                     return Math.max(0, Math.min(nval, 1));
                 else
                     return nval;
@@ -1183,14 +1215,14 @@ class Couleur {
         else if (['r', 'g', 'b'].includes(prop)) {
             // If n is a percentage
             if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
-                if (options.clamp)
+                if (clamp)
                     return Math.max(0, Math.min(nval / 100, 1));
                 else
                     return nval / 100;
             }
             // If n is a number
             else if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                if (options.clamp)
+                if (clamp)
                     return Math.max(0, Math.min(nval / 255, 1));
                 else
                     return nval / 255;
@@ -1231,7 +1263,7 @@ class Couleur {
         else if (['s', 'l', 'w', 'bk', 'ciel'].includes(prop)) {
             // If n is a percentage
             if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
-                if (options.clamp)
+                if (clamp)
                     return Math.max(0, Math.min(nval / 100, 1));
                 else
                     return nval / 100;
@@ -1255,7 +1287,7 @@ class Couleur {
         else if (prop === 'ciec') {
             // If n is a number
             if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                if (options.clamp)
+                if (clamp)
                     return Math.max(0, nval);
                 else
                     return nval;
@@ -1287,8 +1319,7 @@ class Couleur {
      * @param options.precision How many decimals to display.
      * @returns The unparsed value, ready to insert in a CSS expression.
      */
-    static unparse(value, prop, options = { precision: 0 }) {
-        const precision = options.precision;
+    static unparse(value, prop, { precision = 0 } = {}) {
         switch (prop) {
             case 'r':
             case 'g':
@@ -1332,12 +1363,11 @@ class Couleur {
      * @param options.clamp Which color space the values should be clamped to.
      * @returns The expression of the color in the requested format.
      */
-    expr(format, options = { precision: 0, clamp: true }) {
+    expr(format, { precision = 0, clamp = true } = {}) {
         const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
         const space = Couleur.getSpace(spaceID);
-        const precision = options.precision;
         let values = this.valuesTo(space);
-        if (options.clamp)
+        if (clamp)
             values = Couleur.toGamut(space, values, space);
         const a = Number(Couleur.unparse(this.a, 'a', { precision }));
         values = [...values, a];
@@ -1386,7 +1416,7 @@ class Couleur {
      * @param options @see Couleur.expr
      * @returns The expression of the color in the requested format.
      */
-    static makeExpr(format, values, valueSpaceID, options) {
+    static makeExpr(format, values, valueSpaceID, options = {}) {
         const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
         const rgba = [...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)), values[3]];
         return (new Couleur(rgba)).expr(format, options);
@@ -1676,10 +1706,10 @@ class Couleur {
      * @param options.clamp Whether to clamp the values to their new color space.
      * @returns The array of converted values.
      */
-    valuesTo(spaceID, options = { clamp: false }) {
+    valuesTo(spaceID, { clamp = false } = {}) {
         const space = Couleur.getSpace(spaceID);
         let values = Couleur.convert('srgb', space, this.values);
-        if (options.clamp)
+        if (clamp)
             values = Couleur.toGamut(space, values);
         return values;
     }
@@ -1691,14 +1721,13 @@ class Couleur {
      * @param valueSpaceID Color space of the given values, or its identifier.
      * @returns Whether the corresponding color is in gamut.
      */
-    static inGamut(spaceID, values, valueSpaceID = 'srgb', options = { tolerance: .0001 }) {
+    static inGamut(spaceID, values, valueSpaceID = 'srgb', { tolerance = .0001 } = {}) {
         const space = Couleur.getSpace(spaceID);
         const convertedValues = Couleur.convert(valueSpaceID, space, values);
-        const tolerance = options.tolerance;
         return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
     }
     /** @see Couleur.inGamut - Non-static version. */
-    inGamut(spaceID, options) { return Couleur.inGamut(spaceID, this.values, 'srgb', options); }
+    inGamut(spaceID, options = {}) { return Couleur.inGamut(spaceID, this.values, 'srgb', options); }
     /**
      * Clamps parsed values in valueSpaceID color space to the spaceID color space.
      * @param spaceID Color space whose gamut will be used, or its identifier.
@@ -1706,13 +1735,12 @@ class Couleur {
      * @param valueSpaceID Color space of the given values, or its identifier.
      * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
      */
-    static toGamut(spaceID, values, valueSpaceID = 'srgb', options = { method: 'oklab' }) {
+    static toGamut(spaceID, values, valueSpaceID = 'srgb', { method = 'oklab' } = {}) {
         const space = Couleur.getSpace(spaceID);
         const valueSpace = Couleur.getSpace(valueSpaceID);
         if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 }))
             return values;
         let clampedValues, clampSpace;
-        const method = options.method;
         // Naively clamp the values
         if (method === 'naive') {
             clampSpace = space;
@@ -1767,9 +1795,9 @@ class Couleur {
      *                                   null if the value should be added to the previous value of the property.
      * @returns The modified color.
      */
-    change(prop, value, options = { action: null }) {
-        const replace = options.action === 'replace';
-        const scale = options.action === 'scale';
+    change(prop, value, { action = null } = {}) {
+        const replace = action === 'replace';
+        const scale = action === 'scale';
         const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, { clamp: false });
         const changedColor = new Couleur(this);
         const oldVal = this[prop];
@@ -1926,7 +1954,7 @@ class Couleur {
      * @param options.ignoreTransparent Whether to return the color 'transparent' when it's a solution.
      * @returns The solution(s) to the equation.
      */
-    static whatToBlend(backgroundColor, mixColor, alphas = [], options = { ignoreTransparent: false }) {
+    static whatToBlend(backgroundColor, mixColor, alphas = [], { ignoreTransparent = false } = {}) {
         const background = Couleur.makeInstance(backgroundColor);
         const mix = Couleur.makeInstance(mixColor);
         let overlays = [];
@@ -2000,7 +2028,7 @@ class Couleur {
         }
         let result = requestedAlphas.length > 0 ? overlays.filter(c => requestedAlphas.includes(c.a))
             : overlays;
-        if (options.ignoreTransparent)
+        if (ignoreTransparent)
             result = result.filter(a => a > 0);
         return result.length === 0 ? null
             : result.length === 1 ? result[0]
@@ -2017,7 +2045,7 @@ class Couleur {
      * @param options.method Whether to use the new APCA or the old WCAG2 method.
      * @returns Contrast between the two colors.
      */
-    static contrast(textColor, backgroundColor, options = { method: 'WCAG2' }) {
+    static contrast(textColor, backgroundColor, { method = 'WCAG2' } = {}) {
         const background = Couleur.makeInstance(backgroundColor);
         if (background.a < 1)
             throw `The contrast with a transparent background color would be meaningless`;
@@ -2025,7 +2053,7 @@ class Couleur {
         // If the text is transparent, blend it to the background to get its actual visible color
         if (text.a < 1)
             text = Couleur.blend(background, text);
-        switch (options.method.toLowerCase()) {
+        switch (method.toLowerCase()) {
             case 'wcag3':
             case 'sapc':
             case 'apca':
@@ -2073,11 +2101,10 @@ class Couleur {
      * @param options.method The method to use to compute the contrast.
      * @returns The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
      */
-    improveContrast(backgroundColor, desiredContrast, options = { lower: false, colorScheme: null, method: 'WCAG2' }) {
+    improveContrast(backgroundColor, desiredContrast, { lower = false, colorScheme = null, method = 'WCAG2' } = {}) {
         const background = Couleur.makeInstance(backgroundColor);
         const backgroundLab = background.valuesTo('lab');
         const movingLab = this.valuesTo('lab');
-        const method = options.method;
         // Let's measure the initial contrast
         // and decide if we want it to go up or down.
         let startContrast = Couleur.contrast(this, background, { method });
@@ -2089,10 +2116,10 @@ class Couleur {
         else
             directionContrast = 0;
         // If the contrast is already higher than desired, and lowering it is not allowed, return the color as is.
-        if ((directionContrast < 0 && options.lower === false) || (directionContrast === 0))
+        if ((directionContrast < 0 && lower === false) || (directionContrast === 0))
             return this;
         // Let's detect the color scheme if it isn't given.
-        const _colorScheme = options.colorScheme || ((backgroundLab[0] < movingLab[0]) ? 'dark' : 'light');
+        const _colorScheme = colorScheme || ((backgroundLab[0] < movingLab[0]) ? 'dark' : 'light');
         // Let's measure the contrast of the background with black and white to know if
         // desiredContrast can be reached by lowering or raising the color's CIE lightness.
         const cBlack = Couleur.contrast(background, 'black', { method });
@@ -2174,11 +2201,11 @@ class Couleur {
      * @param options.method The method to use to compute the distance.
      * @returns The distance between the two colors in sRGB space.
      */
-    static distance(color1, color2, options = { method: 'CIEDE2000' }) {
+    static distance(color1, color2, { method = 'CIEDE2000' } = {}) {
         const colore1 = Couleur.makeInstance(color1);
         const colore2 = Couleur.makeInstance(color2);
         const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
-        switch (options.method) {
+        switch (method) {
             case 'CIEDE2000':
                 return CIEDE2000(lab1, lab2);
             case 'euclidean':
@@ -2318,15 +2345,15 @@ class Palette {
      * @param options
      * @param options.clampSpace Color space to which the generated colors will be clamped. Null to disable clamping.
      */
-    constructor(hue, generator = () => [], options = { clampSpace: 'srgb' }) {
+    constructor(hue, generator = () => [], { clampSpace = 'srgb' } = {}) {
         const colors = generator(hue);
         // Create the nuances of each color.
         for (const color of colors) {
             const nuances = [];
             for (const lightness of color.lightnesses) {
                 let rgb = Couleur.convert('oklch', 'srgb', [lightness, color.chroma, color.hue]);
-                if (options.clampSpace != null)
-                    rgb = Couleur.toGamut(options.clampSpace, rgb);
+                if (clampSpace != null)
+                    rgb = Couleur.toGamut(clampSpace, rgb);
                 const newColor = new Couleur(`color(srgb ${rgb.join(' ')})`);
                 nuances.push(newColor);
             }
@@ -2336,4 +2363,4 @@ class Palette {
 }
 
 export default Couleur;
-export { cssFormats as CSSFormats, Conversions, Palette };
+export { cssFormats as CSSFormats, colorSpaces as ColorSpaces, contrasts as Contrasts, Conversions, distances as Distances, Graph, oklabGamut as OklabGamut, Palette, utils as Utils, namedColors };

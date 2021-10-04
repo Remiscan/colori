@@ -1,7 +1,11 @@
-import Couleur from './couleur.js';
-import Palette from './palette.js';
-import * as Conversions from './conversion.js';
-import * as CSSFormats from './css-formats.js';
-
-export default Couleur;
-export { Palette, Conversions, CSSFormats };
+export { default } from './couleur.js';
+export { default as Palette } from './palette.js';
+export { default as Graph } from './graph.js';
+export { default as ColorSpaces } from './color-spaces.js';
+export { default as namedColors } from './named-colors.js';
+export * as Utils from './utils.js';
+export * as Conversions from './conversion.js';
+export * as CSSFormats from './css-formats.js';
+export * as Contrasts from './contrasts.js';
+export * as Distances from './distances.js';
+export * as OklabGamut from './oklab-gamut.js';
