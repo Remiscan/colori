@@ -37,7 +37,7 @@ export default class Couleur {
    * @throws {string} when the parameter isn't a valid color string.
    */
   constructor(color: color) {
-    const isAlpha = (val: any, def: any = 1): any => !!val ? val : (val === 0) ? 0 : def;
+    const isAlpha = (val: string | number, def: string = '1'): string => !!val ? String(val) : (val === 0) ? '0' : def;
 
     if (color instanceof Couleur) {
       this.r = color.r;
@@ -48,7 +48,7 @@ export default class Couleur {
 
     else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {
       [this.r, this.g, this.b] = Couleur.toGamut('srgb', color.slice(0, 3), 'srgb', { method: 'naive' });
-      this.a = Math.max(0, Math.min(isAlpha(color[3]), 1));
+      this.a = Math.max(0, Math.min(Number(isAlpha(color[3])), 1));
     }
 
     else if (typeof color === 'string') {
@@ -59,26 +59,17 @@ export default class Couleur {
           this.setHex([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')]);
           break;
         case 'rgb':
-          this.setRgb([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-          break;
         case 'hsl':
-          this.setHsl([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-          break;
         case 'hwb':
-          this.setHwb([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-          break;
         case 'lab':
-          this.setLab([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-          break;
         case 'lch':
-          this.setLch([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-          break;
         case 'oklab':
-          this.setOklab([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-          break;
-        case 'oklch':
-          this.setOklch([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-          break;
+        case 'oklch': {
+          const values = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          const props: colorProperty[] = [...Couleur.propertiesOf(format.id), 'a'];
+          const space = Couleur.getSpace(format.id);
+          this.set(values, props, space);
+        } break;
         case 'color':
           this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
           break;
@@ -328,10 +319,12 @@ export default class Couleur {
    * @param data Array of unparsed values.
    * @param props Array of color property names the values correspond to.
    * @param spaceID Color space of the values, or its identifier.
+   * @param options
+   * @param options.parsed Whether the provided values are already parsed.
    */
-  set(data: Array<string|number>, props: Array<colorProperty|null>, spaceID: colorSpaceOrID) {
+  set(data: Array<string|number>, props: Array<colorProperty|null>, spaceID: colorSpaceOrID, { parsed = false }: { parsed?: boolean } = {}) {
     const space = Couleur.getSpace(spaceID);
-    const values = props.map((p, i) => Couleur.parse(data[i], p));
+    const values = parsed ? data.map(v => Number(v)) : props.map((p, i) => Couleur.parse(data[i], p));
     [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
 
     const isAlpha = (val: string | number, def = 1) => !!val ? val : (val === 0) ? 0 : def;
@@ -470,90 +463,30 @@ export default class Couleur {
   }
 
 
-  /* RGB (functional) */
-  
-  /**
-   * Calculates all properties of the color from its functional RGB expression.
-   * @param rgba The unparsed values of the r, g, b, a properties.
-   */
-  setRgb(rgba: Array<string|number>) { this.set(rgba, ['r', 'g', 'b'], 'srgb'); }
+  /* OTHER FORMATS */
 
   /** @returns RGB expression of the color. */
   get rgb(): string { return this.expr('rgb', { precision: 2 }); }
   get rgba(): string { return this.rgb; }
 
-
-  /* HSL */
-
-  /**
-   * Calculates all properties of the color from its HSL expression.
-   * @param hsla The unparsed values of the h, s, l, a properties.
-   */
-  setHsl(hsla: Array<string|number>) { this.set(hsla, ['h', 's', 'l'], 'hsl') }
-
   /** @returns HSL expression of the color. */
   get hsl(): string { return this.expr('hsl', { precision: 2 }); }
   get hsla(): string { return this.hsl; }
 
-
-  /* HWB */
-
-  /**
-   * Calculates all properties of the color from its HWB expression.
-   * @param hwba The unparsed values of the h, w, bk, a properties.
-   */
-  setHwb(hwba: Array<string|number>) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
-
   /** @returns HWB expression of the color. */
   get hwb(): string { return this.expr('hwb', { precision: 2 }); }
-
-
-  /* LAB */
-
-  /**
-   * Calculates all properties of the color from its LAB expression.
-   * @param laba The unparsed values of the ciel, ciea, cieb, a properties.
-   */
-  setLab(laba: Array<string|number>) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
 
   /** @returns LAB expression of the color. */
   get lab(): string { return this.expr('lab', { precision: 2 }); }
 
-
-  /* LCH */
-
-  /**
-   * Calculates all properties of the color from its LCH expression.
-   * @param lcha The unparsed values of the ciel, ciec, cieh, a properties.
-   */
-  setLch(lcha: Array<string|number>) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
-
   /** @returns LCH expression of the color. */
   get lch(): string { return this.expr('lch', { precision: 2 }); }
-
-
-  /* OKLAB */
-
-  /**
-   * Calculates all properties of the color from its OKLAB expression.
-   * @param oklaba The unparsed values of the okl, oka, okb, a properties.
-   */
-  setOklab(oklaba: Array<string|number>) { this.set(oklaba, ['okl', 'oka', 'okb'], 'oklab'); }
 
   /** @returns OKLAB expression of the color. */
   get oklab(): string { return this.expr('oklab', { precision: 2 }); }
 
-
-  /* OKLCH */
-
-  /**
-   * Calculates all properties of the color from its OKLAB expression.
-   * @param oklcha The unparsed values of the okl, oka, okb, a properties.
-   */
-   setOklch(oklcha: Array<string|number>) { this.set(oklcha, ['okl', 'okc', 'okh'], 'oklch'); }
-
-   /** @returns OKLAB expression of the color. */
-   get oklch(): string { return this.expr('oklch', { precision: 2 }); }
+  /** @returns OKLCH expression of the color. */
+  get oklch(): string { return this.expr('oklch', { precision: 2 }); }
 
 
   /* PROFILED COLORS */
@@ -607,68 +540,78 @@ export default class Couleur {
   set h(val: number) {
     const [x, s, l] = this.valuesTo('hsl');
     const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a'];
-    this.setHsl([val, s, l, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+    const values = [val, s, l, this.a];
+    this.set(values, props, 'hsl', { parsed: true });
   }
   set hue(val: number) { this.h = val; }
 
   set s(val: number) {
     const [h, x, l] = this.valuesTo('hsl');
     const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a'];
-    this.setHsl([h, val, l, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+    const values = [h, val, l, this.a];
+    this.set(values, props, 'hsl', { parsed: true });
   }
   set saturation(val: number) { this.s = val; }
 
   set l(val: number) {
     const [h, s, x] = this.valuesTo('hsl');
     const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a']
-    this.setHsl([h, s, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+    const values = [h, s, val, this.a];
+    this.set(values, props, 'hsl', { parsed: true });
   }
   set lightness(val: number) { this.l = val; }
 
   set w(val: number) {
     const [h, x, bk] = this.valuesTo('hwb');
     const props: colorProperty[] = [...Couleur.propertiesOf('hwb'), 'a'];
-    this.setHwb([h, val, bk, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+    const values = [h, val, bk, this.a];
+    this.set(values, props, 'hwb', { parsed: true });
   }
   set whiteness(val: number) { this.w = val; }
 
   set bk(val: number) {
     const [h, w, x] = this.valuesTo('hwb');
     const props: colorProperty[] = [...Couleur.propertiesOf('hwb'), 'a'];
-    this.setHwb([h, w, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+    const values = [h, w, val, this.a];
+    this.set(values, props, 'hwb', { parsed: true });
   }
   set blackness(val: number) { this.bk = val; }
 
   set ciel(val: number) {
     const [x, ciea, cieb] = this.valuesTo('lab');
-    const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
-    this.setLab([val, ciea, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+    const props: colorProperty[] = [...Couleur.propertiesOf('lab'), 'a'];
+    const values = [val, ciea, cieb, this.a];
+    this.set(values, props, 'lab', { parsed: true });
   }
   set CIElightness(val: number) { this.ciel = val; }
 
   set ciea(val: number) {
     const [ciel, x, cieb] = this.valuesTo('lab');
     const props: colorProperty[] = [...Couleur.propertiesOf('lab'), 'a'];
-    this.setLab([ciel, val, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+    const values = [ciel, val, cieb, this.a];
+    this.set(values, props, 'lab', { parsed: true });
   }
 
   set cieb(val: number) {
     const [ciel, ciea, x] = this.valuesTo('lab');
     const props: colorProperty[] = [...Couleur.propertiesOf('lab'), 'a'];
-    this.setLab([ciel, ciea, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+    const values = [ciel, ciea, val, this.a];
+    this.set(values, props, 'lab', { parsed: true });
   }
 
   set ciec(val: number) {
     const [ciel, x, cieh] = this.valuesTo('lch');
     const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
-    this.setLch([ciel, val, cieh, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+    const values = [ciel, val, cieh, this.a];
+    this.set(values, props, 'lch', { parsed: true });
   }
   set CIEchroma(val: number) { this.ciec = val; }
 
   set cieh(val: number) {
     const [ciel, ciec, x] = this.valuesTo('lch');
     const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
-    this.setLch([ciel, ciec, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+    const values = [ciel, ciec, val, this.a];
+    this.set(values, props, 'lch', { parsed: true });
   }
   set CIEhue(val: number) { this.cieh = val; }
 

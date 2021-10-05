@@ -1103,7 +1103,7 @@ class Couleur {
      * @throws {string} when the parameter isn't a valid color string.
      */
     constructor(color) {
-        const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
+        const isAlpha = (val, def = '1') => !!val ? String(val) : (val === 0) ? '0' : def;
         if (color instanceof Couleur) {
             this.r = color.r;
             this.g = color.g;
@@ -1112,7 +1112,7 @@ class Couleur {
         }
         else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {
             [this.r, this.g, this.b] = Couleur.toGamut('srgb', color.slice(0, 3), 'srgb', { method: 'naive' });
-            this.a = Math.max(0, Math.min(isAlpha(color[3]), 1));
+            this.a = Math.max(0, Math.min(Number(isAlpha(color[3])), 1));
         }
         else if (typeof color === 'string') {
             const format = Couleur.matchSyntax(color.trim());
@@ -1121,25 +1121,18 @@ class Couleur {
                     this.setHex([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')]);
                     break;
                 case 'rgb':
-                    this.setRgb([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-                    break;
                 case 'hsl':
-                    this.setHsl([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-                    break;
                 case 'hwb':
-                    this.setHwb([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-                    break;
                 case 'lab':
-                    this.setLab([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-                    break;
                 case 'lch':
-                    this.setLch([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-                    break;
                 case 'oklab':
-                    this.setOklab([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
-                    break;
                 case 'oklch':
-                    this.setOklch([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])]);
+                    {
+                        const values = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+                        const props = [...Couleur.propertiesOf(format.id), 'a'];
+                        const space = Couleur.getSpace(format.id);
+                        this.set(values, props, space);
+                    }
                     break;
                 case 'color':
                     this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
@@ -1432,10 +1425,12 @@ class Couleur {
      * @param data Array of unparsed values.
      * @param props Array of color property names the values correspond to.
      * @param spaceID Color space of the values, or its identifier.
+     * @param options
+     * @param options.parsed Whether the provided values are already parsed.
      */
-    set(data, props, spaceID) {
+    set(data, props, spaceID, { parsed = false } = {}) {
         const space = Couleur.getSpace(spaceID);
-        const values = props.map((p, i) => Couleur.parse(data[i], p));
+        const values = parsed ? data.map(v => Number(v)) : props.map((p, i) => Couleur.parse(data[i], p));
         [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
         const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
         this.a = Couleur.parse(isAlpha(data[3]), 'a');
@@ -1566,63 +1561,22 @@ class Couleur {
         else
             return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
     }
-    /* RGB (functional) */
-    /**
-     * Calculates all properties of the color from its functional RGB expression.
-     * @param rgba The unparsed values of the r, g, b, a properties.
-     */
-    setRgb(rgba) { this.set(rgba, ['r', 'g', 'b'], 'srgb'); }
+    /* OTHER FORMATS */
     /** @returns RGB expression of the color. */
     get rgb() { return this.expr('rgb', { precision: 2 }); }
     get rgba() { return this.rgb; }
-    /* HSL */
-    /**
-     * Calculates all properties of the color from its HSL expression.
-     * @param hsla The unparsed values of the h, s, l, a properties.
-     */
-    setHsl(hsla) { this.set(hsla, ['h', 's', 'l'], 'hsl'); }
     /** @returns HSL expression of the color. */
     get hsl() { return this.expr('hsl', { precision: 2 }); }
     get hsla() { return this.hsl; }
-    /* HWB */
-    /**
-     * Calculates all properties of the color from its HWB expression.
-     * @param hwba The unparsed values of the h, w, bk, a properties.
-     */
-    setHwb(hwba) { this.set(hwba, ['h', 'w', 'bk'], 'hwb'); }
     /** @returns HWB expression of the color. */
     get hwb() { return this.expr('hwb', { precision: 2 }); }
-    /* LAB */
-    /**
-     * Calculates all properties of the color from its LAB expression.
-     * @param laba The unparsed values of the ciel, ciea, cieb, a properties.
-     */
-    setLab(laba) { this.set(laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
     /** @returns LAB expression of the color. */
     get lab() { return this.expr('lab', { precision: 2 }); }
-    /* LCH */
-    /**
-     * Calculates all properties of the color from its LCH expression.
-     * @param lcha The unparsed values of the ciel, ciec, cieh, a properties.
-     */
-    setLch(lcha) { this.set(lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
     /** @returns LCH expression of the color. */
     get lch() { return this.expr('lch', { precision: 2 }); }
-    /* OKLAB */
-    /**
-     * Calculates all properties of the color from its OKLAB expression.
-     * @param oklaba The unparsed values of the okl, oka, okb, a properties.
-     */
-    setOklab(oklaba) { this.set(oklaba, ['okl', 'oka', 'okb'], 'oklab'); }
     /** @returns OKLAB expression of the color. */
     get oklab() { return this.expr('oklab', { precision: 2 }); }
-    /* OKLCH */
-    /**
-     * Calculates all properties of the color from its OKLAB expression.
-     * @param oklcha The unparsed values of the okl, oka, okb, a properties.
-     */
-    setOklch(oklcha) { this.set(oklcha, ['okl', 'okc', 'okh'], 'oklch'); }
-    /** @returns OKLAB expression of the color. */
+    /** @returns OKLCH expression of the color. */
     get oklch() { return this.expr('oklch', { precision: 2 }); }
     /* PROFILED COLORS */
     /**
@@ -1672,59 +1626,69 @@ class Couleur {
     set h(val) {
         const [x, s, l] = this.valuesTo('hsl');
         const props = [...Couleur.propertiesOf('hsl'), 'a'];
-        this.setHsl([val, s, l, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+        const values = [val, s, l, this.a];
+        this.set(values, props, 'hsl', { parsed: true });
     }
     set hue(val) { this.h = val; }
     set s(val) {
         const [h, x, l] = this.valuesTo('hsl');
         const props = [...Couleur.propertiesOf('hsl'), 'a'];
-        this.setHsl([h, val, l, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+        const values = [h, val, l, this.a];
+        this.set(values, props, 'hsl', { parsed: true });
     }
     set saturation(val) { this.s = val; }
     set l(val) {
         const [h, s, x] = this.valuesTo('hsl');
         const props = [...Couleur.propertiesOf('hsl'), 'a'];
-        this.setHsl([h, s, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+        const values = [h, s, val, this.a];
+        this.set(values, props, 'hsl', { parsed: true });
     }
     set lightness(val) { this.l = val; }
     set w(val) {
         const [h, x, bk] = this.valuesTo('hwb');
         const props = [...Couleur.propertiesOf('hwb'), 'a'];
-        this.setHwb([h, val, bk, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+        const values = [h, val, bk, this.a];
+        this.set(values, props, 'hwb', { parsed: true });
     }
     set whiteness(val) { this.w = val; }
     set bk(val) {
         const [h, w, x] = this.valuesTo('hwb');
         const props = [...Couleur.propertiesOf('hwb'), 'a'];
-        this.setHwb([h, w, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+        const values = [h, w, val, this.a];
+        this.set(values, props, 'hwb', { parsed: true });
     }
     set blackness(val) { this.bk = val; }
     set ciel(val) {
         const [x, ciea, cieb] = this.valuesTo('lab');
-        const props = [...Couleur.propertiesOf('lch'), 'a'];
-        this.setLab([val, ciea, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+        const props = [...Couleur.propertiesOf('lab'), 'a'];
+        const values = [val, ciea, cieb, this.a];
+        this.set(values, props, 'lab', { parsed: true });
     }
     set CIElightness(val) { this.ciel = val; }
     set ciea(val) {
         const [ciel, x, cieb] = this.valuesTo('lab');
         const props = [...Couleur.propertiesOf('lab'), 'a'];
-        this.setLab([ciel, val, cieb, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+        const values = [ciel, val, cieb, this.a];
+        this.set(values, props, 'lab', { parsed: true });
     }
     set cieb(val) {
         const [ciel, ciea, x] = this.valuesTo('lab');
         const props = [...Couleur.propertiesOf('lab'), 'a'];
-        this.setLab([ciel, ciea, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+        const values = [ciel, ciea, val, this.a];
+        this.set(values, props, 'lab', { parsed: true });
     }
     set ciec(val) {
         const [ciel, x, cieh] = this.valuesTo('lch');
         const props = [...Couleur.propertiesOf('lch'), 'a'];
-        this.setLch([ciel, val, cieh, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+        const values = [ciel, val, cieh, this.a];
+        this.set(values, props, 'lch', { parsed: true });
     }
     set CIEchroma(val) { this.ciec = val; }
     set cieh(val) {
         const [ciel, ciec, x] = this.valuesTo('lch');
         const props = [...Couleur.propertiesOf('lch'), 'a'];
-        this.setLch([ciel, ciec, val, this.a].map((v, k) => Couleur.unparse(v, props[k])));
+        const values = [ciel, ciec, val, this.a];
+        this.set(values, props, 'lch', { parsed: true });
     }
     set CIEhue(val) { this.cieh = val; }
     /** @returns Gets the parsed value of one of the color properties. */
