@@ -18,7 +18,7 @@ const options = {
 };
 
 // Compite TypeScript to JavaScript
-const tsc = Deno.run({ cmd: ['cmd', '/c', 'tsc', 'src/ts/main.ts', '--target', 'esnext', '--module', 'esnext'] });
+const tsc = Deno.run({ cmd: ['cmd', '/c', 'tsc', 'src/ts/main.ts', '--target', 'esnext', '--module', 'esnext', '--strict'] });
 await tsc.status();
 
 // Bundle JavaScript modules together

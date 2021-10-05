@@ -19,13 +19,12 @@ const options = {
 
 const watcher = Deno.watchFs('./src/ts');
 for await (const event of watcher) {
-  console.log(`File system event: ${event.kind} > ${event.paths}`);
-
   // Check if a TypeScript file was modified. Do nothing if not.
   if ([event.paths].flat().filter(path => path.endsWith('.ts')).length === 0) continue;
+  console.log(`File system event: ${event.kind} > ${event.paths}`);
 
   // Compite TypeScript to JavaScript
-  const tsc = Deno.run({ cmd: ['cmd', '/c', 'tsc', 'src/ts/main.ts', '--target esnext', '--module esnext', '--strict'] });
+  const tsc = Deno.run({ cmd: ['cmd', '/c', 'tsc', 'src/ts/main.ts', '--target', 'esnext', '--module', 'esnext', '--strict'] });
   await tsc.status();
 
   // Bundle JavaScript modules together
