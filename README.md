@@ -6,15 +6,12 @@ My main goal with **colori** is to make it easy to use for everyone. You just do
 
 * * *
 
-**colori**'s main functions are:
+**colori**'s capabilities are:
 
-  - **color conversion**: supported formats are RGB (hexadecimal or functional), HSL, HWB, LAB and LCH. Convert any color from any of these formats to any other with ease.
-  - **color manipulation**:
-    - blend colors together...
-    - ...or unblend them!
-    - calculate the contrast between two colors
-    - automatically improve the contrast between two colors
-    - make beautiful gradients
-    - etc.
+  - **color conversion**: supported CSS formats are RGB (hexadecimal or functional), HSL, HWB, LAB, LCH and the color() function (+ OKLAB and OKLCH, but their syntax may change). Convert any color from any of these formats to any other with ease.
+  - **color blending**: overlay multiple colors over each other and compute the resulting visible color with alpha blending. Colors can also be *un*blended.
+  - **contrast computing**: calculate the contrast between two colors. Automatically modify a color to improve its contrast with another.
+  - **gradients**: create beautiful gradients in any supported color space, avoiding the *desaturated zone* of native CSS gradients.
+  - **and more**: clamp a color to a color space, compute the distance between two colors...
 
 [Check out the wiki](https://github.com/Remiscan/colori/wiki) to discover all of **colori**'s capabilities!
