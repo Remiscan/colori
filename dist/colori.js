@@ -14,12 +14,16 @@ function pRound(number, precision = 5) {
     let x = (typeof number === 'number') ? number : Number(number);
     return Number(parseFloat(x.toPrecision(precision)));
 }
+function toUnparsedAlpha(val, def = '1') {
+    return !!val ? String(val) : (val === 0) ? '0' : def;
+}
 
 const utils = /*#__PURE__*/Object.freeze({
     __proto__: null,
     pad: pad,
     angleToRange: angleToRange,
-    pRound: pRound
+    pRound: pRound,
+    toUnparsedAlpha: toUnparsedAlpha
 });
 
 // All of these functions take an array of parsed color values (without alpha),
@@ -1103,7 +1107,6 @@ class Couleur {
      * @throws {string} when the parameter isn't a valid color string.
      */
     constructor(color) {
-        const isAlpha = (val, def = '1') => !!val ? String(val) : (val === 0) ? '0' : def;
         if (color instanceof Couleur) {
             this.r = color.r;
             this.g = color.g;
@@ -1112,13 +1115,13 @@ class Couleur {
         }
         else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {
             [this.r, this.g, this.b] = Couleur.toGamut('srgb', color.slice(0, 3), 'srgb', { method: 'naive' });
-            this.a = Math.max(0, Math.min(Number(isAlpha(color[3])), 1));
+            this.a = Math.max(0, Math.min(Number(toUnparsedAlpha(color[3])), 1));
         }
         else if (typeof color === 'string') {
             const format = Couleur.matchSyntax(color.trim());
             switch (format.id) {
                 case 'hex':
-                    this.setHex([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')]);
+                    this.setHex([format.data[1], format.data[2], format.data[3], toUnparsedAlpha(format.data[4], 'ff')]);
                     break;
                 case 'rgb':
                 case 'hsl':
@@ -1128,14 +1131,14 @@ class Couleur {
                 case 'oklab':
                 case 'oklch':
                     {
-                        const values = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+                        const values = [format.data[1], format.data[2], format.data[3], toUnparsedAlpha(format.data[4])];
                         const props = [...Couleur.propertiesOf(format.id), 'a'];
                         const space = Couleur.getSpace(format.id);
                         this.set(values, props, space);
                     }
                     break;
                 case 'color':
-                    this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
+                    this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], toUnparsedAlpha(format.data[5])]);
                     break;
                 default:
                     throw `${JSON.stringify(color)} is not a valid color format`;
@@ -1432,8 +1435,7 @@ class Couleur {
         const space = Couleur.getSpace(spaceID);
         const values = parsed ? data.map(v => Number(v)) : props.map((p, i) => Couleur.parse(data[i], p));
         [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
-        const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
-        this.a = Couleur.parse(isAlpha(data[3]), 'a');
+        this.a = Couleur.parse(toUnparsedAlpha(data[3]), 'a');
     }
     /* GENERAL GETTER */
     /**
@@ -1587,14 +1589,12 @@ class Couleur {
     setColor(spaceID, values) {
         let vals = values.slice(0, 3).map(v => Couleur.parse(v));
         const a = Couleur.parse(values[3]);
-        //const clamp = v => Math.max(0, Math.min(v, 1));
         switch (spaceID) {
             case 'srgb':
             case 'display-p3':
             case 'a98-rgb':
             case 'prophoto-rgb':
             case 'rec2020':
-            //rgb = rgb.map(v => clamp(v));
             case 'oklab':
             case 'oklch':
             case 'xyz':
@@ -1691,6 +1691,39 @@ class Couleur {
         this.set(values, props, 'lch', { parsed: true });
     }
     set CIEhue(val) { this.cieh = val; }
+    set okl(val) {
+        const [x, oka, okb] = this.valuesTo('oklab');
+        const props = [...Couleur.propertiesOf('oklab'), 'a'];
+        const values = [val, oka, okb, this.a];
+        this.set(values, props, 'oklab', { parsed: true });
+    }
+    set OKlightness(val) { this.okl = val; }
+    set oka(val) {
+        const [okl, x, okb] = this.valuesTo('oklab');
+        const props = [...Couleur.propertiesOf('oklab'), 'a'];
+        const values = [okl, val, okb, this.a];
+        this.set(values, props, 'oklab', { parsed: true });
+    }
+    set okb(val) {
+        const [okl, oka, x] = this.valuesTo('oklab');
+        const props = [...Couleur.propertiesOf('oklab'), 'a'];
+        const values = [okl, oka, val, this.a];
+        this.set(values, props, 'oklab', { parsed: true });
+    }
+    set okc(val) {
+        const [okl, x, okh] = this.valuesTo('oklch');
+        const props = [...Couleur.propertiesOf('oklch'), 'a'];
+        const values = [okl, val, okh, this.a];
+        this.set(values, props, 'oklch', { parsed: true });
+    }
+    set OKchroma(val) { this.okc = val; }
+    set okh(val) {
+        const [okl, okc, x] = this.valuesTo('oklch');
+        const props = [...Couleur.propertiesOf('oklch'), 'a'];
+        const values = [okl, okc, val, this.a];
+        this.set(values, props, 'oklch', { parsed: true });
+    }
+    set OKhue(val) { this.okh = val; }
     /** @returns Gets the parsed value of one of the color properties. */
     get red() { return this.r; }
     get green() { return this.g; }
@@ -1715,6 +1748,14 @@ class Couleur {
     get CIEchroma() { return this.ciec; }
     get cieh() { return this.valuesTo('lch')[2]; }
     get CIEhue() { return this.cieh; }
+    get okl() { return this.valuesTo('oklab')[0]; }
+    get OKlightness() { return this.okl; }
+    get oka() { return this.valuesTo('oklab')[1]; }
+    get okb() { return this.valuesTo('oklab')[2]; }
+    get okc() { return this.valuesTo('oklch')[1]; }
+    get OKchroma() { return this.okc; }
+    get okh() { return this.valuesTo('oklch')[2]; }
+    get OKhue() { return this.okh; }
     set luminance(val) {
         // Scale r, g, b to reach the desired luminance value
         const [r, g, b] = this.values;
@@ -2399,12 +2440,9 @@ class Couleur {
             case 'rgba': return ['r', 'g', 'b'];
             case 'hsl':
             case 'hsla': return ['h', 's', 'l'];
-            case 'hwb':
-            case 'hwba': return ['h', 'w', 'bk'];
-            case 'lab':
-            case 'laba': return ['ciel', 'ciea', 'cieb'];
-            case 'lch':
-            case 'lcha': return ['ciel', 'ciec', 'cieh'];
+            case 'hwb': return ['h', 'w', 'bk'];
+            case 'lab': return ['ciel', 'ciea', 'cieb'];
+            case 'lch': return ['ciel', 'ciec', 'cieh'];
             case 'oklab': return ['okl', 'oka', 'okb'];
             case 'oklch': return ['okl', 'okc', 'okh'];
             default: return [];
@@ -2412,7 +2450,7 @@ class Couleur {
     }
     /** @returns Array of all color property short names. */
     static get properties() {
-        return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
+        return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh', 'okl', 'oka', 'okb', 'okc', 'okh'];
     }
     /** @returns} Supported color spaces. */
     static get colorSpaces() { return colorSpaces; }
