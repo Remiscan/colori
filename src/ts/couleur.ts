@@ -85,7 +85,7 @@ export default class Couleur {
    * @param color
    * @returns
    */
-  static makeInstance(color: color): Couleur {
+  private static makeInstance(color: color): Couleur {
     if (color instanceof Couleur) return color;
     else                          return new Couleur(color);
   }
@@ -97,7 +97,7 @@ export default class Couleur {
    * @returns Recognized syntax.
    * @throws {string} when {couleur} is not in a valid format.
    */
-  static matchSyntax(colorString: colorString): { id: string, data: string[] } {
+  private static matchSyntax(colorString: colorString): { id: string, data: string[] } {
     const tri = colorString.slice(0, 3);
     
     // Predetermine the format, to save regex-matching time
@@ -145,7 +145,7 @@ export default class Couleur {
    * @param options.clamp Whether the value should de clamped to its color space bounds.
    * @returns The properly parsed number.
    */
-  static parse(value: number | string, prop: colorProperty | null = null, { clamp = true }: { clamp?: boolean } = {}): number {
+  private static parse(value: number | string, prop: colorProperty | null = null, { clamp = true }: { clamp?: boolean } = {}): number {
     const val = String(value);
     const nval = parseFloat(val);
 
@@ -288,7 +288,7 @@ export default class Couleur {
    * @param options.precision How many decimals to display.
    * @returns The unparsed value, ready to insert in a CSS expression.
    */
-  static unparse(value: number, prop: colorProperty | null, { precision = 0 }: { precision?: number } = {}): string {
+  private static unparse(value: number, prop: colorProperty | null, { precision = 0 }: { precision?: number } = {}): string {
     switch (prop) {
       case 'r': case 'g': case 'b':
         return precision === null ? `${255 * value}` : `${Math.round(10**precision * 255 * value) / (10**precision)}`;
@@ -320,7 +320,7 @@ export default class Couleur {
    * @param options
    * @param options.parsed Whether the provided values are already parsed.
    */
-  set(data: Array<string|number>, props: Array<colorProperty|null>, spaceID: colorSpaceOrID, { parsed = false }: { parsed?: boolean } = {}) {
+  private set(data: Array<string|number>, props: Array<colorProperty|null>, spaceID: colorSpaceOrID, { parsed = false }: { parsed?: boolean } = {}) {
     const space = Couleur.getSpace(spaceID);
     const values = parsed ? data.map(v => Number(v)) : props.map((p, i) => Couleur.parse(data[i], p));
     [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
@@ -441,7 +441,7 @@ export default class Couleur {
    * Calculates all properties of the color from its hexadecimal expression.
    * @param hexa The hexadecimal values of the r, g, b, a properties.
    */
-  setHex(hexa: Array<string|number>) {
+  private setHex(hexa: Array<string|number>) {
     let [r, g, b] = hexa.map(v => String(v));
     let a = String(hexa[3]) || 'ff';
 
@@ -493,7 +493,7 @@ export default class Couleur {
    * @param spaceID 
    * @param values The parsed values of the color's properties.
    */
-  setColor(spaceID: string, values: Array<string|number>): void {
+  private setColor(spaceID: string, values: Array<string|number>): void {
     let vals = values.slice(0, 3).map(v => Couleur.parse(v));
     const a = Couleur.parse(values[3]);
 
@@ -878,7 +878,7 @@ export default class Couleur {
    *                                   null if the value should be added to the previous value of the property.
    * @returns The modified color.
    */
-   change(prop: colorProperty, value: string | number, { action = null }: { action?: string | null } = {}): Couleur {
+  change(prop: colorProperty, value: string | number, { action = null }: { action?: string | null } = {}): Couleur {
     const replace = action === 'replace';
     const scale = action === 'scale';
     const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, { clamp: false });
@@ -950,7 +950,7 @@ export default class Couleur {
    * @param alpha Alpha value that will replace overlay's.
    * @returns The resulting color.
    */
-   static blend(backgroundColor: color, overlayColor: color, alpha?: number | string): Couleur {
+  static blend(backgroundColor: color, overlayColor: color, alpha?: number | string): Couleur {
     const background = Couleur.makeInstance(backgroundColor);
     const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
@@ -998,7 +998,7 @@ export default class Couleur {
    * @returns The background that is solution to the equation, if it has one.
    * @throws if the equation has an infinite amount of solutions.
    */
-   static unblend(mixColor: color, overlayColor: color, alpha?: number | string): Couleur | null {
+  static unblend(mixColor: color, overlayColor: color, alpha?: number | string): Couleur | null {
     const mix = Couleur.makeInstance(mixColor);
     const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
@@ -1435,7 +1435,7 @@ export default class Couleur {
    * @param spaceID Identifier of a color space, or a color space itself.
    * @returns The corresponding color space object.
    */
-  static getSpace(spaceID: colorSpaceOrID): ColorSpace {
+  private static getSpace(spaceID: colorSpaceOrID): ColorSpace {
     let result: ColorSpace | undefined;
     if (typeof spaceID !== 'string') result = spaceID;
     else {
@@ -1451,7 +1451,7 @@ export default class Couleur {
   }
 
   /** @returns Array of supported syntaxes. */
-  static get formats(): CSSFormat[] { return Formats; }
+  private static get formats(): CSSFormat[] { return Formats; }
 
   /** @returns List of named colors in CSS. */
   static get namedColors(): Map<string, string> { return namedColors; }
