@@ -14,3 +14,7 @@ export function pRound(number: number, precision: number = 5): number {
   let x = (typeof number === 'number') ? number : Number(number);
   return Number(parseFloat(x.toPrecision(precision)));
 }
+
+export function toUnparsedAlpha(val: string | number, def: string = '1'): string {
+  return !!val ? String(val) : (val === 0) ? '0' : def;
+}

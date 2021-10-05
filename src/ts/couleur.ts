@@ -37,8 +37,6 @@ export default class Couleur {
    * @throws {string} when the parameter isn't a valid color string.
    */
   constructor(color: color) {
-    const isAlpha = (val: string | number, def: string = '1'): string => !!val ? String(val) : (val === 0) ? '0' : def;
-
     if (color instanceof Couleur) {
       this.r = color.r;
       this.g = color.g;
@@ -48,7 +46,7 @@ export default class Couleur {
 
     else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {
       [this.r, this.g, this.b] = Couleur.toGamut('srgb', color.slice(0, 3), 'srgb', { method: 'naive' });
-      this.a = Math.max(0, Math.min(Number(isAlpha(color[3])), 1));
+      this.a = Math.max(0, Math.min(Number(Utils.toUnparsedAlpha(color[3])), 1));
     }
 
     else if (typeof color === 'string') {
@@ -56,7 +54,7 @@ export default class Couleur {
 
       switch (format.id) {
         case 'hex':
-          this.setHex([format.data[1], format.data[2], format.data[3], isAlpha(format.data[4], 'ff')]);
+          this.setHex([format.data[1], format.data[2], format.data[3], Utils.toUnparsedAlpha(format.data[4], 'ff')]);
           break;
         case 'rgb':
         case 'hsl':
@@ -65,13 +63,13 @@ export default class Couleur {
         case 'lch':
         case 'oklab':
         case 'oklch': {
-          const values = [format.data[1], format.data[2], format.data[3], isAlpha(format.data[4])];
+          const values = [format.data[1], format.data[2], format.data[3], Utils.toUnparsedAlpha(format.data[4])];
           const props: colorProperty[] = [...Couleur.propertiesOf(format.id), 'a'];
           const space = Couleur.getSpace(format.id);
           this.set(values, props, space);
         } break;
         case 'color':
-          this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], isAlpha(format.data[5])]);
+          this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], Utils.toUnparsedAlpha(format.data[5])]);
           break;
         default:
           throw `${JSON.stringify(color)} is not a valid color format`;
@@ -327,8 +325,7 @@ export default class Couleur {
     const values = parsed ? data.map(v => Number(v)) : props.map((p, i) => Couleur.parse(data[i], p));
     [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
 
-    const isAlpha = (val: string | number, def = 1) => !!val ? val : (val === 0) ? 0 : def;
-    this.a = Couleur.parse(isAlpha(data[3]), 'a');
+    this.a = Couleur.parse(Utils.toUnparsedAlpha(data[3]), 'a');
   }
 
 
