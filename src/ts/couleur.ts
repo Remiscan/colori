@@ -497,10 +497,8 @@ export default class Couleur {
     let vals = values.slice(0, 3).map(v => Couleur.parse(v));
     const a = Couleur.parse(values[3]);
 
-    //const clamp = v => Math.max(0, Math.min(v, 1));
     switch (spaceID) {
       case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
-        //rgb = rgb.map(v => clamp(v));
       case 'oklab': case 'oklch':
       case 'xyz':
         vals = Couleur.convert(spaceID, 'srgb', vals);
@@ -612,6 +610,44 @@ export default class Couleur {
   }
   set CIEhue(val: number) { this.cieh = val; }
 
+  set okl(val: number) {
+    const [x, oka, okb] = this.valuesTo('oklab');
+    const props: colorProperty[] = [...Couleur.propertiesOf('oklab'), 'a'];
+    const values = [val, oka, okb, this.a];
+    this.set(values, props, 'oklab', { parsed: true });
+  }
+  set OKlightness(val: number) { this.okl = val; }
+
+  set oka(val: number) {
+    const [okl, x, okb] = this.valuesTo('oklab');
+    const props: colorProperty[] = [...Couleur.propertiesOf('oklab'), 'a'];
+    const values = [okl, val, okb, this.a];
+    this.set(values, props, 'oklab', { parsed: true });
+  }
+
+  set okb(val: number) {
+    const [okl, oka, x] = this.valuesTo('oklab');
+    const props: colorProperty[] = [...Couleur.propertiesOf('oklab'), 'a'];
+    const values = [okl, oka, val, this.a];
+    this.set(values, props, 'oklab', { parsed: true });
+  }
+
+  set okc(val: number) {
+    const [okl, x, okh] = this.valuesTo('oklch');
+    const props: colorProperty[] = [...Couleur.propertiesOf('oklch'), 'a'];
+    const values = [okl, val, okh, this.a];
+    this.set(values, props, 'oklch', { parsed: true });
+  }
+  set OKchroma(val: number) { this.okc = val; }
+
+  set okh(val: number) {
+    const [okl, okc, x] = this.valuesTo('oklch');
+    const props: colorProperty[] = [...Couleur.propertiesOf('oklch'), 'a'];
+    const values = [okl, okc, val, this.a];
+    this.set(values, props, 'oklch', { parsed: true });
+  }
+  set OKhue(val: number) { this.okh = val; }
+
   /** @returns Gets the parsed value of one of the color properties. */
   get red(): number { return this.r; }
   get green(): number { return this.g; }
@@ -636,6 +672,14 @@ export default class Couleur {
   get CIEchroma(): number { return this.ciec; }
   get cieh(): number { return this.valuesTo('lch')[2]; }
   get CIEhue(): number { return this.cieh; }
+  get okl(): number { return this.valuesTo('oklab')[0]; }
+  get OKlightness(): number { return this.okl; }
+  get oka(): number { return this.valuesTo('oklab')[1]; }
+  get okb(): number { return this.valuesTo('oklab')[2]; }
+  get okc(): number { return this.valuesTo('oklch')[1]; }
+  get OKchroma(): number { return this.okc; }
+  get okh(): number { return this.valuesTo('oklch')[2]; }
+  get OKhue(): number { return this.okh; }
 
   set luminance(val: number) {
     // Scale r, g, b to reach the desired luminance value
@@ -1369,9 +1413,9 @@ export default class Couleur {
     switch(format) {
       case 'rgb': case 'rgba': return ['r', 'g', 'b'];
       case 'hsl': case 'hsla': return ['h', 's', 'l'];
-      case 'hwb': case 'hwba': return ['h', 'w', 'bk'];
-      case 'lab': case 'laba': return ['ciel', 'ciea', 'cieb'];
-      case 'lch': case 'lcha': return ['ciel', 'ciec', 'cieh'];
+      case 'hwb':              return ['h', 'w', 'bk'];
+      case 'lab':              return ['ciel', 'ciea', 'cieb'];
+      case 'lch':              return ['ciel', 'ciec', 'cieh'];
       case 'oklab':            return ['okl', 'oka', 'okb'];
       case 'oklch':            return ['okl', 'okc', 'okh'];
       default: return [];
@@ -1380,7 +1424,7 @@ export default class Couleur {
 
   /** @returns Array of all color property short names. */
   static get properties(): colorProperty[] {
-    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
+    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh', 'okl', 'oka', 'okb', 'okc', 'okh'];
   }
 
   /** @returns} Supported color spaces. */
