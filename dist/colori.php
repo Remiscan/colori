@@ -1746,7 +1746,6 @@
     }
     private function setCIEHue(float $val): void { $this->setCIEH($val); }
 
-
     private function setOkl(float $val): void {
       [$x, $oka, $okb] = $this->valuesTo('oklab');
       $props = self::propertiesOf('oklab'); $props[] = 'a';
