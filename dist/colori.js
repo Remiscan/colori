@@ -71,9 +71,7 @@ function srgb_to_hsl(rgb) {
             case g:
                 h = (b - r) / chroma + 2;
                 break;
-            case b:
-                h = (r - g) / chroma + 4;
-                break;
+            default: h = (r - g) / chroma + 4;
         }
     h = 60 * h;
     while (h < 0)
@@ -93,8 +91,8 @@ function hsl_to_srgb(hsl) {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
     const m = s * Math.min(l, 1 - l);
-    const k = n => (n + h / 30) % 12;
-    const f = n => l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
+    const k = (n) => (n + h / 30) % 12;
+    const f = (n) => l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
     const r = f(0);
     const g = f(8);
     const b = f(4);
@@ -234,7 +232,7 @@ function xyz_to_lab(xyz) {
     const κ = 24389 / 27;
     const w = [0.96422, 1, 0.82521];
     const [x, y, z] = xyz.map((v, k) => v / w[k]);
-    const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
+    const f = (x) => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
     const [f0, f1, f2] = [x, y, z].map(v => f(v));
     return [
         (116 * f1 - 16) / 100,
@@ -394,7 +392,7 @@ class Graph {
      */
     getNode(id) {
         const node = this.nodes.find(node => node.id === id);
-        if (typeof node === 'undefined')
+        if (node == null)
             throw `Node ${JSON.stringify(id)} does not exist`;
         return node;
     }
@@ -456,14 +454,15 @@ class Graph {
         // Source of the math: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
         const orderedList = [];
         const unvisitedNodes = [...this.nodes];
-        const visit = node => {
+        const visit = (node) => {
             if (node.visited === true)
                 return;
             if (node.visited === 'temp')
                 throw 'The graph is not a directed acyclic graph';
             node.visit('temp'); // Mark visit as temporary to detect if we loop back to this node
             for (const link of node.links) {
-                visit(link);
+                const destination = this.getNode(link);
+                visit(destination);
             }
             node.visit(true);
             orderedList.push(node);
@@ -506,7 +505,7 @@ function APCA(rgbText, rgbBack) {
     // 1. Compute luminances
     const coeffs = [0.2126729, 0.7151522, 0.0721750];
     const gamma = 2.4;
-    const luminance = rgb => rgb.reduce((sum, v, i) => sum + Math.pow(v, gamma) * coeffs[i], 0);
+    const luminance = (rgb) => rgb.reduce((sum, v, i) => sum + Math.pow(v, gamma) * coeffs[i], 0);
     let [Ltext, Lback] = [rgbText, rgbBack].map(rgb => luminance(rgb));
     // 2. Clamp luminances
     const blackClampTrigger = 0.03;
@@ -728,6 +727,7 @@ const colorSpaces = [
         links: ['lin_srgb', 'hsl']
     }, {
         id: 'lin_srgb',
+        gamut: [[0, 1], [0, 1], [0, 1]],
         links: ['srgb', 'd65xyz', 'oklab']
     }, {
         id: 'hsl',
@@ -762,6 +762,7 @@ const colorSpaces = [
     }, {
         id: 'd65xyz',
         whitepoint: 'd65',
+        gamut: [[-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity]],
         links: ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020']
     }, {
         id: 'display-p3',
@@ -771,6 +772,7 @@ const colorSpaces = [
         links: ['lin_display-p3']
     }, {
         id: 'lin_display-p3',
+        gamut: [[-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity]],
         links: ['display-p3', 'd65xyz']
     }, {
         id: 'a98-rgb',
@@ -780,6 +782,7 @@ const colorSpaces = [
         links: ['lin_a98-rgb']
     }, {
         id: 'lin_a98-rgb',
+        gamut: [[-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity]],
         links: ['a98-rgb', 'd65xyz']
     }, {
         id: 'prophoto-rgb',
@@ -789,6 +792,7 @@ const colorSpaces = [
         links: ['lin_prophoto-rgb']
     }, {
         id: 'lin_prophoto-rgb',
+        gamut: [[-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity]],
         links: ['prophoto-rgb', 'xyz']
     }, {
         id: 'rec2020',
@@ -798,6 +802,7 @@ const colorSpaces = [
         links: ['lin_rec2020']
     }, {
         id: 'lin_rec2020',
+        gamut: [[-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity]],
         links: ['rec2020', 'd65xyz']
     }, {
         id: 'oklab',
@@ -812,156 +817,156 @@ const colorSpaces = [
     }
 ];
 
-const namedColors = {
-    aliceblue: 'f0f8ff',
-    antiquewhite: 'faebd7',
-    aqua: '00ffff',
-    aquamarine: '7fffd4',
-    azure: 'f0ffff',
-    beige: 'f5f5dc',
-    bisque: 'ffe4c4',
-    black: '000000',
-    blanchedalmond: 'ffebcd',
-    blue: '0000ff',
-    blueviolet: '8a2be2',
-    brown: 'a52a2a',
-    burlywood: 'deb887',
-    cadetblue: '5f9ea0',
-    chartreuse: '7fff00',
-    chocolate: 'd2691e',
-    coral: 'ff7f50',
-    cornflowerblue: '6495ed',
-    cornsilk: 'fff8dc',
-    crimson: 'dc143c',
-    cyan: '00ffff',
-    darkblue: '00008b',
-    darkcyan: '008b8b',
-    darkgoldenrod: 'b8860b',
-    darkgray: 'a9a9a9',
-    darkgrey: 'a9a9a9',
-    darkgreen: '006400',
-    darkkhaki: 'bdb76b',
-    darkmagenta: '8b008b',
-    darkolivegreen: '556b2f',
-    darkorange: 'ff8c00',
-    darkorchid: '9932cc',
-    darkred: '8b0000',
-    darksalmon: 'e9967a',
-    darkseagreen: '8fbc8f',
-    darkslateblue: '483d8b',
-    darkslategray: '2f4f4f',
-    darkslategrey: '2f4f4f',
-    darkturquoise: '00ced1',
-    darkviolet: '9400d3',
-    deeppink: 'ff1493',
-    deepskyblue: '00bfff',
-    dimgray: '696969',
-    dimgrey: '696969',
-    dodgerblue: '1e90ff',
-    firebrick: 'b22222',
-    floralwhite: 'fffaf0',
-    forestgreen: '228b22',
-    fuchsia: 'ff00ff',
-    gainsboro: 'dcdcdc',
-    ghostwhite: 'f8f8ff',
-    gold: 'ffd700',
-    goldenrod: 'daa520',
-    gray: '808080',
-    grey: '808080',
-    green: '008000',
-    greenyellow: 'adff2f',
-    honeydew: 'f0fff0',
-    hotpink: 'ff69b4',
-    indianred: 'cd5c5c',
-    indigo: '4b0082',
-    ivory: 'fffff0',
-    khaki: 'f0e68c',
-    lavender: 'e6e6fa',
-    lavenderblush: 'fff0f5',
-    lawngreen: '7cfc00',
-    lemonchiffon: 'fffacd',
-    lightblue: 'add8e6',
-    lightcoral: 'f08080',
-    lightcyan: 'e0ffff',
-    lightgoldenrodyellow: 'fafad2',
-    lightgray: 'd3d3d3',
-    lightgrey: 'd3d3d3',
-    lightgreen: '90ee90',
-    lightpink: 'ffb6c1',
-    lightsalmon: 'ffa07a',
-    lightseagreen: '20b2aa',
-    lightskyblue: '87cefa',
-    lightslategray: '778899',
-    lightslategrey: '778899',
-    lightsteelblue: 'b0c4de',
-    lightyellow: 'ffffe0',
-    lime: '00ff00',
-    limegreen: '32cd32',
-    linen: 'faf0e6',
-    magenta: 'ff00ff',
-    maroon: '800000',
-    mediumaquamarine: '66cdaa',
-    mediumblue: '0000cd',
-    mediumorchid: 'ba55d3',
-    mediumpurple: '9370d8',
-    mediumseagreen: '3cb371',
-    mediumslateblue: '7b68ee',
-    mediumspringgreen: '00fa9a',
-    mediumturquoise: '48d1cc',
-    mediumvioletred: 'c71585',
-    midnightblue: '191970',
-    mintcream: 'f5fffa',
-    mistyrose: 'ffe4e1',
-    moccasin: 'ffe4b5',
-    navajowhite: 'ffdead',
-    navy: '000080',
-    oldlace: 'fdf5e6',
-    olive: '808000',
-    olivedrab: '6b8e23',
-    orange: 'ffa500',
-    orangered: 'ff4500',
-    orchid: 'da70d6',
-    palegoldenrod: 'eee8aa',
-    palegreen: '98fb98',
-    paleturquoise: 'afeeee',
-    palevioletred: 'd87093',
-    papayawhip: 'ffefd5',
-    peachpuff: 'ffdab9',
-    peru: 'cd853f',
-    pink: 'ffc0cb',
-    plum: 'dda0dd',
-    powderblue: 'b0e0e6',
-    purple: '800080',
-    rebeccapurple: '663399',
-    red: 'ff0000',
-    rosybrown: 'bc8f8f',
-    royalblue: '4169e1',
-    saddlebrown: '8b4513',
-    salmon: 'fa8072',
-    sandybrown: 'f4a460',
-    seagreen: '2e8b57',
-    seashell: 'fff5ee',
-    sienna: 'a0522d',
-    silver: 'c0c0c0',
-    skyblue: '87ceeb',
-    slateblue: '6a5acd',
-    slategray: '708090',
-    slategrey: '708090',
-    snow: 'fffafa',
-    springgreen: '00ff7f',
-    steelblue: '4682b4',
-    tan: 'd2b48c',
-    teal: '008080',
-    thistle: 'd8bfd8',
-    tomato: 'ff6347',
-    turquoise: '40e0d0',
-    violet: 'ee82ee',
-    wheat: 'f5deb3',
-    white: 'ffffff',
-    whitesmoke: 'f5f5f5',
-    yellow: 'ffff00',
-    yellowgreen: '9acd32'
-};
+const namedColors = new Map([
+    ['aliceblue', 'f0f8ff'],
+    ['antiquewhite', 'faebd7'],
+    ['aqua', '00ffff'],
+    ['aquamarine', '7fffd4'],
+    ['azure', 'f0ffff'],
+    ['beige', 'f5f5dc'],
+    ['bisque', 'ffe4c4'],
+    ['black', '000000'],
+    ['blanchedalmond', 'ffebcd'],
+    ['blue', '0000ff'],
+    ['blueviolet', '8a2be2'],
+    ['brown', 'a52a2a'],
+    ['burlywood', 'deb887'],
+    ['cadetblue', '5f9ea0'],
+    ['chartreuse', '7fff00'],
+    ['chocolate', 'd2691e'],
+    ['coral', 'ff7f50'],
+    ['cornflowerblue', '6495ed'],
+    ['cornsilk', 'fff8dc'],
+    ['crimson', 'dc143c'],
+    ['cyan', '00ffff'],
+    ['darkblue', '00008b'],
+    ['darkcyan', '008b8b'],
+    ['darkgoldenrod', 'b8860b'],
+    ['darkgray', 'a9a9a9'],
+    ['darkgrey', 'a9a9a9'],
+    ['darkgreen', '006400'],
+    ['darkkhaki', 'bdb76b'],
+    ['darkmagenta', '8b008b'],
+    ['darkolivegreen', '556b2f'],
+    ['darkorange', 'ff8c00'],
+    ['darkorchid', '9932cc'],
+    ['darkred', '8b0000'],
+    ['darksalmon', 'e9967a'],
+    ['darkseagreen', '8fbc8f'],
+    ['darkslateblue', '483d8b'],
+    ['darkslategray', '2f4f4f'],
+    ['darkslategrey', '2f4f4f'],
+    ['darkturquoise', '00ced1'],
+    ['darkviolet', '9400d3'],
+    ['deeppink', 'ff1493'],
+    ['deepskyblue', '00bfff'],
+    ['dimgray', '696969'],
+    ['dimgrey', '696969'],
+    ['dodgerblue', '1e90ff'],
+    ['firebrick', 'b22222'],
+    ['floralwhite', 'fffaf0'],
+    ['forestgreen', '228b22'],
+    ['fuchsia', 'ff00ff'],
+    ['gainsboro', 'dcdcdc'],
+    ['ghostwhite', 'f8f8ff'],
+    ['gold', 'ffd700'],
+    ['goldenrod', 'daa520'],
+    ['gray', '808080'],
+    ['grey', '808080'],
+    ['green', '008000'],
+    ['greenyellow', 'adff2f'],
+    ['honeydew', 'f0fff0'],
+    ['hotpink', 'ff69b4'],
+    ['indianred', 'cd5c5c'],
+    ['indigo', '4b0082'],
+    ['ivory', 'fffff0'],
+    ['khaki', 'f0e68c'],
+    ['lavender', 'e6e6fa'],
+    ['lavenderblush', 'fff0f5'],
+    ['lawngreen', '7cfc00'],
+    ['lemonchiffon', 'fffacd'],
+    ['lightblue', 'add8e6'],
+    ['lightcoral', 'f08080'],
+    ['lightcyan', 'e0ffff'],
+    ['lightgoldenrodyellow', 'fafad2'],
+    ['lightgray', 'd3d3d3'],
+    ['lightgrey', 'd3d3d3'],
+    ['lightgreen', '90ee90'],
+    ['lightpink', 'ffb6c1'],
+    ['lightsalmon', 'ffa07a'],
+    ['lightseagreen', '20b2aa'],
+    ['lightskyblue', '87cefa'],
+    ['lightslategray', '778899'],
+    ['lightslategrey', '778899'],
+    ['lightsteelblue', 'b0c4de'],
+    ['lightyellow', 'ffffe0'],
+    ['lime', '00ff00'],
+    ['limegreen', '32cd32'],
+    ['linen', 'faf0e6'],
+    ['magenta', 'ff00ff'],
+    ['maroon', '800000'],
+    ['mediumaquamarine', '66cdaa'],
+    ['mediumblue', '0000cd'],
+    ['mediumorchid', 'ba55d3'],
+    ['mediumpurple', '9370d8'],
+    ['mediumseagreen', '3cb371'],
+    ['mediumslateblue', '7b68ee'],
+    ['mediumspringgreen', '00fa9a'],
+    ['mediumturquoise', '48d1cc'],
+    ['mediumvioletred', 'c71585'],
+    ['midnightblue', '191970'],
+    ['mintcream', 'f5fffa'],
+    ['mistyrose', 'ffe4e1'],
+    ['moccasin', 'ffe4b5'],
+    ['navajowhite', 'ffdead'],
+    ['navy', '000080'],
+    ['oldlace', 'fdf5e6'],
+    ['olive', '808000'],
+    ['olivedrab', '6b8e23'],
+    ['orange', 'ffa500'],
+    ['orangered', 'ff4500'],
+    ['orchid', 'da70d6'],
+    ['palegoldenrod', 'eee8aa'],
+    ['palegreen', '98fb98'],
+    ['paleturquoise', 'afeeee'],
+    ['palevioletred', 'd87093'],
+    ['papayawhip', 'ffefd5'],
+    ['peachpuff', 'ffdab9'],
+    ['peru', 'cd853f'],
+    ['pink', 'ffc0cb'],
+    ['plum', 'dda0dd'],
+    ['powderblue', 'b0e0e6'],
+    ['purple', '800080'],
+    ['rebeccapurple', '663399'],
+    ['red', 'ff0000'],
+    ['rosybrown', 'bc8f8f'],
+    ['royalblue', '4169e1'],
+    ['saddlebrown', '8b4513'],
+    ['salmon', 'fa8072'],
+    ['sandybrown', 'f4a460'],
+    ['seagreen', '2e8b57'],
+    ['seashell', 'fff5ee'],
+    ['sienna', 'a0522d'],
+    ['silver', 'c0c0c0'],
+    ['skyblue', '87ceeb'],
+    ['slateblue', '6a5acd'],
+    ['slategray', '708090'],
+    ['slategrey', '708090'],
+    ['snow', 'fffafa'],
+    ['springgreen', '00ff7f'],
+    ['steelblue', '4682b4'],
+    ['tan', 'd2b48c'],
+    ['teal', '008080'],
+    ['thistle', 'd8bfd8'],
+    ['tomato', 'ff6347'],
+    ['turquoise', '40e0d0'],
+    ['violet', 'ee82ee'],
+    ['wheat', 'f5deb3'],
+    ['white', 'ffffff'],
+    ['whitesmoke', 'f5f5f5'],
+    ['yellow', 'ffff00'],
+    ['yellowgreen', '9acd32']
+]);
 
 // Valid CSS values RegExp string (according to https://www.w3.org/TR/css-syntax/#typedef-number-token)
 const numberExp = '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?';
@@ -1086,10 +1091,10 @@ const cssFormats = /*#__PURE__*/Object.freeze({
  */
 /** @class Couleur */
 class Couleur {
-    r;
-    g;
-    b;
-    a;
+    r = 0;
+    g = 0;
+    b = 0;
+    a = 0;
     /**
      * Creates a new Couleur object that contains r, g, b, a properties of the color.
      * These properties will take their values from sRGB color space, even if they're out of bounds.
@@ -1190,11 +1195,9 @@ class Couleur {
                     {
                         if (colorString.startsWith('oklab')) {
                             format = Couleur.formats[6];
-                            break;
                         }
-                        if (colorString.startsWith('oklch')) {
+                        else if (colorString.startsWith('oklch')) {
                             format = Couleur.formats[7];
-                            break;
                         }
                     }
                     break;
@@ -1203,17 +1206,18 @@ class Couleur {
                     break;
                 default: format = Couleur.formats[9];
             }
+        if (format == null)
+            throw 'No matching format';
         // Check if the given string matches any color syntax
         for (const syntaxe of format.syntaxes) {
             const result = colorString.match(syntaxe);
             if (result != null && result[0] === colorString) {
                 if (format.id === 'name') {
                     if (colorString === 'transparent')
-                        return { id: 'rgb', data: [null, '0', '0', '0', '0'] };
+                        return { id: 'rgb', data: ['', '0', '0', '0', '0'] };
                     const allNames = Couleur.couleursNommees;
-                    const name = colorString.toLowerCase();
-                    if (name in allNames)
-                        return Couleur.matchSyntax('#' + allNames[name]);
+                    const hex = allNames.get(colorString.toLowerCase()) || null;
+                    return Couleur.matchSyntax(`#${hex}`);
                 }
                 return { id: format.id, data: result };
             }
@@ -1231,137 +1235,159 @@ class Couleur {
     static parse(value, prop = null, { clamp = true } = {}) {
         const val = String(value);
         const nval = parseFloat(val);
-        // Alpha values:
-        // from any % or any number
-        // clamped to [0, 100]% or [0, 1]
-        // to [0, 1]
-        if (prop === 'a') {
-            // If n is a percentage
-            if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
-                if (clamp)
-                    return Math.max(0, Math.min(nval / 100, 1));
-                else
-                    return nval / 100;
+        try {
+            switch (prop) {
+                // Alpha values:
+                // from any % or any number
+                // clamped to [0, 100]% or [0, 1]
+                // to [0, 1]
+                case 'a': {
+                    // If n is a percentage
+                    if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
+                        if (clamp)
+                            return Math.max(0, Math.min(nval / 100, 1));
+                        else
+                            return nval / 100;
+                    }
+                    // If n is a number
+                    else if (new RegExp('^' + RegExps.number + '$').test(val)) {
+                        if (clamp)
+                            return Math.max(0, Math.min(nval, 1));
+                        else
+                            return nval;
+                    }
+                    else
+                        throw 'invalid';
+                }
+                // Red, green, blue values:
+                // from any % or any number
+                // clamped to [0, 100]% or [0, 255]
+                // to [0, 1]
+                case 'r':
+                case 'g':
+                case 'b': {
+                    // If n is a percentage
+                    if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
+                        if (clamp)
+                            return Math.max(0, Math.min(nval / 100, 1));
+                        else
+                            return nval / 100;
+                    }
+                    // If n is a number
+                    else if (new RegExp('^' + RegExps.number + '$').test(val)) {
+                        if (clamp)
+                            return Math.max(0, Math.min(nval / 255, 1));
+                        else
+                            return nval / 255;
+                    }
+                    else
+                        throw 'invalid';
+                }
+                // Hue and CIE hue values:
+                // from any angle or any number
+                // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
+                // to [0, 360]
+                case 'h':
+                case 'cieh':
+                case 'okh': {
+                    let h = nval;
+                    // If n is a number
+                    if (new RegExp('^' + RegExps.number + '$').test(val)) {
+                        return angleToRange(h);
+                    }
+                    // If n is an angle
+                    else if ((new RegExp('^' + RegExps.angle + '$').test(val))) {
+                        if (val.slice(-3) === 'deg') { } // necessary to accept deg values
+                        else if (val.slice(-4) === 'grad')
+                            h = h * 360 / 400;
+                        else if (val.slice(-3) === 'rad')
+                            h = h * 180 / Math.PI;
+                        else if (val.slice(-4) === 'turn')
+                            h = h * 360;
+                        else
+                            throw `Invalid angle value: ${JSON.stringify(value)}`;
+                        return angleToRange(h);
+                    }
+                    else
+                        throw 'invalid';
+                }
+                // Percentage values:
+                // from any %
+                // clamped to [0, 100]%
+                // to [0, 1]
+                case 's':
+                case 'l':
+                case 'w':
+                case 'bk':
+                case 'ciel':
+                case 'okl': {
+                    // If n is a percentage
+                    if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
+                        if (clamp)
+                            return Math.max(0, Math.min(nval / 100, 1));
+                        else
+                            return nval / 100;
+                    }
+                    else
+                        throw 'invalid';
+                }
+                // CIE axes values:
+                // any number
+                case 'ciea':
+                case 'cieb': {
+                    // If n is a number
+                    if (new RegExp('^' + RegExps.number + '$').test(val)) {
+                        return nval;
+                    }
+                    else
+                        throw 'invalid';
+                }
+                // CIE chroma values:
+                // from any number
+                // clamped to [0, +Inf[
+                case 'ciec': {
+                    // If n is a number
+                    if (new RegExp('^' + RegExps.number + '$').test(val)) {
+                        if (clamp)
+                            return Math.max(0, nval);
+                        else
+                            return nval;
+                    }
+                    else
+                        throw 'invalid';
+                }
+                // OKLAB axes & chroma values:
+                // any number
+                case 'oka':
+                case 'okb':
+                case 'okc': {
+                    // If n is a number
+                    if (new RegExp('^' + RegExps.number + '$').test(val)) {
+                        return nval / 100;
+                    }
+                    else
+                        throw 'invalid';
+                }
+                // Arbitrary values
+                // from any % or any number
+                // to any number (so that 0% becomes 0 and 100% becomes 1)
+                default: {
+                    // If n is a percentage
+                    if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
+                        return nval / 100;
+                    }
+                    // If n is a number
+                    else if (new RegExp('^' + RegExps.number + '$').test(val)) {
+                        return nval;
+                    }
+                    else
+                        throw 'invalidest'; // doesn't match any property value at all
+                }
             }
-            // If n is a number
-            else if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                if (clamp)
-                    return Math.max(0, Math.min(nval, 1));
-                else
-                    return nval;
-            }
-            else
-                throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
         }
-        // Red, green, blue values:
-        // from any % or any number
-        // clamped to [0, 100]% or [0, 255]
-        // to [0, 1]
-        else if (['r', 'g', 'b'].includes(prop)) {
-            // If n is a percentage
-            if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
-                if (clamp)
-                    return Math.max(0, Math.min(nval / 100, 1));
-                else
-                    return nval / 100;
-            }
-            // If n is a number
-            else if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                if (clamp)
-                    return Math.max(0, Math.min(nval / 255, 1));
-                else
-                    return nval / 255;
-            }
-            else
+        catch (error) {
+            if (error === 'invalid')
                 throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-        }
-        // Hue and CIE hue values:
-        // from any angle or any number
-        // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
-        // to [0, 360]
-        else if (['h', 'cieh', 'okh'].includes(prop)) {
-            let h = nval;
-            // If n is a number
-            if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                return angleToRange(h);
-            }
-            // If n is an angle
-            if ((new RegExp('^' + RegExps.angle + '$').test(val))) {
-                if (val.slice(-3) === 'deg') ; // necessary to accept deg values
-                else if (val.slice(-4) === 'grad')
-                    h = h * 360 / 400;
-                else if (val.slice(-3) === 'rad')
-                    h = h * 180 / Math.PI;
-                else if (val.slice(-4) === 'turn')
-                    h = h * 360;
-                else
-                    throw `Invalid angle value: ${JSON.stringify(value)}`;
-                return angleToRange(h);
-            }
-            else
-                throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-        }
-        // Percentage values:
-        // from any %
-        // clamped to [0, 100]%
-        // to [0, 1]
-        else if (['s', 'l', 'w', 'bk', 'ciel', 'okl'].includes(prop)) {
-            // If n is a percentage
-            if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
-                if (clamp)
-                    return Math.max(0, Math.min(nval / 100, 1));
-                else
-                    return nval / 100;
-            }
-            else
-                throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-        }
-        // CIE axes values:
-        // any number
-        else if (['ciea', 'cieb'].includes(prop)) {
-            // If n is a number
-            if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                return nval;
-            }
-            else
-                throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-        }
-        // CIE chroma values:
-        // from any number
-        // clamped to [0, +Inf[
-        else if (prop === 'ciec') {
-            // If n is a number
-            if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                if (clamp)
-                    return Math.max(0, nval);
-                else
-                    return nval;
-            }
-            else
-                throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-        }
-        // OKLAB axes & chroma values:
-        // any number
-        else if (['oka', 'okb', 'okc'].includes(prop)) {
-            // If n is a number
-            if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                return nval / 100;
-            }
-            else
-                throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-        }
-        // Arbitrary values
-        // from any % or any number
-        // to any number (so that 0% becomes 0 and 100% becomes 1)
-        else {
-            // If n is a percentage
-            if (new RegExp('^' + RegExps.percentage + '$').test(val)) {
-                return nval / 100;
-            }
-            // If n is a number
-            else if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                return nval;
-            }
             else
                 throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
         }
@@ -1491,7 +1517,7 @@ class Couleur {
             const allNames = Couleur.couleursNommees;
             const [r, g, b] = [255 * this.r, 255 * this.g, 255 * this.b];
             const tolerance = 255 * .02;
-            for (const [name, hex] of Object.entries(allNames)) {
+            for (const [name, hex] of allNames.entries()) {
                 const [r2, g2, b2] = [parseInt(`${hex[0]}${hex[1]}`, 16), parseInt(`${hex[2]}${hex[3]}`, 16), parseInt(`${hex[4]}${hex[5]}`, 16)];
                 if (Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) < tolerance)
                     return name;
@@ -1508,7 +1534,7 @@ class Couleur {
         if (this.a === 1) {
             const allNames = Couleur.couleursNommees;
             const hex6 = this.hex.slice(1);
-            for (const [name, hex] of Object.entries(allNames)) {
+            for (const [name, hex] of allNames.entries()) {
                 if (hex === hex6)
                     return name;
             }
@@ -1525,20 +1551,11 @@ class Couleur {
      * @param hexa The hexadecimal values of the r, g, b, a properties.
      */
     setHex(hexa) {
-        let r, g, b, a;
-        r = hexa[0];
-        r = (r.length === 1) ? r.repeat(2) : r;
-        r = parseInt(r, 16);
-        g = hexa[1];
-        g = (g.length === 1) ? g.repeat(2) : g;
-        g = parseInt(g, 16);
-        b = hexa[2];
-        b = (b.length === 1) ? b.repeat(2) : b;
-        b = parseInt(b, 16);
-        a = hexa[3] || 'ff';
-        a = (a.length === 1) ? a.repeat(2) : a;
-        a = parseInt(a, 16) / 255;
-        this.set([r, g, b, a], ['r', 'g', 'b'], 'srgb');
+        let [r, g, b] = hexa.map(v => String(v));
+        let a = String(hexa[3]) || 'ff';
+        const vals = [r, g, b, a].map(v => v.length === 1 ? v.repeat(2) : v)
+            .map(v => parseInt(v, 16));
+        this.set(vals, ['r', 'g', 'b'], 'srgb');
     }
     /** @returns Hexadecimal expression of the color. */
     get hex() {
@@ -1647,6 +1664,11 @@ class Couleur {
      * Recalculates the r, g, b properties of the color after modifying one of its other properties.
      * @param val The parsed new value of the property.
      */
+    set red(val) { this.r = val; }
+    set green(val) { this.g = val; }
+    set blue(val) { this.b = val; }
+    set alpha(val) { this.a = val; }
+    set opacity(val) { this.a = val; }
     set h(val) {
         const [x, s, l] = this.valuesTo('hsl');
         const props = [...Couleur.propertiesOf('hsl'), 'a'];
@@ -1729,6 +1751,23 @@ class Couleur {
     get CIEchroma() { return this.ciec; }
     get cieh() { return this.valuesTo('lch')[2]; }
     get CIEhue() { return this.cieh; }
+    set luminance(val) {
+        // Scale r, g, b to reach the desired luminance value
+        const [r, g, b] = this.values;
+        const oldLum = this.luminance;
+        const newLum = Couleur.parse(val, 'a', { clamp: true });
+        if (oldLum === 0) {
+            this.r = newLum;
+            this.g = newLum;
+            this.b = newLum;
+        }
+        else {
+            const ratio = newLum / oldLum;
+            this.r = ratio * r;
+            this.g = ratio * g;
+            this.b = ratio * b;
+        }
+    }
     get luminance() {
         if (this.a < 1)
             throw `The luminance of a transparent color would be meaningless`;
@@ -1771,9 +1810,10 @@ class Couleur {
             const start = path.shift();
             const end = path[0];
             const functionName = `${start}_to_${end}`.replace(/-/g, '');
-            if (!Conversions[functionName])
-                console.log(functionName);
-            result = Conversions[functionName](result);
+            const func = Conversions[functionName];
+            if (typeof func !== 'function')
+                throw `Conversion function ${functionName} does not exist`;
+            result = func(result);
         }
         return result;
     }
@@ -1819,37 +1859,41 @@ class Couleur {
         if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 }))
             return values;
         let clampedValues, clampSpace;
-        // Naively clamp the values
-        if (method === 'naive') {
-            clampSpace = space;
-            const convertedValues = Couleur.convert(valueSpace, clampSpace, values);
-            clampedValues = convertedValues.map((v, k) => Math.max(space.gamut[k][0], Math.min(v, space.gamut[k][1])));
-        }
-        // OKLab gamut clipping
-        else if (method === 'oklab') {
-            clampSpace = Couleur.getSpace('srgb');
-            const rgb = Couleur.convert(valueSpace, clampSpace, values);
-            clampedValues = clip(rgb);
-        }
-        // Let's reduce the LCH chroma until the color is in the color space.
-        else if (method === 'chroma') {
-            // Source of the math: https://github.com/LeaVerou/color.js/blob/master/src/color.js
-            clampSpace = Couleur.getSpace('lch');
-            let lch = Couleur.convert(valueSpace, clampSpace, values);
-            const τ = .01;
-            let Cmin = 0;
-            let Cmax = lch[1];
-            lch[1] = lch[1] / 2;
-            while (Cmax - Cmin > τ) {
-                const naive = Couleur.toGamut(space, lch, clampSpace, { method: 'naive' });
-                // If the color is close to the color space border
-                if (Couleur.distance(naive, lch, { method: 'CIEDE2000' }) < 2 + τ)
-                    Cmin = lch[1];
-                else
-                    Cmax = lch[1];
-                lch[1] = (Cmin + Cmax) / 2;
+        switch (method) {
+            // OKLAB gamut clipping
+            case 'oklab': {
+                clampSpace = Couleur.getSpace('srgb');
+                const rgb = Couleur.convert(valueSpace, clampSpace, values);
+                clampedValues = clip(rgb);
+                break;
             }
-            clampedValues = lch;
+            // Let's reduce the LCH chroma until the color is in the color space.
+            case 'chroma': {
+                // Source of the math: https://github.com/LeaVerou/color.js/blob/master/src/color.js
+                clampSpace = Couleur.getSpace('lch');
+                let lch = Couleur.convert(valueSpace, clampSpace, values);
+                const τ = .01;
+                let Cmin = 0;
+                let Cmax = lch[1];
+                lch[1] = lch[1] / 2;
+                while (Cmax - Cmin > τ) {
+                    const naive = Couleur.toGamut(space, lch, clampSpace, { method: 'naive' });
+                    // If the color is close to the color space border
+                    if (Couleur.distance(naive, lch, { method: 'CIEDE2000' }) < 2 + τ)
+                        Cmin = lch[1];
+                    else
+                        Cmax = lch[1];
+                    lch[1] = (Cmin + Cmax) / 2;
+                }
+                clampedValues = lch;
+                break;
+            }
+            // Naively clamp the values
+            default: {
+                clampSpace = space;
+                const convertedValues = Couleur.convert(valueSpace, clampSpace, values);
+                clampedValues = convertedValues.map((v, k) => Math.max(space.gamut[k][0], Math.min(v, space.gamut[k][1])));
+            }
         }
         // Final naive clamp to get in the color space if the color is still just outside the border
         if (method !== 'naive')
@@ -1954,6 +1998,8 @@ class Couleur {
             throw `You need at least 2 colors to blend`;
         const background = colors.shift();
         const overlay = colors.shift();
+        if (background == null || overlay == null)
+            throw 'Cannot blend undefined color';
         const mix = Couleur.blend(background, overlay);
         if (colors.length === 0)
             return mix;
@@ -2013,8 +2059,12 @@ class Couleur {
             throw `You need at least 2 colors to unblend`;
         const mix = colors.shift();
         const overlay = colors.shift();
+        if (mix == null || overlay == null)
+            throw 'Cannot unblend undefined color';
         const background = Couleur.unblend(mix, overlay);
-        if (colors.length === 0)
+        if (background == null)
+            return null;
+        else if (colors.length === 0)
             return background;
         else
             return Couleur.unblendAll(background, ...colors);
@@ -2036,7 +2086,7 @@ class Couleur {
         const background = Couleur.makeInstance(backgroundColor);
         const mix = Couleur.makeInstance(mixColor);
         let overlays = [];
-        const calculateSolution = a => {
+        const calculateSolution = (a) => {
             const r = (mix.r * mix.a - background.r * background.a * (1 - a)) / a;
             const g = (mix.g * mix.a - background.g * background.a * (1 - a)) / a;
             const b = (mix.b * mix.a - background.b * background.a * (1 - a)) / a;
@@ -2107,7 +2157,7 @@ class Couleur {
         let result = requestedAlphas.length > 0 ? overlays.filter(c => requestedAlphas.includes(c.a))
             : overlays;
         if (ignoreTransparent)
-            result = result.filter(a => a > 0);
+            result = result.filter(r => r.a > 0);
         return result.length === 0 ? null
             : result.length === 1 ? result[0]
                 : result;
@@ -2142,7 +2192,7 @@ class Couleur {
         }
     }
     /** @see Couleur.contrast - Non-static version. */
-    contrast(backgroundColor, options) {
+    contrast(backgroundColor, options = {}) {
         return Couleur.contrast(this, backgroundColor, options);
     }
     /**
@@ -2182,8 +2232,8 @@ class Couleur {
      */
     improveContrast(backgroundColor, desiredContrast, { lower = false, colorScheme = null, method = 'APCA' } = {}) {
         const background = Couleur.makeInstance(backgroundColor);
-        const backgroundLab = background.valuesTo('lab');
-        const movingLab = this.valuesTo('lab');
+        const backgroundLab = background.valuesTo('oklab');
+        const movingLab = this.valuesTo('oklab');
         // Let's measure the initial contrast
         // and decide if we want it to go up or down.
         let startContrast = Couleur.contrast(this, background, { method });
@@ -2208,11 +2258,11 @@ class Couleur {
             raising: (directionContrast > 0) ? Math.abs(cWhite) >= desiredContrast : Math.abs(cWhite) <= desiredContrast
         };
         // Let's decide which direction to move the lightness in.
-        let directionCIEL;
+        let directionOKL;
         if (isPossible.lowering && !isPossible.raising)
-            directionCIEL = -1;
+            directionOKL = -1;
         else if (isPossible.raising && !isPossible.lowering)
-            directionCIEL = 1;
+            directionOKL = 1;
         // If desiredContrast can not be reached, return white or black — the one that fits the color scheme.
         else if (!isPossible.raising && !isPossible.lowering) {
             if (_colorScheme === 'light')
@@ -2224,53 +2274,53 @@ class Couleur {
         else {
             // If the background is light and we need to raise the contrast, lower the lightness.
             if (_colorScheme === 'light' && directionContrast > 0)
-                directionCIEL = -1;
+                directionOKL = -1;
             // If the background is light and we need to lower the contrast, raise the lightness.
             else if (_colorScheme === 'light' && directionContrast < 0)
-                directionCIEL = 1;
+                directionOKL = 1;
             // If the background is dark and we need to raise the contrast, raise the lightness.
             else if (_colorScheme === 'dark' && directionContrast > 0)
-                directionCIEL = 1;
+                directionOKL = 1;
             // If the background is dark and we need to lower the contrast, lower the lightness.
             else
-                directionCIEL = -1;
+                directionOKL = -1;
         }
         const τ = .0001;
-        let CIELmin = (directionCIEL > 0) ? movingLab[0] : 0;
-        let CIELmax = (directionCIEL > 0) ? 1 : movingLab[0];
-        while (CIELmax - CIELmin > τ) {
+        let OKLmin = (directionOKL > 0) ? movingLab[0] : 0;
+        let OKLmax = (directionOKL > 0) ? 1 : movingLab[0];
+        while (OKLmax - OKLmin > τ) {
             // Let's try to raise contrast by increasing or reducing CIE lightness.
-            const ciel = (CIELmin + CIELmax) / 2;
+            const ciel = (OKLmin + OKLmax) / 2;
             const newValues = movingLab;
             newValues[0] = ciel;
-            const newContrast = Couleur.contrast(Couleur.convert('lab', 'srgb', newValues), background, { method });
+            const newContrast = Couleur.contrast(Couleur.convert('oklab', 'srgb', newValues), background, { method });
             // If the new contrast hasn't gone over its desired value
             const condition = (directionContrast > 0) ? (Math.abs(newContrast) < desiredContrast) : (Math.abs(newContrast) > desiredContrast);
             if (condition) {
-                if (directionCIEL > 0)
-                    CIELmin = ciel;
+                if (directionOKL > 0)
+                    OKLmin = ciel;
                 else
-                    CIELmax = ciel;
+                    OKLmax = ciel;
             }
             // If we overshot and the contrast moved further than we want it to
             else {
-                if (directionCIEL > 0)
-                    CIELmax = ciel;
+                if (directionOKL > 0)
+                    OKLmax = ciel;
                 else
-                    CIELmin = ciel;
+                    OKLmin = ciel;
             }
             movingLab[0] = ciel;
         }
-        let result = new Couleur(Couleur.convert('lab', 'srgb', movingLab));
+        let result = new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
         // If the color we find has its contrast slightly below the desired value, push it further.
         if (Math.abs(Couleur.contrast(result, background, { method })) < desiredContrast) {
-            if (directionCIEL > 0)
-                movingLab[0] = CIELmax;
+            if (directionOKL > 0)
+                movingLab[0] = OKLmax;
             else
-                movingLab[0] = CIELmin;
+                movingLab[0] = OKLmin;
         }
         // We're done!
-        return new Couleur(Couleur.convert('lab', 'srgb', movingLab));
+        return new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
     }
     /**
      * Computes the distance between two colors.
@@ -2301,7 +2351,7 @@ class Couleur {
         }
     }
     /** @see Couleur.distance - Non-static version. */
-    distance(color, options) { return Couleur.distance(this, color, options); }
+    distance(color, options = {}) { return Couleur.distance(this, color, options); }
     /**
      * Determines if two colors are the same, with a certain tolerance.
      * @param color1
@@ -2316,7 +2366,7 @@ class Couleur {
             return true;
     }
     /** @see Couleur.same - Non-static version. */
-    same(color, options) { return Couleur.same(this, color, options); }
+    same(color, options = {}) { return Couleur.same(this, color, options); }
     /* Other functions */
     /**
      * Calculates the intermediate colors a gradient should use to go from one color to another without passing through the "desaturated zone".
@@ -2408,13 +2458,19 @@ class Couleur {
      * @returns The corresponding color space object.
      */
     static getSpace(spaceID) {
+        let result;
         if (typeof spaceID !== 'string')
-            return spaceID;
-        const id = spaceID === 'rgb' ? 'srgb'
-            : spaceID === 'rgba' ? 'srgb'
-                : spaceID === 'hsla' ? 'hsl'
-                    : spaceID;
-        return Couleur.colorSpaces.find(sp => sp.id == id);
+            result = spaceID;
+        else {
+            const id = spaceID === 'rgb' ? 'srgb'
+                : spaceID === 'rgba' ? 'srgb'
+                    : spaceID === 'hsla' ? 'hsl'
+                        : spaceID;
+            result = Couleur.colorSpaces.find(sp => sp.id == id);
+        }
+        if (result == null)
+            throw `${spaceID} is not a supported color space`;
+        return result;
     }
     /** @returns Array of supported syntaxes. */
     static get formats() { return Formats; }

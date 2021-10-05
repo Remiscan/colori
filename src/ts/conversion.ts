@@ -50,18 +50,18 @@ export function srgb_to_hsl(rgb: number[]): number[] {
 
   const l = (max + min) / 2;
 
-  let h;
+  let h: number;
   if (chroma === 0) h = 0;
   else switch (max) {
     case r: h = (g - b) / chroma; break;
     case g: h = (b - r) / chroma + 2; break;
-    case b: h = (r - g) / chroma + 4; break;
+    default: h = (r - g) / chroma + 4;
   }
   h = 60 * h;
   while (h < 0)   h += 360;
   while (h > 360) h -= 360;
 
-  let s;
+  let s: number;
   if (l === 0 || l === 1) s = 0;
   else if (l <= 0.5)      s = chroma / (2 * l);
   else                    s = chroma / (2 - 2 * l);
@@ -74,8 +74,8 @@ export function hsl_to_srgb(hsl: number[]): number[] {
   const [h, s, l] = hsl; // h in [0, 360], s & l in [0, 1]
 
   const m = s * Math.min(l, 1 - l);
-  const k = n => (n + h / 30) % 12;
-  const f = n => l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
+  const k = (n: number) => (n + h / 30) % 12;
+  const f = (n: number) => l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
 
   const r = f(0);
   const g = f(8);
@@ -255,7 +255,7 @@ export function xyz_to_lab(xyz: number[]): number[] {
   const w = [0.96422, 1, 0.82521];
 
   const [x, y, z] = xyz.map((v, k) => v / w[k]);
-  const f = x => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
+  const f = (x: number) => (x > ε) ? Math.cbrt(x) : (κ * x + 16) / 116;
   const [f0, f1, f2] = [x, y, z].map(v => f(v));
   return [
     (116 * f1 - 16) / 100,

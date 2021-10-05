@@ -43,7 +43,7 @@ export default class Graph {
    */
   getNode(id: id): GraphNode {
     const node = this.nodes.find(node => node.id === id);
-    if (typeof node === 'undefined') throw `Node ${JSON.stringify(id)} does not exist`;
+    if (node == null) throw `Node ${JSON.stringify(id)} does not exist`;
     return node;
   }
 
@@ -74,7 +74,7 @@ export default class Graph {
     // Let's build a breadth-first tree until we find the destination.
     let found = false;
     walk: while (queue.length > 0) {
-      const current = queue.shift();
+      const current = queue.shift()!;
       if (current.id === end.id) {
         found = true;
         break walk;
@@ -110,22 +110,25 @@ export default class Graph {
    */
   topologicalOrder(): GraphNode[] {
     // Source of the math: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
-    const orderedList = [];
-    const unvisitedNodes = [...this.nodes];
+    const orderedList: GraphNode[] = [];
+    const unvisitedNodes: GraphNode[] = [...this.nodes];
 
-    const visit = node => {
+    const visit = (node: GraphNode) => {
       if (node.visited === true) return;
       if (node.visited === 'temp') throw 'The graph is not a directed acyclic graph';
 
       node.visit('temp'); // Mark visit as temporary to detect if we loop back to this node
-      for (const link of node.links) { visit(link); }
+      for (const link of node.links) {
+        const destination = this.getNode(link);
+        visit(destination);
+      }
       node.visit(true);
 
       orderedList.push(node);
     }
 
     while (unvisitedNodes.length > 0) {
-      const current = unvisitedNodes.shift();
+      const current = unvisitedNodes.shift()!;
       visit(current);
     }
 

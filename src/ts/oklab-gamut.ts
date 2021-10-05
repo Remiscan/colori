@@ -94,7 +94,7 @@ export function gamutIntersection(a: number, b: number, L1: number, C1: number, 
             mdt2 = 6 * m_dt * m_dt * m_,
             sdt2 = 6 * s_dt * s_dt * s_;
 
-      const term = (v1, v2, v3) => {
+      const term = (v1: number, v2: number, v3: number): number => {
         const w = v1 * l + v2 * m + v3 * s - 1,
               w1 = v1 * ldt + v2 * mdt + v3 * sdt,
               w2 = v1 * ldt2 + v2 * mdt2 + v3 * sdt2;

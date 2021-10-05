@@ -24,10 +24,10 @@ type colorSpaceOrID = ColorSpace | string;
 
 /** @class Couleur */
 export default class Couleur {
-  r: number;
-  g: number;
-  b: number;
-  a: number;
+  r: number = 0;
+  g: number = 0;
+  b: number = 0;
+  a: number = 0;
 
   /**
    * Creates a new Couleur object that contains r, g, b, a properties of the color.
@@ -112,7 +112,7 @@ export default class Couleur {
     const tri = colorString.slice(0, 3);
     
     // Predetermine the format, to save regex-matching time
-    let format: CSSFormat;
+    let format: CSSFormat | undefined;
     if (tri.slice(0, 1) === '#') format = Couleur.formats[0];
     else switch (tri) {
       case 'rgb': format = Couleur.formats[1]; break;
@@ -121,22 +121,24 @@ export default class Couleur {
       case 'lab': format = Couleur.formats[4]; break;
       case 'lch': format = Couleur.formats[5]; break;
       case 'okl': {
-        if (colorString.startsWith('oklab')) { format = Couleur.formats[6]; break; }
-        if (colorString.startsWith('oklch')) { format = Couleur.formats[7]; break; }
+        if (colorString.startsWith('oklab')) { format = Couleur.formats[6]; }
+        else if (colorString.startsWith('oklch')) { format = Couleur.formats[7]; }
       } break;
       case 'col': format = Couleur.formats[8]; break;
       default:    format = Couleur.formats[9];
     }
+
+    if (format == null) throw 'No matching format';
 
     // Check if the given string matches any color syntax
     for (const syntaxe of format.syntaxes) {
       const result = colorString.match(syntaxe);
       if (result != null && result[0] === colorString) {
         if (format.id === 'name') {
-          if (colorString === 'transparent') return { id: 'rgb', data: [null, '0', '0', '0', '0'] };
+          if (colorString === 'transparent') return { id: 'rgb', data: ['', '0', '0', '0', '0'] };
           const allNames = Couleur.couleursNommees;
-          const name = colorString.toLowerCase();
-          if (name in allNames) return Couleur.matchSyntax('#' + allNames[name]);
+          const hex = allNames.get(colorString.toLowerCase()) || null;
+          return Couleur.matchSyntax(`#${hex}`);
         }
         return { id: format.id, data: result };
       }
@@ -158,125 +160,133 @@ export default class Couleur {
     const val = String(value);
     const nval = parseFloat(val);
 
-    // Alpha values:
-    // from any % or any number
-    // clamped to [0, 100]% or [0, 1]
-    // to [0, 1]
-    if (prop === 'a') {
-      // If n is a percentage
-      if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-        if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
-        else        return nval / 100;
-      }
-      // If n is a number
-      else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-        if (clamp)  return Math.max(0, Math.min(nval, 1));
-        else        return nval;
-      }
-      else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-    }
+    try {
+      switch (prop) {
+        // Alpha values:
+        // from any % or any number
+        // clamped to [0, 100]% or [0, 1]
+        // to [0, 1]
+        case 'a': {
+          // If n is a percentage
+          if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+            if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
+            else        return nval / 100;
+          }
+          // If n is a number
+          else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+            if (clamp)  return Math.max(0, Math.min(nval, 1));
+            else        return nval;
+          }
+          else throw 'invalid';
+        }
 
-    // Red, green, blue values:
-    // from any % or any number
-    // clamped to [0, 100]% or [0, 255]
-    // to [0, 1]
-    else if (['r', 'g', 'b'].includes(prop)) {
-      // If n is a percentage
-      if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-        if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
-        else        return nval / 100;
-      }
-      // If n is a number
-      else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-        if (clamp)  return Math.max(0, Math.min(nval / 255, 1));
-        else        return nval / 255;
-      }
-      else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-    }
+        // Red, green, blue values:
+        // from any % or any number
+        // clamped to [0, 100]% or [0, 255]
+        // to [0, 1]
+        case 'r': case 'g': case 'b': {
+          // If n is a percentage
+          if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+            if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
+            else        return nval / 100;
+          }
+          // If n is a number
+          else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+            if (clamp)  return Math.max(0, Math.min(nval / 255, 1));
+            else        return nval / 255;
+          }
+          else throw 'invalid';
+        }
 
-    // Hue and CIE hue values:
-    // from any angle or any number
-    // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
-    // to [0, 360]
-    else if(['h', 'cieh', 'okh'].includes(prop)) {
-      let h = nval;
-      // If n is a number
-      if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-        return Utils.angleToRange(h);
-      }
-      // If n is an angle
-      if ((new RegExp('^' + ValueRegExps.angle + '$').test(val))) {
-        if (val.slice(-3) === 'deg') {} // necessary to accept deg values
-        else if (val.slice(-4) === 'grad')
-          h = h * 360 / 400;
-        else if (val.slice(-3) === 'rad')
-          h = h * 180 / Math.PI;
-        else if (val.slice(-4) === 'turn')
-          h = h * 360;
-        else throw `Invalid angle value: ${JSON.stringify(value)}`;
-        return Utils.angleToRange(h);
-      }
-      else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-    }
 
-    // Percentage values:
-    // from any %
-    // clamped to [0, 100]%
-    // to [0, 1]
-    else if(['s', 'l', 'w', 'bk', 'ciel', 'okl'].includes(prop)) {
-      // If n is a percentage
-      if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-        if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
-        else        return nval / 100;
-      }
-      else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-    }
+        // Hue and CIE hue values:
+        // from any angle or any number
+        // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
+        // to [0, 360]
+        case 'h': case 'cieh': case 'okh': {
+          let h = nval;
+          // If n is a number
+          if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+            return Utils.angleToRange(h);
+          }
+          // If n is an angle
+          else if ((new RegExp('^' + ValueRegExps.angle + '$').test(val))) {
+            if (val.slice(-3) === 'deg') {} // necessary to accept deg values
+            else if (val.slice(-4) === 'grad')
+              h = h * 360 / 400;
+            else if (val.slice(-3) === 'rad')
+              h = h * 180 / Math.PI;
+            else if (val.slice(-4) === 'turn')
+              h = h * 360;
+            else throw `Invalid angle value: ${JSON.stringify(value)}`;
+            return Utils.angleToRange(h);
+          }
+          else throw 'invalid';
+        }
 
-    // CIE axes values:
-    // any number
-    else if(['ciea', 'cieb'].includes(prop)) {
-      // If n is a number
-      if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-        return nval;
-      }
-      else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-    }
+        // Percentage values:
+        // from any %
+        // clamped to [0, 100]%
+        // to [0, 1]
+        case 's': case 'l': case 'w': case 'bk': case 'ciel': case 'okl': {
+          // If n is a percentage
+          if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+            if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
+            else        return nval / 100;
+          }
+          else throw 'invalid';
+        }
 
-    // CIE chroma values:
-    // from any number
-    // clamped to [0, +Inf[
-    else if (prop === 'ciec') {
-      // If n is a number
-      if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-        if (clamp)  return Math.max(0, nval);
-        else        return nval;
-      }
-      else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-    }
+        // CIE axes values:
+        // any number
+        case 'ciea': case 'cieb': {
+          // If n is a number
+          if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+            return nval;
+          }
+          else throw 'invalid';
+        }
 
-    // OKLAB axes & chroma values:
-    // any number
-    else if (['oka', 'okb', 'okc'].includes(prop)) {
-      // If n is a number
-      if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-        return nval / 100;
-      }
-      else throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-    }
+        // CIE chroma values:
+        // from any number
+        // clamped to [0, +Inf[
+        case 'ciec': {
+          // If n is a number
+          if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+            if (clamp)  return Math.max(0, nval);
+            else        return nval;
+          }
+          else throw 'invalid';
+        }
 
-    // Arbitrary values
-    // from any % or any number
-    // to any number (so that 0% becomes 0 and 100% becomes 1)
-    else {
-      // If n is a percentage
-      if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-        return nval / 100;
+        // OKLAB axes & chroma values:
+        // any number
+        case 'oka': case 'okb': case 'okc': {
+          // If n is a number
+          if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+            return nval / 100;
+          }
+          else throw 'invalid';
+        }
+
+        // Arbitrary values
+        // from any % or any number
+        // to any number (so that 0% becomes 0 and 100% becomes 1)
+        default: {
+          // If n is a percentage
+          if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+            return nval / 100;
+          }
+          // If n is a number
+          else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+            return nval;
+          }
+          else throw 'invalidest'; // doesn't match any property value at all
+        }
       }
-      // If n is a number
-      else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-        return nval;
-      }
-      else throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
+    } catch (error) {
+      if (error === 'invalid') throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
+      else                     throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
     }
   }
 
@@ -319,12 +329,12 @@ export default class Couleur {
    * @param props Array of color property names the values correspond to.
    * @param spaceID Color space of the values, or its identifier.
    */
-  set(data: Array<string|number>, props: colorProperty[], spaceID: colorSpaceOrID) {
+  set(data: Array<string|number>, props: Array<colorProperty|null>, spaceID: colorSpaceOrID) {
     const space = Couleur.getSpace(spaceID);
     const values = props.map((p, i) => Couleur.parse(data[i], p));
     [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
 
-    const isAlpha = (val, def = 1) => !!val ? val : (val === 0) ? 0 : def;
+    const isAlpha = (val: string | number, def = 1) => !!val ? val : (val === 0) ? 0 : def;
     this.a = Couleur.parse(isAlpha(data[3]), 'a');
   }
 
@@ -410,7 +420,7 @@ export default class Couleur {
       const allNames = Couleur.couleursNommees;
       const [r, g, b] = [255 * this.r, 255 * this.g, 255 * this.b];
       const tolerance = 255 * .02;
-      for (const [name, hex] of Object.entries(allNames)) {
+      for (const [name, hex] of allNames.entries()) {
         const [r2, g2, b2] = [parseInt(`${hex[0]}${hex[1]}`, 16), parseInt(`${hex[2]}${hex[3]}`, 16), parseInt(`${hex[4]}${hex[5]}`, 16)];
         if (Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) < tolerance) return name;
       }
@@ -425,7 +435,7 @@ export default class Couleur {
     if (this.a === 1) {
       const allNames = Couleur.couleursNommees;
       const hex6 = this.hex.slice(1);
-      for (const [name, hex] of Object.entries(allNames)) {
+      for (const [name, hex] of allNames.entries()) {
         if (hex === hex6) return name;
       }
       return null;
@@ -442,25 +452,13 @@ export default class Couleur {
    * @param hexa The hexadecimal values of the r, g, b, a properties.
    */
   setHex(hexa: Array<string|number>) {
-    let r, g, b, a;
-    
-    r = hexa[0];
-    r = (r.length === 1) ? r.repeat(2) : r;
-    r = parseInt(r, 16);
-    
-    g = hexa[1];
-    g = (g.length === 1) ? g.repeat(2) : g;
-    g = parseInt(g, 16);
-    
-    b = hexa[2];
-    b = (b.length === 1) ? b.repeat(2) : b;
-    b = parseInt(b, 16);
-    
-    a = hexa[3] || 'ff';
-    a = (a.length === 1) ? a.repeat(2) : a;
-    a = parseInt(a, 16) / 255;
+    let [r, g, b] = hexa.map(v => String(v));
+    let a = String(hexa[3]) || 'ff';
 
-    this.set([r, g, b, a], ['r', 'g', 'b'], 'srgb');
+    const vals = [r, g, b, a].map(v => v.length === 1 ? v.repeat(2) : v)
+                             .map(v => parseInt(v, 16));
+
+    this.set(vals, ['r', 'g', 'b'], 'srgb');
   }
 
   /** @returns Hexadecimal expression of the color. */
@@ -600,6 +598,12 @@ export default class Couleur {
    * Recalculates the r, g, b properties of the color after modifying one of its other properties.
    * @param val The parsed new value of the property.
    */
+  set red(val: number) { this.r = val; }
+  set green(val: number) { this.g = val; }
+  set blue(val: number) { this.b = val; }
+  set alpha(val: number) { this.a = val; }
+  set opacity(val: number) { this.a = val; }
+
   set h(val: number) {
     const [x, s, l] = this.valuesTo('hsl');
     const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a'];
@@ -693,6 +697,24 @@ export default class Couleur {
   get cieh(): number { return this.valuesTo('lch')[2]; }
   get CIEhue(): number { return this.cieh; }
 
+  set luminance(val: number) {
+    // Scale r, g, b to reach the desired luminance value
+    const [r, g, b] = this.values;
+    const oldLum = this.luminance;
+    const newLum = Couleur.parse(val, 'a', { clamp: true });
+
+    if (oldLum === 0) {
+      this.r = newLum;
+      this.g = newLum;
+      this.b = newLum;
+    } else {
+      const ratio = newLum / oldLum;
+      this.r = ratio * r;
+      this.g = ratio * g;
+      this.b = ratio * b;
+    }
+  }
+
   get luminance(): number {
     if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
     return Contrasts.luminance(this.values);
@@ -740,8 +762,9 @@ export default class Couleur {
       const start = path.shift();
       const end = path[0];
       const functionName = `${start}_to_${end}`.replace(/-/g, '');
-      if (!Conversions[functionName]) console.log(functionName);
-      result = Conversions[functionName](result);
+      const func = Conversions[functionName as keyof typeof Conversions];
+      if (typeof func !== 'function') throw `Conversion function ${functionName} does not exist`;
+      result = func(result);
     }
 
     return result;
@@ -792,46 +815,53 @@ export default class Couleur {
   static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'oklab' }: { method?: 'oklab'|'chroma'|'naive' } = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
+
     if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 })) return values;
     let clampedValues: number[], clampSpace: ColorSpace;
 
-    // Naively clamp the values
-    if (method === 'naive') {
-      clampSpace = space;
-      const convertedValues = Couleur.convert(valueSpace, clampSpace, values);
-      clampedValues = convertedValues.map((v, k) => Math.max(space.gamut[k][0], Math.min(v, space.gamut[k][1])));
-    }
+    switch (method) {
 
-    // OKLab gamut clipping
-    else if (method === 'oklab') {
-      clampSpace = Couleur.getSpace('srgb');
-      const rgb = Couleur.convert(valueSpace, clampSpace, values);
-      clampedValues = OklabGamut.clip(rgb);
-    }
-    
-    // Let's reduce the LCH chroma until the color is in the color space.
-    else if (method === 'chroma') {
-      // Source of the math: https://github.com/LeaVerou/color.js/blob/master/src/color.js
-      clampSpace = Couleur.getSpace('lch');
-      let lch = Couleur.convert(valueSpace, clampSpace, values);
+      // OKLAB gamut clipping
+      case 'oklab': {
+        clampSpace = Couleur.getSpace('srgb');
+        const rgb = Couleur.convert(valueSpace, clampSpace, values);
+        clampedValues = OklabGamut.clip(rgb);
+        break;
+      }
+      
+      // Let's reduce the LCH chroma until the color is in the color space.
+      case 'chroma': {
+        // Source of the math: https://github.com/LeaVerou/color.js/blob/master/src/color.js
+        clampSpace = Couleur.getSpace('lch');
+        let lch = Couleur.convert(valueSpace, clampSpace, values);
 
-      const τ = .01;
-      let Cmin = 0;
-      let Cmax = lch[1];
-      lch[1] = lch[1] / 2;
+        const τ = .01;
+        let Cmin = 0;
+        let Cmax = lch[1];
+        lch[1] = lch[1] / 2;
 
-      while (Cmax - Cmin > τ) {
-        const naive = Couleur.toGamut(space, lch, clampSpace, { method: 'naive' });
+        while (Cmax - Cmin > τ) {
+          const naive = Couleur.toGamut(space, lch, clampSpace, { method: 'naive' });
 
-        // If the color is close to the color space border
-        if (Couleur.distance(naive, lch, { method: 'CIEDE2000' }) < 2 + τ)
-          Cmin = lch[1];
-        else
-          Cmax = lch[1];
-        lch[1] = (Cmin + Cmax) / 2;
+          // If the color is close to the color space border
+          if (Couleur.distance(naive, lch, { method: 'CIEDE2000' }) < 2 + τ)
+            Cmin = lch[1];
+          else
+            Cmax = lch[1];
+          lch[1] = (Cmin + Cmax) / 2;
+        }
+
+        clampedValues = lch;
+        break;
       }
 
-      clampedValues = lch;
+      // Naively clamp the values
+      default: {
+        clampSpace = space;
+        const convertedValues = Couleur.convert(valueSpace, clampSpace, values);
+        clampedValues = convertedValues.map((v, k) => Math.max(space.gamut[k][0], Math.min(v, space.gamut[k][1])));
+      }
+
     }
 
     // Final naive clamp to get in the color space if the color is still just outside the border
@@ -870,9 +900,14 @@ export default class Couleur {
     const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, { clamp: false });
     const changedColor = new Couleur(this);
 
-    const oldVal = this[prop];
+    const oldVal = this[prop as keyof typeof changedColor] as number;
     const newVal = replace ? val : scale ? oldVal * val : oldVal + val;
-    changedColor[prop] = newVal;
+
+    type CreateWritable<Type> = { -readonly [Property in keyof Type]: Type[Property] };
+    type CreateNumber<Type> = { [Property in keyof Type]: Type[Property] extends number ? Property : never }[keyof Type];
+    type WritableColorProp = CreateNumber<CreateWritable<Couleur>>;
+
+    changedColor[prop as WritableColorProp] = newVal;
     return changedColor;
   }
 
@@ -957,10 +992,12 @@ export default class Couleur {
     const background = colors.shift();
     const overlay = colors.shift();
     
+    if (background == null || overlay == null) throw 'Cannot blend undefined color';
+    
     const mix = Couleur.blend(background, overlay);
 
     if (colors.length === 0) return mix;
-    else                       return Couleur.blendAll(mix, ...colors);
+    else                     return Couleur.blendAll(mix, ...colors);
   }
 
   /** @see Couleur.blend - Non-static version. */
@@ -1011,22 +1048,25 @@ export default class Couleur {
    * @returns The solution to the equation, if it has one.
    * @throws if the equation has an infinite amount of solutions.
    */
-  static unblendAll(...colors: color[]): Couleur {
+  static unblendAll(...colors: color[]): Couleur | null {
     if (colors.length < 2) throw `You need at least 2 colors to unblend`;
     const mix = colors.shift();
     const overlay = colors.shift();
+
+    if (mix == null || overlay == null) throw 'Cannot unblend undefined color';
     
     const background = Couleur.unblend(mix, overlay);
 
-    if (colors.length === 0) return background;
-    else                     return Couleur.unblendAll(background, ...colors);
+    if (background == null)       return null;
+    else if (colors.length === 0) return background;
+    else                          return Couleur.unblendAll(background, ...colors);
   }
 
   /** @see Couleur.unblend - Non-static version. */
-  unblend(overlayColor: color, alpha?: number | string): Couleur { return Couleur.unblend(this, overlayColor, alpha); }
+  unblend(overlayColor: color, alpha?: number | string): Couleur | null { return Couleur.unblend(this, overlayColor, alpha); }
   
   /** @see Couleur.unblendAll - Non-static version. */
-  unblendAll(...colors: color[]): Couleur { return Couleur.unblendAll(this, ...colors); }
+  unblendAll(...colors: color[]): Couleur | null { return Couleur.unblendAll(this, ...colors); }
 
 
   /**
@@ -1038,12 +1078,12 @@ export default class Couleur {
    * @param options.ignoreTransparent Whether to return the color 'transparent' when it's a solution.
    * @returns The solution(s) to the equation.
    */
-  static whatToBlend(backgroundColor: color, mixColor: color, alphas: number | Array<number|string> = [], { ignoreTransparent = false }: { ignoreTransparent?: boolean } = {}): Couleur | null {
+  static whatToBlend(backgroundColor: color, mixColor: color, alphas: number | number[] = [], { ignoreTransparent = false }: { ignoreTransparent?: boolean } = {}): Couleur | Couleur[] | null {
     const background = Couleur.makeInstance(backgroundColor);
     const mix = Couleur.makeInstance(mixColor);
-    let overlays = [];
+    let overlays: Couleur[] = [];
 
-    const calculateSolution = a => {
+    const calculateSolution = (a: number) => {
       const r = (mix.r * mix.a - background.r * background.a * (1 - a)) / a;
       const g = (mix.g * mix.a - background.g * background.a * (1 - a)) / a;
       const b = (mix.b * mix.a - background.b * background.a * (1 - a)) / a;
@@ -1100,7 +1140,7 @@ export default class Couleur {
 
     let result = requestedAlphas.length > 0 ? overlays.filter(c => requestedAlphas.includes(c.a))
                                             : overlays;
-    if (ignoreTransparent) result = result.filter(a => a > 0);
+    if (ignoreTransparent) result = result.filter(r => r.a > 0);
 
     return result.length === 0 ? null
          : result.length === 1 ? result[0]
@@ -1108,7 +1148,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.whatToBlend - Non-static version. */
-  whatToBlend(mixColor: color, alphas: number | Array<number|string>): Couleur | null { return Couleur.whatToBlend(this, mixColor, alphas); }
+  whatToBlend(mixColor: color, alphas: number | number[]): Couleur | Couleur[] | null { return Couleur.whatToBlend(this, mixColor, alphas); }
 
 
   /* Color comparison */
@@ -1140,7 +1180,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.contrast - Non-static version. */
-  contrast(backgroundColor: color, options): number {
+  contrast(backgroundColor: color, options: object = {}): number {
     return Couleur.contrast(this, backgroundColor, options);
   }
 
@@ -1183,8 +1223,8 @@ export default class Couleur {
    */
   improveContrast(backgroundColor: color, desiredContrast: number, { lower = false, colorScheme = null, method = 'APCA' }: { lower?: boolean, colorScheme?: string | null, method?: string } = {}): Couleur {
     const background = Couleur.makeInstance(backgroundColor);
-    const backgroundLab = background.valuesTo('lab');
-    const movingLab = this.valuesTo('lab');
+    const backgroundLab = background.valuesTo('oklab');
+    const movingLab = this.valuesTo('oklab');
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
@@ -1209,9 +1249,9 @@ export default class Couleur {
     };
 
     // Let's decide which direction to move the lightness in.
-    let directionCIEL;
-    if (isPossible.lowering && !isPossible.raising)      directionCIEL = -1;
-    else if (isPossible.raising && !isPossible.lowering) directionCIEL = 1;
+    let directionOKL: number;
+    if (isPossible.lowering && !isPossible.raising)      directionOKL = -1;
+    else if (isPossible.raising && !isPossible.lowering) directionOKL = 1;
     // If desiredContrast can not be reached, return white or black — the one that fits the color scheme.
     else if (!isPossible.raising && !isPossible.lowering) {
       if (_colorScheme === 'light') return new Couleur('black');
@@ -1220,49 +1260,49 @@ export default class Couleur {
     // If desiredContrast can be reached in both directions
     else {
       // If the background is light and we need to raise the contrast, lower the lightness.
-      if (_colorScheme === 'light' && directionContrast > 0)      directionCIEL = -1;
+      if (_colorScheme === 'light' && directionContrast > 0)      directionOKL = -1;
       // If the background is light and we need to lower the contrast, raise the lightness.
-      else if (_colorScheme === 'light' && directionContrast < 0) directionCIEL = 1;
+      else if (_colorScheme === 'light' && directionContrast < 0) directionOKL = 1;
       // If the background is dark and we need to raise the contrast, raise the lightness.
-      else if (_colorScheme === 'dark' && directionContrast > 0)  directionCIEL = 1;
+      else if (_colorScheme === 'dark' && directionContrast > 0)  directionOKL = 1;
       // If the background is dark and we need to lower the contrast, lower the lightness.
-      else                                                        directionCIEL = -1;
+      else                                                        directionOKL = -1;
     }
 
     const τ = .0001;
-    let CIELmin = (directionCIEL > 0) ? movingLab[0] : 0;
-    let CIELmax = (directionCIEL > 0) ? 1 : movingLab[0];
+    let OKLmin = (directionOKL > 0) ? movingLab[0] : 0;
+    let OKLmax = (directionOKL > 0) ? 1 : movingLab[0];
 
-    while (CIELmax - CIELmin > τ) {
+    while (OKLmax - OKLmin > τ) {
       // Let's try to raise contrast by increasing or reducing CIE lightness.
-      const ciel = (CIELmin + CIELmax) / 2;
+      const ciel = (OKLmin + OKLmax) / 2;
       const newValues = movingLab; newValues[0] = ciel;
-      const newContrast = Couleur.contrast(Couleur.convert('lab', 'srgb', newValues), background, { method });
+      const newContrast = Couleur.contrast(Couleur.convert('oklab', 'srgb', newValues), background, { method });
 
       // If the new contrast hasn't gone over its desired value
       const condition = (directionContrast > 0) ? (Math.abs(newContrast) < desiredContrast) : (Math.abs(newContrast) > desiredContrast);
       if (condition) {
-        if (directionCIEL > 0) CIELmin = ciel;
-        else                   CIELmax = ciel;
+        if (directionOKL > 0) OKLmin = ciel;
+        else                  OKLmax = ciel;
       }
       // If we overshot and the contrast moved further than we want it to
       else {
-        if (directionCIEL > 0) CIELmax = ciel;
-        else                   CIELmin = ciel;
+        if (directionOKL > 0) OKLmax = ciel;
+        else                  OKLmin = ciel;
       }
 
       movingLab[0] = ciel;
     }
 
-    let result = new Couleur(Couleur.convert('lab', 'srgb', movingLab));
+    let result = new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
     // If the color we find has its contrast slightly below the desired value, push it further.
     if (Math.abs(Couleur.contrast(result, background, { method })) < desiredContrast) {
-      if (directionCIEL > 0) movingLab[0] = CIELmax;
-      else                   movingLab[0] = CIELmin;
+      if (directionOKL > 0) movingLab[0] = OKLmax;
+      else                  movingLab[0] = OKLmin;
     }
 
     // We're done!
-    return new Couleur(Couleur.convert('lab', 'srgb', movingLab));
+    return new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
   }
 
 
@@ -1296,7 +1336,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.distance - Non-static version. */
-  distance(color: color, options) { return Couleur.distance(this, color, options); }
+  distance(color: color, options: object = {}) { return Couleur.distance(this, color, options); }
 
 
   /**
@@ -1312,7 +1352,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.same - Non-static version. */
-  same(color: color, options): boolean { return Couleur.same(this, color, options); }
+  same(color: color, options: object = {}): boolean { return Couleur.same(this, color, options); }
 
 
   /* Other functions */
@@ -1412,17 +1452,23 @@ export default class Couleur {
    * @returns The corresponding color space object.
    */
   static getSpace(spaceID: colorSpaceOrID): ColorSpace {
-    if (typeof spaceID !== 'string') return spaceID;
-    const id = spaceID === 'rgb' ? 'srgb'
-             : spaceID === 'rgba' ? 'srgb'
-             : spaceID === 'hsla' ? 'hsl'
-             : spaceID;
-    return Couleur.colorSpaces.find(sp => sp.id == id);
+    let result: ColorSpace | undefined;
+    if (typeof spaceID !== 'string') result = spaceID;
+    else {
+      const id = spaceID === 'rgb' ? 'srgb'
+               : spaceID === 'rgba' ? 'srgb'
+               : spaceID === 'hsla' ? 'hsl'
+               : spaceID;
+      result = Couleur.colorSpaces.find(sp => sp.id == id);
+    }
+
+    if (result == null) throw `${spaceID} is not a supported color space`;
+    return result;
   }
 
   /** @returns Array of supported syntaxes. */
   static get formats(): CSSFormat[] { return Formats; }
 
   /** @returns List of named colors in CSS. */
-  static get couleursNommees(): object { return namedColors; }
+  static get couleursNommees(): Map<string, string> { return namedColors; }
 }

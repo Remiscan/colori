@@ -35,7 +35,7 @@ export function APCA(rgbText: number[], rgbBack: number[]): number {
   // 1. Compute luminances
   const coeffs = [0.2126729, 0.7151522, 0.0721750];
   const gamma = 2.4;
-  const luminance = rgb => rgb.reduce((sum, v, i) => sum + Math.pow(v, gamma) * coeffs[i], 0);
+  const luminance = (rgb: number[]) => rgb.reduce((sum, v, i) => sum + Math.pow(v, gamma) * coeffs[i], 0);
   let [Ltext, Lback] = [rgbText, rgbBack].map(rgb => luminance(rgb));
 
   // 2. Clamp luminances
@@ -49,7 +49,7 @@ export function APCA(rgbText: number[], rgbBack: number[]): number {
   // 3. Compute contrast
   let result;
   const scale = 1.25;
-  const compute = (Lback, Ltext, powBack, powText) => (Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * scale;
+  const compute = (Lback: number, Ltext: number, powBack: number, powText: number) => (Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * scale;
   const lowClip = 0.001, lowTrigger = 0.078, lowOffset = 0.06, invLowTrigger = 12.82051282051282;
 
   // for dark text on light background
