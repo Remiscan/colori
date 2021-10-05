@@ -1211,7 +1211,7 @@ class Couleur {
                 if (format.id === 'name') {
                     if (colorString === 'transparent')
                         return { id: 'rgb', data: ['', '0', '0', '0', '0'] };
-                    const allNames = Couleur.couleursNommees;
+                    const allNames = Couleur.namedColors;
                     const hex = allNames.get(colorString.toLowerCase()) || null;
                     return Couleur.matchSyntax(`#${hex}`);
                 }
@@ -1511,7 +1511,7 @@ class Couleur {
     /** @returns The approximate name of the color. */
     get name() {
         if (this.a === 1) {
-            const allNames = Couleur.couleursNommees;
+            const allNames = Couleur.namedColors;
             const [r, g, b] = [255 * this.r, 255 * this.g, 255 * this.b];
             const tolerance = 255 * .02;
             for (const [name, hex] of allNames.entries()) {
@@ -1529,7 +1529,7 @@ class Couleur {
     /** @returns The exact name of the color. */
     get exactName() {
         if (this.a === 1) {
-            const allNames = Couleur.couleursNommees;
+            const allNames = Couleur.namedColors;
             const hex6 = this.hex.slice(1);
             for (const [name, hex] of allNames.entries()) {
                 if (hex === hex6)
@@ -2477,7 +2477,7 @@ class Couleur {
     /** @returns Array of supported syntaxes. */
     static get formats() { return Formats; }
     /** @returns List of named colors in CSS. */
-    static get couleursNommees() { return namedColors; }
+    static get namedColors() { return namedColors; }
 }
 
 class Palette {

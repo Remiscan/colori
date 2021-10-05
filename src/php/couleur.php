@@ -100,8 +100,8 @@
           if ($format['id'] === 'name') {
             if ($colorString === 'transparent') return ['id' => 'rgb', 'data' => ['', '0', '0', '0', '0']];
             $name = strtolower($colorString);
-            if (array_key_exists($name, self::COULEURS_NOMMEES))
-              return self::matchSyntax('#' . self::COULEURS_NOMMEES[strtolower($colorString)]);
+            if (array_key_exists($name, self::NAMED_COLORS))
+              return self::matchSyntax('#' . self::NAMED_COLORS[strtolower($colorString)]);
           }
           return $resultat = ['id' => $format['id'], 'data' => $matches];
         }
@@ -345,7 +345,7 @@
     /** The approximate name of the color. */
     public function name(): ?string {
       if ($this->a === 1.0) {
-        $allNames = self::COULEURS_NOMMEES;
+        $allNames = self::NAMED_COLORS;
         [$r, $g, $b] = [255 * $this->r, 255 * $this->g, 255 * $this->b];
         $tolerance = 255 * .02;
         foreach($allNames as $name => $hex) {
@@ -362,7 +362,7 @@
     public function exactName(): ?string {
       if ($this->a === 1) {
         $hex6 = substr($this->hex(), 1);
-        $name = array_search($hex6, self::COULEURS_NOMMEES);
+        $name = array_search($hex6, self::NAMED_COLORS);
         return $name ?? null;
       }
       elseif ($this->a === 0)  return 'transparent';
@@ -1205,7 +1205,7 @@
 
     public const COLOR_SPACES = COLOR_SPACES;
 
-    public static function getSpace(array|string $spaceID): array {
+    private static function getSpace(array|string $spaceID): array {
       if (is_array($spaceID)) return $spaceID;
       $id = match ($spaceID) {
         'rgb', 'rgba' => 'srgb',
@@ -1219,7 +1219,7 @@
     private static function formats() { return CSSFormats::formats(); }
 
     /** List of named colors in CSS. */
-    public const COULEURS_NOMMEES = NAMED_COLORS;
+    public const NAMED_COLORS = NAMED_COLORS;
   }
 
 
