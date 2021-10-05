@@ -9,7 +9,12 @@ const RegExps = {
 
 
 
-const Formats = [
+export interface Format {
+  id: string,
+  syntaxes: RegExp[]
+};
+
+const Formats: Format[] = [
   {
     id: 'hex',
     syntaxes: [
@@ -77,6 +82,22 @@ const Formats = [
       new RegExp(`^lch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle})\\)$`),
       // lch(300% 25 <angle> / .5)
       new RegExp(`^lch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+    ]
+  }, {
+    id: 'oklab',
+    syntaxes: [
+      // oklab(50% -25 40)
+      new RegExp(`^oklab\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.number})\\)$`),
+      // oklab(50% -25 40 / .5)
+      new RegExp(`^oklab\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.number}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+    ]
+  }, {
+    id: 'oklch',
+    syntaxes: [
+      // oklch(50% 25 <angle>)
+      new RegExp(`^oklch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle})\\)$`),
+      // oklch(50% 25 <angle> / .5)
+      new RegExp(`^oklch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
     ]
   }, {
     id: 'color',

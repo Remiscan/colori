@@ -3,7 +3,7 @@
   "tasks": [
     {
       "type": "shell",
-      "command": "deno run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build.rollup.js",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build.rollup.js",
       "label": "deno: run build.rollup.js",
       "group": {
         "kind": "build",
@@ -11,7 +11,7 @@
       }
     }, {
       "type": "shell",
-      "command": "deno run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable auto.build.rollup.js",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable auto.build.rollup.js",
       "label": "deno: run auto.build.rollup.js",
       "runOptions": {
         "runOn": "folderOpen"

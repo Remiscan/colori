@@ -96,6 +96,33 @@
   );
 
 
+} namespace colori\utils {
+
+
+  function pad(string $s): string {
+    return (strlen($s) < 2) ? '0' . $s : $s;
+  }
+
+  function angleToRange(float $angle): float {
+    while ($angle < 0)   $angle += 360;
+    while ($angle > 360) $angle -= 360;
+    return (float) $angle;
+  }
+
+  function pRound(float $number, int $precision = 5): float {
+    $x = (float) $number;
+    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -$x) + 1) : 1;
+    $precision = (int) ($precision - $intDigits);
+    return (float) round($x, $precision);
+  }
+
+  function invRoot(float $number, int $exponent): float {
+    $sign = $number < 0 ? -1 : 1;
+    if ($sign === -1 && $exponent % 2 === 0) return NAN;
+    return $sign * pow(abs($number), 1 / $exponent);
+  }
+
+
 } namespace colori\conversions {
 
 
@@ -104,14 +131,14 @@
   function srgb_to_lin_srgb(array $rgb): array {
     return array_map(function($x) {
       $sign = $x < 0 ? -1 : 1;
-      return (abs($x) < 0.04045) ? $x / 12.92 : $sign * pow((abs($x) + 0.055) / 1.055, 2.4);
+      return (abs($x) < 0.04045) ? $x / 12.92 : $sign * ((abs($x) + 0.055) / 1.055) ** 2.4;
     }, $rgb);
   }
 
   function lin_srgb_to_srgb(array $rgb): array {
     return array_map(function($x) {
       $sign = $x < 0 ? -1 : 1;
-      return (abs($x) > 0.0031308) ? $sign * (1.055 * pow(abs($x), 1 / 2.4) - 0.055) : 12.92 * $x;
+      return (abs($x) > 0.0031308) ? $sign * (1.055 * (abs($x) ** (1 / 2.4)) - 0.055) : 12.92 * $x;
     }, $rgb);
   }
 
@@ -371,7 +398,7 @@
     $y = $xyz[1] / $w[1];
     $z = $xyz[2] / $w[2];
     
-    $f = function($x) use ($ε, $κ) { return ($x > $ε) ? pow($x, 1/3) : ($κ * $x + 16) / 116; };
+    $f = function($x) use ($ε, $κ) { return ($x > $ε) ? $x ** (1/3) : ($κ * $x + 16) / 116; };
     $f0 = $f($x); $f1 = $f($y); $f2 = $f($z);
     return [
       (116 * $f1 - 16) / 100,
@@ -425,9 +452,9 @@
     $l = 0.4122214708 * $r + 0.5363325363 * $g + 0.0514459929 * $b;
     $m = 0.2119034982 * $r + 0.6806995451 * $g + 0.1073969566 * $b;
     $s = 0.0883024619 * $r + 0.2817188376 * $g + 0.6299787005 * $b;
-    $l = pow($l, 1/3);
-    $m = pow($m, 1/3);
-    $s = pow($s, 1/3);
+    $l = \colori\utils\invRoot($l, 3);
+    $m = \colori\utils\invRoot($m, 3);
+    $s = \colori\utils\invRoot($s, 3);
       
     $okl = 0.2104542553 * $l + 0.7936177850 * $m + -0.0040720468 * $s;
     $oka = 1.9779984951 * $l + -2.4285922050 * $m + 0.4505937099 * $s;
@@ -442,9 +469,9 @@
     $l = $okl + 0.3963377774 * $oka + 0.2158037573 * $okb;
     $m = $okl + -0.1055613458 * $oka + -0.0638541728 * $okb;
     $s = $okl + -0.0894841775 * $oka + -1.2914855480 * $okb;
-    $l = $l**3;
-    $m = $m**3;
-    $s = $s**3;
+    $l = $l ** 3;
+    $m = $m ** 3;
+    $s = $s ** 3;
 
     $r = 4.0767416621 * $l + -3.3077115913 * $m + 0.2309699292 * $s;
     $g = -1.2684380046 * $l + 2.6097574011 * $m + -0.3413193965 * $s;
@@ -542,27 +569,6 @@
     }
 
     return (float) $result * 100;
-  }
-
-
-} namespace colori\utils {
-
-
-  function pad(string $s): string {
-    return (strlen($s) < 2) ? '0' . $s : $s;
-  }
-
-  function angleToRange(float $angle): float {
-    while ($angle < 0)   $angle += 360;
-    while ($angle > 360) $angle -= 360;
-    return (float) $angle;
-  }
-
-  function pRound(float $number, int $precision = 5): float {
-    $x = (float) $number;
-    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -$x) + 1) : 1;
-    $precision = (int) ($precision - $intDigits);
-    return (float) round($x, $precision);
   }
 
 
@@ -706,6 +712,15 @@
 } namespace colori\distances {
 
 
+  function euclidean(array $vals1, array $vals2): float {
+    $distance = 0;
+    foreach ($vals1 as $k => $v) {
+      $distance += ($v - $vals2[$k]) ** 2;
+    }
+    return $distance;
+  }
+
+
   function CIEDE2000(array $lab1, array $lab2): float {
     // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
     [$l1, $a1, $b1] = $lab1;
@@ -819,7 +834,7 @@
     $Scusp = maxSaturation($a, $b);
 
     $rgbMax = \colori\conversions\oklab_to_lin_srgb([1, $Scusp * $a, $Scusp * $b]);
-    $Lcusp = pow(1 / max($rgbMax), 1/3);
+    $Lcusp = \colori\utils\invRoot(1 / max($rgbMax), 3);
     $Ccusp = $Lcusp * $Scusp;
 
     return [$Lcusp, $Ccusp];
@@ -1161,6 +1176,22 @@
             '/^lch\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('angle').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
           )
         ), array(
+          'id' => 'oklab',
+          'syntaxes' => array(
+            // oklab(50% -25 40)
+            '/^oklab\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('number').')\\)$/',
+            // oklab(50% -25 40 / .5)
+            '/^oklab\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('number').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
+          )
+        ), array(
+          'id' => 'oklch',
+          'syntaxes' => array(
+            // oklch(50% 25 <angle>)
+            '/^oklch\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('angle').')\\)$/',
+            // oklch(50% 25 <angle> / .5)
+            '/^oklch\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('angle').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
+          )
+        ), array(
           'id' => 'color',
           'syntaxes' => array(
             // color(display-p3 -0.6112 1.0079 -0.2192)
@@ -1212,19 +1243,17 @@
             $this->setHex([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 'ff']);
             break;
           case 'rgb':
-            $this->setRgb([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
-            break;
           case 'hsl':
-            $this->setHsl([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
-            break;
           case 'hwb':
-            $this->setHwb([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
-            break;
           case 'lab':
-            $this->setLab([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
-            break;
           case 'lch':
-            $this->setLch([$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1]);
+          case 'oklab':
+          case 'oklch':
+            $values = [$format['data'][1], $format['data'][2], $format['data'][3], $format['data'][4] ?? 1];
+            $props = self::propertiesOf($format['id']);
+            $props[] = 'a';
+            $space = self::getSpace($format['id']);
+            $this->set($values, $props, $space);
             break;
           case 'color':
             $this->setColor($format['data'][1], [$format['data'][2], $format['data'][3], $format['data'][4], $format['data'][5] ?? 1]);
@@ -1257,8 +1286,12 @@
         case 'hwb': $format = self::formats()[3]; break;
         case 'lab': $format = self::formats()[4]; break;
         case 'lch': $format = self::formats()[5]; break;
-        case 'col': $format = self::formats()[6]; break;
-        default:    $format = self::formats()[7];
+        case 'okl':
+          if (str_starts_with($colorString, 'oklab')) { $format = self::formats()[6]; break; }
+          if (str_starts_with($colorString, 'oklch')) { $format = self::formats()[7]; break; }
+          break;
+        case 'col': $format = self::formats()[8]; break;
+        default:    $format = self::formats()[9];
       }
 
       // Check if the given string matches any color syntax
@@ -1266,7 +1299,7 @@
         $result = preg_match($syntaxe, $colorString, $matches);
         if ($result === 1 && $matches[0] === $colorString) {
           if ($format['id'] === 'name') {
-            if ($colorString === 'transparent') return ['id' => 'rgb', 'data' => [null, 0, 0, 0, 0]];
+            if ($colorString === 'transparent') return ['id' => 'rgb', 'data' => ['', '0', '0', '0', '0']];
             $name = strtolower($colorString);
             if (array_key_exists($name, self::COULEURS_NOMMEES))
               return self::matchSyntax('#' . self::COULEURS_NOMMEES[strtolower($colorString)]);
@@ -1281,115 +1314,127 @@
 
     /** Parses a number / percentage / angle into the correct format to store it. */
     private static function parse(string|float|int $value, ?string $prop = null, bool $clamp = true): float {
-      // Alpha values:
-      // from any % or any number
-      // clamped to [0, 100]% or [0, 1]
-      // to [0, 1]
-      if ($prop === 'a') {
-        // If n is a percentage
-        if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
-          if ($clamp) return max(.0, min(floatval($value) / 100, 1.0));
-          else        return floatval($value) / 100;
-        }
-        // If n is a number
-        elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
-          if ($clamp) return max(.0, min($value, 1.0));
-          else        return floatval($value);
-        }
-        else throw new \Exception("Invalid ". json_encode($prop) ." value: ". json_encode($value));
-      }
+      $val = (string) $value;
+      $nval = floatval($val);
 
-      // Red, green, blue values:
-      // from any % or any number
-      // clamped to [0, 100]% or [0, 255]
-      // to [0, 1]
-      elseif (in_array($prop, ['r', 'g', 'b'])) {
-        // If n is a percentage
-        if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
-          if ($clamp) return max(.0, min(floatval($value) / 100, 1.0));
-          else        return floatval($value) / 100;
-        }
-        // If n is a number
-        elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
-          if ($clamp) return max(.0, min($value / 255.0, 1.0));
-          else        return $value / 255.0;
-        }
-        else throw new \Exception("Invalid ". json_encode($prop) ." value: ". json_encode($value));
-      }
+      try {
+        switch ($prop) {
+          // Alpha values:
+          // from any % or any number
+          // clamped to [0, 100]% or [0, 1]
+          // to [0, 1]
+          case 'a':
+            // If n is a percentage
+            if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
+              if ($clamp) return max(.0, min(floatval($value) / 100, 1.0));
+              else        return floatval($value) / 100;
+            }
+            // If n is a number
+            elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              if ($clamp) return max(.0, min($value, 1.0));
+              else        return floatval($value);
+            }
+            else throw new \Exception('invalid');
 
-      // Hue and CIE hue values:
-      // from any angle or any number
-      // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
-      // to [0, 1]
-      elseif (in_array($prop, ['h', 'cieh'])) {
-        $h = floatval($value);
-        // If n is a number
-        if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
-          return (float) utils\angleToRange($h);
-        }
-        // If n is an angle
-        elseif (preg_match('/^' . CSSFormats::RegExp('angle') . '$/', $value)) {
-          if (substr($value, -3) === 'deg') {} // necessary to accept deg values
-          elseif (substr($value, -3) === 'grad')
-            $h = $h * 360 / 400;
-          elseif (substr($value, -3) === 'rad')
-            $h = $h * 180 / pi();
-          elseif (substr($value, -3) === 'turn')
-            $h = $h * 360;
-          else throw new \Exception("Invalid angle value: ". json_encode($value));
-          return (float) utils\angleToRange($h);
-        }
-        else throw new \Exception("Invalid ". json_encode($prop) ." value: ". json_encode($value));
-      }
+          // Red, green, blue values:
+          // from any % or any number
+          // clamped to [0, 100]% or [0, 255]
+          // to [0, 1]
+          case 'r': case 'g': case 'b':
+            // If n is a percentage
+            if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
+              if ($clamp) return max(.0, min(floatval($value) / 100, 1.0));
+              else        return floatval($value) / 100;
+            }
+            // If n is a number
+            elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              if ($clamp) return max(.0, min($value / 255.0, 1.0));
+              else        return $value / 255.0;
+            }
+            else throw new \Exception('invalid');
 
-      // Percentage values:
-      // from any %
-      // clamped to [0, 100]%
-      // to [0, 1]
-      elseif (in_array($prop, ['s', 'l', 'w', 'bk', 'ciel'])) {
-        // If n is a percentage
-        if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
-          if ($clamp) return max(0, min(floatval($value) / 100, 1));
-          else        return floatval($value) / 100;
-        }
-        else throw new \Exception("Invalid ". json_encode($prop) ." value: ". json_encode($value));
-      }
+          // Hue and CIE hue values:
+          // from any angle or any number
+          // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
+          // to [0, 1]
+          case 'h': case 'cieh': case 'okh':
+            $h = floatval($value);
+            // If n is a number
+            if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              return (float) utils\angleToRange($h);
+            }
+            // If n is an angle
+            elseif (preg_match('/^' . CSSFormats::RegExp('angle') . '$/', $value)) {
+              if (substr($value, -3) === 'deg') {} // necessary to accept deg values
+              elseif (substr($value, -3) === 'grad')
+                $h = $h * 360 / 400;
+              elseif (substr($value, -3) === 'rad')
+                $h = $h * 180 / pi();
+              elseif (substr($value, -3) === 'turn')
+                $h = $h * 360;
+              else throw new \Exception("Invalid angle value: ". json_encode($value));
+              return (float) utils\angleToRange($h);
+            }
+            else throw new \Exception('invalid');
 
-      // CIE axes values:
-      // any number
-      elseif (in_array($prop, ['ciea', 'cieb'])) {
-        // If n is a number
-        if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
-          return floatval($value);
-        }
-        else throw new \Exception("Invalid ". json_encode($prop) ." value: ". $value);
-      }
+          // Percentage values:
+          // from any %
+          // clamped to [0, 100]%
+          // to [0, 1]
+          case 's': case 'l': case 'w': case 'bk': case 'ciel': case 'okl':
+            // If n is a percentage
+            if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
+              if ($clamp) return max(0, min(floatval($value) / 100, 1));
+              else        return floatval($value) / 100;
+            }
+            else throw new \Exception('invalid');
 
-      // CIE chroma values:
-      // from any number
-      // clamped to [0, +Inf[
-      elseif ($prop === 'ciec') {
-        // If n is a number
-        if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
-          if ($clamp) return max(0, $value);
-          else        return floatval($value);
-        }
-        else throw new \Exception("Invalid ". json_encode($prop) ." value: ". $value);
-      }
+          // CIE axes values:
+          // any number
+          case 'ciea': case 'cieb':
+            // If n is a number
+            if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              return floatval($value);
+            }
+            else throw new \Exception('invalid');
 
-      // Arbitrary values
-      // from any % or any number
-      // to any number (so that 0% becomes 0 and 100% becomes 1)
-      else {
-        // If n is a percentage
-        if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
-          return floatval($value) / 100;
+          // CIE chroma values:
+          // from any number
+          // clamped to [0, +Inf[
+          case 'ciec':
+            // If n is a number
+            if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              if ($clamp) return max(0, $value);
+              else        return floatval($value);
+            }
+            else throw new \Exception('invalid');
+
+          // OKLAB axes & chroma values:
+          // any number
+          case 'oka': case 'okb': case 'okc':
+            // If n is a number
+            if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              return floatval($value) / 100;
+            }
+            else throw new \Exception('invalid');
+
+          // Arbitrary values
+          // from any % or any number
+          // to any number (so that 0% becomes 0 and 100% becomes 1)
+          default:
+            // If n is a percentage
+            if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
+              return floatval($value) / 100;
+            }
+            // If n is a number
+            elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              return floatval($value);
+            }
+            else throw new \Exception('invalidest');
         }
-        // If n is a number
-        elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
-          return floatval($value);
-        }
-        else throw new \Exception("Invalid arbitrary value: ". json_encode($value));
+      } catch (\Exception $error) {
+        if ($error === 'invalid') throw new \Exception("Invalid ". json_encode($prop) ." value: ". json_encode($value));
+        else                      throw new \Exception("Invalid arbitrary value: ". json_encode($value));
       }
     }
 
@@ -1404,6 +1449,8 @@
         case 's': case 'l': case 'w': case 'bk': case 'ciel':
           $unparsed = $precision === null ? (100 * $value).'%' : (round(10**$precision * 100 * $value) / (10**$precision)).'%';
           break;
+        case 'oka': case 'okb': case 'okc':
+          $unparsed = $precision === null ? (100 * $value) : round(10**$precision * 100 * $value) / (10**$precision);
         case 'a':
           $unparsed = $precision === null ? $value : round(10**max($precision, 2) * $value) / (10**max($precision, 2));
           break;
@@ -1422,11 +1469,11 @@
     /* GENERAL SETTER */
 
     /** Will be used by other setters to calculate all color properties. */
-    private function set(array $data, array $props, array|string $spaceID): void {
+    private function set(array $data, array $props, array|string $spaceID, bool $parsed = false): void {
       $space = self::getSpace($spaceID);
       $values = [];
       for ($i = 0; $i < count($props); $i++) {
-        $values[] = self::parse($data[$i], $props[$i]);
+        $values[] = $parsed ? $data[$i] : self::parse($data[$i], $props[$i]);
       }
 
       [$this->r, $this->g, $this->b] = self::convert($space, 'srgb', $values);
@@ -1543,11 +1590,8 @@
       $a = (strlen($a) === 1) ? $a.$a : $a;
       $a = intval(hexdec($a)) / 255;
 
-      $this->setRgb([$r, $g, $b, $a]);
+      $this->set([$r, $g, $b, $a], ['r', 'g', 'b'], 'srgb');
     }
-
-    /** Alias to the hex setter. */
-    private function setHexa(array $hexa): void { $this->setHex($hex); }
 
     /** Hexadecimal expression of the color. */
     public function hex(): string {
@@ -1562,67 +1606,47 @@
     }
 
 
-    /* RGB (functional) */
+    /* OTHER FORMATS */
 
-    /** Calculates all properties of the color from its functional RGB expression. */
-    private function setRgb(array $rgba): void { $this->set($rgba, ['r', 'g', 'b'], 'rgb'); }
-    private function setRgba(array $rgba): void { $this->setRgb($rgba); }
     public function rgb(): string { return $this->expr('rgb', precision: 2); }
     public function rgba(): string { return $this->rgb(); }
 
-
-    /* HSL */
-
-    /** Calculates all properties of the color from its HSL expression. */
-    private function setHsl(array $hsla): void { $this->set($hsla, ['h', 's', 'l'], 'hsl'); }
     public function hsl(): string { return $this->expr('hsl', precision: 2); }
     public function hsla(): string { return $this->hsl(); }
 
-
-    /* HWB */
-
-    /** Calculates all properties of the color from its HWB expression. */
-    private function setHwb(array $hwba): void { $this->set($hwba, ['h', 'w', 'b'], 'hwb'); }
     public function hwb(): string { return $this->expr('hwb', precision: 2); }
 
-
-    /* LAB */
-
-    /** Calculates all properties of the color from its LAB expression. */
-    private function setLab(array $laba): void { $this->set($laba, ['ciel', 'ciea', 'cieb'], 'lab'); }
     public function lab(): string { return $this->expr('lab', precision: 2); }
 
-
-    /* LCH */
-
-    /** Calculates all properties of the color from its LCH expression. */
-    private function setLch(array $lcha): void { $this->set($lcha, ['ciel', 'ciec', 'cieh'], 'lch'); }
     public function lch(): string { return $this->expr('lch', precision: 2); }
+
+    public function oklab(): string { return $this->expr('oklab', precision: 2); }
+
+    public function oklch(): string { return $this->expr('oklch', precision: 2); }
 
 
     /* PROFILED COLORS */
     /** Calculates all properties of the color from its functional color() expression. */
-    private function setColor(string $spaceID, array $rgba): void {
-      $rgb = array_slice($rgba, 0, 3);
-      $a = $rgba[3];
+    private function setColor(string $spaceID, array $values): void {
+      $vals = array_slice($values, 0, 3);
+      $a = $values[3];
 
-      //$clamp = fn($v) => max(0, min($v, 1));
       switch ($spaceID) {
         case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
-          //$rgb = array_map($clamp, $rgb);
+        case 'oklab': case 'oklch':
         case 'xyz':
-          $rgb = self::convert($spaceID, 'srgb', $rgb);
+          $vals = self::convert($spaceID, 'srgb', $vals);
           break;
         default:
           if (str_starts_with($spaceID, '--')) {
             $id = substr($spaceID, 2);
-            $rgb = self::convert($id, 'srgb', $rgb);
+            $vals = self::convert($id, 'srgb', $vals);
           }
           else throw new \Exception("The ". json_encode($spaceID) ." color space is not supported");
       }
 
-      $values = $rgb; $rgba[] = $a;
-      $this->set($values, [null, null, null], 'srgb');
+      $rgba = $vals; $rgba[] = $a;
+      $this->set($rgba, [null, null, null], 'srgb');
     }
 
 
@@ -1646,111 +1670,120 @@
 
     private function setH(float $val): void {
       [$x, $s, $l] = $this->valuesTo('hsl');
-      $temp = [];
       $props = self::propertiesOf('hsl'); $props[] = 'a';
-      foreach([$val, $s, $l, $this->a] as $k => $v) {
-        $temp[] = self::unparse($v, $props[$k]);
-      }
-      $this->setHsl($temp);
+      $values = [$val, $s, $l, $this->a];
+      $this->set($values, $props, 'hsl', parsed: true);
     }
     private function setHue(float $val): void { $this->setH($val); }
 
     private function setS(float $val): void {
       [$h, $x, $l] = $this->valuesTo('hsl');
-      $temp = [];
       $props = self::propertiesOf('hsl'); $props[] = 'a';
-      foreach([$h, $val, $l, $this->a] as $k => $v) {
-        $temp[] = self::unparse($v, $props[$k]);
-      }
-      $this->setHsl($temp);
+      $values = [$h, $val, $l, $this->a];
+      $this->set($values, $props, 'hsl', parsed: true);
     }
     private function setSaturation(float $val): void { $this->setS($val); }
 
     private function setL(float $val): void {
       [$h, $s, $x] = $this->valuesTo('hsl');
-      $temp = [];
       $props = self::propertiesOf('hsl'); $props[] = 'a';
-      foreach([$h, $s, $val, $this->a] as $k => $v) {
-        $temp[] = self::unparse($v, $props[$k]);
-      }
-      $this->setHsl($temp);
+      $values = [$h, $s, $val, $this->a];
+      $this->set($values, $props, 'hsl', parsed: true);
     }
     private function setLightness(float $val): void { $this->setL($val); }
 
     private function setW(float $val): void {
       [$h, $x, $bk] = $this->valuesTo('hwb');
-      $temp = [];
       $props = self::propertiesOf('hwb'); $props[] = 'a';
-      foreach([$h, $val, $bk, $this->a] as $k => $v) {
-        $temp[] = self::unparse($v, $props[$k]);
-      }
-      $this->setHwb($temp);
+      $values = [$h, $val, $bk, $this->a];
+      $this->set($values, $props, 'hwb', parsed: true);
     }
     private function setWhiteness(float $val): void { $this->setW($val); }
 
     private function setBk(float $val): void {
       [$h, $w, $x] = $this->valuesTo('hwb');
-      $temp = [];
       $props = self::propertiesOf('hwb'); $props[] = 'a';
-      foreach([$h, $w, $val, $this->a] as $k => $v) {
-        $temp[] = self::unparse($v, $props[$k]);
-      }
-      $this->setHwb($temp);
+      $values = [$h, $w, $val, $this->a];
+      $this->set($values, $props, 'hwb', parsed: true);
     }
     private function setBlackness(float $val): void { $this->setBk($val); }
 
     private function setCiel(float $val): void {
       [$x, $ciea, $cieb] = $this->valuesTo('lab');
-      $temp = [];
       $props = self::propertiesOf('lab'); $props[] = 'a';
-      foreach([$val, $ciea, $cieb, $this->a] as $k => $v) {
-        $temp[] = self::unparse($v, $props[$k]);
-      }
-      $this->setLab($temp);
+      $values = [$val, $ciea, $cieb, $this->a];
+      $this->set($values, $props, 'lab', parsed: true);
     }
     private function setCIELightness(float $val): void { $this->setCIEL($val); }
 
     private function setCiea(float $val): void {
       [$ciel, $x, $cieb] = $this->valuesTo('lab');
-      $temp = [];
       $props = self::propertiesOf('lab'); $props[] = 'a';
-      foreach([$ciel, $val, $cieb, $this->a] as $k => $v) {
-        $temp[] = self::unparse($v, $props[$k]);
-      }
-      $this->setLab($temp);
+      $values = [$ciel, $val, $cieb, $this->a];
+      $this->set($values, $props, 'lab', parsed: true);
     }
 
     private function setCieb(float $val): void {
       [$ciel, $ciea, $x] = $this->valuesTo('lab');
-      $temp = [];
       $props = self::propertiesOf('lab'); $props[] = 'a';
-      foreach([$ciel, $ciea, $val, $this->a] as $k => $v) {
-        $temp[] = self::unparse($v, $props[$k]);
-      }
-      $this->setLab($temp);
+      $values = [$ciel, $ciea, $val, $this->a];
+      $this->set($values, $props, 'lab', parsed: true);
     }
 
     private function setCiec(float $val): void {
       [$ciel, $x, $cieh] = $this->valuesTo('lch');
-      $temp = [];
       $props = self::propertiesOf('lch'); $props[] = 'a';
-      foreach([$ciel, $val, $cieh, $this->a] as $k => $v) {
-        $temp[] = self::unparse($v, $props[$k]);
-      }
-      $this->setLch($temp);
+      $values = [$ciel, $val, $cieh, $this->a];
+      $this->set($values, $props, 'lch', parsed: true);
     }
     private function setCIEChroma(float $val): void { $this->setCIEC($val); }
 
     private function setCieh(float $val): void {
       [$ciel, $ciec, $x] = $this->valuesTo('lch');
-      $temp = [];
       $props = self::propertiesOf('lch'); $props[] = 'a';
-      foreach([$ciel, $ciec, $val, $this->a] as $k => $v) {
-        $temp[] = self::unparse($v, $props[$k]);
-      }
-      $this->setLch($temp);
+      $values = [$ciel, $ciec, $val, $this->a];
+      $this->set($values, $props, 'lch', parsed: true);
     }
     private function setCIEHue(float $val): void { $this->setCIEH($val); }
+
+
+    private function setOkl(float $val): void {
+      [$x, $oka, $okb] = $this->valuesTo('oklab');
+      $props = self::propertiesOf('oklab'); $props[] = 'a';
+      $values = [$val, $oka, $okb, $this->a];
+      $this->set($values, $props, 'oklab', parsed: true);
+    }
+    private function setOKLightness(float $val): void { $this->setOkl($val); }
+
+    private function setOka(float $val): void {
+      [$okl, $x, $okb] = $this->valuesTo('oklab');
+      $props = self::propertiesOf('oklab'); $props[] = 'a';
+      $values = [$okl, $val, $okb, $this->a];
+      $this->set($values, $props, 'oklab', parsed: true);
+    }
+
+    private function setOkb(float $val): void {
+      [$okl, $oka, $x] = $this->valuesTo('oklab');
+      $props = self::propertiesOf('oklab'); $props[] = 'a';
+      $values = [$okl, $oka, $val, $this->a];
+      $this->set($values, $props, 'oklab', parsed: true);
+    }
+
+    private function setOkc(float $val): void {
+      [$okl, $x, $okh] = $this->valuesTo('oklch');
+      $props = self::propertiesOf('oklch'); $props[] = 'a';
+      $values = [$okl, $val, $okh, $this->a];
+      $this->set($values, $props, 'oklch', parsed: true);
+    }
+    private function setOKChroma(float $val): void { $this->setOkc($val); }
+
+    private function setOkh(float $val): void {
+      [$okl, $okc, $x] = $this->valuesTo('oklch');
+      $props = self::propertiesOf('oklch'); $props[] = 'a';
+      $values = [$okl, $okc, $val, $this->a];
+      $this->set($values, $props, 'oklch', parsed: true);
+    }
+    private function setOKHue(float $val): void { $this->setOkh($val); }
 
     /** Gets the parsed value of one of the color properties. */
     public function red(): float { return $this->r; }
@@ -1776,6 +1809,32 @@
     public function CIEchroma(): float { return $this->ciec(); }
     public function cieh(): float { return $this->valuesTo('lch')[2]; }
     public function CIEhue(): float { return $this->cieh(); }
+    public function okl(): float { return $this->valuesTo('oklab')[0]; }
+    public function OKlightness(): float { return $this->okl(); }
+    public function oka(): float { return $this->valuesTo('oklab')[1]; }
+    public function okb(): float { return $this->valuesTo('oklab')[2]; }
+    public function okc(): float { return $this->valuesTo('oklch')[1]; }
+    public function OKchroma(): float { return $this->okc(); }
+    public function okh(): float { return $this->valuesTo('oklch')[2]; }
+    public function OKhue(): float { return $this->okh(); }
+
+    public function setLuminance(float $val): void {
+      // Scale r, g, b to reach the desired luminance value
+      [$r, $g, $b] = $this->values();
+      $oldLum = $this->luminance();
+      $newLum = self::parse($val, 'a', clamp: true);
+
+      if ($oldLum === 0) {
+        $this->r = $newLum;
+        $this->g = $newLum;
+        $this->b = $newLum;
+      } else {
+        $ratio = $newLum / $oldLum;
+        $this->r = $ratio * $r;
+        $this->g = $ratio * $g;
+        $this->b = $ratio * $b;
+      }
+    }
 
     public function luminance(): float {
       if ($this->a < 1) throw new \Exception('The luminance of a transparent color would be meaningless');
@@ -1863,13 +1922,13 @@
 
       // OKLab gamut clipping
       elseif ($method === 'oklab') {
-        $clampSpace = self::getSpace('oklab');
+        $clampSpace = self::getSpace('srgb');
         $rgb = self::convert($valueSpace, $clampSpace, $values);
         $clampedValues = oklab_gamut\clip($rgb);
       }
 
       // Let's reduce the chroma until the color is in the color space
-      else {
+      elseif ($method === 'chroma') {
         $clampSpace = self::getSpace('lch');
         $lch = self::convert($valueSpace, $clampSpace, $values);
 
@@ -2116,7 +2175,7 @@
 
 
     /** Computes the contrast between two colors as defined by WCAG2 or 3. */
-    public static function contrast(self|array|string $textColor, self|array|string $backgroundColor, string $method = 'WCAG2'): float {
+    public static function contrast(self|array|string $textColor, self|array|string $backgroundColor, string $method = 'APCA'): float {
       $background = self::makeInstance($backgroundColor);
       if ($background->a < 1) throw new \Exception('The contrast with a transparent background color would be meaningless');
       $text = self::makeInstance($textColor);
@@ -2135,24 +2194,25 @@
 
     /** Determines which color scheme ('light' or 'dark') would lead to a better contrast with the color. */
     public function bestColorScheme(string $as = 'background'): string {
+      $rgba = self::toGamut('srgb', $this->values()); $rgba[] = $this->a;
       if ($as === 'text') {
-        $Cblack = abs(self::contrast($this, 'black', method: 'apca'));
-        $Cwhite = abs(self::contrast($this, 'white', method: 'apca'));
+        $Cblack = abs(self::contrast($rgba, 'black', method: 'apca'));
+        $Cwhite = abs(self::contrast($rgba, 'white', method: 'apca'));
         return ($Cblack >= $Cwhite) ? 'dark' : 'light';
       } else {
-        $Cblack = abs(self::contrast('black', $this, method: 'apca'));
-        $Cwhite = abs(self::contrast('white', $this, method: 'apca'));
+        $Cblack = abs(self::contrast('black', $rgba, method: 'apca'));
+        $Cwhite = abs(self::contrast('white', $rgba, method: 'apca'));
         return ($Cblack >= $Cwhite) ? 'light' : 'dark';
       }
     }
 
 
     /** Modifies the CIE lightness of a color to give it better contrast with a background color. */
-    public function improveContrast(self|array|string $backgroundColor, float $desiredContrast, bool $lower = false, ?string $colorScheme = null, string $method = 'WCAG2'): self {
+    public function improveContrast(self|array|string $backgroundColor, float $desiredContrast, bool $lower = false, ?string $colorScheme = null, string $method = 'APCA'): self {
       $background = self::makeInstance($backgroundColor);
       $values = $this->values(); $values[] = $this->a;
-      $backgroundLab = $background->valuesTo('lab');
-      $movingLab = $this->valuesTo('lab');
+      $backgroundLab = $background->valuesTo('oklab');
+      $movingLab = $this->valuesTo('oklab');
 
       // Let's measure the initial contrast
       // and decide if we want it to go up or down.
@@ -2176,8 +2236,8 @@
       ];
       
       // Let's decide which direction to move the lightness in.
-      if ($isPossible['lowering'] && !$isPossible['raising'])      $directionCIEL = -1;
-      else if ($isPossible['raising'] && !$isPossible['lowering']) $directionCIEL = 1;
+      if ($isPossible['lowering'] && !$isPossible['raising'])      $directionOKL = -1;
+      else if ($isPossible['raising'] && !$isPossible['lowering']) $directionOKL = 1;
       // If desiredContrast can not be reached, return white or black — the one that fits the color scheme.
       else if (!$isPossible['raising'] && !$isPossible['lowering']) {
         if ($colorScheme === 'light') return new self('black');
@@ -2186,76 +2246,78 @@
       // If desiredContrast can be reached in both directions
       else {
         // If the background is light and we need to raise the contrast, lower the lightness.
-        if ($colorScheme === 'light' && $directionContrast > 0)      $directionCIEL = -1;
+        if ($colorScheme === 'light' && $directionContrast > 0)      $directionOKL = -1;
         // If the background is light and we need to lower the contrast, raise the lightness.
-        else if ($colorScheme === 'light' && $directionContrast < 0) $directionCIEL = 1;
+        else if ($colorScheme === 'light' && $directionContrast < 0) $directionOKL = 1;
         // If the background is dark and we need to raise the contrast, raise the lightness.
-        else if ($colorScheme === 'dark' && $directionContrast > 0)  $directionCIEL = 1;
+        else if ($colorScheme === 'dark' && $directionContrast > 0)  $directionOKL = 1;
         // If the background is dark and we need to lower the contrast, lower the lightness.
-        else                                                       $directionCIEL = -1;
+        else                                                         $directionOKL = -1;
       }
 
       $τ = .0001;
-      $CIELmin = ($directionCIEL > 0) ? $movingLab[0] : 0;
-      $CIELmax = ($directionCIEL > 0) ? 1 : $movingLab[0];
+      $OKLmin = ($directionOKL > 0) ? $movingLab[0] : 0;
+      $OKLmax = ($directionOKL > 0) ? 1 : $movingLab[0];
 
-      while ($CIELmax - $CIELmin > $τ) {
+      while ($OKLmax - $OKLmin > $τ) {
         // Let's try to raise contrast by increasing or reducing CIE lightness.
-        $ciel = ($CIELmin + $CIELmax) / 2;
-        $newValues = $movingLab; $newValues[0] = $ciel;
-        $newContrast = self::contrast(self::convert('lab', 'srgb', $newValues), $background, method: $method);
+        $okl = ($OKLmin + $OKLmax) / 2;
+        $newValues = $movingLab; $newValues[0] = $okl;
+        $newContrast = self::contrast(self::convert('oklab', 'srgb', $newValues), $background, method: $method);
 
         // If the new contrast hasn't gone over its desired value
         $condition = ($directionContrast > 0) ? (abs($newContrast) < $desiredContrast) : (abs($newContrast) > $desiredContrast);
         if ($condition) {
-          if ($directionCIEL > 0) $CIELmin = $ciel;
-          else                    $CIELmax = $ciel;
+          if ($directionOKL > 0) $OKLmin = $okl;
+          else                   $OKLmax = $okl;
         }
         // If we overshot and the contrast moved further than we want it to
         else {
-          if ($directionCIEL > 0) $CIELmax = $ciel;
-          else                    $CIELmin = $ciel;
+          if ($directionOKL > 0) $OKLmax = $okl;
+          else                   $OKLmin = $okl;
         }
 
-        $movingLab[0] = $ciel;
+        $movingLab[0] = $okl;
       }
 
-      $result = new self(self::convert('lab', 'srgb', $movingLab));
+      $result = new self(self::convert('oklab', 'srgb', $movingLab));
       // If the color we find has its contrast slightly below the desired value, push it further.
       if (abs(self::contrast($result, $background, method: $method)) < $desiredContrast) {
-        if ($directionCIEL > 0) $movingLab[0] = $CIELmax;
-        else                    $movingLab[0] = $CIELmin;
+        if ($directionOKL > 0) $movingLab[0] = $OKLmax;
+        else                   $movingLab[0] = $OKLmin;
       }
 
       // We're done!
-      return new self(self::convert('lab', 'srgb', $movingLab));
+      return new self(self::convert('oklab', 'srgb', $movingLab));
     }
 
 
     /** Calculates the distance between two colors in a certain format, by adding the difference between each of their properties. */
-    public static function distance(self|array|string $color1, self|array|string $color2, string $method = 'CIEDE2000'): float {
+    public static function distance(self|array|string $color1, self|array|string $color2, string $method = 'deltaE2000'): float {
       $color1 = self::makeInstance($color1);
       $color2 = self::makeInstance($color2);
-      $lab1 = $color1->valuesTo('lab');
-      $lab2 = $color2->valuesTo('lab');
 
       switch ($method) {
-        case 'CIEDE2000':
+        case 'CIEDE2000': case 'deltaE2000':
+          $lab1 = $color1->valuesTo('lab');
+          $lab2 = $color2->valuesTo('lab');
           return distances\CIEDE2000($lab1, $lab2);
+        case 'deltaEOK':
+          $oklab1 = $color1->valuesTo('oklab');
+          $oklab2 = $color2->valuesTo('oklab');
+          return distances\euclidean($oklab1, $oklab2);
         case 'euclidean':
         default:
-          $dist = 0;
-          foreach($lab1 as $k => $v) {
-            $dist += ($v - $lab2[$k]) ** 2;
-          }
-          return $dist;
+          $rgb1 = $colors1->values();
+          $rgb2 = $colors2->values();
+          return distances\euclidean($rgb1, $rgb2);
       }
     }
 
 
     /** Determines if two colors are the same, with a certain tolerance. */
-    public static function same(self|array|string $color1, self|array|string $color2, float $tolerance = 1): bool {
-      if (self::distance($color1, $color2) > $tolerance) return false;
+    public static function same(self|array|string $color1, self|array|string $color2, float $tolerance = 1, string $method = 'deltaE2000'): bool {
+      if (self::distance($color1, $color2, method: $method) > $tolerance) return false;
       else return true;
     }
 
@@ -2324,16 +2386,18 @@
       switch($format) {
         case 'rgb': case 'rgba': return ['r', 'g', 'b'];
         case 'hsl': case 'hsla': return ['h', 's', 'l'];
-        case 'hwb': case 'hwba': return ['h', 'w', 'bk'];
-        case 'lab': case 'laba': return ['ciel', 'ciea', 'cieb'];
-        case 'lch': case 'lcha': return ['ciel', 'ciec', 'cieh'];
+        case 'hwb':              return ['h', 'w', 'bk'];
+        case 'lab':              return ['ciel', 'ciea', 'cieb'];
+        case 'lch':              return ['ciel', 'ciec', 'cieh'];
+        case 'oklab':            return ['okl', 'oka', 'okb'];
+        case 'oklch':            return ['okl', 'okc', 'okh'];
         default: return [];
       }
     }
 
     /** Array of all property names. */
     private static function properties(): array {
-      return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh'];
+      return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh', 'oka', 'okb', 'okl', 'okc', 'okh'];
     }
 
     public const COLOR_SPACES = COLOR_SPACES;

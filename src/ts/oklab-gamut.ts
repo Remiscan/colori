@@ -5,7 +5,7 @@ import * as Conversions from './conversion.js';
 // Source of the math: https://bottosson.github.io/posts/gamutclipping/
 
 
-export function maxSaturation(a, b) {
+export function maxSaturation(a: number, b: number): number {
   let k0, k1, k2, k3, k4, wl, wm, ws;
 
   // If red goes negative first
@@ -52,7 +52,7 @@ export function maxSaturation(a, b) {
 }
 
 
-export function cusp(a, b) {
+export function cusp(a: number, b: number): number[] {
   const Scusp = maxSaturation(a, b);
 
   const rgbMax = Conversions.oklab_to_lin_srgb([1, Scusp * a, Scusp * b]);
@@ -63,7 +63,7 @@ export function cusp(a, b) {
 }
 
 
-export function gamutIntersection(a, b, L1, C1, L0) {
+export function gamutIntersection(a: number, b: number, L1: number, C1: number, L0: number): number {
   const [Lcusp, Ccusp] = cusp(a, b);
 
   let t;
@@ -94,7 +94,7 @@ export function gamutIntersection(a, b, L1, C1, L0) {
             mdt2 = 6 * m_dt * m_dt * m_,
             sdt2 = 6 * s_dt * s_dt * s_;
 
-      const term = (v1, v2, v3) => {
+      const term = (v1: number, v2: number, v3: number): number => {
         const w = v1 * l + v2 * m + v3 * s - 1,
               w1 = v1 * ldt + v2 * mdt + v3 * sdt,
               w2 = v1 * ldt2 + v2 * mdt2 + v3 * sdt2;
@@ -116,7 +116,7 @@ export function gamutIntersection(a, b, L1, C1, L0) {
 }
 
 
-export function clip(rgb) {
+export function clip(rgb: number[]): number[] {
   if (rgb.every(v => v > 0 && v < 1)) return rgb;
   
   const [okl, oka, okb] = Conversions.lin_srgb_to_oklab(Conversions.srgb_to_lin_srgb(rgb));

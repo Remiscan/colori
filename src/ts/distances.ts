@@ -1,10 +1,21 @@
 /**
- * Computes the CIEDE2000 distance between two colors.
- * @param {number[]} - Array of parsed LAB values of the first color (i.e. l in [0, 1]).
- * @param {number[]} - Array of parsed LAB values of the second color (i.e. l in [0, 1]).
- * @returns {number} Distance between the cwo colors.
+ * Computes the euclidean distance between two colors.
+ * @param vals1 Array of parsed values of the first color.
+ * @param vals2 Array of parsed values of the second color.
+ * @returns Distance between the cwo colors.
  */
-export function CIEDE2000([l1, a1, b1], [l2, a2, b2]) {
+export function euclidean(vals1: number[], vals2: number[]): number {
+  return vals1.reduce((sum, v, k) => sum + (v - vals2[k]) ** 2, 0);
+}
+
+
+/**
+ * Computes the CIEDE2000 distance between two colors.
+ * @param lab1 Array of parsed LAB values of the first color (i.e. l in [0, 1]).
+ * @param lab2 Array of parsed LAB values of the second color (i.e. l in [0, 1]).
+ * @returns Distance between the cwo colors.
+ */
+export function CIEDE2000([l1, a1, b1]: number[], [l2, a2, b2]: number[]): number {
   // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
   const L1 = 100 * l1, L2 = 100 * l2;
   const C1 = Math.sqrt(a1 ** 2 + b1 ** 2);

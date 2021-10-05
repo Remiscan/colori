@@ -67,8 +67,7 @@ $version = version();
 </table>
 
 <script type="module">
-  import Couleur from '../dist/colori--<?=$version?>.js';
-  import Graph from '../src/js/graph.js';
+  import Couleur, { Graph } from '../dist/colori--<?=$version?>.js';
 
   const colorSpaces = Couleur.colorSpaces;
   let max = 0;

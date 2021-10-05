@@ -120,7 +120,7 @@ require_once '../dist/colori.php';
   // ▼ ES modules cache-busted grâce à PHP
   /*<?php ob_start();?>*/
 
-  import { default as Couleur, Palette as DefPalette } from '../dist/colori.js';
+  import Couleur, { Palette } from '../dist/colori.js';
 
   /*<?php $imports = ob_get_clean();
   require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
@@ -300,7 +300,7 @@ require_once '../dist/colori.php';
 
 
 
-  class Palette extends DefPalette {
+  class MonetPalette extends Palette {
     constructor(hue) {
       super(hue, generator);
     }
@@ -313,7 +313,7 @@ require_once '../dist/colori.php';
     container.innerHTML = '';
     document.querySelector('#hue-value').innerHTML = hue;
 
-    let pal = new Palette(parseFloat(hue));
+    let pal = new MonetPalette(parseFloat(hue));
 
     for (const nuances of pal.colors) {
       let html = `<div class="palet">`;

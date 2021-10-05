@@ -1,19 +1,24 @@
+type id = string | number;
+
 /** Graph node in a graph that will be traversed by a path finding algorithm. */
 class GraphNode {
+  id: id;
+  links: id[];
+  visited: boolean | id = false;
+  predecessor: GraphNode | null = null;
+
   /**
    * Builds a graph node from an object.
-   * @param {object} object - An { id, links } object.
+   * @param object An { id, links } object.
    */
-  constructor(object) {
+  constructor(object: { id: id, links: id[] }) {
     this.id = object.id;
     this.links = object.links;
-    this.visited = false;
-    this.predecessor = null;
   }
 
-  visit(mark = true) { this.visited = mark; }
+  visit(mark: boolean | id = true) { this.visited = mark; }
   unvisit() { this.visited = false; }
-  follow(node) { this.predecessor = node; }
+  follow(node: GraphNode) { this.predecessor = node; }
   unfollow() { this.predecessor = null; }
 }
 
@@ -21,22 +26,24 @@ class GraphNode {
 
 /** Graph that will be traversed by a path finding algorithm. */
 export default class Graph {
+  nodes: GraphNode[];
+
   /**
    * Builds a graph from an array.
-   * @param {object[]} array - Array of { id, links } objects.
+   * @param array Array of { id, links } objects.
    */
-  constructor(array) {
+  constructor(array: Array<{ id: id, links: id[] }>) {
     this.nodes = array.map(e => new GraphNode(e));
   }
 
   /**
    * Finds a node.
-   * @param {string} id - Identifier of the desired node.
-   * @returns {GraphNode} The corresponding node.
+   * @param id Identifier of the desired node.
+   * @returns The corresponding node.
    */
-  getNode(id) {
+  getNode(id: id): GraphNode {
     const node = this.nodes.find(node => node.id === id);
-    if (typeof node === 'undefined') throw `Node ${JSON.stringify(id)} does not exist`;
+    if (node == null) throw `Node ${JSON.stringify(id)} does not exist`;
     return node;
   }
 
@@ -50,11 +57,11 @@ export default class Graph {
 
   /**
    * Finds the shortest path between two nodes.
-   * @param {string} startID - Identifier of the first node.
-   * @param {string} endID - Identifier of the last node.
-   * @returns {GraphNode[]} An array of node IDs, ordered from first to last along the shortest path.
+   * @param startID Identifier of the first node.
+   * @param endID Identifier of the last node.
+   * @returns An array of node IDs, ordered from first to last along the shortest path.
    */
-  shortestPath(startID, endID) {
+  shortestPath(startID: id, endID: id): GraphNode[] {
     // Source of the math: https://en.wikipedia.org/wiki/Breadth-first_search  
     if (startID === endID) return [];
   
@@ -67,7 +74,7 @@ export default class Graph {
     // Let's build a breadth-first tree until we find the destination.
     let found = false;
     walk: while (queue.length > 0) {
-      const current = queue.shift();
+      const current = queue.shift()!;
       if (current.id === end.id) {
         found = true;
         break walk;
@@ -99,26 +106,29 @@ export default class Graph {
 
   /**
    * Lists the graph nodes in a topological order.
-   * @returns {GraphNode[]} The array of ordered graph nodes.
+   * @returns The array of ordered graph nodes.
    */
-  topologicalOrder() {
+  topologicalOrder(): GraphNode[] {
     // Source of the math: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
-    const orderedList = [];
-    const unvisitedNodes = [...this.nodes];
+    const orderedList: GraphNode[] = [];
+    const unvisitedNodes: GraphNode[] = [...this.nodes];
 
-    const visit = node => {
+    const visit = (node: GraphNode) => {
       if (node.visited === true) return;
       if (node.visited === 'temp') throw 'The graph is not a directed acyclic graph';
 
       node.visit('temp'); // Mark visit as temporary to detect if we loop back to this node
-      for (const link of node.links) { visit(link); }
+      for (const link of node.links) {
+        const destination = this.getNode(link);
+        visit(destination);
+      }
       node.visit(true);
 
       orderedList.push(node);
     }
 
     while (unvisitedNodes.length > 0) {
-      const current = unvisitedNodes.shift();
+      const current = unvisitedNodes.shift()!;
       visit(current);
     }
 

@@ -18,5 +18,11 @@
     return (float) round($x, $precision);
   }
 
+  function invRoot(float $number, int $exponent): float {
+    $sign = $number < 0 ? -1 : 1;
+    if ($sign === -1 && $exponent % 2 === 0) return NAN;
+    return $sign * pow(abs($number), 1 / $exponent);
+  }
+
 
 }
