@@ -20,7 +20,7 @@ console.log(blue.rgb); // logs 'rgb(0, 0, 255)'
 
 ### PHP
 
-Include the [colori.php](https://github.com/Remiscan/colori/releases/latest/download/colori.php) file in your script, and you're good to go!
+Include the [colori.php](https://github.com/Remiscan/colori/releases/latest/download/colori.php) file in your script, and... that's it!
 
 ```php
 require_once 'colori.php';
@@ -31,8 +31,6 @@ echo $blue->rgb(); // prints 'rgb(0, 0, 255)'
 ```
 
 ## Features
-
-
 
 - **color conversion**: supported CSS formats are RGB (hexadecimal or functional), HSL, HWB, LAB, LCH and the color() function (+ OKLAB and OKLCH, but their syntax may change). Convert any color from any of these formats to any other with ease.
 - **color blending**: overlay multiple colors over each other and compute the resulting visible color with alpha blending. Colors can also be *un*blended.
