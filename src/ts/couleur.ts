@@ -522,66 +522,70 @@ export default class Couleur {
    * @param prop The property to change.
    * @param format The id of the CSS format the property belongs to.
    */
-  private recompute(val: number, prop: colorProperty, format: string) {
+  private recompute(val: number | string, prop: colorProperty, format: string) {
     const props: colorProperty[] = [...Couleur.propertiesOf(format), 'a'];
     if (!props.includes(prop))
       throw `Format ${format} does not have a property called ${prop}`;
     
+    const parsedVal = (typeof val === 'string') ? Couleur.parse(val, prop) : val;
     const oldValues = [...this.valuesTo(format), this.a];
-    const newValues = props.map((p, k) => { if (p === prop) return val; else return oldValues[k]; });
+    const newValues = props.map((p, k) => {
+      if (p === prop) return parsedVal;
+      else            return oldValues[k];
+    });
     this.set(newValues, props, format, { parsed: true });
   }
 
-  public set red(val: number) { this.r = val; }
-  public set green(val: number) { this.g = val; }
-  public set blue(val: number) { this.b = val; }
-  public set alpha(val: number) { this.a = val; }
-  public set opacity(val: number) { this.a = val; }
+  public set red(val: number | string) { this.recompute(val, 'r', 'rgb'); }
+  public set green(val: number | string) { this.recompute(val, 'g', 'rgb'); }
+  public set blue(val: number | string) { this.recompute(val, 'b', 'rgb'); }
+  public set alpha(val: number | string) { this.recompute(val, 'a', 'rgb'); }
+  public set opacity(val: number | string) { this.recompute(val, 'a', 'rgb'); }
 
-  public set h(val: number) { this.recompute(val, 'h', 'hsl'); }
-  public set hue(val: number) { this.h = val; }
+  public set h(val: number | string) { this.recompute(val, 'h', 'hsl'); }
+  public set hue(val: number | string) { this.h = val; }
 
-  public set s(val: number) { this.recompute(val, 's', 'hsl'); }
-  public set saturation(val: number) { this.s = val; }
+  public set s(val: number | string) { this.recompute(val, 's', 'hsl'); }
+  public set saturation(val: number | string) { this.s = val; }
 
-  public set l(val: number) { this.recompute(val, 'l', 'hsl'); }
-  public set lightness(val: number) { this.l = val; }
+  public set l(val: number | string) { this.recompute(val, 'l', 'hsl'); }
+  public set lightness(val: number | string) { this.l = val; }
 
-  public set w(val: number) { this.recompute(val, 'w', 'hwb'); }
-  public set whiteness(val: number) { this.w = val; }
+  public set w(val: number | string) { this.recompute(val, 'w', 'hwb'); }
+  public set whiteness(val: number | string) { this.w = val; }
 
-  public set bk(val: number) { this.recompute(val, 'bk', 'hwb'); }
-  public set blackness(val: number) { this.bk = val; }
+  public set bk(val: number | string) { this.recompute(val, 'bk', 'hwb'); }
+  public set blackness(val: number | string) { this.bk = val; }
 
-  public set ciel(val: number) { this.recompute(val, 'ciel', 'lab'); }
-  public set CIElightness(val: number) { this.ciel = val; }
+  public set ciel(val: number | string) { this.recompute(val, 'ciel', 'lab'); }
+  public set CIElightness(val: number | string) { this.ciel = val; }
 
-  public set ciea(val: number) { this.recompute(val, 'ciea', 'lab'); }
-  public set CIEa(val: number) { this.ciea = val; }
+  public set ciea(val: number | string) { this.recompute(val, 'ciea', 'lab'); }
+  public set CIEa(val: number | string) { this.ciea = val; }
 
-  public set cieb(val: number) { this.recompute(val, 'cieb', 'lab'); }
-  public set CIEb(val: number) { this.cieb = val; }
+  public set cieb(val: number | string) { this.recompute(val, 'cieb', 'lab'); }
+  public set CIEb(val: number | string) { this.cieb = val; }
 
-  public set ciec(val: number) { this.recompute(val, 'ciec', 'lch'); }
-  public set CIEchroma(val: number) { this.ciec = val; }
+  public set ciec(val: number | string) { this.recompute(val, 'ciec', 'lch'); }
+  public set CIEchroma(val: number | string) { this.ciec = val; }
 
-  public set cieh(val: number) { this.recompute(val, 'cieh', 'lch'); }
-  public set CIEhue(val: number) { this.cieh = val; }
+  public set cieh(val: number | string) { this.recompute(val, 'cieh', 'lch'); }
+  public set CIEhue(val: number | string) { this.cieh = val; }
 
-  public set okl(val: number) { this.recompute(val, 'okl', 'oklab'); }
-  public set OKlightness(val: number) { this.okl = val; }
+  public set okl(val: number | string) { this.recompute(val, 'okl', 'oklab'); }
+  public set OKlightness(val: number | string) { this.okl = val; }
 
-  public set oka(val: number) { this.recompute(val, 'oka', 'oklab'); }
-  public set OKa(val: number) { this.oka = val; }
+  public set oka(val: number | string) { this.recompute(val, 'oka', 'oklab'); }
+  public set OKa(val: number | string) { this.oka = val; }
 
-  public set okb(val: number) { this.recompute(val, 'okb', 'oklab'); }
-  public set OKb(val: number) { this.okb = val; }
+  public set okb(val: number | string) { this.recompute(val, 'okb', 'oklab'); }
+  public set OKb(val: number | string) { this.okb = val; }
 
-  public set okc(val: number) { this.recompute(val, 'okc', 'oklch'); }
-  public set OKchroma(val: number) { this.okc = val; }
+  public set okc(val: number | string) { this.recompute(val, 'okc', 'oklch'); }
+  public set OKchroma(val: number | string) { this.okc = val; }
 
-  public set okh(val: number) { this.recompute(val, 'okh', 'oklch'); }
-  public set OKhue(val: number) { this.okh = val; }
+  public set okh(val: number | string) { this.recompute(val, 'okh', 'oklch'); }
+  public set OKhue(val: number | string) { this.okh = val; }
 
   /** @returns Gets the parsed value of one of the color properties. */
   public get red(): number { return this.r; }
@@ -620,7 +624,7 @@ export default class Couleur {
   public get okh(): number { return this.valuesTo('oklch')[2]; }
   public get OKhue(): number { return this.okh; }
 
-  public set luminance(val: number) {
+  public set luminance(val: number | string) {
     // Scale r, g, b to reach the desired luminance value
     const [r, g, b] = this.values;
     const oldLum = this.luminance;

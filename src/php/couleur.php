@@ -452,74 +452,75 @@
 
 
     /** Recalculates the r, g, b properties of the color after modifying one of its other properties. */
-    private function recompute(float $val, string $prop, string $format): void {
+    private function recompute(float | string $val, string $prop, string $format): void {
       $props = self::propertiesOf($format); $props[] = 'a';
       if (!in_array($prop, $props))
         throw new \Exception("Format $format does not have a property called $prop");
 
+      $parsedVal = is_string($val) ? self::parse($val, $prop) : $val;
       $oldValues = $this->valuesTo($format); $oldValues[] = $this->a;
       $newValues = [];
       foreach($props as $k => $p) {
-        if ($p === $prop) $newValues[] = $val;
+        if ($p === $prop) $newValues[] = $parsedVal;
         else              $newValues[] = $oldValues[$k];
       }
       $this->set($newValues, $props, $format, parsed: true);
     }
 
 
-    private function setR(float $val): void { $this->r = $val; }
-    private function setRed(float $val): void { $this->setR($val); }
+    private function setR(float | string $val): void { $this->r = $val; }
+    private function setRed(float | string $val): void { $this->setR($val); }
 
-    private function setG(float $val): void { $this->g = $val; }
-    private function setGreen(float $val): void { $this->setG($val); }
+    private function setG(float | string $val): void { $this->g = $val; }
+    private function setGreen(float | string $val): void { $this->setG($val); }
 
-    private function setB(float $val): void { $this->b = $val; }
-    private function setBlue(float $val): void { $this->setB($val); }
+    private function setB(float | string $val): void { $this->b = $val; }
+    private function setBlue(float | string $val): void { $this->setB($val); }
 
-    private function setA(float $val): void { $this->a = $val; }
-    private function setAlpha(float $val): void { $this->setA($val); }
-    private function setOpacity(float $val): void { $this->setA($val); }
+    private function setA(float | string $val): void { $this->a = $val; }
+    private function setAlpha(float | string $val): void { $this->setA($val); }
+    private function setOpacity(float | string $val): void { $this->setA($val); }
 
-    private function setH(float $val): void { $this->recompute($val, 'h', 'hsl'); }
-    private function setHue(float $val): void { $this->setH($val); }
+    private function setH(float | string $val): void { $this->recompute($val, 'h', 'hsl'); }
+    private function setHue(float | string $val): void { $this->setH($val); }
 
-    private function setS(float $val): void { $this->recompute($val, 's', 'hsl'); }
-    private function setSaturation(float $val): void { $this->setS($val); }
+    private function setS(float | string $val): void { $this->recompute($val, 's', 'hsl'); }
+    private function setSaturation(float | string $val): void { $this->setS($val); }
 
-    private function setL(float $val): void { $this->recompute($val, 'l', 'hsl'); }
-    private function setLightness(float $val): void { $this->setL($val); }
+    private function setL(float | string $val): void { $this->recompute($val, 'l', 'hsl'); }
+    private function setLightness(float | string $val): void { $this->setL($val); }
 
-    private function setW(float $val): void { $this->recompute($val, 'w', 'hwb'); }
-    private function setWhiteness(float $val): void { $this->setW($val); }
+    private function setW(float | string $val): void { $this->recompute($val, 'w', 'hwb'); }
+    private function setWhiteness(float | string $val): void { $this->setW($val); }
 
-    private function setBk(float $val): void { $this->recompute($val, 'bk', 'hwb'); }
-    private function setBlackness(float $val): void { $this->setBk($val); }
+    private function setBk(float | string $val): void { $this->recompute($val, 'bk', 'hwb'); }
+    private function setBlackness(float | string $val): void { $this->setBk($val); }
 
-    private function setCiel(float $val): void { $this->recompute($val, 'ciel', 'lab'); }
-    private function setCIELightness(float $val): void { $this->setCiel($val); }
+    private function setCiel(float | string $val): void { $this->recompute($val, 'ciel', 'lab'); }
+    private function setCIELightness(float | string $val): void { $this->setCiel($val); }
 
-    private function setCiea(float $val): void { $this->recompute($val, 'ciea', 'lab'); }
+    private function setCiea(float | string $val): void { $this->recompute($val, 'ciea', 'lab'); }
 
-    private function setCieb(float $val): void { $this->recompute($val, 'cieb', 'lab'); }
+    private function setCieb(float | string $val): void { $this->recompute($val, 'cieb', 'lab'); }
 
-    private function setCiec(float $val): void { $this->recompute($val, 'ciec', 'lch'); }
-    private function setCIEChroma(float $val): void { $this->setCiec($val); }
+    private function setCiec(float | string $val): void { $this->recompute($val, 'ciec', 'lch'); }
+    private function setCIEChroma(float | string $val): void { $this->setCiec($val); }
 
-    private function setCieh(float $val): void { $this->recompute($val, 'cieh', 'lch'); }
-    private function setCIEHue(float $val): void { $this->setCieh($val); }
+    private function setCieh(float | string $val): void { $this->recompute($val, 'cieh', 'lch'); }
+    private function setCIEHue(float | string $val): void { $this->setCieh($val); }
 
-    private function setOkl(float $val): void { $this->recompute($val, 'okl', 'oklab'); }
-    private function setOKLightness(float $val): void { $this->setOkl($val); }
+    private function setOkl(float | string $val): void { $this->recompute($val, 'okl', 'oklab'); }
+    private function setOKLightness(float | string $val): void { $this->setOkl($val); }
 
-    private function setOka(float $val): void { $this->recompute($val, 'oka', 'oklab'); }
+    private function setOka(float | string $val): void { $this->recompute($val, 'oka', 'oklab'); }
 
-    private function setOkb(float $val): void { $this->recompute($val, 'okb', 'oklab'); }
+    private function setOkb(float | string $val): void { $this->recompute($val, 'okb', 'oklab'); }
 
-    private function setOkc(float $val): void { $this->recompute($val, 'okc', 'oklch'); }
-    private function setOKChroma(float $val): void { $this->setOkc($val); }
+    private function setOkc(float | string $val): void { $this->recompute($val, 'okc', 'oklch'); }
+    private function setOKChroma(float | string $val): void { $this->setOkc($val); }
 
-    private function setOkh(float $val): void { $this->recompute($val, 'okh', 'oklch'); }
-    private function setOKHue(float $val): void { $this->setOkh($val); }
+    private function setOkh(float | string $val): void { $this->recompute($val, 'okh', 'oklch'); }
+    private function setOKHue(float | string $val): void { $this->setOkh($val); }
 
     /** Gets the parsed value of one of the color properties. */
     public function red(): float { return $this->r; }
@@ -554,7 +555,7 @@
     public function okh(): float { return $this->valuesTo('oklch')[2]; }
     public function OKhue(): float { return $this->okh(); }
 
-    public function setLuminance(float $val): void {
+    public function setLuminance(float | string $val): void {
       // Scale r, g, b to reach the desired luminance value
       [$r, $g, $b] = $this->values();
       $oldLum = $this->luminance();
