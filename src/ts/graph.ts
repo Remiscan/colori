@@ -41,14 +41,14 @@ export default class Graph {
    * @param id Identifier of the desired node.
    * @returns The corresponding node.
    */
-  getNode(id: id): GraphNode {
+  protected getNode(id: id): GraphNode {
     const node = this.nodes.find(node => node.id === id);
     if (node == null) throw `Node ${JSON.stringify(id)} does not exist`;
     return node;
   }
 
   /** Resets the nodes to their starting state. */
-  cleanUp() {
+  protected cleanUp() {
     for (const node of this.nodes) {
       node.unvisit();
       node.unfollow();

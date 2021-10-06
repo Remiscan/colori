@@ -611,7 +611,6 @@
 
   class Graph {
     private array $nodes;
-    private array $shortestPaths;
 
     public function __construct(array $array) {
       $this->nodes = [];
@@ -627,13 +626,13 @@
       return null;
     }
 
-    public function getNode(string $id): GraphNode {
+    protected function getNode(string $id): GraphNode {
       $node = self::array_find(fn($node) => $node->id() === $id, $this->nodes);
       if ($node === null) throw new \Exception("Node ". json_encode($id) ." does not exist");
       return $node;
     }
 
-    public function cleanUp(): void {
+    protected function cleanUp(): void {
       foreach($this->nodes as $node) {
         $node->unvisit();
         $node->unfollow();
@@ -1268,7 +1267,7 @@
 
 
     /** Makes a Couleur from the argument if it's not one already. */
-    private static function makeInstance(self|array|string $color): self {
+    protected static function makeInstance(self|array|string $color): self {
       if ($color instanceof self) return $color;
       else                        return new self($color);
     }
@@ -1461,14 +1460,7 @@
     }
 
 
-    /*****************************************/
-    /* Setters and getters for color formats */
-    /*****************************************/
-
-
-    /* GENERAL SETTER */
-
-    /** Will be used by other setters to calculate all color properties. */
+    /** Calculates all properties of a color from given unparsed values in a given color space. */
     private function set(array $data, array $props, array|string $spaceID, bool $parsed = false): void {
       $space = self::getSpace($spaceID);
       $values = [];
@@ -1481,7 +1473,58 @@
     }
 
 
-    /* GENERAL GETTER */
+    /** Calculates all properties of the color from its hexadecimal expression. */
+    private function setHex(array $hexa): void {
+      $r = $hexa[0];
+      $r = (strlen($r) === 1) ? $r.$r : $r;
+      $r = intval(hexdec($r));
+
+      $g = $hexa[1];
+      $g = (strlen($g) === 1) ? $g.$g : $g;
+      $g = intval(hexdec($g));
+
+      $b = $hexa[2];
+      $b = (strlen($b) === 1) ? $b.$b : $b;
+      $b = intval(hexdec($b));
+
+      $a = $hexa[3] ?? 'ff';
+      $a = (strlen($a) === 1) ? $a.$a : $a;
+      $a = intval(hexdec($a)) / 255;
+
+      $this->set([$r, $g, $b, $a], ['r', 'g', 'b'], 'srgb');
+    }
+
+
+    /** Calculates all properties of the color from its functional color() expression. */
+    private function setColor(string $spaceID, array $values): void {
+      $vals = array_slice($values, 0, 3);
+      $a = $values[3];
+
+      switch ($spaceID) {
+        case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
+        case 'oklab': case 'oklch':
+        case 'xyz':
+          $vals = self::convert($spaceID, 'srgb', $vals);
+          break;
+        default:
+          if (str_starts_with($spaceID, '--')) {
+            $id = substr($spaceID, 2);
+            $vals = self::convert($id, 'srgb', $vals);
+          }
+          else throw new \Exception("The ". json_encode($spaceID) ." color space is not supported");
+      }
+
+      $rgba = $vals; $rgba[] = $a;
+      $this->set($rgba, [null, null, null], 'srgb');
+    }
+
+
+    /*****************************/
+    /* Getters for color formats */
+    /*****************************/
+
+
+    /* GENERAL EXPRESSION GETTER */
 
     /** Creates a string containing the CSS expression of a color. */
     public function expr(array|string $format, ?int $precision = 0, bool $clamp = true): string {
@@ -1570,28 +1613,7 @@
     }
 
 
-    /* RGB (hexadecimal) */
-
-    /** Calculates all properties of the color from its hexadecimal expression. */
-    private function setHex(array $hexa): void {
-      $r = $hexa[0];
-      $r = (strlen($r) === 1) ? $r.$r : $r;
-      $r = intval(hexdec($r));
-
-      $g = $hexa[1];
-      $g = (strlen($g) === 1) ? $g.$g : $g;
-      $g = intval(hexdec($g));
-
-      $b = $hexa[2];
-      $b = (strlen($b) === 1) ? $b.$b : $b;
-      $b = intval(hexdec($b));
-
-      $a = $hexa[3] ?? 'ff';
-      $a = (strlen($a) === 1) ? $a.$a : $a;
-      $a = intval(hexdec($a)) / 255;
-
-      $this->set([$r, $g, $b, $a], ['r', 'g', 'b'], 'srgb');
-    }
+    /* CSS FORMATS */
 
     /** Hexadecimal expression of the color. */
     public function hex(): string {
@@ -1604,9 +1626,6 @@
       if ($this->a < 1) return '#'.$r.$g.$b.$a;
       else              return '#'.$r.$g.$b;
     }
-
-
-    /* OTHER FORMATS */
 
     public function rgb(): string { return $this->expr('rgb', precision: 2); }
     public function rgba(): string { return $this->rgb(); }
@@ -1625,34 +1644,25 @@
     public function oklch(): string { return $this->expr('oklch', precision: 2); }
 
 
-    /* PROFILED COLORS */
-    /** Calculates all properties of the color from its functional color() expression. */
-    private function setColor(string $spaceID, array $values): void {
-      $vals = array_slice($values, 0, 3);
-      $a = $values[3];
-
-      switch ($spaceID) {
-        case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
-        case 'oklab': case 'oklch':
-        case 'xyz':
-          $vals = self::convert($spaceID, 'srgb', $vals);
-          break;
-        default:
-          if (str_starts_with($spaceID, '--')) {
-            $id = substr($spaceID, 2);
-            $vals = self::convert($id, 'srgb', $vals);
-          }
-          else throw new \Exception("The ". json_encode($spaceID) ." color space is not supported");
-      }
-
-      $rgba = $vals; $rgba[] = $a;
-      $this->set($rgba, [null, null, null], 'srgb');
-    }
-
-
     /********************************************/
     /* Setters and getters for color properties */
     /********************************************/
+
+
+    /** Recalculates the r, g, b properties of the color after modifying one of its other properties. */
+    private function recompute(float $val, string $prop, string $format): void {
+      $props = self::propertiesOf($format); $props[] = 'a';
+      if (!in_array($prop, $props))
+        throw new \Exception("Format $format does not have a property called $prop");
+
+      $oldValues = $this->valuesTo($format); $oldValues[] = $this->a;
+      $newValues = [];
+      foreach($props as $k => $p) {
+        if ($p === $prop) $newValues[] = $val;
+        else              $newValues[] = $oldValues[$k];
+      }
+      $this->set($newValues, $props, $format, parsed: true);
+    }
 
 
     private function setR(float $val): void { $this->r = $val; }
@@ -1668,120 +1678,45 @@
     private function setAlpha(float $val): void { $this->setA($val); }
     private function setOpacity(float $val): void { $this->setA($val); }
 
-    private function setH(float $val): void {
-      [$x, $s, $l] = $this->valuesTo('hsl');
-      $props = self::propertiesOf('hsl'); $props[] = 'a';
-      $values = [$val, $s, $l, $this->a];
-      $this->set($values, $props, 'hsl', parsed: true);
-    }
+    private function setH(float $val): void { $this->recompute($val, 'h', 'hsl'); }
     private function setHue(float $val): void { $this->setH($val); }
 
-    private function setS(float $val): void {
-      [$h, $x, $l] = $this->valuesTo('hsl');
-      $props = self::propertiesOf('hsl'); $props[] = 'a';
-      $values = [$h, $val, $l, $this->a];
-      $this->set($values, $props, 'hsl', parsed: true);
-    }
+    private function setS(float $val): void { $this->recompute($val, 's', 'hsl'); }
     private function setSaturation(float $val): void { $this->setS($val); }
 
-    private function setL(float $val): void {
-      [$h, $s, $x] = $this->valuesTo('hsl');
-      $props = self::propertiesOf('hsl'); $props[] = 'a';
-      $values = [$h, $s, $val, $this->a];
-      $this->set($values, $props, 'hsl', parsed: true);
-    }
+    private function setL(float $val): void { $this->recompute($val, 'l', 'hsl'); }
     private function setLightness(float $val): void { $this->setL($val); }
 
-    private function setW(float $val): void {
-      [$h, $x, $bk] = $this->valuesTo('hwb');
-      $props = self::propertiesOf('hwb'); $props[] = 'a';
-      $values = [$h, $val, $bk, $this->a];
-      $this->set($values, $props, 'hwb', parsed: true);
-    }
+    private function setW(float $val): void { $this->recompute($val, 'w', 'hwb'); }
     private function setWhiteness(float $val): void { $this->setW($val); }
 
-    private function setBk(float $val): void {
-      [$h, $w, $x] = $this->valuesTo('hwb');
-      $props = self::propertiesOf('hwb'); $props[] = 'a';
-      $values = [$h, $w, $val, $this->a];
-      $this->set($values, $props, 'hwb', parsed: true);
-    }
+    private function setBk(float $val): void { $this->recompute($val, 'bk', 'hwb'); }
     private function setBlackness(float $val): void { $this->setBk($val); }
 
-    private function setCiel(float $val): void {
-      [$x, $ciea, $cieb] = $this->valuesTo('lab');
-      $props = self::propertiesOf('lab'); $props[] = 'a';
-      $values = [$val, $ciea, $cieb, $this->a];
-      $this->set($values, $props, 'lab', parsed: true);
-    }
-    private function setCIELightness(float $val): void { $this->setCIEL($val); }
+    private function setCiel(float $val): void { $this->recompute($val, 'ciel', 'lab'); }
+    private function setCIELightness(float $val): void { $this->setCiel($val); }
 
-    private function setCiea(float $val): void {
-      [$ciel, $x, $cieb] = $this->valuesTo('lab');
-      $props = self::propertiesOf('lab'); $props[] = 'a';
-      $values = [$ciel, $val, $cieb, $this->a];
-      $this->set($values, $props, 'lab', parsed: true);
-    }
+    private function setCiea(float $val): void { $this->recompute($val, 'ciea', 'lab'); }
 
-    private function setCieb(float $val): void {
-      [$ciel, $ciea, $x] = $this->valuesTo('lab');
-      $props = self::propertiesOf('lab'); $props[] = 'a';
-      $values = [$ciel, $ciea, $val, $this->a];
-      $this->set($values, $props, 'lab', parsed: true);
-    }
+    private function setCieb(float $val): void { $this->recompute($val, 'cieb', 'lab'); }
 
-    private function setCiec(float $val): void {
-      [$ciel, $x, $cieh] = $this->valuesTo('lch');
-      $props = self::propertiesOf('lch'); $props[] = 'a';
-      $values = [$ciel, $val, $cieh, $this->a];
-      $this->set($values, $props, 'lch', parsed: true);
-    }
-    private function setCIEChroma(float $val): void { $this->setCIEC($val); }
+    private function setCiec(float $val): void { $this->recompute($val, 'ciec', 'lch'); }
+    private function setCIEChroma(float $val): void { $this->setCiec($val); }
 
-    private function setCieh(float $val): void {
-      [$ciel, $ciec, $x] = $this->valuesTo('lch');
-      $props = self::propertiesOf('lch'); $props[] = 'a';
-      $values = [$ciel, $ciec, $val, $this->a];
-      $this->set($values, $props, 'lch', parsed: true);
-    }
-    private function setCIEHue(float $val): void { $this->setCIEH($val); }
+    private function setCieh(float $val): void { $this->recompute($val, 'cieh', 'lch'); }
+    private function setCIEHue(float $val): void { $this->setCieh($val); }
 
-    private function setOkl(float $val): void {
-      [$x, $oka, $okb] = $this->valuesTo('oklab');
-      $props = self::propertiesOf('oklab'); $props[] = 'a';
-      $values = [$val, $oka, $okb, $this->a];
-      $this->set($values, $props, 'oklab', parsed: true);
-    }
+    private function setOkl(float $val): void { $this->recompute($val, 'okl', 'oklab'); }
     private function setOKLightness(float $val): void { $this->setOkl($val); }
 
-    private function setOka(float $val): void {
-      [$okl, $x, $okb] = $this->valuesTo('oklab');
-      $props = self::propertiesOf('oklab'); $props[] = 'a';
-      $values = [$okl, $val, $okb, $this->a];
-      $this->set($values, $props, 'oklab', parsed: true);
-    }
+    private function setOka(float $val): void { $this->recompute($val, 'oka', 'oklab'); }
 
-    private function setOkb(float $val): void {
-      [$okl, $oka, $x] = $this->valuesTo('oklab');
-      $props = self::propertiesOf('oklab'); $props[] = 'a';
-      $values = [$okl, $oka, $val, $this->a];
-      $this->set($values, $props, 'oklab', parsed: true);
-    }
+    private function setOkb(float $val): void { $this->recompute($val, 'okb', 'oklab'); }
 
-    private function setOkc(float $val): void {
-      [$okl, $x, $okh] = $this->valuesTo('oklch');
-      $props = self::propertiesOf('oklch'); $props[] = 'a';
-      $values = [$okl, $val, $okh, $this->a];
-      $this->set($values, $props, 'oklch', parsed: true);
-    }
+    private function setOkc(float $val): void { $this->recompute($val, 'okc', 'oklch'); }
     private function setOKChroma(float $val): void { $this->setOkc($val); }
 
-    private function setOkh(float $val): void {
-      [$okl, $okc, $x] = $this->valuesTo('oklch');
-      $props = self::propertiesOf('oklch'); $props[] = 'a';
-      $values = [$okl, $okc, $val, $this->a];
-      $this->set($values, $props, 'oklch', parsed: true);
-    }
+    private function setOkh(float $val): void { $this->recompute($val, 'okh', 'oklch'); }
     private function setOKHue(float $val): void { $this->setOkh($val); }
 
     /** Gets the parsed value of one of the color properties. */
@@ -2381,7 +2316,7 @@
     /**************/
 
     /** Gets the names of the properties of a color used in a certain format. */
-    private static function propertiesOf(string $format): array {
+    protected static function propertiesOf(string $format): array {
       switch($format) {
         case 'rgb': case 'rgba': return ['r', 'g', 'b'];
         case 'hsl': case 'hsla': return ['h', 's', 'l'];
@@ -2395,13 +2330,12 @@
     }
 
     /** Array of all property names. */
-    private static function properties(): array {
+    protected static function properties(): array {
       return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh', 'oka', 'okb', 'okl', 'okc', 'okh'];
     }
 
-    public const COLOR_SPACES = COLOR_SPACES;
-
-    private static function getSpace(array|string $spaceID): array {
+    /** Gets a color space from its id. */
+    protected static function getSpace(array|string $spaceID): array {
       if (is_array($spaceID)) return $spaceID;
       $id = match ($spaceID) {
         'rgb', 'rgba' => 'srgb',
@@ -2410,6 +2344,9 @@
       };
       return Graph::array_find(fn($e) => $e['id'] === $id, self::COLOR_SPACES);
     }
+
+    /** Array of supported color spaces. */
+    public const COLOR_SPACES = COLOR_SPACES;
 
     /** Array of supported syntaxes. */
     private static function formats() { return CSSFormats::formats(); }

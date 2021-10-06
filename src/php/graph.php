@@ -37,7 +37,6 @@
 
   class Graph {
     private array $nodes;
-    private array $shortestPaths;
 
     public function __construct(array $array) {
       $this->nodes = [];
@@ -53,13 +52,13 @@
       return null;
     }
 
-    public function getNode(string $id): GraphNode {
+    protected function getNode(string $id): GraphNode {
       $node = self::array_find(fn($node) => $node->id() === $id, $this->nodes);
       if ($node === null) throw new \Exception("Node ". json_encode($id) ." does not exist");
       return $node;
     }
 
-    public function cleanUp(): void {
+    protected function cleanUp(): void {
       foreach($this->nodes as $node) {
         $node->unvisit();
         $node->unfollow();

@@ -24,10 +24,10 @@ type colorSpaceOrID = ColorSpace | string;
 
 /** @class Couleur */
 export default class Couleur {
-  r: number = 0;
-  g: number = 0;
-  b: number = 0;
-  a: number = 0;
+  public r: number = 0;
+  public g: number = 0;
+  public b: number = 0;
+  public a: number = 0;
 
   /**
    * Creates a new Couleur object that contains r, g, b, a properties of the color.
@@ -85,7 +85,7 @@ export default class Couleur {
    * @param color
    * @returns
    */
-  private static makeInstance(color: color): Couleur {
+  protected static makeInstance(color: color): Couleur {
     if (color instanceof Couleur) return color;
     else                          return new Couleur(color);
   }
@@ -304,16 +304,8 @@ export default class Couleur {
   }
 
 
-
-  /*****************************************/
-  /* Setters and getters for color formats */
-  /*****************************************/
-
-
-  /* GENERAL SETTER */
-
   /**
-   * Will be used by other setters to calculate all color properties.
+   * Calculates all properties of a color from given unparsed values in a given color space.
    * @param data Array of unparsed values.
    * @param props Array of color property names the values correspond to.
    * @param spaceID Color space of the values, or its identifier.
@@ -329,7 +321,56 @@ export default class Couleur {
   }
 
 
-  /* GENERAL GETTER */
+  /**
+   * Calculates all properties of the color from its hexadecimal expression.
+   * @param hexa The hexadecimal values of the r, g, b, a properties.
+   */
+  private setHex(hexa: Array<string|number>) {
+    let [r, g, b] = hexa.map(v => String(v));
+    let a = String(hexa[3]) || 'ff';
+
+    const vals = [r, g, b, a].map(v => v.length === 1 ? v.repeat(2) : v)
+                             .map(v => parseInt(v, 16));
+
+    this.set(vals, ['r', 'g', 'b'], 'srgb');
+  }
+
+
+  /**
+   * Calculates all properties of the color from its functional color() expression.
+   * @param spaceID 
+   * @param values The parsed values of the color's properties.
+   */
+  private setColor(spaceID: string, values: Array<string|number>): void {
+    let vals = values.slice(0, 3).map(v => Couleur.parse(v));
+    const a = Couleur.parse(values[3]);
+
+    switch (spaceID) {
+      case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
+      case 'oklab': case 'oklch':
+      case 'xyz':
+        vals = Couleur.convert(spaceID, 'srgb', vals);
+        break;
+      default:
+        if (spaceID.startsWith('--')) {
+          const id = spaceID.substring(2);
+          vals = Couleur.convert(id, 'srgb', vals);
+        }
+        else throw `The ${JSON.stringify(spaceID)} color space is not supported`;
+    }
+
+    const rgba = [...vals, a];
+    return this.set(rgba, [null, null, null], 'srgb');
+  }
+
+
+
+  /*****************************/
+  /* Getters for color formats */
+  /*****************************/
+
+
+  /* GENERAL EXPRESSION MAKER */
 
   /**
    * Creates a string containing the CSS expression of a color.
@@ -339,7 +380,7 @@ export default class Couleur {
    * @param options.clamp Which color space the values should be clamped to.
    * @returns The expression of the color in the requested format.
    */
-  expr(format: string, { precision = 0, clamp = true }: { precision?: number, clamp?: boolean } = {}): string {
+  public expr(format: string, { precision = 0, clamp = true }: { precision?: number, clamp?: boolean } = {}): string {
     const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
     const space = Couleur.getSpace(spaceID);
 
@@ -389,7 +430,7 @@ export default class Couleur {
    * @param options @see Couleur.expr
    * @returns The expression of the color in the requested format.
    */
-  static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options = {}): string {
+  public static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options = {}): string {
     const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
     const rgba = [...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)), values[3]];
     return (new Couleur(rgba)).expr(format, options);
@@ -399,13 +440,13 @@ export default class Couleur {
   /* ALL VALUES (r, g, b) */
 
   /** @returns The array of r, g, b values of the color in sRGB color space. */
-  get values(): number[] { return [this.r, this.g, this.b]; }
+  public get values(): number[] { return [this.r, this.g, this.b]; }
 
 
   /* NAME */
 
   /** @returns The approximate name of the color. */
-  get name(): string | null {
+  public get name(): string | null {
     if (this.a === 1) {
       const allNames = Couleur.namedColors;
       const [r, g, b] = [255 * this.r, 255 * this.g, 255 * this.b];
@@ -421,7 +462,7 @@ export default class Couleur {
   }
 
   /** @returns The exact name of the color. */
-  get exactName(): string | null {
+  public get exactName(): string | null {
     if (this.a === 1) {
       const allNames = Couleur.namedColors;
       const hex6 = this.hex.slice(1);
@@ -435,85 +476,38 @@ export default class Couleur {
   }
 
 
-  /* RGB (hexadecimal) */
+  /* CSS FORMATS */
   
-  /**
-   * Calculates all properties of the color from its hexadecimal expression.
-   * @param hexa The hexadecimal values of the r, g, b, a properties.
-   */
-  private setHex(hexa: Array<string|number>) {
-    let [r, g, b] = hexa.map(v => String(v));
-    let a = String(hexa[3]) || 'ff';
-
-    const vals = [r, g, b, a].map(v => v.length === 1 ? v.repeat(2) : v)
-                             .map(v => parseInt(v, 16));
-
-    this.set(vals, ['r', 'g', 'b'], 'srgb');
-  }
-
   /** @returns Hexadecimal expression of the color. */
-  get hex(): string {
+  public get hex(): string {
     const values = Couleur.toGamut('srgb', this.values);
     const rgb = [...values, this.a].map(v => Utils.pad(Math.round(v * 255).toString(16)));
     if (this.a < 1) return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
     else            return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
   }
 
-
-  /* OTHER FORMATS */
-
   /** @returns RGB expression of the color. */
-  get rgb(): string { return this.expr('rgb', { precision: 2 }); }
-  get rgba(): string { return this.rgb; }
+  public get rgb(): string { return this.expr('rgb', { precision: 2 }); }
+  public get rgba(): string { return this.rgb; }
 
   /** @returns HSL expression of the color. */
-  get hsl(): string { return this.expr('hsl', { precision: 2 }); }
-  get hsla(): string { return this.hsl; }
+  public get hsl(): string { return this.expr('hsl', { precision: 2 }); }
+  public get hsla(): string { return this.hsl; }
 
   /** @returns HWB expression of the color. */
-  get hwb(): string { return this.expr('hwb', { precision: 2 }); }
+  public get hwb(): string { return this.expr('hwb', { precision: 2 }); }
 
   /** @returns LAB expression of the color. */
-  get lab(): string { return this.expr('lab', { precision: 2 }); }
+  public get lab(): string { return this.expr('lab', { precision: 2 }); }
 
   /** @returns LCH expression of the color. */
-  get lch(): string { return this.expr('lch', { precision: 2 }); }
+  public get lch(): string { return this.expr('lch', { precision: 2 }); }
 
   /** @returns OKLAB expression of the color. */
-  get oklab(): string { return this.expr('oklab', { precision: 2 }); }
+  public get oklab(): string { return this.expr('oklab', { precision: 2 }); }
 
   /** @returns OKLCH expression of the color. */
-  get oklch(): string { return this.expr('oklch', { precision: 2 }); }
-
-
-  /* PROFILED COLORS */
-
-  /**
-   * Calculates all properties of the color from its functional color() expression.
-   * @param spaceID 
-   * @param values The parsed values of the color's properties.
-   */
-  private setColor(spaceID: string, values: Array<string|number>): void {
-    let vals = values.slice(0, 3).map(v => Couleur.parse(v));
-    const a = Couleur.parse(values[3]);
-
-    switch (spaceID) {
-      case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
-      case 'oklab': case 'oklch':
-      case 'xyz':
-        vals = Couleur.convert(spaceID, 'srgb', vals);
-        break;
-      default:
-        if (spaceID.startsWith('--')) {
-          const id = spaceID.substring(2);
-          vals = Couleur.convert(id, 'srgb', vals);
-        }
-        else throw `The ${JSON.stringify(spaceID)} color space is not supported`;
-    }
-
-    const rgba = [...vals, a];
-    return this.set(rgba, [null, null, null], 'srgb');
-  }
+  public get oklch(): string { return this.expr('oklch', { precision: 2 }); }
 
 
 
@@ -590,39 +584,43 @@ export default class Couleur {
   public set OKhue(val: number) { this.okh = val; }
 
   /** @returns Gets the parsed value of one of the color properties. */
-  get red(): number { return this.r; }
-  get green(): number { return this.g; }
-  get blue(): number { return this.b; }
-  get alpha(): number { return this.a; }
-  get opacity(): number { return this.a; }
-  get h(): number { return this.valuesTo('hsl')[0]; }
-  get hue(): number { return this.h; }
-  get s(): number { return this.valuesTo('hsl')[1]; }
-  get saturation(): number { return this.s; }
-  get l(): number { return this.valuesTo('hsl')[2]; }
-  get lightness(): number { return this.l; }
-  get w(): number { return this.valuesTo('hwb')[1]; }
-  get whiteness(): number { return this.w; }
-  get bk(): number { return this.valuesTo('hwb')[2]; }
-  get blackness(): number { return this.bk; }
-  get ciel(): number { return this.valuesTo('lab')[0]; }
-  get CIElightness(): number { return this.ciel; }
-  get ciea(): number { return this.valuesTo('lab')[1]; }
-  get cieb(): number { return this.valuesTo('lab')[2]; }
-  get ciec(): number { return this.valuesTo('lch')[1]; }
-  get CIEchroma(): number { return this.ciec; }
-  get cieh(): number { return this.valuesTo('lch')[2]; }
-  get CIEhue(): number { return this.cieh; }
-  get okl(): number { return this.valuesTo('oklab')[0]; }
-  get OKlightness(): number { return this.okl; }
-  get oka(): number { return this.valuesTo('oklab')[1]; }
-  get okb(): number { return this.valuesTo('oklab')[2]; }
-  get okc(): number { return this.valuesTo('oklch')[1]; }
-  get OKchroma(): number { return this.okc; }
-  get okh(): number { return this.valuesTo('oklch')[2]; }
-  get OKhue(): number { return this.okh; }
+  public get red(): number { return this.r; }
+  public get green(): number { return this.g; }
+  public get blue(): number { return this.b; }
+  public get alpha(): number { return this.a; }
+  public get opacity(): number { return this.a; }
+  public get h(): number { return this.valuesTo('hsl')[0]; }
+  public get hue(): number { return this.h; }
+  public get s(): number { return this.valuesTo('hsl')[1]; }
+  public get saturation(): number { return this.s; }
+  public get l(): number { return this.valuesTo('hsl')[2]; }
+  public get lightness(): number { return this.l; }
+  public get w(): number { return this.valuesTo('hwb')[1]; }
+  public get whiteness(): number { return this.w; }
+  public get bk(): number { return this.valuesTo('hwb')[2]; }
+  public get blackness(): number { return this.bk; }
+  public get ciel(): number { return this.valuesTo('lab')[0]; }
+  public get CIElightness(): number { return this.ciel; }
+  public get ciea(): number { return this.valuesTo('lab')[1]; }
+  public get CIEa(): number { return this.valuesTo('lab')[1]; }
+  public get cieb(): number { return this.valuesTo('lab')[2]; }
+  public get CIEb(): number { return this.valuesTo('lab')[2]; }
+  public get ciec(): number { return this.valuesTo('lch')[1]; }
+  public get CIEchroma(): number { return this.ciec; }
+  public get cieh(): number { return this.valuesTo('lch')[2]; }
+  public get CIEhue(): number { return this.cieh; }
+  public get okl(): number { return this.valuesTo('oklab')[0]; }
+  public get OKlightness(): number { return this.okl; }
+  public get oka(): number { return this.valuesTo('oklab')[1]; }
+  public get OKa(): number { return this.valuesTo('oklab')[1]; }
+  public get okb(): number { return this.valuesTo('oklab')[2]; }
+  public get OKb(): number { return this.valuesTo('oklab')[2]; }
+  public get okc(): number { return this.valuesTo('oklch')[1]; }
+  public get OKchroma(): number { return this.okc; }
+  public get okh(): number { return this.valuesTo('oklch')[2]; }
+  public get OKhue(): number { return this.okh; }
 
-  set luminance(val: number) {
+  public set luminance(val: number) {
     // Scale r, g, b to reach the desired luminance value
     const [r, g, b] = this.values;
     const oldLum = this.luminance;
@@ -640,7 +638,7 @@ export default class Couleur {
     }
   }
 
-  get luminance(): number {
+  public get luminance(): number {
     if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
     return Contrasts.luminance(this.values);
   }
@@ -659,7 +657,7 @@ export default class Couleur {
    * @param values Array of color values (without alpha) in startSpaceID color space.
    * @returns Array of values in the new color space.
    */
-  static convert(startSpaceID: colorSpaceOrID, endSpaceID: colorSpaceOrID, values: number[]): number[] {
+  public static convert(startSpaceID: colorSpaceOrID, endSpaceID: colorSpaceOrID, values: number[]): number[] {
     if (
       (typeof startSpaceID === typeof endSpaceID && startSpaceID === endSpaceID)
       || (typeof startSpaceID === 'string' && typeof endSpaceID !== 'string' && startSpaceID === endSpaceID.id)
@@ -703,7 +701,7 @@ export default class Couleur {
    * @param options.clamp Whether to clamp the values to their new color space.
    * @returns The array of converted values.
    */
-  valuesTo(spaceID: colorSpaceOrID, {clamp = false }: { clamp?: boolean } = {}): number[] {
+  public valuesTo(spaceID: colorSpaceOrID, {clamp = false }: { clamp?: boolean } = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     let values = Couleur.convert('srgb', space, this.values);
     if (clamp) values = Couleur.toGamut(space, values);
@@ -721,14 +719,14 @@ export default class Couleur {
    * @param valueSpaceID Color space of the given values, or its identifier.
    * @returns Whether the corresponding color is in gamut.
    */
-  static inGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { tolerance = .0001 } = {}): boolean {
+  public static inGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { tolerance = .0001 } = {}): boolean {
     const space = Couleur.getSpace(spaceID);
     const convertedValues = Couleur.convert(valueSpaceID, space, values);
     return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
   }
 
   /** @see Couleur.inGamut - Non-static version. */
-  inGamut(spaceID: colorSpaceOrID, options = {}) { return Couleur.inGamut(spaceID, this.values, 'srgb', options); }
+  public inGamut(spaceID: colorSpaceOrID, options = {}) { return Couleur.inGamut(spaceID, this.values, 'srgb', options); }
 
   /**
    * Clamps parsed values in valueSpaceID color space to the spaceID color space.
@@ -737,7 +735,7 @@ export default class Couleur {
    * @param valueSpaceID Color space of the given values, or its identifier.
    * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
-  static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'oklab' }: { method?: 'oklab'|'chroma'|'naive' } = {}): number[] {
+  public static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'oklab' }: { method?: 'oklab'|'chroma'|'naive' } = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
 
@@ -797,7 +795,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.toGamut - Non-static version. */
-  toGamut(spaceID: colorSpaceOrID): number[] { return Couleur.toGamut(spaceID, this.values, 'srgb'); }
+  public toGamut(spaceID: colorSpaceOrID): number[] { return Couleur.toGamut(spaceID, this.values, 'srgb'); }
 
 
 
@@ -819,7 +817,7 @@ export default class Couleur {
    *                                   null if the value should be added to the previous value of the property.
    * @returns The modified color.
    */
-  change(prop: colorProperty, value: string | number, { action = null }: { action?: string | null } = {}): Couleur {
+  public change(prop: colorProperty, value: string | number, { action = null }: { action?: string | null } = {}): Couleur {
     const replace = action === 'replace';
     const scale = action === 'scale';
     const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, { clamp: false });
@@ -843,7 +841,7 @@ export default class Couleur {
    * @param value The value that will replace the previous value of the property.
    * @returns The modified color.
    */
-  replace(prop: colorProperty, value: string | number): Couleur {
+  public replace(prop: colorProperty, value: string | number): Couleur {
     return this.change(prop, value, { action: 'replace' });
   }
 
@@ -854,26 +852,26 @@ export default class Couleur {
    * @param value The percentage that will be multiplied to the previous value of the property.
    * @returns The modified color.
    */
-  scale(prop: colorProperty, value: string | number): Couleur {
+  public scale(prop: colorProperty, value: string | number): Couleur {
     return this.change(prop, value, { action: 'scale' });
   }
 
   /** @returns The complementary color. */
-  complement(): Couleur { return this.change('h', 180); }
+  public complement(): Couleur { return this.change('h', 180); }
 
   /** @returns The inverse color. */
-  negative(): Couleur { return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
-  invert(): Couleur { return this.negative(); }
+  public negative(): Couleur { return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
+  public invert(): Couleur { return this.negative(); }
 
   /** @returns The shade of grey of the color. */
-  greyscale(): Couleur {
+  public greyscale(): Couleur {
     const L = 255 * this.replace('a', 1).luminance;
     return new Couleur(`rgb(${L}, ${L}, ${L}, ${this.a})`);
   }
-  grayscale(): Couleur { return this.greyscale(); }
+  public grayscale(): Couleur { return this.greyscale(); }
 
   /** @returns The sepia tone of the color. */
-  sepia(): Couleur {
+  public sepia(): Couleur {
     const r = Math.min(0.393 * this.r + 0.769 * this.g + 0.189 * this.b, 1);
     const g = Math.min(0.349 * this.r + 0.686 * this.g + 0.168 * this.b, 1);
     const b = Math.min(0.272 * this.r + 0.534 * this.g + 0.131 * this.b, 1);
@@ -891,7 +889,7 @@ export default class Couleur {
    * @param alpha Alpha value that will replace overlay's.
    * @returns The resulting color.
    */
-  static blend(backgroundColor: color, overlayColor: color, alpha?: number | string): Couleur {
+  public static blend(backgroundColor: color, overlayColor: color, alpha?: number | string): Couleur {
     const background = Couleur.makeInstance(backgroundColor);
     const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
@@ -912,7 +910,7 @@ export default class Couleur {
    * @param  {...color} colors - Colors to blend.
    * @returns The resulting color.
    */
-  static blendAll(...colors: color[]): Couleur {
+  public static blendAll(...colors: color[]): Couleur {
     if (colors.length < 2) throw `You need at least 2 colors to blend`;
     const background = colors.shift();
     const overlay = colors.shift();
@@ -926,10 +924,10 @@ export default class Couleur {
   }
 
   /** @see Couleur.blend - Non-static version. */
-  blend(overlayColor: color, alpha?: number | string): Couleur { return Couleur.blend(this, overlayColor, alpha); }
+  public blend(overlayColor: color, alpha?: number | string): Couleur { return Couleur.blend(this, overlayColor, alpha); }
 
   /** @see Couleur.blendAll - Non-static version. */
-  blendAll(...colors: color[]): Couleur { return Couleur.blendAll(this, ...colors); }
+  public blendAll(...colors: color[]): Couleur { return Couleur.blendAll(this, ...colors); }
 
 
   /**
@@ -939,7 +937,7 @@ export default class Couleur {
    * @returns The background that is solution to the equation, if it has one.
    * @throws if the equation has an infinite amount of solutions.
    */
-  static unblend(mixColor: color, overlayColor: color, alpha?: number | string): Couleur | null {
+  public static unblend(mixColor: color, overlayColor: color, alpha?: number | string): Couleur | null {
     const mix = Couleur.makeInstance(mixColor);
     const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
@@ -973,7 +971,7 @@ export default class Couleur {
    * @returns The solution to the equation, if it has one.
    * @throws if the equation has an infinite amount of solutions.
    */
-  static unblendAll(...colors: color[]): Couleur | null {
+  public static unblendAll(...colors: color[]): Couleur | null {
     if (colors.length < 2) throw `You need at least 2 colors to unblend`;
     const mix = colors.shift();
     const overlay = colors.shift();
@@ -988,10 +986,10 @@ export default class Couleur {
   }
 
   /** @see Couleur.unblend - Non-static version. */
-  unblend(overlayColor: color, alpha?: number | string): Couleur | null { return Couleur.unblend(this, overlayColor, alpha); }
+  public unblend(overlayColor: color, alpha?: number | string): Couleur | null { return Couleur.unblend(this, overlayColor, alpha); }
   
   /** @see Couleur.unblendAll - Non-static version. */
-  unblendAll(...colors: color[]): Couleur | null { return Couleur.unblendAll(this, ...colors); }
+  public unblendAll(...colors: color[]): Couleur | null { return Couleur.unblendAll(this, ...colors); }
 
 
   /**
@@ -1003,7 +1001,7 @@ export default class Couleur {
    * @param options.ignoreTransparent Whether to return the color 'transparent' when it's a solution.
    * @returns The solution(s) to the equation.
    */
-  static whatToBlend(backgroundColor: color, mixColor: color, alphas: number | number[] = [], { ignoreTransparent = false }: { ignoreTransparent?: boolean } = {}): Couleur | Couleur[] | null {
+  public static whatToBlend(backgroundColor: color, mixColor: color, alphas: number | number[] = [], { ignoreTransparent = false }: { ignoreTransparent?: boolean } = {}): Couleur | Couleur[] | null {
     const background = Couleur.makeInstance(backgroundColor);
     const mix = Couleur.makeInstance(mixColor);
     let overlays: Couleur[] = [];
@@ -1073,7 +1071,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.whatToBlend - Non-static version. */
-  whatToBlend(mixColor: color, alphas: number | number[]): Couleur | Couleur[] | null { return Couleur.whatToBlend(this, mixColor, alphas); }
+  public whatToBlend(mixColor: color, alphas: number | number[]): Couleur | Couleur[] | null { return Couleur.whatToBlend(this, mixColor, alphas); }
 
 
   /* Color comparison */
@@ -1087,7 +1085,7 @@ export default class Couleur {
    * @param options.method Whether to use the new APCA or the old WCAG2 method.
    * @returns Contrast between the two colors.
    */
-  static contrast(textColor: color, backgroundColor: color, { method = 'APCA' }: { method?: string } = {}): number {
+  public static contrast(textColor: color, backgroundColor: color, { method = 'APCA' }: { method?: string } = {}): number {
     const background = Couleur.makeInstance(backgroundColor);
     if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
     let text = Couleur.makeInstance(textColor);
@@ -1105,7 +1103,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.contrast - Non-static version. */
-  contrast(backgroundColor: color, options: object = {}): number {
+  public contrast(backgroundColor: color, options: object = {}): number {
     return Couleur.contrast(this, backgroundColor, options);
   }
 
@@ -1117,7 +1115,7 @@ export default class Couleur {
    * @param as Whether the color is the background or the text color.
    * @returns
    */
-  bestColorScheme(as: 'background'|'text' = 'background'): 'light'|'dark' {
+  public bestColorScheme(as: 'background'|'text' = 'background'): 'light'|'dark' {
     const rgba = [...this.toGamut('srgb'), this.a];
     if (as === 'text') {
       const Cblack = Math.abs(Couleur.contrast(rgba, 'black', { method: 'apca' }));
@@ -1146,7 +1144,7 @@ export default class Couleur {
    * @param options.method The method to use to compute the contrast.
    * @returns The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
    */
-  improveContrast(backgroundColor: color, desiredContrast: number, { lower = false, colorScheme = null, method = 'APCA' }: { lower?: boolean, colorScheme?: string | null, method?: string } = {}): Couleur {
+  public improveContrast(backgroundColor: color, desiredContrast: number, { lower = false, colorScheme = null, method = 'APCA' }: { lower?: boolean, colorScheme?: string | null, method?: string } = {}): Couleur {
     const background = Couleur.makeInstance(backgroundColor);
     const backgroundLab = background.valuesTo('oklab');
     const movingLab = this.valuesTo('oklab');
@@ -1239,7 +1237,7 @@ export default class Couleur {
    * @param options.method The method to use to compute the distance.
    * @returns The distance between the two colors in sRGB space.
    */
-  static distance(color1: color, color2: color, { method = 'deltaE2000' }: { method?: string } = {}): number { 
+  public static distance(color1: color, color2: color, { method = 'deltaE2000' }: { method?: string } = {}): number { 
     const colore1 = Couleur.makeInstance(color1);
     const colore2 = Couleur.makeInstance(color2);
 
@@ -1261,7 +1259,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.distance - Non-static version. */
-  distance(color: color, options: object = {}) { return Couleur.distance(this, color, options); }
+  public distance(color: color, options: object = {}) { return Couleur.distance(this, color, options); }
 
 
   /**
@@ -1271,13 +1269,13 @@ export default class Couleur {
    * @param tolerance The minimum distance between the two colors to consider them different.
    * @returns Whether the two colors are considered the same.
    */
-  static same(color1: color, color2: color, { tolerance = 1, method = 'deltaE2000' }: { tolerance?: number, method?: string } = {}): boolean {
+  public static same(color1: color, color2: color, { tolerance = 1, method = 'deltaE2000' }: { tolerance?: number, method?: string } = {}): boolean {
     if (Couleur.distance(color1, color2, { method }) > tolerance) return false;
     else return true;
   }
 
   /** @see Couleur.same - Non-static version. */
-  same(color: color, options: object = {}): boolean { return Couleur.same(this, color, options); }
+  public same(color: color, options: object = {}): boolean { return Couleur.same(this, color, options); }
 
 
   /* Other functions */
@@ -1291,7 +1289,7 @@ export default class Couleur {
    * @param spaceID Identifier of the color space in which to compute the gradient.
    * @returns The array of (steps + 1) colors in the gradient.
    */
-  static gradient(startColor: color, endColor: color, steps: number = 5, spaceID: string = 'lch'): Couleur[] {
+  public static gradient(startColor: color, endColor: color, steps: number = 5, spaceID: string = 'lch'): Couleur[] {
     const start = Couleur.makeInstance(startColor);
     const end = Couleur.makeInstance(endColor);
     const _steps = Math.max(1, steps);
@@ -1337,7 +1335,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.gradient - Non-static version. */
-  gradient(color: color, steps: number, format: string): Couleur[] { return Couleur.gradient(this, color, steps, format); }
+  public gradient(color: color, steps: number, format: string): Couleur[] { return Couleur.gradient(this, color, steps, format); }
 
 
 
@@ -1350,7 +1348,7 @@ export default class Couleur {
    * @param format Name of the color format.
    * @returns Array of color property names.
    */
-  static propertiesOf(format: string): colorProperty[] {
+  protected static propertiesOf(format: string): colorProperty[] {
     switch(format) {
       case 'rgb': case 'rgba': return ['r', 'g', 'b'];
       case 'hsl': case 'hsla': return ['h', 's', 'l'];
@@ -1359,24 +1357,21 @@ export default class Couleur {
       case 'lch':              return ['ciel', 'ciec', 'cieh'];
       case 'oklab':            return ['okl', 'oka', 'okb'];
       case 'oklch':            return ['okl', 'okc', 'okh'];
-      default: return [];
+      default:                 return [];
     }
   }
 
   /** @returns Array of all color property short names. */
-  static get properties(): colorProperty[] {
+  protected static get properties(): colorProperty[] {
     return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh', 'okl', 'oka', 'okb', 'okc', 'okh'];
   }
 
-  /** @returns} Supported color spaces. */
-  static get colorSpaces(): ColorSpace[] { return colorSpaces; }
-
   /**
-   * Gets a color space.
+   * Gets a color space from its id.
    * @param spaceID Identifier of a color space, or a color space itself.
    * @returns The corresponding color space object.
    */
-  private static getSpace(spaceID: colorSpaceOrID): ColorSpace {
+  protected static getSpace(spaceID: colorSpaceOrID): ColorSpace {
     let result: ColorSpace | undefined;
     if (typeof spaceID !== 'string') result = spaceID;
     else {
@@ -1391,9 +1386,12 @@ export default class Couleur {
     return result;
   }
 
+  /** @returns Array of supported color spaces. */
+  private static get colorSpaces(): ColorSpace[] { return colorSpaces; }
+
   /** @returns Array of supported syntaxes. */
   private static get formats(): CSSFormat[] { return Formats; }
 
   /** @returns List of named colors in CSS. */
-  static get namedColors(): Map<string, string> { return namedColors; }
+  private static get namedColors(): Map<string, string> { return namedColors; }
 }

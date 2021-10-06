@@ -1419,12 +1419,8 @@ class Couleur {
                 return precision === null ? `${value}` : `${Math.round(10 ** precision * value) / (10 ** precision)}`;
         }
     }
-    /*****************************************/
-    /* Setters and getters for color formats */
-    /*****************************************/
-    /* GENERAL SETTER */
     /**
-     * Will be used by other setters to calculate all color properties.
+     * Calculates all properties of a color from given unparsed values in a given color space.
      * @param data Array of unparsed values.
      * @param props Array of color property names the values correspond to.
      * @param spaceID Color space of the values, or its identifier.
@@ -1437,7 +1433,51 @@ class Couleur {
         [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
         this.a = Couleur.parse(toUnparsedAlpha(data[3]), 'a');
     }
-    /* GENERAL GETTER */
+    /**
+     * Calculates all properties of the color from its hexadecimal expression.
+     * @param hexa The hexadecimal values of the r, g, b, a properties.
+     */
+    setHex(hexa) {
+        let [r, g, b] = hexa.map(v => String(v));
+        let a = String(hexa[3]) || 'ff';
+        const vals = [r, g, b, a].map(v => v.length === 1 ? v.repeat(2) : v)
+            .map(v => parseInt(v, 16));
+        this.set(vals, ['r', 'g', 'b'], 'srgb');
+    }
+    /**
+     * Calculates all properties of the color from its functional color() expression.
+     * @param spaceID
+     * @param values The parsed values of the color's properties.
+     */
+    setColor(spaceID, values) {
+        let vals = values.slice(0, 3).map(v => Couleur.parse(v));
+        const a = Couleur.parse(values[3]);
+        switch (spaceID) {
+            case 'srgb':
+            case 'display-p3':
+            case 'a98-rgb':
+            case 'prophoto-rgb':
+            case 'rec2020':
+            case 'oklab':
+            case 'oklch':
+            case 'xyz':
+                vals = Couleur.convert(spaceID, 'srgb', vals);
+                break;
+            default:
+                if (spaceID.startsWith('--')) {
+                    const id = spaceID.substring(2);
+                    vals = Couleur.convert(id, 'srgb', vals);
+                }
+                else
+                    throw `The ${JSON.stringify(spaceID)} color space is not supported`;
+        }
+        const rgba = [...vals, a];
+        return this.set(rgba, [null, null, null], 'srgb');
+    }
+    /*****************************/
+    /* Getters for color formats */
+    /*****************************/
+    /* GENERAL EXPRESSION MAKER */
     /**
      * Creates a string containing the CSS expression of a color.
      * @param format Identifier of the color space of the requested CSS expression.
@@ -1542,18 +1582,7 @@ class Couleur {
         else
             return null;
     }
-    /* RGB (hexadecimal) */
-    /**
-     * Calculates all properties of the color from its hexadecimal expression.
-     * @param hexa The hexadecimal values of the r, g, b, a properties.
-     */
-    setHex(hexa) {
-        let [r, g, b] = hexa.map(v => String(v));
-        let a = String(hexa[3]) || 'ff';
-        const vals = [r, g, b, a].map(v => v.length === 1 ? v.repeat(2) : v)
-            .map(v => parseInt(v, 16));
-        this.set(vals, ['r', 'g', 'b'], 'srgb');
-    }
+    /* CSS FORMATS */
     /** @returns Hexadecimal expression of the color. */
     get hex() {
         const values = Couleur.toGamut('srgb', this.values);
@@ -1563,7 +1592,6 @@ class Couleur {
         else
             return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
     }
-    /* OTHER FORMATS */
     /** @returns RGB expression of the color. */
     get rgb() { return this.expr('rgb', { precision: 2 }); }
     get rgba() { return this.rgb; }
@@ -1580,149 +1608,60 @@ class Couleur {
     get oklab() { return this.expr('oklab', { precision: 2 }); }
     /** @returns OKLCH expression of the color. */
     get oklch() { return this.expr('oklch', { precision: 2 }); }
-    /* PROFILED COLORS */
-    /**
-     * Calculates all properties of the color from its functional color() expression.
-     * @param spaceID
-     * @param values The parsed values of the color's properties.
-     */
-    setColor(spaceID, values) {
-        let vals = values.slice(0, 3).map(v => Couleur.parse(v));
-        const a = Couleur.parse(values[3]);
-        switch (spaceID) {
-            case 'srgb':
-            case 'display-p3':
-            case 'a98-rgb':
-            case 'prophoto-rgb':
-            case 'rec2020':
-            case 'oklab':
-            case 'oklch':
-            case 'xyz':
-                vals = Couleur.convert(spaceID, 'srgb', vals);
-                break;
-            default:
-                if (spaceID.startsWith('--')) {
-                    const id = spaceID.substring(2);
-                    vals = Couleur.convert(id, 'srgb', vals);
-                }
-                else
-                    throw `The ${JSON.stringify(spaceID)} color space is not supported`;
-        }
-        const rgba = [...vals, a];
-        return this.set(rgba, [null, null, null], 'srgb');
-    }
     /********************************************/
     /* Setters and getters for color properties */
     /********************************************/
     /**
      * Recalculates the r, g, b properties of the color after modifying one of its other properties.
      * @param val The parsed new value of the property.
+     * @param prop The property to change.
+     * @param format The id of the CSS format the property belongs to.
      */
+    recompute(val, prop, format) {
+        const props = [...Couleur.propertiesOf(format), 'a'];
+        if (!props.includes(prop))
+            throw `Format ${format} does not have a property called ${prop}`;
+        const oldValues = [...this.valuesTo(format), this.a];
+        const newValues = props.map((p, k) => { if (p === prop)
+            return val;
+        else
+            return oldValues[k]; });
+        this.set(newValues, props, format, { parsed: true });
+    }
     set red(val) { this.r = val; }
     set green(val) { this.g = val; }
     set blue(val) { this.b = val; }
     set alpha(val) { this.a = val; }
     set opacity(val) { this.a = val; }
-    set h(val) {
-        const [x, s, l] = this.valuesTo('hsl');
-        const props = [...Couleur.propertiesOf('hsl'), 'a'];
-        const values = [val, s, l, this.a];
-        this.set(values, props, 'hsl', { parsed: true });
-    }
+    set h(val) { this.recompute(val, 'h', 'hsl'); }
     set hue(val) { this.h = val; }
-    set s(val) {
-        const [h, x, l] = this.valuesTo('hsl');
-        const props = [...Couleur.propertiesOf('hsl'), 'a'];
-        const values = [h, val, l, this.a];
-        this.set(values, props, 'hsl', { parsed: true });
-    }
+    set s(val) { this.recompute(val, 's', 'hsl'); }
     set saturation(val) { this.s = val; }
-    set l(val) {
-        const [h, s, x] = this.valuesTo('hsl');
-        const props = [...Couleur.propertiesOf('hsl'), 'a'];
-        const values = [h, s, val, this.a];
-        this.set(values, props, 'hsl', { parsed: true });
-    }
+    set l(val) { this.recompute(val, 'l', 'hsl'); }
     set lightness(val) { this.l = val; }
-    set w(val) {
-        const [h, x, bk] = this.valuesTo('hwb');
-        const props = [...Couleur.propertiesOf('hwb'), 'a'];
-        const values = [h, val, bk, this.a];
-        this.set(values, props, 'hwb', { parsed: true });
-    }
+    set w(val) { this.recompute(val, 'w', 'hwb'); }
     set whiteness(val) { this.w = val; }
-    set bk(val) {
-        const [h, w, x] = this.valuesTo('hwb');
-        const props = [...Couleur.propertiesOf('hwb'), 'a'];
-        const values = [h, w, val, this.a];
-        this.set(values, props, 'hwb', { parsed: true });
-    }
+    set bk(val) { this.recompute(val, 'bk', 'hwb'); }
     set blackness(val) { this.bk = val; }
-    set ciel(val) {
-        const [x, ciea, cieb] = this.valuesTo('lab');
-        const props = [...Couleur.propertiesOf('lab'), 'a'];
-        const values = [val, ciea, cieb, this.a];
-        this.set(values, props, 'lab', { parsed: true });
-    }
+    set ciel(val) { this.recompute(val, 'ciel', 'lab'); }
     set CIElightness(val) { this.ciel = val; }
-    set ciea(val) {
-        const [ciel, x, cieb] = this.valuesTo('lab');
-        const props = [...Couleur.propertiesOf('lab'), 'a'];
-        const values = [ciel, val, cieb, this.a];
-        this.set(values, props, 'lab', { parsed: true });
-    }
-    set cieb(val) {
-        const [ciel, ciea, x] = this.valuesTo('lab');
-        const props = [...Couleur.propertiesOf('lab'), 'a'];
-        const values = [ciel, ciea, val, this.a];
-        this.set(values, props, 'lab', { parsed: true });
-    }
-    set ciec(val) {
-        const [ciel, x, cieh] = this.valuesTo('lch');
-        const props = [...Couleur.propertiesOf('lch'), 'a'];
-        const values = [ciel, val, cieh, this.a];
-        this.set(values, props, 'lch', { parsed: true });
-    }
+    set ciea(val) { this.recompute(val, 'ciea', 'lab'); }
+    set CIEa(val) { this.ciea = val; }
+    set cieb(val) { this.recompute(val, 'cieb', 'lab'); }
+    set CIEb(val) { this.cieb = val; }
+    set ciec(val) { this.recompute(val, 'ciec', 'lch'); }
     set CIEchroma(val) { this.ciec = val; }
-    set cieh(val) {
-        const [ciel, ciec, x] = this.valuesTo('lch');
-        const props = [...Couleur.propertiesOf('lch'), 'a'];
-        const values = [ciel, ciec, val, this.a];
-        this.set(values, props, 'lch', { parsed: true });
-    }
+    set cieh(val) { this.recompute(val, 'cieh', 'lch'); }
     set CIEhue(val) { this.cieh = val; }
-    set okl(val) {
-        const [x, oka, okb] = this.valuesTo('oklab');
-        const props = [...Couleur.propertiesOf('oklab'), 'a'];
-        const values = [val, oka, okb, this.a];
-        this.set(values, props, 'oklab', { parsed: true });
-    }
+    set okl(val) { this.recompute(val, 'okl', 'oklab'); }
     set OKlightness(val) { this.okl = val; }
-    set oka(val) {
-        const [okl, x, okb] = this.valuesTo('oklab');
-        const props = [...Couleur.propertiesOf('oklab'), 'a'];
-        const values = [okl, val, okb, this.a];
-        this.set(values, props, 'oklab', { parsed: true });
-    }
-    set okb(val) {
-        const [okl, oka, x] = this.valuesTo('oklab');
-        const props = [...Couleur.propertiesOf('oklab'), 'a'];
-        const values = [okl, oka, val, this.a];
-        this.set(values, props, 'oklab', { parsed: true });
-    }
-    set okc(val) {
-        const [okl, x, okh] = this.valuesTo('oklch');
-        const props = [...Couleur.propertiesOf('oklch'), 'a'];
-        const values = [okl, val, okh, this.a];
-        this.set(values, props, 'oklch', { parsed: true });
-    }
+    set oka(val) { this.recompute(val, 'oka', 'oklab'); }
+    set OKa(val) { this.oka = val; }
+    set okb(val) { this.recompute(val, 'okb', 'oklab'); }
+    set OKb(val) { this.okb = val; }
+    set okc(val) { this.recompute(val, 'okc', 'oklch'); }
     set OKchroma(val) { this.okc = val; }
-    set okh(val) {
-        const [okl, okc, x] = this.valuesTo('oklch');
-        const props = [...Couleur.propertiesOf('oklch'), 'a'];
-        const values = [okl, okc, val, this.a];
-        this.set(values, props, 'oklch', { parsed: true });
-    }
+    set okh(val) { this.recompute(val, 'okh', 'oklch'); }
     set OKhue(val) { this.okh = val; }
     /** @returns Gets the parsed value of one of the color properties. */
     get red() { return this.r; }
@@ -1743,7 +1682,9 @@ class Couleur {
     get ciel() { return this.valuesTo('lab')[0]; }
     get CIElightness() { return this.ciel; }
     get ciea() { return this.valuesTo('lab')[1]; }
+    get CIEa() { return this.valuesTo('lab')[1]; }
     get cieb() { return this.valuesTo('lab')[2]; }
+    get CIEb() { return this.valuesTo('lab')[2]; }
     get ciec() { return this.valuesTo('lch')[1]; }
     get CIEchroma() { return this.ciec; }
     get cieh() { return this.valuesTo('lch')[2]; }
@@ -1751,7 +1692,9 @@ class Couleur {
     get okl() { return this.valuesTo('oklab')[0]; }
     get OKlightness() { return this.okl; }
     get oka() { return this.valuesTo('oklab')[1]; }
+    get OKa() { return this.valuesTo('oklab')[1]; }
     get okb() { return this.valuesTo('oklab')[2]; }
+    get OKb() { return this.valuesTo('oklab')[2]; }
     get okc() { return this.valuesTo('oklch')[1]; }
     get OKchroma() { return this.okc; }
     get okh() { return this.valuesTo('oklch')[2]; }
@@ -2452,10 +2395,8 @@ class Couleur {
     static get properties() {
         return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh', 'okl', 'oka', 'okb', 'okc', 'okh'];
     }
-    /** @returns} Supported color spaces. */
-    static get colorSpaces() { return colorSpaces; }
     /**
-     * Gets a color space.
+     * Gets a color space from its id.
      * @param spaceID Identifier of a color space, or a color space itself.
      * @returns The corresponding color space object.
      */
@@ -2474,6 +2415,8 @@ class Couleur {
             throw `${spaceID} is not a supported color space`;
         return result;
     }
+    /** @returns Array of supported color spaces. */
+    static get colorSpaces() { return colorSpaces; }
     /** @returns Array of supported syntaxes. */
     static get formats() { return Formats; }
     /** @returns List of named colors in CSS. */
