@@ -14,21 +14,6 @@ require_once '../dist/colori.php';
     .close { background-color: <?php $c = new Couleur('gold'); echo $c->replace('a', '.2')->hsl(); ?>; }
     .no { background-color: <?php $c = new Couleur('pink'); echo $c->replace('a', '.2')->hsl(); ?>;}
   }
-
-  .palet {
-    display: flex;
-    flex-direction: row;
-  }
-
-  .palet>div {
-    width: 4em;
-    height: 3em;
-    background-color: var(--color);
-    margin: 5px;
-    border-radius: 10px;
-    display: grid;
-    place-content: center;
-  }
 </style>
 
 <h1>Testing colori's implementation of oklab and oklch color spaces</h1>
@@ -108,19 +93,11 @@ require_once '../dist/colori.php';
   </tbody>
 </table>
 
-<h2>Testing Palette generation</h2>
-
-<label for="hue">Hue</label>
-<input type="range" id="hue" min="0" max="360" step="1" value="62">
-<span id="hue-value"></span>
-
-<div class="paletContainer"></div>
-
 <script type="module">
   // ▼ ES modules cache-busted grâce à PHP
   /*<?php ob_start();?>*/
 
-  import Couleur, { Palette } from '../dist/colori.js';
+  import Couleur from '../dist/colori.js';
 
   /*<?php $imports = ob_get_clean();
   require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
@@ -260,80 +237,4 @@ require_once '../dist/colori.php';
       `;
     }
   }
-
-
-
-
-
-  const generator = function(hue) {
-    const lightnesses = [
-      .9880873963836093,
-      .9551400440214246,
-      .9127904082618294,
-      .8265622041716898,
-      .7412252673769428,
-      .653350946076347,
-      .5624050605208273,
-      .48193149058901036,
-      .39417829080418526,
-      .3091856317280812,
-      .22212874192541768
-    ];
-    const baseChroma = 0.1328123146401862;
-    const chromas = [
-      baseChroma / 12,
-      baseChroma / 6,
-      baseChroma,
-      baseChroma / 3,
-      baseChroma * 2 / 3
-    ];
-
-    return chromas.map((ch, k) => {
-      const h = k < 4 ? hue : (hue + 60);
-      return {
-        lightnesses: lightnesses,
-        chroma: ch,
-        hue: h
-      };
-    });
-  };
-
-
-
-  class MonetPalette extends Palette {
-    constructor(hue) {
-      super(hue, generator);
-    }
-  }
-
-
-
-  function updatePalet(hue) {
-    const container = document.querySelector('.paletContainer');
-    container.innerHTML = '';
-    document.querySelector('#hue-value').innerHTML = hue;
-
-    let pal = new MonetPalette(parseFloat(hue));
-
-    for (const nuances of pal.colors) {
-      let html = `<div class="palet">`;
-      for (const color of nuances) {
-        const textColor = color.bestColorScheme() === 'dark' ? 'white' : 'black';
-        const contrast = Couleur.contrast(textColor, color, { method: 'apca' });
-        html += `<div style="--color: ${color.hsl}; color: ${textColor}" data-values="${color.values.join(' ; ')}" data-rgb="${color.rgb}" data-oklch="${color.valuesTo('oklch').join(' ; ')}">${Math.round(100 * contrast) / 100}</div>`;
-      }
-      html += `</div>`;
-      container.innerHTML += html;
-    }
-  }
-
-  const range = document.querySelector('#hue');
-  range.addEventListener('change', event => {
-    updatePalet(range.value);
-  });
-  updatePalet(range.value); // init
-  
-
-  const white = new Couleur('color(--oklch 1 0.08854157553403602 121.99998679095636)');
-  const quasiwhite = new Couleur('color(--oklch 0.9999999938584008 0.08854157553403602 121.99998679095636)');
 </script>
