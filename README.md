@@ -11,10 +11,10 @@ I mostly wrote it with my own needs in mind, but if you think there's something 
 Import the [colori.min.js](https://github.com/Remiscan/colori/releases/latest/download/colori.min.js) file at the top of your module script, and you're good to go!
 
 ```javascript
-import Color from './colori.min.js';
+import Couleur from './colori.min.js';
 
 // Let's find the RGB expression of blue:
-const blue = new Color('blue');
+const blue = new Couleur('blue');
 console.log(blue.rgb); // logs 'rgb(0, 0, 255)'
 ```
 
@@ -26,7 +26,7 @@ Include the [colori.php](https://github.com/Remiscan/colori/releases/latest/down
 require_once 'colori.php';
 
 // Let's find the RGB expression of blue:
-$blue = new Color('blue');
+$blue = new Couleur('blue');
 echo $blue->rgb(); // prints 'rgb(0, 0, 255)'
 ```
 
