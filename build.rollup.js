@@ -27,5 +27,5 @@ await Promise.all(options.output.map(output => bundle.write(output)));
 await bundle.close();
 
 // Delete temporary JavaScript compiled files
-const del = Deno.run({ cmd: [ 'cmd', '/c', 'del', 'src\\ts\\*.js' ]});
+const del = Deno.run({ cmd: ['cmd', '/c', 'del', 'src\\ts\\*.js'] });
 await del.status();

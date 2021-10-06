@@ -4,7 +4,7 @@
     {
       "type": "shell",
       "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build.rollup.js",
-      "label": "deno: run build.rollup.js",
+      "label": "rollup: bundle colori.js",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -12,7 +12,7 @@
     }, {
       "type": "shell",
       "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable auto.build.rollup.js",
-      "label": "deno: run auto.build.rollup.js",
+      "label": "[auto] rollup: bundle colori.js",
       "runOptions": {
         "runOn": "folderOpen"
       },
@@ -22,13 +22,17 @@
     }, {
       "type": "shell",
       "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-env auto.build.php.js",
-      "label": "deno: run auto.build.php.js",
+      "label": "php: bundle colori.php",
       "runOptions": {
         "runOn": "folderOpen"
       },
       "presentation": {
         "reveal": "silent"
       }
+    }, {
+      "type": "shell",
+      "command": "deno run --allow-run --allow-read --allow-write=./doc --allow-net=deno.land,raw.githubusercontent.com --allow-env --unstable build.doc.js",
+      "label": "deno: build documentation"
     }
   ]
 }
