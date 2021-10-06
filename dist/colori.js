@@ -1621,18 +1621,21 @@ class Couleur {
         const props = [...Couleur.propertiesOf(format), 'a'];
         if (!props.includes(prop))
             throw `Format ${format} does not have a property called ${prop}`;
+        const parsedVal = (typeof val === 'string') ? Couleur.parse(val, prop) : val;
         const oldValues = [...this.valuesTo(format), this.a];
-        const newValues = props.map((p, k) => { if (p === prop)
-            return val;
-        else
-            return oldValues[k]; });
+        const newValues = props.map((p, k) => {
+            if (p === prop)
+                return parsedVal;
+            else
+                return oldValues[k];
+        });
         this.set(newValues, props, format, { parsed: true });
     }
-    set red(val) { this.r = val; }
-    set green(val) { this.g = val; }
-    set blue(val) { this.b = val; }
-    set alpha(val) { this.a = val; }
-    set opacity(val) { this.a = val; }
+    set red(val) { this.recompute(val, 'r', 'rgb'); }
+    set green(val) { this.recompute(val, 'g', 'rgb'); }
+    set blue(val) { this.recompute(val, 'b', 'rgb'); }
+    set alpha(val) { this.recompute(val, 'a', 'rgb'); }
+    set opacity(val) { this.recompute(val, 'a', 'rgb'); }
     set h(val) { this.recompute(val, 'h', 'hsl'); }
     set hue(val) { this.h = val; }
     set s(val) { this.recompute(val, 's', 'hsl'); }

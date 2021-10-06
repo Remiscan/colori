@@ -821,7 +821,7 @@ export default class Couleur {
    *                                   null if the value should be added to the previous value of the property.
    * @returns The modified color.
    */
-  public change(prop: colorProperty, value: string | number, { action = null }: { action?: string | null } = {}): Couleur {
+  public change(prop: colorProperty, value: string | number, { action = null }: { action?: 'replace' | 'scale' | null } = {}): Couleur {
     const replace = action === 'replace';
     const scale = action === 'scale';
     const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, { clamp: false });
