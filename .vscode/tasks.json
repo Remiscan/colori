@@ -3,16 +3,16 @@
   "tasks": [
     {
       "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build.rollup.js",
-      "label": "rollup: bundle colori.js",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build.javascript.js",
+      "label": "bundle colori.js",
       "group": {
         "kind": "build",
         "isDefault": true
       }
     }, {
       "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable auto.build.rollup.js",
-      "label": "[auto] rollup: bundle colori.js",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable auto.build.javascript.js",
+      "label": "[auto] bundle colori.js on file change",
       "runOptions": {
         "runOn": "folderOpen"
       },
@@ -21,8 +21,12 @@
       }
     }, {
       "type": "shell",
+      "command": "php build.php",
+      "label": "bundle colori.php"
+    }, {
+      "type": "shell",
       "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-env auto.build.php.js",
-      "label": "php: bundle colori.php",
+      "label": "[auto] bundle colori.php on file change",
       "runOptions": {
         "runOn": "folderOpen"
       },
