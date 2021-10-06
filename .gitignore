@@ -2,4 +2,4 @@ demo/
 wiki/
 test/proxy.php
 HOWTO.md
-build.doc.js
+tsconfig.json

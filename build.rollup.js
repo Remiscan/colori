@@ -29,3 +29,7 @@ await bundle.close();
 // Delete temporary JavaScript compiled files
 const del = Deno.run({ cmd: ['cmd', '/c', 'del', 'src\\ts\\*.js'] });
 await del.status();
+
+// Build documentation
+/*const docu = Deno.run({ cmd: ['cmd', '/c', 'typedoc'] });
+await docu.status();*/
