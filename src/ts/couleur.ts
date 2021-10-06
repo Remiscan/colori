@@ -525,128 +525,69 @@ export default class Couleur {
   /**
    * Recalculates the r, g, b properties of the color after modifying one of its other properties.
    * @param val The parsed new value of the property.
+   * @param prop The property to change.
+   * @param format The id of the CSS format the property belongs to.
    */
-  set red(val: number) { this.r = val; }
-  set green(val: number) { this.g = val; }
-  set blue(val: number) { this.b = val; }
-  set alpha(val: number) { this.a = val; }
-  set opacity(val: number) { this.a = val; }
-
-  set h(val: number) {
-    const [x, s, l] = this.valuesTo('hsl');
-    const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a'];
-    const values = [val, s, l, this.a];
-    this.set(values, props, 'hsl', { parsed: true });
-  }
-  set hue(val: number) { this.h = val; }
-
-  set s(val: number) {
-    const [h, x, l] = this.valuesTo('hsl');
-    const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a'];
-    const values = [h, val, l, this.a];
-    this.set(values, props, 'hsl', { parsed: true });
-  }
-  set saturation(val: number) { this.s = val; }
-
-  set l(val: number) {
-    const [h, s, x] = this.valuesTo('hsl');
-    const props: colorProperty[] = [...Couleur.propertiesOf('hsl'), 'a']
-    const values = [h, s, val, this.a];
-    this.set(values, props, 'hsl', { parsed: true });
-  }
-  set lightness(val: number) { this.l = val; }
-
-  set w(val: number) {
-    const [h, x, bk] = this.valuesTo('hwb');
-    const props: colorProperty[] = [...Couleur.propertiesOf('hwb'), 'a'];
-    const values = [h, val, bk, this.a];
-    this.set(values, props, 'hwb', { parsed: true });
-  }
-  set whiteness(val: number) { this.w = val; }
-
-  set bk(val: number) {
-    const [h, w, x] = this.valuesTo('hwb');
-    const props: colorProperty[] = [...Couleur.propertiesOf('hwb'), 'a'];
-    const values = [h, w, val, this.a];
-    this.set(values, props, 'hwb', { parsed: true });
-  }
-  set blackness(val: number) { this.bk = val; }
-
-  set ciel(val: number) {
-    const [x, ciea, cieb] = this.valuesTo('lab');
-    const props: colorProperty[] = [...Couleur.propertiesOf('lab'), 'a'];
-    const values = [val, ciea, cieb, this.a];
-    this.set(values, props, 'lab', { parsed: true });
-  }
-  set CIElightness(val: number) { this.ciel = val; }
-
-  set ciea(val: number) {
-    const [ciel, x, cieb] = this.valuesTo('lab');
-    const props: colorProperty[] = [...Couleur.propertiesOf('lab'), 'a'];
-    const values = [ciel, val, cieb, this.a];
-    this.set(values, props, 'lab', { parsed: true });
+  private recompute(val: number, prop: colorProperty, format: string) {
+    const props: colorProperty[] = [...Couleur.propertiesOf(format), 'a'];
+    if (!props.includes(prop))
+      throw `Format ${format} does not have a property called ${prop}`;
+    
+    const oldValues = [...this.valuesTo(format), this.a];
+    const newValues = props.map((p, k) => { if (p === prop) return val; else return oldValues[k]; });
+    this.set(newValues, props, format, { parsed: true });
   }
 
-  set cieb(val: number) {
-    const [ciel, ciea, x] = this.valuesTo('lab');
-    const props: colorProperty[] = [...Couleur.propertiesOf('lab'), 'a'];
-    const values = [ciel, ciea, val, this.a];
-    this.set(values, props, 'lab', { parsed: true });
-  }
+  public set red(val: number) { this.r = val; }
+  public set green(val: number) { this.g = val; }
+  public set blue(val: number) { this.b = val; }
+  public set alpha(val: number) { this.a = val; }
+  public set opacity(val: number) { this.a = val; }
 
-  set ciec(val: number) {
-    const [ciel, x, cieh] = this.valuesTo('lch');
-    const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
-    const values = [ciel, val, cieh, this.a];
-    this.set(values, props, 'lch', { parsed: true });
-  }
-  set CIEchroma(val: number) { this.ciec = val; }
+  public set h(val: number) { this.recompute(val, 'h', 'hsl'); }
+  public set hue(val: number) { this.h = val; }
 
-  set cieh(val: number) {
-    const [ciel, ciec, x] = this.valuesTo('lch');
-    const props: colorProperty[] = [...Couleur.propertiesOf('lch'), 'a'];
-    const values = [ciel, ciec, val, this.a];
-    this.set(values, props, 'lch', { parsed: true });
-  }
-  set CIEhue(val: number) { this.cieh = val; }
+  public set s(val: number) { this.recompute(val, 's', 'hsl'); }
+  public set saturation(val: number) { this.s = val; }
 
-  set okl(val: number) {
-    const [x, oka, okb] = this.valuesTo('oklab');
-    const props: colorProperty[] = [...Couleur.propertiesOf('oklab'), 'a'];
-    const values = [val, oka, okb, this.a];
-    this.set(values, props, 'oklab', { parsed: true });
-  }
-  set OKlightness(val: number) { this.okl = val; }
+  public set l(val: number) { this.recompute(val, 'l', 'hsl'); }
+  public set lightness(val: number) { this.l = val; }
 
-  set oka(val: number) {
-    const [okl, x, okb] = this.valuesTo('oklab');
-    const props: colorProperty[] = [...Couleur.propertiesOf('oklab'), 'a'];
-    const values = [okl, val, okb, this.a];
-    this.set(values, props, 'oklab', { parsed: true });
-  }
+  public set w(val: number) { this.recompute(val, 'w', 'hwb'); }
+  public set whiteness(val: number) { this.w = val; }
 
-  set okb(val: number) {
-    const [okl, oka, x] = this.valuesTo('oklab');
-    const props: colorProperty[] = [...Couleur.propertiesOf('oklab'), 'a'];
-    const values = [okl, oka, val, this.a];
-    this.set(values, props, 'oklab', { parsed: true });
-  }
+  public set bk(val: number) { this.recompute(val, 'bk', 'hwb'); }
+  public set blackness(val: number) { this.bk = val; }
 
-  set okc(val: number) {
-    const [okl, x, okh] = this.valuesTo('oklch');
-    const props: colorProperty[] = [...Couleur.propertiesOf('oklch'), 'a'];
-    const values = [okl, val, okh, this.a];
-    this.set(values, props, 'oklch', { parsed: true });
-  }
-  set OKchroma(val: number) { this.okc = val; }
+  public set ciel(val: number) { this.recompute(val, 'ciel', 'lab'); }
+  public set CIElightness(val: number) { this.ciel = val; }
 
-  set okh(val: number) {
-    const [okl, okc, x] = this.valuesTo('oklch');
-    const props: colorProperty[] = [...Couleur.propertiesOf('oklch'), 'a'];
-    const values = [okl, okc, val, this.a];
-    this.set(values, props, 'oklch', { parsed: true });
-  }
-  set OKhue(val: number) { this.okh = val; }
+  public set ciea(val: number) { this.recompute(val, 'ciea', 'lab'); }
+  public set CIEa(val: number) { this.ciea = val; }
+
+  public set cieb(val: number) { this.recompute(val, 'cieb', 'lab'); }
+  public set CIEb(val: number) { this.cieb = val; }
+
+  public set ciec(val: number) { this.recompute(val, 'ciec', 'lch'); }
+  public set CIEchroma(val: number) { this.ciec = val; }
+
+  public set cieh(val: number) { this.recompute(val, 'cieh', 'lch'); }
+  public set CIEhue(val: number) { this.cieh = val; }
+
+  public set okl(val: number) { this.recompute(val, 'okl', 'oklab'); }
+  public set OKlightness(val: number) { this.okl = val; }
+
+  public set oka(val: number) { this.recompute(val, 'oka', 'oklab'); }
+  public set OKa(val: number) { this.oka = val; }
+
+  public set okb(val: number) { this.recompute(val, 'okb', 'oklab'); }
+  public set OKb(val: number) { this.okb = val; }
+
+  public set okc(val: number) { this.recompute(val, 'okc', 'oklch'); }
+  public set OKchroma(val: number) { this.okc = val; }
+
+  public set okh(val: number) { this.recompute(val, 'okh', 'oklch'); }
+  public set OKhue(val: number) { this.okh = val; }
 
   /** @returns Gets the parsed value of one of the color properties. */
   get red(): number { return this.r; }
