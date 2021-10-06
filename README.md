@@ -1,11 +1,43 @@
 # colori
 
-**colori** is a module to manipulate colors. It is available in [JavaScript](https://github.com/Remiscan/colori/releases/latest/download/colori.min.js) or in [PHP](https://github.com/Remiscan/colori/releases/latest/download/colori.php). Here's what it can do:
+**colori** is a module to manipulate colors. It started as a way for me to use color formats that aren't supported in CSS yet (like LCH and OKLAB), but grew as I added more features.
 
-  - **color conversion**: supported CSS formats are RGB (hexadecimal or functional), HSL, HWB, LAB, LCH and the color() function (+ OKLAB and OKLCH, but their syntax may change). Convert any color from any of these formats to any other with ease.
-  - **color blending**: overlay multiple colors over each other and compute the resulting visible color with alpha blending. Colors can also be *un*blended.
-  - **contrast computing**: calculate the contrast between two colors. Automatically modify a color to improve its contrast with another.
-  - **gradients**: create beautiful gradients in any supported color space, avoiding the *desaturated zone* of native CSS gradients.
-  - **and more**: clamp a color to a color space, compute the distance between two colors...
+I mostly wrote it with my own needs in mind, but if you think there's something for you here, have fun with it!
+
+## How to use
+
+### JavaScript
+
+Import the [colori.min.js](https://github.com/Remiscan/colori/releases/latest/download/colori.min.js) file at the top of your module script, and you're good to go!
+
+```javascript
+import Color from './colori.min.js';
+
+// Let's find the RGB expression of blue:
+const blue = new Color('blue');
+console.log(blue.rgb); // logs 'rgb(0, 0, 255)'
+```
+
+### PHP
+
+Include the [colori.php](https://github.com/Remiscan/colori/releases/latest/download/colori.php) file in your script, and you're good to go!
+
+```php
+require_once 'colori.php';
+
+// Let's find the RGB expression of blue:
+$blue = new Color('blue');
+echo $blue->rgb(); // prints 'rgb(0, 0, 255)'
+```
+
+## Features
+
+
+
+- **color conversion**: supported CSS formats are RGB (hexadecimal or functional), HSL, HWB, LAB, LCH and the color() function (+ OKLAB and OKLCH, but their syntax may change). Convert any color from any of these formats to any other with ease.
+- **color blending**: overlay multiple colors over each other and compute the resulting visible color with alpha blending. Colors can also be *un*blended.
+- **contrast computing**: calculate the contrast between two colors. Automatically modify a color to improve its contrast with another.
+- **gradients**: create beautiful gradients in any supported color space, avoiding the *desaturated zone* of native CSS gradients.
+- **and more**: clamp a color to a color space, compute the distance between two colors...
 
 [Check out the wiki](https://github.com/Remiscan/colori/wiki) to discover all of **colori**'s capabilities!
