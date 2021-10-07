@@ -1,5 +1,6 @@
 import { rollup } from 'https://deno.land/x/drollup@2.52.7+0.19.1/mod.ts';
 import { terser } from 'https://deno.land/x/drollup@2.52.7+0.19.1/plugins/terser/mod.ts';
+import { toUrl } from './deno.utils.ts'
 
 
 // Build the import map
@@ -10,8 +11,7 @@ for await (const entry of Deno.readDir('src/ts')) {
   const newPath = `./${entry.name}`;
   importMap.imports[oldPath] = newPath;
 }
-const importMapPath = await Deno.realPath('./src/ts/');
-const importMapUrl = `file:///${importMapPath.replaceAll('\\', '/').replaceAll(' ', '%20')}/`;
+const importMapUrl = `file:///${toUrl(await Deno.realPath('./src/ts/'))}/`;
 
 
 // Bundle the module files
