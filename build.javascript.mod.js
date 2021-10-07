@@ -17,19 +17,18 @@ const importMapUrl = `file:///${importMapPath.replaceAll('\\', '/').replaceAll('
 // Bundle the module files
 export async function bundle() {
   
-  // Bundle all modules from src/ts/ to colori.js
+  // Bundle all modules from src/ts to colori.js
 
   const { files } = await Deno.emit('src/ts/main.ts', {
     bundle: 'module',
     compilerOptions: {
-      target: 'esnext',
-      module: 'esnext',
+      target: 'es2015',
+      module: 'es2015',
       removeComments: false,
       strict: true
     },
     importMap: importMap,
     importMapPath: importMapUrl
-    
   });
 
   let nonMinifiedCode;
