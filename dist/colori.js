@@ -2073,6 +2073,7 @@ class Couleur {
         ].map((v)=>v.length === 1 ? v.repeat(2) : v
         ).map((v)=>parseInt(v, 16)
         );
+        vals[3] = vals[3] / 255;
         this.set(vals, [
             'r',
             'g',
@@ -2931,6 +2932,8 @@ class Couleur {
     }) {
         const colore1 = Couleur.makeInstance(color1);
         const colore2 = Couleur.makeInstance(color2);
+        let opaqueDist = +Infinity;
+        let alphaCoeff = 1;
         switch(method){
             case 'CIEDE2000':
             case 'deltaE2000':
@@ -2940,8 +2943,10 @@ class Couleur {
                         colore2
                     ].map((c)=>c.valuesTo('lab')
                     );
-                    return CIEDE2000(lab1, lab2);
+                    opaqueDist = CIEDE2000(lab1, lab2);
+                    alphaCoeff = 50;
                 }
+                break;
             case 'deltaEOK':
                 {
                     const [oklab1, oklab2] = [
@@ -2949,8 +2954,9 @@ class Couleur {
                         colore2
                     ].map((c)=>c.valuesTo('oklab')
                     );
-                    return euclidean(oklab1, oklab2);
+                    opaqueDist = euclidean(oklab1, oklab2);
                 }
+                break;
             case 'euclidean':
             default:
                 {
@@ -2959,9 +2965,15 @@ class Couleur {
                         colore2
                     ].map((c)=>c.values
                     );
-                    return euclidean(rgb1, rgb2);
+                    opaqueDist = euclidean(rgb1, rgb2);
                 }
         }
+        const alphaDist = euclidean([
+            colore1.a
+        ], [
+            colore2.a
+        ]);
+        return opaqueDist + alphaCoeff * alphaDist;
     }
     distance(color, options = {
     }) {

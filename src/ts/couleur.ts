@@ -331,6 +331,7 @@ export default class Couleur {
 
     const vals = [r, g, b, a].map(v => v.length === 1 ? v.repeat(2) : v)
                              .map(v => parseInt(v, 16));
+    vals[3] = vals[3] / 255;
 
     this.set(vals, ['r', 'g', 'b'], 'srgb');
   }
@@ -1244,22 +1245,28 @@ export default class Couleur {
   public static distance(color1: color, color2: color, { method = 'deltaE2000' }: { method?: string } = {}): number { 
     const colore1 = Couleur.makeInstance(color1);
     const colore2 = Couleur.makeInstance(color2);
+    let opaqueDist: number = +Infinity;
+    let alphaCoeff: number = 1;
 
     switch (method) {
       case 'CIEDE2000': case 'deltaE2000': {
         const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
-        return Distances.CIEDE2000(lab1, lab2);
-      }
+        opaqueDist = Distances.CIEDE2000(lab1, lab2);
+        alphaCoeff = 50;
+      } break;
       case 'deltaEOK': {
         const [oklab1, oklab2] = [colore1, colore2].map(c => c.valuesTo('oklab'));
-        return Distances.euclidean(oklab1, oklab2);
-      }
+        opaqueDist = Distances.euclidean(oklab1, oklab2);
+      } break;
       case 'euclidean':
       default: {
         const [rgb1, rgb2] = [colore1, colore2].map(c => c.values);
-        return Distances.euclidean(rgb1, rgb2);
+        opaqueDist = Distances.euclidean(rgb1, rgb2);
       }
     }
+
+    const alphaDist = Distances.euclidean([colore1.a], [colore2.a]);
+    return opaqueDist + alphaCoeff * alphaDist;
   }
 
   /** @see Couleur.distance - Non-static version. */
