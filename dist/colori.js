@@ -605,22 +605,24 @@ function maxSaturation(a, b) {
     const k_l = 0.3963377774 * a + 0.2158037573 * b;
     const k_m = -0.1055613458 * a - 0.0638541728 * b;
     const k_s = -0.0894841775 * a - 1.291485548 * b;
-    const [l_, m_, s_] = [
-        k_l,
-        k_m,
-        k_s
-    ].map((v)=>1 + S * v
-    );
-    const [l, m, s] = [
-        l_,
-        m_,
-        s_
-    ].map((v)=>v ** 3
-    );
-    const l_dS = 3 * k_l * l_ * l_, m_dS = 3 * k_m * m_ * m_, s_dS = 3 * k_s * s_ * s_;
-    const l_dS2 = 6 * k_l * k_l * l_, m_dS2 = 6 * k_m * k_m * m_, s_dS2 = 6 * k_s * k_s * s_;
-    const f = wl * l + wm * m + ws * s, f1 = wl * l_dS + wm * m_dS + ws * s_dS, f2 = wl * l_dS2 + wm * m_dS2 + ws * s_dS2;
-    S = S - f * f1 / (f1 * f1 - 0.5 * f * f2);
+    for(let i = 0; i < 1; i++){
+        const [l_, m_, s_] = [
+            k_l,
+            k_m,
+            k_s
+        ].map((v)=>1 + S * v
+        );
+        const [l, m, s] = [
+            l_,
+            m_,
+            s_
+        ].map((v)=>v ** 3
+        );
+        const l_dS = 3 * k_l * l_ * l_, m_dS = 3 * k_m * m_ * m_, s_dS = 3 * k_s * s_ * s_;
+        const l_dS2 = 6 * k_l * k_l * l_, m_dS2 = 6 * k_m * k_m * m_, s_dS2 = 6 * k_s * k_s * s_;
+        const f = wl * l + wm * m + ws * s, f1 = wl * l_dS + wm * m_dS + ws * s_dS, f2 = wl * l_dS2 + wm * m_dS2 + ws * s_dS2;
+        S = S - f * f1 / (f1 * f1 - 0.5 * f * f2);
+    }
     return S;
 }
 function cusp(a, b) {
@@ -652,7 +654,7 @@ function gamutIntersection(a, b, L1, C1, L0) {
             k_s
         ].map((v)=>dL + dC * v
         );
-        for(let i = 0; i < 2; i++){
+        for(let i = 0; i < 1; i++){
             const L = L0 * (1 - t) + t * L1;
             const C = t * C1;
             const [l_, m_, s_] = [

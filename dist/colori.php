@@ -799,32 +799,33 @@
     // Approximate max saturation
     $S = $k0 + $k1 * $a + $k2 * $b + $k3 * $a * $a + $k4 * $a * $b;
 
-    // Do one step Halley's method to get closer
     $k_l = 0.3963377774 * $a + 0.2158037573 * $b;
     $k_m = -0.1055613458 * $a - 0.0638541728 * $b;
     $k_s = -0.0894841775 * $a - 1.2914855480 * $b;
 
-    $l_ = 1 + $S * $k_l;
-    $m_ = 1 + $S * $k_m;
-    $s_ = 1 + $S * $k_s;
+    for ($i = 0; $i < 1; $i++) {
+      $l_ = 1 + $S * $k_l;
+      $m_ = 1 + $S * $k_m;
+      $s_ = 1 + $S * $k_s;
 
-    $l = $l_ ** 3;
-    $m = $m_ ** 3;
-    $s = $s_ ** 3;
+      $l = $l_ ** 3;
+      $m = $m_ ** 3;
+      $s = $s_ ** 3;
 
-    $l_dS = 3 * $k_l * $l_ * $l_;
-    $m_dS = 3 * $k_m * $m_ * $m_;
-    $s_dS = 3 * $k_s * $s_ * $s_;
+      $l_dS = 3 * $k_l * $l_ * $l_;
+      $m_dS = 3 * $k_m * $m_ * $m_;
+      $s_dS = 3 * $k_s * $s_ * $s_;
 
-    $l_dS2 = 6 * $k_l * $k_l * $l_;
-    $m_dS2 = 6 * $k_m * $k_m * $m_;
-    $s_dS2 = 6 * $k_s * $k_s * $s_;
+      $l_dS2 = 6 * $k_l * $k_l * $l_;
+      $m_dS2 = 6 * $k_m * $k_m * $m_;
+      $s_dS2 = 6 * $k_s * $k_s * $s_;
 
-    $f  = $wl * $l     + $wm * $m     + $ws * $s;
-    $f1 = $wl * $l_dS  + $wm * $m_dS  + $ws * $s_dS;
-    $f2 = $wl * $l_dS2 + $wm * $m_dS2 + $ws * $s_dS2;
+      $f  = $wl * $l     + $wm * $m     + $ws * $s;
+      $f1 = $wl * $l_dS  + $wm * $m_dS  + $ws * $s_dS;
+      $f2 = $wl * $l_dS2 + $wm * $m_dS2 + $ws * $s_dS2;
 
-    $S = $S - $f * $f1 / ($f1 * $f1 - 0.5 * $f * $f2);
+      $S = $S - $f * $f1 / ($f1 * $f1 - 0.5 * $f * $f2);
+    }
     return $S;
   }
 
@@ -859,7 +860,7 @@
       $m_dt = $dL + $dC * $k_m;
       $s_dt = $dL + $dC * $k_s;
 
-      for ($i = 0; $i < 2; $i++) {
+      for ($i = 0; $i < 1; $i++) {
         $L = $L0 * (1 - $t) + $t * $L1;
         $C = $t * $C1;
 

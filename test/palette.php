@@ -53,6 +53,7 @@ require_once '../dist/colori.php';
 
   const monetGenerator = function(hue) {
     const lightnesses = [
+      1,
       .9880873963836093,
       .9551400440214246,
       .9127904082618294,
@@ -63,7 +64,8 @@ require_once '../dist/colori.php';
       .48193149058901036,
       .39417829080418526,
       .3091856317280812,
-      .22212874192541768
+      .22212874192541768,
+      0
     ];
     const baseChroma = 0.1328123146401862;
     const chromas = [
