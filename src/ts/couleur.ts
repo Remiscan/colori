@@ -1239,9 +1239,10 @@ export default class Couleur {
    * @param color2 
    * @param options
    * @param options.method The method to use to compute the distance.
+   * @param options.alpha Whether to add the distance between alpha values.
    * @returns The distance between the two colors in sRGB space.
    */
-  public static distance(color1: color, color2: color, { method = 'deltaE2000' }: { method?: string } = {}): number { 
+  public static distance(color1: color, color2: color, { method = 'deltaE2000', alpha = true }: { method?: string, alpha?: boolean } = {}): number { 
     const colore1 = Couleur.makeInstance(color1);
     const colore2 = Couleur.makeInstance(color2);
     let opaqueDist: number = +Infinity;
@@ -1264,7 +1265,7 @@ export default class Couleur {
       }
     }
 
-    const alphaDist = Distances.euclidean([colore1.a], [colore2.a]);
+    const alphaDist = alpha ? Distances.euclidean([colore1.a], [colore2.a]) : 0;
     return opaqueDist + alphaCoeff * alphaDist;
   }
 

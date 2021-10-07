@@ -2919,7 +2919,7 @@ class Couleur {
         }
         return new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
     }
-    static distance(color1, color2, { method ='deltaE2000'  } = {
+    static distance(color1, color2, { method ='deltaE2000' , alpha =true  } = {
     }) {
         const colore1 = Couleur.makeInstance(color1);
         const colore2 = Couleur.makeInstance(color2);
@@ -2959,11 +2959,11 @@ class Couleur {
                     opaqueDist = euclidean(rgb1, rgb2);
                 }
         }
-        const alphaDist = euclidean([
+        const alphaDist = alpha ? euclidean([
             colore1.a
         ], [
             colore2.a
-        ]);
+        ]) : 0;
         return opaqueDist + alphaCoeff * alphaDist;
     }
     distance(color, options = {

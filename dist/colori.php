@@ -2228,25 +2228,33 @@
 
 
     /** Calculates the distance between two colors in a certain format, by adding the difference between each of their properties. */
-    public static function distance(self|array|string $color1, self|array|string $color2, string $method = 'deltaE2000'): float {
+    public static function distance(self|array|string $color1, self|array|string $color2, string $method = 'deltaE2000', bool $alpha = true): float {
       $color1 = self::makeInstance($color1);
       $color2 = self::makeInstance($color2);
+      $opaqueDist = +INF;
+      $alphaCoeff = 1.0;
 
       switch ($method) {
         case 'CIEDE2000': case 'deltaE2000':
           $lab1 = $color1->valuesTo('lab');
           $lab2 = $color2->valuesTo('lab');
-          return distances\CIEDE2000($lab1, $lab2);
+          $opaqueDist = distances\CIEDE2000($lab1, $lab2);
+          $alphaCoeff = 50.0;
+          break;
         case 'deltaEOK':
           $oklab1 = $color1->valuesTo('oklab');
           $oklab2 = $color2->valuesTo('oklab');
-          return distances\euclidean($oklab1, $oklab2);
+          $opaqueDist = distances\euclidean($oklab1, $oklab2);
+          break;
         case 'euclidean':
         default:
           $rgb1 = $colors1->values();
           $rgb2 = $colors2->values();
-          return distances\euclidean($rgb1, $rgb2);
+          $opaqueDist = distances\euclidean($rgb1, $rgb2);
       }
+
+      $alphaDist = $alpha ? distances\euclidean([$color1->a], [$color2->a]) : 0;
+      return $opaqueDist + $alphaCoeff * $alphaDist;
     }
 
 
