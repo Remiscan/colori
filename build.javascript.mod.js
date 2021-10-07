@@ -2,25 +2,19 @@ import { rollup } from 'https://deno.land/x/drollup@2.52.7+0.19.1/mod.ts';
 import { terser } from 'https://deno.land/x/drollup@2.52.7+0.19.1/plugins/terser/mod.ts';
 
 
-const importMap = {
-  imports: {
-    './color-spaces.js': './color-spaces.ts',
-    './contrasts.js': './contrasts.ts',
-    './conversion.js': './conversion.ts',
-    './couleur.js': './couleur.ts',
-    './css-formats.js': './css-formats.ts',
-    './distances.js': './distances.ts',
-    './graph.js': './graph.ts',
-    './main.js': './main.ts',
-    './named-colors.js': './named-colors.ts',
-    './oklab-gamut.js': './oklab-gamut.ts',
-    './palette.js': './palette.ts',
-    './utils.js': './utils.ts'
-  }
-};
-const importMapFolder = 'file:///D:/remi/Projets%20web/remiscanfr-lamp/www/colori/src/ts/';
+// Build the import map
+const importMap = { imports: {} };
+for await (const entry of Deno.readDir('src/ts')) {
+  if (!entry.isFile) continue;
+  const oldPath = `./${entry.name.replace('.ts', '.js')}`;
+  const newPath = `./${entry.name}`;
+  importMap.imports[oldPath] = newPath;
+}
+const importMapPath = await Deno.realPath('./src/ts/');
+const importMapUrl = `file:///${importMapPath.replaceAll('\\', '/').replaceAll(' ', '%20')}/`;
 
 
+// Bundle the module files
 export async function bundle() {
   
   // Bundle all modules from src/ts/ to colori.js
@@ -34,7 +28,8 @@ export async function bundle() {
       strict: true
     },
     importMap: importMap,
-    importMapPath: importMapFolder
+    importMapPath: importMapUrl
+    
   });
 
   let nonMinifiedCode;
