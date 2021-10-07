@@ -937,7 +937,7 @@ export default class Couleur {
 
   /**
    * Solves the equation mix = blend(background, overlay) with background unknown.
-   * @param  {color} mixColor - The result of the blend.
+   * @param mixColor The result of the blend.
    * @param overlayColor Color that was mixed with background to create mix.
    * @returns The background that is solution to the equation, if it has one.
    * @throws if the equation has an infinite amount of solutions.
@@ -963,8 +963,7 @@ export default class Couleur {
         const r = (mix.r * mix.a - overlay.r * overlay.a) / (a * (1 - overlay.a));
         const g = (mix.g * mix.a - overlay.g * overlay.a) / (a * (1 - overlay.a));
         const b = (mix.b * mix.a - overlay.b * overlay.a) / (a * (1 - overlay.a));
-        if (!Couleur.inGamut('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) return null;
-        const clampedValues = Couleur.toGamut('srgb', [r, g, b], 'srgb', { method: 'naive' });
+        const clampedValues = Couleur.toGamut('srgb', [r, g, b], 'srgb');
         return new Couleur([...clampedValues, a]);
       }
     }

@@ -2709,20 +2709,11 @@ class Couleur {
                 const r = (mix.r * mix.a - overlay.r * overlay.a) / (a * (1 - overlay.a));
                 const g = (mix.g * mix.a - overlay.g * overlay.a) / (a * (1 - overlay.a));
                 const b = (mix.b * mix.a - overlay.b * overlay.a) / (a * (1 - overlay.a));
-                if (!Couleur.inGamut('srgb', [
-                    r,
-                    g,
-                    b
-                ], 'srgb', {
-                    tolerance: 1 / 255
-                })) return null;
                 const clampedValues = Couleur.toGamut('srgb', [
                     r,
                     g,
                     b
-                ], 'srgb', {
-                    method: 'naive'
-                });
+                ], 'srgb');
                 return new Couleur([
                     ...clampedValues,
                     a

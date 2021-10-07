@@ -814,8 +814,7 @@
           $r = ($mix->r * $mix->a - $overlay->r * $overlay->a) / ($a * (1 - $overlay->a));
           $g = ($mix->g * $mix->a - $overlay->g * $overlay->a) / ($a * (1 - $overlay->a));
           $b = ($mix->b * $mix->a - $overlay->b * $overlay->a) / ($a * (1 - $overlay->a));
-          if (!self::inGamut('srgb', [$r, $g, $b], 'srgb', tolerance: 1/255)) return null;
-          $clampedValues = self::toGamut('srgb', [$r, $g, $b], 'srgb', method: 'naive');
+          $clampedValues = self::toGamut('srgb', [$r, $g, $b], 'srgb');
           $clampedValues[] = $a;
           return new self($clampedValues);
         }
