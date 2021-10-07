@@ -171,7 +171,7 @@
                 $h = $h * 180 / pi();
               elseif (substr($value, -3) === 'turn')
                 $h = $h * 360;
-              else throw new \Exception("Invalid angle value: ". json_encode($value));
+              else throw new \Exception('angle');
               return (float) utils\angleToRange($h);
             }
             else throw new \Exception('invalid');
@@ -232,8 +232,9 @@
             else throw new \Exception('invalidest');
         }
       } catch (\Exception $error) {
-        if ($error === 'invalid') throw new \Exception("Invalid ". json_encode($prop) ." value: ". json_encode($value));
-        else                      throw new \Exception("Invalid arbitrary value: ". json_encode($value));
+        if ($error === 'invalid')   throw new \Exception("Invalid ". json_encode($prop) ." value: ". json_encode($value));
+        elseif ($error === 'angle') throw new \Exception("Invalid angle value: ". json_encode($value));
+        else                        throw new \Exception("Invalid arbitrary value: ". json_encode($value));
       }
     }
 

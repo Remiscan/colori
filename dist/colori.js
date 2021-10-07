@@ -1976,7 +1976,7 @@ class Couleur {
                             } else if (val.slice(-4) === 'grad') h = h * 360 / 400;
                             else if (val.slice(-3) === 'rad') h = h * 180 / Math.PI;
                             else if (val.slice(-4) === 'turn') h = h * 360;
-                            else throw `Invalid angle value: ${JSON.stringify(value)}`;
+                            else throw 'angle';
                             return angleToRange(h);
                         } else throw 'invalid';
                     }
@@ -2025,6 +2025,7 @@ class Couleur {
             }
         } catch (error) {
             if (error === 'invalid') throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
+            else if (error === 'angle') throw `Invalid angle value: ${JSON.stringify(value)}`;
             else throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
         }
     }

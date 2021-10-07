@@ -33,8 +33,8 @@ export default class Couleur {
    * Creates a new Couleur object that contains r, g, b, a properties of the color.
    * These properties will take their values from sRGB color space, even if they're out of bounds.
    * (This means values <0 or >1 can be stored — they can be clamped to a specific color space when needed.)
-   * @param color Color expression in a supported format.
-   * @throws {string} when the parameter isn't a valid color string.
+   * @param color Color expression in a supported type.
+   * @throws When the parameter is not of a supported type.
    */
   constructor(color: color) {
     if (color instanceof Couleur) {
@@ -95,7 +95,7 @@ export default class Couleur {
    * Matches the user input with supported color formats.
    * @param colorString Color expression in a supported format.
    * @returns Recognized syntax.
-   * @throws {string} when {couleur} is not in a valid format.
+   * @throws When colorString is not in a valid format.
    */
   private static matchSyntax(colorString: colorString): { id: string, data: string[] } {
     const tri = colorString.slice(0, 3);
@@ -144,6 +144,7 @@ export default class Couleur {
    * @param options
    * @param options.clamp Whether the value should de clamped to its color space bounds.
    * @returns The properly parsed number.
+   * @throws When the value isn't in a supported format for the corresponding property.
    */
   private static parse(value: number | string, prop: colorProperty | null = null, { clamp = true }: { clamp?: boolean } = {}): number {
     const val = String(value);
@@ -207,7 +208,7 @@ export default class Couleur {
               h = h * 180 / Math.PI;
             else if (val.slice(-4) === 'turn')
               h = h * 360;
-            else throw `Invalid angle value: ${JSON.stringify(value)}`;
+            else throw 'angle';
             return Utils.angleToRange(h);
           }
           else throw 'invalid';
@@ -274,8 +275,9 @@ export default class Couleur {
         }
       }
     } catch (error) {
-      if (error === 'invalid') throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-      else                     throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
+      if (error === 'invalid')    throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
+      else if (error === 'angle') throw `Invalid angle value: ${JSON.stringify(value)}`;
+      else                        throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
     }
   }
 
@@ -339,8 +341,9 @@ export default class Couleur {
 
   /**
    * Calculates all properties of the color from its functional color() expression.
-   * @param spaceID 
+   * @param spaceID Identifier of the color space.
    * @param values The parsed values of the color's properties.
+   * @throws When the color space is not supported.
    */
   private setColor(spaceID: string, values: Array<string|number>): void {
     let vals = values.slice(0, 3).map(v => Couleur.parse(v));
@@ -522,6 +525,7 @@ export default class Couleur {
    * @param val The parsed new value of the property.
    * @param prop The property to change.
    * @param format The id of the CSS format the property belongs to.
+   * @throws When the CSS format doesn't have the requested property.
    */
   private recompute(val: number | string, prop: colorProperty, format: string) {
     const props: colorProperty[] = [...Couleur.propertiesOf(format), 'a'];
@@ -661,6 +665,7 @@ export default class Couleur {
    * @param endSpaceID Color space to convert to, or its identifier.
    * @param values Array of color values (without alpha) in startSpaceID color space.
    * @returns Array of values in the new color space.
+   * @throws When one of the color spaces is not supported.
    */
   public static convert(startSpaceID: colorSpaceOrID, endSpaceID: colorSpaceOrID, values: number[]): number[] {
     if (
@@ -912,8 +917,9 @@ export default class Couleur {
   
   /**
    * Blends colors together, in the order they were given.
-   * @param  {...color} colors - Colors to blend.
+   * @param colors List of colors to successively blend.
    * @returns The resulting color.
+   * @throws When there are less than two colors.
    */
   public static blendAll(...colors: color[]): Couleur {
     if (colors.length < 2) throw `You need at least 2 colors to blend`;
@@ -940,7 +946,7 @@ export default class Couleur {
    * @param mixColor The result of the blend.
    * @param overlayColor Color that was mixed with background to create mix.
    * @returns The background that is solution to the equation, if it has one.
-   * @throws if the equation has an infinite amount of solutions.
+   * @throws If the equation has an infinite amount of solutions.
    */
   public static unblend(mixColor: color, overlayColor: color, alpha?: number | string): Couleur | null {
     const mix = Couleur.makeInstance(mixColor);
@@ -973,7 +979,7 @@ export default class Couleur {
    * Solves the equation mix = blendAll(background, ...overlays) with background unknown.
    * @param  {...color} colors - Colors to unblend.
    * @returns The solution to the equation, if it has one.
-   * @throws if the equation has an infinite amount of solutions.
+   * @throws If the equation has an infinite amount of solutions.
    */
   public static unblendAll(...colors: color[]): Couleur | null {
     if (colors.length < 2) throw `You need at least 2 colors to unblend`;
@@ -1088,6 +1094,7 @@ export default class Couleur {
    * @param options
    * @param options.method Whether to use the new APCA or the old WCAG2 method.
    * @returns Contrast between the two colors.
+   * @throws When the background color is transparent, as contrast can't be measured with it.
    */
   public static contrast(textColor: color, backgroundColor: color, { method = 'APCA' }: { method?: string } = {}): number {
     const background = Couleur.makeInstance(backgroundColor);
@@ -1381,6 +1388,7 @@ export default class Couleur {
    * Gets a color space from its id.
    * @param spaceID Identifier of a color space, or a color space itself.
    * @returns The corresponding color space object.
+   * @throws When the color space is not supported.
    */
   protected static getSpace(spaceID: colorSpaceOrID): ColorSpace {
     let result: ColorSpace | undefined;
