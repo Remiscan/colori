@@ -14,8 +14,8 @@ Import the [colori.min.js](https://github.com/Remiscan/colori/releases/latest/do
 import Couleur from './colori.min.js';
 
 // Let's find the RGB expression of blue:
-const blue = new Couleur('blue');
-console.log(blue.rgb); // logs 'rgb(0, 0, 255)'
+const color = new Couleur('blue');
+console.log(color.rgb); // logs 'rgb(0, 0, 255)'
 ```
 
 ### PHP
@@ -26,8 +26,8 @@ Include the [colori.php](https://github.com/Remiscan/colori/releases/latest/down
 require_once 'colori.php';
 
 // Let's find the RGB expression of blue:
-$blue = new Couleur('blue');
-echo $blue->rgb(); // prints 'rgb(0, 0, 255)'
+$color = new Couleur('blue');
+echo $color->rgb(); // prints 'rgb(0, 0, 255)'
 ```
 
 ## Features
