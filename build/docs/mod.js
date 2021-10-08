@@ -1,11 +1,7 @@
 import { doc } from 'https://deno.land/x/deno_doc@v0.14.0/mod.ts';
 import { load as defaultLoad } from 'https://deno.land/x/deno_graph@0.2.0/lib/loader.ts';
-import { toUrl } from './deno.utils.ts';
+import * as path from 'https://deno.land/std@0.105.0/path/mod.ts';
 
-
-// Get the full file URL base path for the modules
-const path = await Deno.realPath('./src/ts/');
-const url = `file:///${toUrl(path)}`;
 
 // Intercept the file loader and replace .js extensions with .ts for deno doc to find them
 async function load(specifier) {
@@ -14,7 +10,8 @@ async function load(specifier) {
 }
 
 // Get the data on all modules
-const docData = await doc(`${url}/main.ts`, { load });
+const url = path.toFileUrl(path.resolve('./src/ts/main.ts')).href;
+const docData = await doc(url, { load });
 
 // Build the markdown documentation from the data
 // This will all be wrapped inside a buildDoc function and exported

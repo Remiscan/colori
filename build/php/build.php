@@ -1,9 +1,10 @@
 <?php
-require_once './src/php/graph.php';
+$dir = dirname(__DIR__, 2);
+require_once $dir.'/src/php/graph.php';
 
 
-$source = './src/php';
-$destination = './dist/colori.php';
+$source = $dir.'/src/php';
+$destination = $dir.'/dist/colori.php';
 $files = array_diff(scandir($source), array('.', '..'));
 
 // Build a list of modules and their dependencies

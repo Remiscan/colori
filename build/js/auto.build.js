@@ -1,4 +1,4 @@
-import { bundle } from './build.javascript.mod.js';
+import { bundle } from './mod.js';
 
 const watcher = Deno.watchFs('./src/ts');
 for await (const event of watcher) {

@@ -3,7 +3,7 @@
   "tasks": [
     {
       "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build.javascript.js",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build/js/build.js",
       "label": "bundle colori.js",
       "group": {
         "kind": "build",
@@ -11,7 +11,7 @@
       }
     }, {
       "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable auto.build.javascript.js",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build/js/auto.build.js",
       "label": "[auto] bundle colori.js on file change",
       "runOptions": {
         "runOn": "folderOpen"
@@ -21,11 +21,11 @@
       }
     }, {
       "type": "shell",
-      "command": "php build.php",
+      "command": "php build/php/build.php",
       "label": "bundle colori.php"
     }, {
       "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-env auto.build.php.js",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-env build/php/auto.build.js",
       "label": "[auto] bundle colori.php on file change",
       "runOptions": {
         "runOn": "folderOpen"
@@ -35,7 +35,7 @@
       }
     }, {
       "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./doc --allow-net=deno.land,raw.githubusercontent.com --allow-env --unstable build.doc.js",
+      "command": "deno run --allow-run --allow-read --allow-write=./doc --allow-net=deno.land,raw.githubusercontent.com --allow-env --unstable build/docs/build.js",
       "label": "deno: build documentation"
     }
   ]

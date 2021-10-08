@@ -11,7 +11,7 @@ Then, if the `[auto] bundle colori.js on file change` task is running in VS Code
 
 You can manually trigger it by either:
 - running the `bundle colori.js` task in VS Code,
-- or by running `deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build.javascript.js` in a terminal.
+- or by running `deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build/js/build.js` in a terminal.
 
 ## PHP
 
@@ -23,4 +23,4 @@ Then, if the `[auto] bundle colori.php on file change` task is running in VS Cod
 
 You can manually trigger it by either:
 - running the `bundle colori.php` task in VS Code,
-- or by running `php build.php` in a terminal.
+- or by running `php build/php/build.php` in a terminal.
