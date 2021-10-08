@@ -33,10 +33,6 @@
       "presentation": {
         "reveal": "silent"
       }
-    }, {
-      "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./doc --allow-net=deno.land,raw.githubusercontent.com --allow-env --unstable build/docs/build.js",
-      "label": "deno: build documentation"
     }
   ]
 }
