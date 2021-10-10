@@ -33,6 +33,17 @@
     "fonction": "new Colour('hsla(128, 52%, 47%, 0.4)')",
     "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
   }, {
+    "fonction": "new Colour([0.2256, 0.7144, 0.29079])",
+    "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 1 }
+  }, {
+    "fonction": "new Colour([0.2256, 0.7144, 0.29079, 0.4])",
+    "fonctionphp": "new Colour(['r' => 0.2256, 'g' => 0.7144, 'b' => 0.29079, 'a' => 0.4])",
+    "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
+  }, {
+    "fonction": "new Colour({r: 0.2256, g: 0.7144, b: 0.29079, a: 0.4 })",
+    "fonctionphp": "new Couleur((object) array('r' => 0.2256, 'g' => 0.7144, 'b' => 0.29079, 'a' => 0.4))",
+    "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
+  }, {
     "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).hex",
     "resultatAttendu": "#3ab84a66"
   }, {

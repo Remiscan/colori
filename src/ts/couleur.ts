@@ -37,11 +37,11 @@ export default class Couleur {
    * @throws When the parameter is not of a supported type.
    */
   constructor(color: color) {
-    if (color instanceof Couleur) {
+    if (color instanceof Couleur || (typeof color === 'object' && 'r' in color && 'g' in color && 'b' in color)) {
       this.r = color.r;
       this.g = color.g;
       this.b = color.b;
-      this.a = color.a;
+      this.a = Number(Utils.toUnparsedAlpha(color.a));
     }
 
     else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {

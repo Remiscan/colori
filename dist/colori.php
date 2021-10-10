@@ -1221,17 +1221,26 @@
     public float $b;
     public float $a;
     
-    function __construct(self|array|string $color)
+    function __construct(self|\stdClass|array|string $color)
     {
-      if ($color instanceof self) {
+      if ($color instanceof self || (is_object($color) && property_exists($color, 'r') && property_exists($color, 'g') && property_exists($color, 'b'))) {
         $this->r = $color->r;
         $this->g = $color->g;
         $this->b = $color->b;
-        $this->a = $color->a;
+        $this->a = $color->a ?? 1;
       }
 
+      // If associative array with r, g, b keys
+      else if (is_array($color) && array_keys($color) !== range(0, count($color) - 1) && isset($color['r']) && isset($color['g']) && isset($color['b'])) {
+        $values = [$color['r'], $color['g'], $color['b']];
+        [$this->r, $this->g, $this->b] = self::toGamut('srgb', $values, 'srgb', method: 'naive');
+        $this->a = $color['a'] ?? 1;
+      }
+
+      // If sequential array with 3 or 4 values
       else if (is_array($color) && (count($color) === 3 || count($color) === 4)) {
-        [$this->r, $this->g, $this->b] = self::toGamut('srgb', array_slice($color, 0, 3), 'srgb', method: 'naive');
+        $values = array_slice($color, 0, 3);
+        [$this->r, $this->g, $this->b] = self::toGamut('srgb', $values, 'srgb', method: 'naive');
         $this->a = $color[3] ?? 1;
       }
 
@@ -1263,7 +1272,7 @@
         }
       }
 
-      else throw new \Exception(__CLASS__ . ' objects can only be created from a String ; this is not one: ' . json_encode($color));
+      else throw new \Exception(__CLASS__ . ' objects can only be created from a string, an array with r, g, b keys, or an object with r, g, b properties ; this is not one: ' . json_encode($color));
     }
 
 
