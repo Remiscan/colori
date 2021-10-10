@@ -65,43 +65,48 @@ export default class Graph {
     // Source of the math: https://en.wikipedia.org/wiki/Breadth-first_search  
     if (startID === endID) return [];
   
-    const start = this.getNode(startID);
-    const end = this.getNode(endID);
+    try {
+      const start = this.getNode(startID);
+      const end = this.getNode(endID);
 
-    const queue = [start];
-    start.visit();
+      const queue = [start];
+      start.visit();
+      
+      // Let's build a breadth-first tree until we find the destination.
+      let found = false;
+      walk: while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (current.id === end.id) {
+          found = true;
+          break walk;
+        }
     
-    // Let's build a breadth-first tree until we find the destination.
-    let found = false;
-    walk: while (queue.length > 0) {
-      const current = queue.shift()!;
-      if (current.id === end.id) {
-        found = true;
-        break walk;
-      }
-  
-      for (const neighbourID of current.links) {
-        const neighbour = this.getNode(neighbourID);
-        if (neighbour.visited === false) {
-          neighbour.visit();
-          neighbour.follow(current);
-          queue.push(neighbour);
+        for (const neighbourID of current.links) {
+          const neighbour = this.getNode(neighbourID);
+          if (neighbour.visited === false) {
+            neighbour.visit();
+            neighbour.follow(current);
+            queue.push(neighbour);
+          }
         }
       }
-    }
-  
-    if (!found) throw `No path found from ${JSON.stringify(start.id)} to ${JSON.stringify(end.id)}`;
-  
-    // Let's backtrack through the tree to find the path.
-    const path = [end];
-    let current = end;
-    while (current.predecessor != null) {
-      path.push(current.predecessor);
-      current = current.predecessor;
-    }
+    
+      if (!found) throw `No path found from ${JSON.stringify(start.id)} to ${JSON.stringify(end.id)}`;
+    
+      // Let's backtrack through the tree to find the path.
+      const path = [end];
+      let current = end;
+      while (current.predecessor != null) {
+        path.push(current.predecessor);
+        current = current.predecessor;
+      }
 
-    this.cleanUp();
-    return path.reverse();
+      this.cleanUp();
+      return path.reverse();
+    } catch (error) {
+      this.cleanUp();
+      throw error;
+    }
   }
 
   /**
@@ -125,14 +130,19 @@ export default class Graph {
       node.visit(true);
 
       orderedList.push(node);
-    }
+    };
 
-    while (unvisitedNodes.length > 0) {
-      const current = unvisitedNodes.shift()!;
-      visit(current);
-    }
+    try {
+      while (unvisitedNodes.length > 0) {
+        const current = unvisitedNodes.shift()!;
+        visit(current);
+      }
 
-    this.cleanUp();
-    return orderedList.reverse();
+      this.cleanUp();
+      return orderedList.reverse();
+    } catch (error) {
+      this.cleanUp();
+      throw error;
+    }
   }
 }

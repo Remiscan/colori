@@ -429,39 +429,44 @@ class Graph1 {
     }
     shortestPath(startID, endID) {
         if (startID === endID) return [];
-        const start = this.getNode(startID);
-        const end = this.getNode(endID);
-        const queue = [
-            start
-        ];
-        start.visit();
-        let found = false;
-        walk: while(queue.length > 0){
-            const current = queue.shift();
-            if (current.id === end.id) {
-                found = true;
-                break walk;
-            }
-            for (const neighbourID of current.links){
-                const neighbour = this.getNode(neighbourID);
-                if (neighbour.visited === false) {
-                    neighbour.visit();
-                    neighbour.follow(current);
-                    queue.push(neighbour);
+        try {
+            const start = this.getNode(startID);
+            const end = this.getNode(endID);
+            const queue = [
+                start
+            ];
+            start.visit();
+            let found = false;
+            walk: while(queue.length > 0){
+                const current = queue.shift();
+                if (current.id === end.id) {
+                    found = true;
+                    break walk;
+                }
+                for (const neighbourID of current.links){
+                    const neighbour = this.getNode(neighbourID);
+                    if (neighbour.visited === false) {
+                        neighbour.visit();
+                        neighbour.follow(current);
+                        queue.push(neighbour);
+                    }
                 }
             }
+            if (!found) throw `No path found from ${JSON.stringify(start.id)} to ${JSON.stringify(end.id)}`;
+            const path = [
+                end
+            ];
+            let current = end;
+            while(current.predecessor != null){
+                path.push(current.predecessor);
+                current = current.predecessor;
+            }
+            this.cleanUp();
+            return path.reverse();
+        } catch (error) {
+            this.cleanUp();
+            throw error;
         }
-        if (!found) throw `No path found from ${JSON.stringify(start.id)} to ${JSON.stringify(end.id)}`;
-        const path = [
-            end
-        ];
-        let current = end;
-        while(current.predecessor != null){
-            path.push(current.predecessor);
-            current = current.predecessor;
-        }
-        this.cleanUp();
-        return path.reverse();
     }
     topologicalOrder() {
         const orderedList = [];
@@ -479,12 +484,17 @@ class Graph1 {
             node.visit(true);
             orderedList.push(node);
         };
-        while(unvisitedNodes.length > 0){
-            const current = unvisitedNodes.shift();
-            visit(current);
+        try {
+            while(unvisitedNodes.length > 0){
+                const current = unvisitedNodes.shift();
+                visit(current);
+            }
+            this.cleanUp();
+            return orderedList.reverse();
+        } catch (error) {
+            this.cleanUp();
+            throw error;
         }
-        this.cleanUp();
-        return orderedList.reverse();
     }
 }
 function luminance(rgb) {

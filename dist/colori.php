@@ -642,43 +642,48 @@
     public function shortestPath(string $startID, string $endID): array {
       if ($startID === $endID) return $this->shortestPath = [];
 
-      $start = $this->getNode($startID);
-      $end = $this->getNode($endID);
+      try {
+        $start = $this->getNode($startID);
+        $end = $this->getNode($endID);
 
-      $queue = [$start];
-      $start->visit();
+        $queue = [$start];
+        $start->visit();
 
-      // Let's build a breadth-first tree until we find the destination.
-      $found = false;
-      while (count($queue) > 0) {
-        $current = array_shift($queue);
-        if ($current->id() === $end->id()) {
-          $found = true;
-          break;
-        }
+        // Let's build a breadth-first tree until we find the destination.
+        $found = false;
+        while (count($queue) > 0) {
+          $current = array_shift($queue);
+          if ($current->id() === $end->id()) {
+            $found = true;
+            break;
+          }
 
-        foreach ($current->links() as $neighbourID) {
-          $neighbour = $this->getNode($neighbourID);
-          if ($neighbour->visited() === false) {
-            $neighbour->visit();
-            $neighbour->follow($current);
-            $queue[] = $neighbour;
+          foreach ($current->links() as $neighbourID) {
+            $neighbour = $this->getNode($neighbourID);
+            if ($neighbour->visited() === false) {
+              $neighbour->visit();
+              $neighbour->follow($current);
+              $queue[] = $neighbour;
+            }
           }
         }
+
+        if (!$found) throw new \Exception("No path found from ". json_encode($startID) ." to ". json_encode($endID));
+
+        // Let's backtrack through the tree to find the path.
+        $path = [$end];
+        $current = $end;
+        while ($current->predecessor() != null) {
+          $path[] = $current->predecessor();
+          $current = $current->predecessor();
+        }
+
+        $this->cleanUp();
+        return array_reverse($path);
+      } catch (\Exception $error) {
+        $this->cleanUp();
+        throw $error;
       }
-
-      if (!$found) throw new Exception("No path found from ". json_encode($startID) ." to ". json_encode($endID));
-
-      // Let's backtrack through the tree to find the path.
-      $path = [$end];
-      $current = $end;
-      while ($current->predecessor() != null) {
-        $path[] = $current->predecessor();
-        $current = $current->predecessor();
-      }
-
-      $this->cleanUp();
-      return array_reverse($path);
     }
 
     public function topologicalOrder(): array {
@@ -697,13 +702,18 @@
         $orderedList[] = $node;
       };
 
-      while (count($unvisitedNodes) > 0) {
-        $current = array_shift($unvisitedNodes);
-        $visit($current);
-      }
+      try {
+        while (count($unvisitedNodes) > 0) {
+          $current = array_shift($unvisitedNodes);
+          $visit($current);
+        }
 
-      $this->cleanUp();
-      return array_reverse($orderedList);
+        $this->cleanUp();
+        return array_reverse($orderedList);
+      } catch (\Exception $error) {
+        $this->cleanUp();
+        throw $error;
+      }
     }
   }
 
