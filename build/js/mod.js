@@ -1,5 +1,5 @@
-import { rollup } from 'https://deno.land/x/drollup@2.52.7+0.19.1/mod.ts';
-import { terser } from 'https://deno.land/x/drollup@2.52.7+0.19.1/plugins/terser/mod.ts';
+import { rollup } from 'https://deno.land/x/drollup@2.58.0+0.20.0/mod.ts';
+import { terser } from 'https://deno.land/x/drollup@2.58.0+0.20.0/plugins/terser/mod.ts';
 import * as path from 'https://deno.land/std@0.105.0/path/mod.ts';
 
 
