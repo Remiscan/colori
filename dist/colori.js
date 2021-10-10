@@ -1818,7 +1818,7 @@ class Couleur {
             this.r = color.r;
             this.g = color.g;
             this.b = color.b;
-            this.a = Number(toUnparsedAlpha(color.a));
+            this.a = typeof color.a === 'number' ? color.a : 1;
         } else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {
             [this.r, this.g, this.b] = Couleur.toGamut('srgb', color.slice(0, 3), 'srgb', {
                 method: 'naive'

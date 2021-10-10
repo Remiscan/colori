@@ -12,7 +12,8 @@ import { RegExps as ValueRegExps, Formats, Format as CSSFormat } from './css-for
 
 type colorString = string;
 type colorArray = number[];
-type color = Couleur | colorArray | colorString;
+type colorObject = { r: number, g: number, b: number, a?: number };
+type color = Couleur | colorObject | colorArray | colorString;
 type colorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
 type colorSpaceOrID = ColorSpace | string;
 
@@ -41,7 +42,7 @@ export default class Couleur {
       this.r = color.r;
       this.g = color.g;
       this.b = color.b;
-      this.a = Number(Utils.toUnparsedAlpha(color.a));
+      this.a = typeof color.a === 'number' ? color.a : 1;
     }
 
     else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {
