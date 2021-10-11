@@ -31,14 +31,11 @@ export async function bundle() {
     importMapPath: `${importMapUrl}/`
   });
 
-  let nonMinifiedCode;
   for (const [fileName, text] of Object.entries(files)) {
-    console.log(`emitted ${fileName} with a length of ${text.length}`);
-    console.log(text.length);
     switch (fileName) {
       case 'deno:///bundle.js': {
         await Deno.writeTextFile('./dist/colori.js', text);
-        nonMinifiedCode = text;
+        console.log('colori.js built');
       } break;
     }
   }
@@ -58,5 +55,6 @@ export async function bundle() {
   const bundle = await rollup(options);
   await bundle.write(options.output);
   await bundle.close();
+  console.log('colori.min.js built');
   
 }
