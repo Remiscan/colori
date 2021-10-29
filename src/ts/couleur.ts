@@ -1142,28 +1142,31 @@ export default class Couleur {
 
 
   /**
-   * Modifies the CIE lightness of a color to give it better contrast with a background color.
-   * @param backgroundColor The color with which contrast will be measured and improved.
-   * @param desiredContrast The contrast value to reach.
+   * Modifies the CIE lightness of a color to give it better contrast with another color.
+   * @param otherColor The color with which contrast will be measured and improved.
+   * @param desiredContrast The absolute value of the contrast to reach.
    * @param options
+   * @param options.as Whether the color this function is applied to is used as 'text' or 'background' color.
    * @param options.lower Whether contrast should be lowered if it's already bigger than desiredContrast.
-   *                                   If true, and contrast is higher from the start, it will be lowered until it reaches desiredContrast.
-   *                                   If false, and contrast is higher from the start, nothing will be done.
-   * @param options.colorScheme Whether the color should be darker than the background color (colorScheme = 'light')
-   *                                        or lighter than the background color (colorScheme = 'dark').
-   *                                        If null, the starting color scheme will be preserved (i.e. if the color starts darker
-   *                                        than the background color, it will stay darker.)
+*                         If true, and contrast is higher from the start, it will be lowered until it reaches desiredContrast.
+*                         If false, and contrast is higher from the start, nothing will be done.
+   * @param options.colorScheme Whether the text color should be darker than the background color (colorScheme = 'light')
+   *                            or lighter than the background color (colorScheme = 'dark').
+   *                            If null, the starting color scheme will be preserved (i.e. if the text color starts darker
+   *                            than the background color, it will stay darker.)
    * @param options.method The method to use to compute the contrast.
-   * @returns The modified color which verifies Couleur.contrast(color, referenceColor) === desiredContrast.
+   * @returns The modified color which verifies Couleur.contrast(color, otherColor) >= desiredContrast.
    */
-  public improveContrast(backgroundColor: color, desiredContrast: number, { lower = false, colorScheme = null, method = 'APCA' }: { lower?: boolean, colorScheme?: string | null, method?: string } = {}): Couleur {
-    const background = Couleur.makeInstance(backgroundColor);
+  public improveContrast(otherColor: color, desiredContrast: number, { as = 'text', lower = false, colorScheme = null, method = 'APCA' }: { as?: 'text' | 'background', lower?: boolean, colorScheme?: 'light' | 'dark' | null, method?: string } = {}): Couleur {
+    const background = as === 'text' ? Couleur.makeInstance(otherColor) : this;
+    const text =       as === 'text' ? this : Couleur.makeInstance(otherColor);
     const backgroundLab = background.valuesTo('oklab');
-    const movingLab = this.valuesTo('oklab');
+    const textLab = text.valuesTo('oklab');
+    const movingLab = as === 'text' ? textLab : backgroundLab;
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    let startContrast = Couleur.contrast(this, background, { method });
+    const startContrast = Math.abs(Couleur.contrast(text, background, { method }));
     let directionContrast;
     if (startContrast > desiredContrast)      directionContrast = -1;
     else if (startContrast < desiredContrast) directionContrast = 1;
@@ -1172,15 +1175,21 @@ export default class Couleur {
     if ((directionContrast < 0 && lower === false) || (directionContrast === 0)) return this;
 
     // Let's detect the color scheme if it isn't given.
-    const _colorScheme = colorScheme || ((backgroundLab[0] < movingLab[0]) ? 'dark' : 'light');
+    const _colorScheme = colorScheme || ((backgroundLab[0] < textLab[0]) ? 'dark' : 'light');
 
     // Let's measure the contrast of the background with black and white to know if
     // desiredContrast can be reached by lowering or raising the color's CIE lightness.
-    const cBlack = Couleur.contrast(background, 'black', { method });
-    const cWhite = Couleur.contrast(background, 'white', { method });
+    const cBlack = Math.abs(
+      as === 'text' ? Math.abs(Couleur.contrast(background, 'black', { method }))
+                    : Math.abs(Couleur.contrast('black', text, { method }))
+    );
+    const cWhite = Math.abs(
+      as === 'text' ? Math.abs(Couleur.contrast(background, 'white', { method }))
+                    : Math.abs(Couleur.contrast('white', text, { method }))
+    );
     const isPossible = {
-      lowering: (directionContrast > 0) ? Math.abs(cBlack) >= desiredContrast : Math.abs(cBlack) <= desiredContrast,
-      raising: (directionContrast > 0) ? Math.abs(cWhite) >= desiredContrast : Math.abs(cWhite) <= desiredContrast
+      lowering: (directionContrast > 0) ? cBlack >= desiredContrast : cBlack <= desiredContrast,
+      raising: (directionContrast > 0) ? cWhite >= desiredContrast : cWhite <= desiredContrast
     };
 
     // Let's decide which direction to move the lightness in.
@@ -1189,19 +1198,28 @@ export default class Couleur {
     else if (isPossible.raising && !isPossible.lowering) directionOKL = 1;
     // If desiredContrast can not be reached, return white or black — the one that fits the color scheme.
     else if (!isPossible.raising && !isPossible.lowering) {
-      if (_colorScheme === 'light') return new Couleur('black');
-      else                          return new Couleur('white');
+      if (as === 'text') {
+        if (_colorScheme === 'light') return new Couleur('black');
+        else                          return new Couleur('white');
+      } else {
+        if (_colorScheme === 'light') return new Couleur('white');
+        else                          return new Couleur('black');
+      }
     }
     // If desiredContrast can be reached in both directions
     else {
-      // If the background is light and we need to raise the contrast, lower the lightness.
+      // If we're changing the text color:
+      // If the background is lighter and we need to raise the contrast, lower the lightness.
       if (_colorScheme === 'light' && directionContrast > 0)      directionOKL = -1;
-      // If the background is light and we need to lower the contrast, raise the lightness.
+      // If the background is lighter and we need to lower the contrast, raise the lightness.
       else if (_colorScheme === 'light' && directionContrast < 0) directionOKL = 1;
-      // If the background is dark and we need to raise the contrast, raise the lightness.
+      // If the background is darker and we need to raise the contrast, raise the lightness.
       else if (_colorScheme === 'dark' && directionContrast > 0)  directionOKL = 1;
-      // If the background is dark and we need to lower the contrast, lower the lightness.
+      // If the background is darker and we need to lower the contrast, lower the lightness.
       else                                                        directionOKL = -1;
+
+      // Else if we're changing the background color:
+      if (as === 'background') directionOKL = -directionOKL;
     }
 
     const τ = .0001;
@@ -1212,10 +1230,13 @@ export default class Couleur {
       // Let's try to raise contrast by increasing or reducing CIE lightness.
       const ciel = (OKLmin + OKLmax) / 2;
       const newValues = movingLab; newValues[0] = ciel;
-      const newContrast = Couleur.contrast(Couleur.convert('oklab', 'srgb', newValues), background, { method });
+      const newContrast = Math.abs(
+        as === 'text' ? Couleur.contrast(Couleur.convert('oklab', 'srgb', newValues), background, { method })
+                      : Couleur.contrast(text, Couleur.convert('oklab', 'srgb', newValues), { method })
+      );
 
       // If the new contrast hasn't gone over its desired value
-      const condition = (directionContrast > 0) ? (Math.abs(newContrast) < desiredContrast) : (Math.abs(newContrast) > desiredContrast);
+      const condition = (directionContrast > 0) ? (newContrast < desiredContrast) : (newContrast > desiredContrast);
       if (condition) {
         if (directionOKL > 0) OKLmin = ciel;
         else                  OKLmax = ciel;
@@ -1231,9 +1252,18 @@ export default class Couleur {
 
     let result = new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
     // If the color we find has its contrast slightly below the desired value, push it further.
-    if (Math.abs(Couleur.contrast(result, background, { method })) < desiredContrast) {
-      if (directionOKL > 0) movingLab[0] = OKLmax;
-      else                  movingLab[0] = OKLmin;
+    const lastContrast = Math.abs(
+      as === 'text' ? Couleur.contrast(result, background, { method })
+                    : Couleur.contrast(text, result, { method })
+    );
+    if (lastContrast < desiredContrast) {
+      if (as === 'text') {
+        if (_colorScheme === 'light') movingLab[0] = OKLmin;
+        else                          movingLab[0] = OKLmax;
+      } else {
+        if (_colorScheme === 'light') movingLab[0] = OKLmax;
+        else                          movingLab[0] = OKLmin;
+      }
     }
 
     // We're done!

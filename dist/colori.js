@@ -14,14 +14,12 @@ function pRound(number, precision = 5) {
 function toUnparsedAlpha(val, def = '1') {
     return !!val ? String(val) : val === 0 ? '0' : def;
 }
-const mod = function() {
-    return {
-        pad: pad,
-        angleToRange: angleToRange,
-        pRound: pRound,
-        toUnparsedAlpha: toUnparsedAlpha
-    };
-}();
+const mod = {
+    pad: pad,
+    angleToRange: angleToRange,
+    pRound: pRound,
+    toUnparsedAlpha: toUnparsedAlpha
+};
 function srgb_to_lin_srgb(rgb) {
     return rgb.map((x)=>Math.abs(x) < 0.04045 ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4)
     );
@@ -199,12 +197,10 @@ function d65xyz_to_lin_a98rgb(xyz) {
     ];
 }
 function rec2020_to_lin_rec2020(rgb) {
-    const e = 1.09929682680944;
     return rgb.map((v)=>Math.abs(v) < 0.018053968510807 * 4.5 ? v / 4.5 : (Math.sign(v) || 1) * Math.pow(Math.abs(v) + 1.09929682680944 - 1, 1 / 0.45)
     );
 }
 function lin_rec2020_to_rec2020(rgb) {
-    const e = 1.09929682680944;
     return rgb.map((v)=>Math.abs(v) > 0.018053968510807 ? (Math.sign(v) || 1) * (1.09929682680944 * Math.pow(Math.abs(v), 0.45) - (1.09929682680944 - 1)) : 4.5 * v
     );
 }
@@ -349,44 +345,42 @@ function xyz_to_d65xyz(xyz) {
         0.012314001688319899 * x + -0.020507696433477912 * y + 1.3303659366080753 * z
     ];
 }
-const mod1 = function() {
-    return {
-        srgb_to_lin_srgb: srgb_to_lin_srgb,
-        lin_srgb_to_srgb: lin_srgb_to_srgb,
-        lin_srgb_to_d65xyz: lin_srgb_to_d65xyz,
-        d65xyz_to_lin_srgb: d65xyz_to_lin_srgb,
-        srgb_to_hsl: srgb_to_hsl,
-        hsl_to_srgb: hsl_to_srgb,
-        hsl_to_hwb: hsl_to_hwb,
-        hwb_to_hsl: hwb_to_hsl,
-        displayp3_to_lin_displayp3: displayp3_to_lin_displayp3,
-        lin_displayp3_to_displayp3: lin_displayp3_to_displayp3,
-        lin_displayp3_to_d65xyz: lin_displayp3_to_d65xyz,
-        d65xyz_to_lin_displayp3: d65xyz_to_lin_displayp3,
-        prophotorgb_to_lin_prophotorgb: prophotorgb_to_lin_prophotorgb,
-        lin_prophotorgb_to_prophotorgb: lin_prophotorgb_to_prophotorgb,
-        lin_prophotorgb_to_xyz: lin_prophotorgb_to_xyz,
-        xyz_to_lin_prophotorgb: xyz_to_lin_prophotorgb,
-        a98rgb_to_lin_a98rgb: a98rgb_to_lin_a98rgb,
-        lin_a98rgb_to_a98rgb: lin_a98rgb_to_a98rgb,
-        lin_a98rgb_to_d65xyz: lin_a98rgb_to_d65xyz,
-        d65xyz_to_lin_a98rgb: d65xyz_to_lin_a98rgb,
-        rec2020_to_lin_rec2020: rec2020_to_lin_rec2020,
-        lin_rec2020_to_rec2020: lin_rec2020_to_rec2020,
-        lin_rec2020_to_d65xyz: lin_rec2020_to_d65xyz,
-        d65xyz_to_lin_rec2020: d65xyz_to_lin_rec2020,
-        xyz_to_lab: xyz_to_lab,
-        lab_to_xyz: lab_to_xyz,
-        lab_to_lch: lab_to_lch,
-        lch_to_lab: lch_to_lab,
-        lin_srgb_to_oklab: lin_srgb_to_oklab,
-        oklab_to_lin_srgb: oklab_to_lin_srgb,
-        oklab_to_oklch: oklab_to_oklch,
-        oklch_to_oklab: oklch_to_oklab,
-        d65xyz_to_xyz: d65xyz_to_xyz,
-        xyz_to_d65xyz: xyz_to_d65xyz
-    };
-}();
+const mod1 = {
+    srgb_to_lin_srgb: srgb_to_lin_srgb,
+    lin_srgb_to_srgb: lin_srgb_to_srgb,
+    lin_srgb_to_d65xyz: lin_srgb_to_d65xyz,
+    d65xyz_to_lin_srgb: d65xyz_to_lin_srgb,
+    srgb_to_hsl: srgb_to_hsl,
+    hsl_to_srgb: hsl_to_srgb,
+    hsl_to_hwb: hsl_to_hwb,
+    hwb_to_hsl: hwb_to_hsl,
+    displayp3_to_lin_displayp3: displayp3_to_lin_displayp3,
+    lin_displayp3_to_displayp3: lin_displayp3_to_displayp3,
+    lin_displayp3_to_d65xyz: lin_displayp3_to_d65xyz,
+    d65xyz_to_lin_displayp3: d65xyz_to_lin_displayp3,
+    prophotorgb_to_lin_prophotorgb: prophotorgb_to_lin_prophotorgb,
+    lin_prophotorgb_to_prophotorgb: lin_prophotorgb_to_prophotorgb,
+    lin_prophotorgb_to_xyz: lin_prophotorgb_to_xyz,
+    xyz_to_lin_prophotorgb: xyz_to_lin_prophotorgb,
+    a98rgb_to_lin_a98rgb: a98rgb_to_lin_a98rgb,
+    lin_a98rgb_to_a98rgb: lin_a98rgb_to_a98rgb,
+    lin_a98rgb_to_d65xyz: lin_a98rgb_to_d65xyz,
+    d65xyz_to_lin_a98rgb: d65xyz_to_lin_a98rgb,
+    rec2020_to_lin_rec2020: rec2020_to_lin_rec2020,
+    lin_rec2020_to_rec2020: lin_rec2020_to_rec2020,
+    lin_rec2020_to_d65xyz: lin_rec2020_to_d65xyz,
+    d65xyz_to_lin_rec2020: d65xyz_to_lin_rec2020,
+    xyz_to_lab: xyz_to_lab,
+    lab_to_xyz: lab_to_xyz,
+    lab_to_lch: lab_to_lch,
+    lch_to_lab: lch_to_lab,
+    lin_srgb_to_oklab: lin_srgb_to_oklab,
+    oklab_to_lin_srgb: oklab_to_lin_srgb,
+    oklab_to_oklch: oklab_to_oklch,
+    oklch_to_oklab: oklch_to_oklab,
+    d65xyz_to_xyz: d65xyz_to_xyz,
+    xyz_to_d65xyz: xyz_to_d65xyz
+};
 class GraphNode {
     id;
     links;
@@ -512,7 +506,6 @@ function APCA(rgbText, rgbBack) {
         0.7151522,
         0.072175
     ];
-    const gamma = 2.4;
     const luminance = (rgb)=>rgb.reduce((sum, v, i)=>sum + Math.pow(v, 2.4) * coeffs[i]
         , 0)
     ;
@@ -528,31 +521,25 @@ function APCA(rgbText, rgbBack) {
         Lback
     ].map((L)=>L > blackClampTrigger ? L : L + Math.pow(blackClampTrigger - L, blackClampPow)
     );
-    const δLmin = 0.0005;
     if (Math.abs(Ltext - Lback) < 0.0005) return 0;
     let result;
-    const scale = 1.25;
     const compute = (Lback, Ltext, powBack, powText)=>(Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * 1.25
     ;
     const lowClip = 0.001, lowTrigger = 0.078, lowOffset = 0.06, invLowTrigger = 12.82051282051282;
     if (Lback > Ltext) {
-        const powBack = 0.55, powText = 0.58;
         const SAPC = compute(Lback, Ltext, 0.55, 0.58);
         result = SAPC < lowClip ? 0 : SAPC < lowTrigger ? SAPC * (1 - lowOffset * invLowTrigger) : SAPC - lowOffset;
     } else {
-        const powBack = 0.62, powText = 0.57;
         const SAPC = compute(Lback, Ltext, 0.62, 0.57);
         result = SAPC > -lowClip ? 0 : SAPC > -lowTrigger ? SAPC * (1 - lowOffset * invLowTrigger) : SAPC + lowOffset;
     }
     return result * 100;
 }
-const mod2 = function() {
-    return {
-        luminance: luminance,
-        WCAG2: WCAG2,
-        APCA: APCA
-    };
-}();
+const mod2 = {
+    luminance: luminance,
+    WCAG2: WCAG2,
+    APCA: APCA
+};
 function euclidean(vals1, vals2) {
     return vals1.reduce((sum, v, k)=>sum + (v - vals2[k]) ** 2
     , 0);
@@ -575,12 +562,10 @@ function CIEDE2000([l1, a1, b1], [l2, a2, b2]) {
     const T = 1 - 0.17 * Math.cos(Math.PI / 180 * (mhh - 30)) + 0.24 * Math.cos(Math.PI / 180 * (2 * mhh)) + 0.32 * Math.cos(Math.PI / 180 * (3 * mhh + 6)) - 0.2 * Math.cos(Math.PI / 180 * (4 * mhh - 63)), dTH = 30 * Math.exp(-1 * ((mhh - 275) / 25) ** 2), RC = 2 * Math.sqrt(mCC ** 7 / (mCC ** 7 + 25 ** 7)), SL = 1 + 0.015 * (mL - 50) ** 2 / Math.sqrt(20 + (mL - 50) ** 2), SC = 1 + 0.045 * mCC, SH = 1 + 0.015 * mCC * T, RT = -1 * Math.sin(Math.PI / 180 * (2 * dTH)) * RC;
     return Math.sqrt((dL / SL) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2 + RT * (dC / SC) * (dH / SH));
 }
-const mod3 = function() {
-    return {
-        euclidean: euclidean,
-        CIEDE2000: CIEDE2000
-    };
-}();
+const mod3 = {
+    euclidean: euclidean,
+    CIEDE2000: CIEDE2000
+};
 function maxSaturation(a, b) {
     let k0, k1, k2, k3, k4, wl, wm, ws;
     if (-1.88170328 * a - 0.80936493 * b > 1) {
@@ -704,8 +689,6 @@ function clip(rgb) {
         oka,
         okb
     ]);
-    const τ = 0.00001;
-    const α = 0.05;
     const C = Math.max(0.00001, okc);
     const a = oka / C, b = okb / C;
     const Ld = okl - 0.5;
@@ -721,14 +704,12 @@ function clip(rgb) {
     ]));
     return clampedValues;
 }
-const mod4 = function() {
-    return {
-        maxSaturation: maxSaturation,
-        cusp: cusp,
-        gamutIntersection: gamutIntersection,
-        clip: clip
-    };
-}();
+const mod4 = {
+    maxSaturation: maxSaturation,
+    cusp: cusp,
+    gamutIntersection: gamutIntersection,
+    clip: clip
+};
 const colorSpaces = [
     {
         id: 'srgb',
@@ -1812,12 +1793,10 @@ const Formats = [
         ]
     }
 ];
-const mod5 = function() {
-    return {
-        RegExps: RegExps,
-        Formats: Formats
-    };
-}();
+const mod5 = {
+    RegExps: RegExps,
+    Formats: Formats
+};
 class Couleur {
     r = 0;
     g = 0;
@@ -2588,7 +2567,6 @@ class Couleur {
                 {
                     clampSpace = Couleur.getSpace('lch');
                     let lch = Couleur.convert(valueSpace, clampSpace, values);
-                    const τ = 0.01;
                     let Cmin = 0;
                     let Cmax = lch[1];
                     lch[1] = lch[1] / 2;
@@ -2865,53 +2843,66 @@ class Couleur {
             return Cblack >= Cwhite ? 'light' : 'dark';
         }
     }
-    improveContrast(backgroundColor, desiredContrast, { lower =false , colorScheme =null , method ='APCA'  } = {
+    improveContrast(otherColor, desiredContrast, { as ='text' , lower =false , colorScheme =null , method ='APCA'  } = {
     }) {
-        const background = Couleur.makeInstance(backgroundColor);
+        const background = as === 'text' ? Couleur.makeInstance(otherColor) : this;
+        const text = as === 'text' ? this : Couleur.makeInstance(otherColor);
         const backgroundLab = background.valuesTo('oklab');
-        const movingLab = this.valuesTo('oklab');
-        let startContrast = Couleur.contrast(this, background, {
+        const textLab = text.valuesTo('oklab');
+        const movingLab = as === 'text' ? textLab : backgroundLab;
+        const startContrast = Math.abs(Couleur.contrast(text, background, {
             method
-        });
+        }));
         let directionContrast;
         if (startContrast > desiredContrast) directionContrast = -1;
         else if (startContrast < desiredContrast) directionContrast = 1;
         else directionContrast = 0;
         if (directionContrast < 0 && lower === false || directionContrast === 0) return this;
-        const _colorScheme = colorScheme || (backgroundLab[0] < movingLab[0] ? 'dark' : 'light');
-        const cBlack = Couleur.contrast(background, 'black', {
+        const _colorScheme = colorScheme || (backgroundLab[0] < textLab[0] ? 'dark' : 'light');
+        const cBlack = Math.abs(as === 'text' ? Math.abs(Couleur.contrast(background, 'black', {
             method
-        });
-        const cWhite = Couleur.contrast(background, 'white', {
+        })) : Math.abs(Couleur.contrast('black', text, {
             method
-        });
+        })));
+        const cWhite = Math.abs(as === 'text' ? Math.abs(Couleur.contrast(background, 'white', {
+            method
+        })) : Math.abs(Couleur.contrast('white', text, {
+            method
+        })));
         const isPossible = {
-            lowering: directionContrast > 0 ? Math.abs(cBlack) >= desiredContrast : Math.abs(cBlack) <= desiredContrast,
-            raising: directionContrast > 0 ? Math.abs(cWhite) >= desiredContrast : Math.abs(cWhite) <= desiredContrast
+            lowering: directionContrast > 0 ? cBlack >= desiredContrast : cBlack <= desiredContrast,
+            raising: directionContrast > 0 ? cWhite >= desiredContrast : cWhite <= desiredContrast
         };
         let directionOKL;
         if (isPossible.lowering && !isPossible.raising) directionOKL = -1;
         else if (isPossible.raising && !isPossible.lowering) directionOKL = 1;
         else if (!isPossible.raising && !isPossible.lowering) {
-            if (_colorScheme === 'light') return new Couleur('black');
-            else return new Couleur('white');
+            if (as === 'text') {
+                if (_colorScheme === 'light') return new Couleur('black');
+                else return new Couleur('white');
+            } else {
+                if (_colorScheme === 'light') return new Couleur('white');
+                else return new Couleur('black');
+            }
         } else {
             if (_colorScheme === 'light' && directionContrast > 0) directionOKL = -1;
             else if (_colorScheme === 'light' && directionContrast < 0) directionOKL = 1;
             else if (_colorScheme === 'dark' && directionContrast > 0) directionOKL = 1;
             else directionOKL = -1;
+            if (as === 'background') directionOKL = -directionOKL;
         }
-        const τ = 0.0001;
         let OKLmin = directionOKL > 0 ? movingLab[0] : 0;
         let OKLmax = directionOKL > 0 ? 1 : movingLab[0];
         while(OKLmax - OKLmin > 0.0001){
             const ciel = (OKLmin + OKLmax) / 2;
             const newValues = movingLab;
             newValues[0] = ciel;
-            const newContrast = Couleur.contrast(Couleur.convert('oklab', 'srgb', newValues), background, {
+            const newContrast = Math.abs(as === 'text' ? Couleur.contrast(Couleur.convert('oklab', 'srgb', newValues), background, {
                 method
-            });
-            const condition = directionContrast > 0 ? Math.abs(newContrast) < desiredContrast : Math.abs(newContrast) > desiredContrast;
+            }) : Couleur.contrast(text, Couleur.convert('oklab', 'srgb', newValues), {
+                method
+            }));
+            const condition = directionContrast > 0 ? newContrast < desiredContrast : newContrast > desiredContrast;
             if (condition) {
                 if (directionOKL > 0) OKLmin = ciel;
                 else OKLmax = ciel;
@@ -2922,11 +2913,19 @@ class Couleur {
             movingLab[0] = ciel;
         }
         let result = new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
-        if (Math.abs(Couleur.contrast(result, background, {
+        const lastContrast = Math.abs(as === 'text' ? Couleur.contrast(result, background, {
             method
-        })) < desiredContrast) {
-            if (directionOKL > 0) movingLab[0] = OKLmax;
-            else movingLab[0] = OKLmin;
+        }) : Couleur.contrast(text, result, {
+            method
+        }));
+        if (lastContrast < desiredContrast) {
+            if (as === 'text') {
+                if (_colorScheme === 'light') movingLab[0] = OKLmin;
+                else movingLab[0] = OKLmax;
+            } else {
+                if (_colorScheme === 'light') movingLab[0] = OKLmax;
+                else movingLab[0] = OKLmin;
+            }
         }
         return new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
     }
@@ -3153,14 +3152,14 @@ class Palette1 {
     constructor(hue, generator = ()=>[]
     , { clampSpace ='srgb'  } = {
     }){
-        const colors1 = generator(hue);
-        for (const color1 of colors1){
+        const colors = generator(hue);
+        for (const color of colors){
             const nuances = [];
-            for (const lightness of color1.lightnesses){
+            for (const lightness of color.lightnesses){
                 let rgb = Couleur.convert('oklch', 'srgb', [
                     lightness,
-                    color1.chroma,
-                    color1.hue
+                    color.chroma,
+                    color.hue
                 ]);
                 if (clampSpace != null) rgb = Couleur.toGamut(clampSpace, rgb);
                 const newColor = new Couleur(`color(srgb ${rgb.join(' ')})`);

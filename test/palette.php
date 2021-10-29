@@ -119,7 +119,36 @@ require_once '../dist/colori.php';
 
 
 
-  const classes = [ 'MonetPalette', 'WhateverPalette' ];
+  // Contrasted palet
+
+  const contrastedGenerator = function(hue) {
+    const grey = new Couleur('color(oklab .5 0 0)');
+    const light = [];
+    const dark = [];
+    const contrasts = [65, 75, 85, 95, 100, 105, 110];
+    for (const i of contrasts) {
+      light.push(grey.improveContrast('black', i, { lower: true, as: 'background' }));
+      dark.push(grey.improveContrast('white', i, { lower: true, as: 'background' }));
+    }
+    const lightnesses = [...light.reverse(), ...dark].map(c => c.okl);
+
+    const chromas = [0, 0.022, 0.043, 0.13];
+    return chromas.map((c, k) => {
+      return {
+        lightnesses,
+        chroma: c,
+        hue
+      };
+    });
+  };
+
+  class ContrastedPalette extends Palette {
+    constructor(hue) { super(hue, contrastedGenerator); }
+  }
+
+
+
+  const classes = [ 'MonetPalette', 'ContrastedPalette' ];
 
   function makePalet(className, h) {
     const hue = parseFloat(h);
@@ -142,7 +171,17 @@ require_once '../dist/colori.php';
         for (const color of nuances) {
           const textColor = color.bestColorScheme() === 'dark' ? 'white' : 'black';
           const contrast = Couleur.contrast(textColor, color, { method: 'apca' });
-          html += `<div style="--color: ${color.hsl}; color: ${textColor}" data-values="${color.values.join(' ; ')}" data-rgb="${color.rgb}" data-oklch="${color.valuesTo('oklch').join(' ; ')}">${Math.round(100 * contrast) / 100}</div>`;
+          const otherColor = textColor === 'white' ? 'black' : 'white';
+          const otherContrast = Couleur.contrast(otherColor, color, { method: 'apca' });
+          const cBlack = Couleur.contrast('black', color, { method: 'apca' });
+          const cWhite = Couleur.contrast('white', color, { method: 'apca' });
+          html += `<div style="--color: ${color.hsl}; color: ${textColor}; display: grid; place-items: center;"
+                        data-values="${color.values.join(' ; ')}"
+                        data-rgb="${color.rgb}"
+                        data-oklch="${color.valuesTo('oklch').join(' ; ')}">
+            <span style="color: ${textColor}">${Math.round(100 * contrast) / 100}</span>
+            <span style="color: ${otherColor}; font-size: .8em">${Math.round(100 * otherContrast) / 100}</span>
+          </div>`;
         }
         html += `</div>`;
         container.innerHTML += html;
