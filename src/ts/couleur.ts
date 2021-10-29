@@ -1180,12 +1180,12 @@ export default class Couleur {
     // Let's measure the contrast of the background with black and white to know if
     // desiredContrast can be reached by lowering or raising the color's CIE lightness.
     const cBlack = Math.abs(
-      as === 'text' ? Math.abs(Couleur.contrast(background, 'black', { method }))
-                    : Math.abs(Couleur.contrast('black', text, { method }))
-    );
+      as === 'text' ? Couleur.contrast(background, 'black', { method })
+                    : Couleur.contrast('black', text, { method }))
+    ;
     const cWhite = Math.abs(
-      as === 'text' ? Math.abs(Couleur.contrast(background, 'white', { method }))
-                    : Math.abs(Couleur.contrast('white', text, { method }))
+      as === 'text' ? Couleur.contrast(background, 'white', { method })
+                    : Couleur.contrast('white', text, { method })
     );
     const isPossible = {
       lowering: (directionContrast > 0) ? cBlack >= desiredContrast : cBlack <= desiredContrast,

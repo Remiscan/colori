@@ -2859,16 +2859,16 @@ class Couleur {
         else directionContrast = 0;
         if (directionContrast < 0 && lower === false || directionContrast === 0) return this;
         const _colorScheme = colorScheme || (backgroundLab[0] < textLab[0] ? 'dark' : 'light');
-        const cBlack = Math.abs(as === 'text' ? Math.abs(Couleur.contrast(background, 'black', {
+        const cBlack = Math.abs(as === 'text' ? Couleur.contrast(background, 'black', {
             method
-        })) : Math.abs(Couleur.contrast('black', text, {
+        }) : Couleur.contrast('black', text, {
             method
-        })));
-        const cWhite = Math.abs(as === 'text' ? Math.abs(Couleur.contrast(background, 'white', {
+        }));
+        const cWhite = Math.abs(as === 'text' ? Couleur.contrast(background, 'white', {
             method
-        })) : Math.abs(Couleur.contrast('white', text, {
+        }) : Couleur.contrast('white', text, {
             method
-        })));
+        }));
         const isPossible = {
             lowering: directionContrast > 0 ? cBlack >= desiredContrast : cBlack <= desiredContrast,
             raising: directionContrast > 0 ? cWhite >= desiredContrast : cWhite <= desiredContrast
