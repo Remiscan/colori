@@ -956,18 +956,19 @@
 
 
     /** Modifies the CIE lightness of a color to give it better contrast with a background color. */
-    public function improveContrast(self|array|string $backgroundColor, float $desiredContrast, bool $lower = false, ?string $colorScheme = null, string $method = 'APCA'): self {
-      $background = self::makeInstance($backgroundColor);
-      $values = $this->values(); $values[] = $this->a;
+    public function improveContrast(self|array|string $otherColor, float $desiredContrast, string $as = 'text', bool $lower = false, ?string $colorScheme = null, string $method = 'APCA'): self {
+      $background = $as === 'text' ? self::makeInstance($otherColor) : $this;
+      $text =       $as === 'text' ? $this : self::makeInstance($otherColor);
       $backgroundLab = $background->valuesTo('oklab');
-      $movingLab = $this->valuesTo('oklab');
+      $textLab = $text->valuesTo('oklab');
+      $movingLab = $as === 'text' ? $textLab : $backgroundLab;
 
       // Let's measure the initial contrast
       // and decide if we want it to go up or down.
-      $contrast = self::contrast($this, $background, method: $method);
-      if ($contrast > $desiredContrast)     $directionContrast = -1;
-      elseif ($contrast < $desiredContrast) $directionContrast = 1;
-      else                                  $directionContrast = 0;
+      $startContrast = abs(self::contrast($text, $background, method: $method));
+      if ($startContrast > $desiredContrast)     $directionContrast = -1;
+      elseif ($startContrast < $desiredContrast) $directionContrast = 1;
+      else                                       $directionContrast = 0;
       // If the contrast is already higher than desired, and lowering it is not allowed, return the color as is.
       if (($directionContrast < 0 && $lower === false) || ($directionContrast === 0)) return $this;
 
@@ -978,6 +979,14 @@
       // desiredContrast can be reached by lowering or raising the color's CIE lightness.
       $cBlack = self::contrast($background, 'black', method: $method);
       $cWhite = self::contrast($background, 'white', method: $method);
+      $cBlack = abs(
+        $as === 'text' ? self::contrast($background, 'black', method: $method)
+                       : self::contrast('black', $text, method: $method)
+      );
+      $cWhite = abs(
+        $as === 'text' ? self::contrast($background, 'white', method: $method)
+                       : self::contrast('white', $text, method: $method)
+      );
       $isPossible = [
         'lowering' => ($directionContrast > 0) ? abs($cBlack) >= $desiredContrast : abs($cBlack) <= $desiredContrast,
         'raising' => ($directionContrast > 0) ? abs($cWhite) >= $desiredContrast : abs($cWhite) <= $desiredContrast
@@ -988,11 +997,17 @@
       else if ($isPossible['raising'] && !$isPossible['lowering']) $directionOKL = 1;
       // If desiredContrast can not be reached, return white or black — the one that fits the color scheme.
       else if (!$isPossible['raising'] && !$isPossible['lowering']) {
-        if ($colorScheme === 'light') return new self('black');
-        else                          return new self('white');
+        if ($as === 'text') {
+          if ($colorScheme === 'light') return new self('black');
+          else                          return new self('white');
+        } else {
+          if ($colorScheme === 'light') return new self('white');
+          else                          return new self('black');
+        }
       }
       // If desiredContrast can be reached in both directions
       else {
+        // If we're changing the text color:
         // If the background is light and we need to raise the contrast, lower the lightness.
         if ($colorScheme === 'light' && $directionContrast > 0)      $directionOKL = -1;
         // If the background is light and we need to lower the contrast, raise the lightness.
@@ -1001,6 +1016,9 @@
         else if ($colorScheme === 'dark' && $directionContrast > 0)  $directionOKL = 1;
         // If the background is dark and we need to lower the contrast, lower the lightness.
         else                                                         $directionOKL = -1;
+
+        // Else if we're changing the background color:
+          if ($as === 'background') $directionOKL = -$directionOKL;
       }
 
       $τ = .0001;
@@ -1011,10 +1029,13 @@
         // Let's try to raise contrast by increasing or reducing CIE lightness.
         $okl = ($OKLmin + $OKLmax) / 2;
         $newValues = $movingLab; $newValues[0] = $okl;
-        $newContrast = self::contrast(self::convert('oklab', 'srgb', $newValues), $background, method: $method);
+        $newContrast = abs(
+          $as === 'text' ? self::contrast(self::convert('oklab', 'srgb', $newValues), $background, method: $method)
+                         : self::contrast($text, self::convert('oklab', 'srgb', $newValues), method: $method)
+        );
 
         // If the new contrast hasn't gone over its desired value
-        $condition = ($directionContrast > 0) ? (abs($newContrast) < $desiredContrast) : (abs($newContrast) > $desiredContrast);
+        $condition = ($directionContrast > 0) ? ($newContrast < $desiredContrast) : ($newContrast > $desiredContrast);
         if ($condition) {
           if ($directionOKL > 0) $OKLmin = $okl;
           else                   $OKLmax = $okl;
@@ -1030,9 +1051,18 @@
 
       $result = new self(self::convert('oklab', 'srgb', $movingLab));
       // If the color we find has its contrast slightly below the desired value, push it further.
-      if (abs(self::contrast($result, $background, method: $method)) < $desiredContrast) {
-        if ($directionOKL > 0) $movingLab[0] = $OKLmax;
-        else                   $movingLab[0] = $OKLmin;
+      $lastContrast = abs(
+        $as === 'text' ? self::contrast($result, $background, method: $method)
+                       : self::contrast($text, $result, method: $method)
+      );
+      if ($lastContrast < $desiredContrast) {
+        if ($as === 'text') {
+          if ($colorScheme === 'light') $movingLab[0] = $OKLmin;
+          else                          $movingLab[0] = $OKLmax;
+        } else {
+          if ($colorScheme === 'light') $movingLab[0] = $OKLmax;
+          else                          $movingLab[0] = $OKLmin;
+        }
       }
 
       // We're done!
