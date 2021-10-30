@@ -806,7 +806,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.toGamut - Non-static version. */
-  public toGamut(spaceID: colorSpaceOrID): number[] { return Couleur.toGamut(spaceID, this.values, 'srgb'); }
+  public toGamut(spaceID: colorSpaceOrID): Couleur { return new Couleur(Couleur.toGamut(spaceID, this.values, 'srgb')); }
 
 
 
@@ -1128,7 +1128,7 @@ export default class Couleur {
    * @returns
    */
   public bestColorScheme(as: 'background'|'text' = 'background'): 'light'|'dark' {
-    const rgba = [...this.toGamut('srgb'), this.a];
+    const rgba = [...this.toGamut('srgb').values, this.a];
     if (as === 'text') {
       const Cblack = Math.abs(Couleur.contrast(rgba, 'black', { method: 'apca' }));
       const Cwhite = Math.abs(Couleur.contrast(rgba, 'white', { method: 'apca' }));

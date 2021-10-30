@@ -2597,7 +2597,7 @@ class Couleur {
         return Couleur.convert(clampSpace, valueSpace, clampedValues);
     }
     toGamut(spaceID) {
-        return Couleur.toGamut(spaceID, this.values, 'srgb');
+        return new Couleur(Couleur.toGamut(spaceID, this.values, 'srgb'));
     }
     change(prop, value, { action =null  } = {
     }) {
@@ -2822,7 +2822,7 @@ class Couleur {
     }
     bestColorScheme(as = 'background') {
         const rgba = [
-            ...this.toGamut('srgb'),
+            ...this.toGamut('srgb').values,
             this.a
         ];
         if (as === 'text') {
