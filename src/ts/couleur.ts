@@ -1143,7 +1143,7 @@ export default class Couleur {
 
   /**
    * Modifies the CIE lightness of a color to give it better contrast with another color.
-   * @param otherColor The color with which contrast will be measured and improved.
+   * @param referenceColor The color with which contrast will be measured and improved.
    * @param desiredContrast The absolute value of the contrast to reach.
    * @param options
    * @param options.as Whether the color this function is applied to is used as 'text' or 'background' color.
@@ -1155,11 +1155,11 @@ export default class Couleur {
    *                            If null, the starting color scheme will be preserved (i.e. if the text color starts darker
    *                            than the background color, it will stay darker.)
    * @param options.method The method to use to compute the contrast.
-   * @returns The modified color which verifies Couleur.contrast(color, otherColor) >= desiredContrast.
+   * @returns The modified color which verifies Couleur.contrast(color, referenceColor) >= desiredContrast.
    */
-  public improveContrast(otherColor: color, desiredContrast: number, { as = 'text', lower = false, colorScheme = null, method = 'APCA' }: { as?: 'text' | 'background', lower?: boolean, colorScheme?: 'light' | 'dark' | null, method?: string } = {}): Couleur {
-    const background = as === 'text' ? Couleur.makeInstance(otherColor) : this;
-    const text =       as === 'text' ? this : Couleur.makeInstance(otherColor);
+  public improveContrast(referenceColor: color, desiredContrast: number, { as = 'text', lower = false, colorScheme = null, method = 'APCA' }: { as?: 'text' | 'background', lower?: boolean, colorScheme?: 'light' | 'dark' | null, method?: string } = {}): Couleur {
+    const background = as === 'text' ? Couleur.makeInstance(referenceColor) : this;
+    const text =       as === 'text' ? this : Couleur.makeInstance(referenceColor);
     const backgroundLab = background.valuesTo('oklab');
     const textLab = text.valuesTo('oklab');
     const movingLab = as === 'text' ? textLab : backgroundLab;

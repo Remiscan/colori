@@ -2163,9 +2163,9 @@
 
 
     /** Modifies the CIE lightness of a color to give it better contrast with a background color. */
-    public function improveContrast(self|array|string $otherColor, float $desiredContrast, string $as = 'text', bool $lower = false, ?string $colorScheme = null, string $method = 'APCA'): self {
-      $background = $as === 'text' ? self::makeInstance($otherColor) : $this;
-      $text =       $as === 'text' ? $this : self::makeInstance($otherColor);
+    public function improveContrast(self|array|string $referenceColor, float $desiredContrast, string $as = 'text', bool $lower = false, ?string $colorScheme = null, string $method = 'APCA'): self {
+      $background = $as === 'text' ? self::makeInstance($referenceColor) : $this;
+      $text =       $as === 'text' ? $this : self::makeInstance($referenceColor);
       $backgroundLab = $background->valuesTo('oklab');
       $textLab = $text->valuesTo('oklab');
       $movingLab = $as === 'text' ? $textLab : $backgroundLab;

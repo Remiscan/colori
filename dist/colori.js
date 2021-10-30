@@ -2843,10 +2843,10 @@ class Couleur {
             return Cblack >= Cwhite ? 'light' : 'dark';
         }
     }
-    improveContrast(otherColor, desiredContrast, { as ='text' , lower =false , colorScheme =null , method ='APCA'  } = {
+    improveContrast(referenceColor, desiredContrast, { as ='text' , lower =false , colorScheme =null , method ='APCA'  } = {
     }) {
-        const background = as === 'text' ? Couleur.makeInstance(otherColor) : this;
-        const text = as === 'text' ? this : Couleur.makeInstance(otherColor);
+        const background = as === 'text' ? Couleur.makeInstance(referenceColor) : this;
+        const text = as === 'text' ? this : Couleur.makeInstance(referenceColor);
         const backgroundLab = background.valuesTo('oklab');
         const textLab = text.valuesTo('oklab');
         const movingLab = as === 'text' ? textLab : backgroundLab;
