@@ -965,15 +965,17 @@
 
       // Let's measure the initial contrast
       // and decide if we want it to go up or down.
-      $startContrast = abs(self::contrast($text, $background, method: $method));
-      if ($startContrast > $desiredContrast)     $directionContrast = -1;
-      elseif ($startContrast < $desiredContrast) $directionContrast = 1;
-      else                                       $directionContrast = 0;
+      $startContrast = self::contrast($text, $background, method: $method); // sign will be important
+      if (abs($startContrast) > $desiredContrast)     $directionContrast = -1;
+      elseif (abs($startContrast) < $desiredContrast) $directionContrast = 1;
+      else                                            $directionContrast = 0;
       // If the contrast is already higher than desired, and lowering it is not allowed, return the color as is.
       if (($directionContrast < 0 && $lower === false) || ($directionContrast === 0)) return $this;
 
       // Let's detect the color scheme if it isn't given.
-      $colorScheme = $colorScheme ?? (($backgroundLab[0] < $movingLab[0]) ? 'dark' : 'light');
+      $colorScheme = $colorScheme ?? in_array(strtolower($method), ['wcag3', 'sapc', 'apca'])
+                                   ? ($startContrast < 0 ? 'dark' : 'light')
+                                   : ($backgroundLab[0] < $movingLab[0] ? 'dark' : 'light');
 
       // Let's measure the contrast of refColor with black and white to know if
       // desiredContrast can be reached by lowering or raising the color's CIE lightness.
