@@ -12,8 +12,8 @@ export default class Palette {
    * @param options
    * @param options.clampSpace Color space to which the generated colors will be clamped. Null to disable clamping.
    */
-  constructor(hue: number, generator: (hue: number) => Array<{ lightnesses: number[], chroma: number, hue: number}> = () => [], { clampSpace = 'srgb' }: { clampSpace?: string } = {}) {
-    const colors = generator(hue);
+  constructor(hue: number, chroma: number, generator: (hue: number, chroma: number) => Array<{ lightnesses: number[], chroma: number, hue: number}> = () => [], { clampSpace = 'srgb' }: { clampSpace?: string } = {}) {
+    const colors = generator(hue, chroma);
 
     // Create the nuances of each color.
     for (const color of colors) {

@@ -3149,10 +3149,10 @@ class Couleur {
 }
 class Palette1 {
     colors = [];
-    constructor(hue, generator = ()=>[]
+    constructor(hue, chroma, generator = ()=>[]
     , { clampSpace ='srgb'  } = {
     }){
-        const colors = generator(hue);
+        const colors = generator(hue, chroma);
         for (const color of colors){
             const nuances = [];
             for (const lightness of color.lightnesses){

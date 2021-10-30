@@ -51,7 +51,7 @@ require_once '../dist/colori.php';
 
   // Monet-like palet
 
-  const monetGenerator = function(hue) {
+  const monetGenerator = function(hue, chroma = 0.1328123146401862) {
     const lightnesses = [
       1,
       .9880873963836093,
@@ -67,13 +67,12 @@ require_once '../dist/colori.php';
       .22212874192541768,
       0
     ];
-    const baseChroma = 0.1328123146401862;
     const chromas = [
-      baseChroma / 12,
-      baseChroma / 6,
-      baseChroma,
-      baseChroma / 3,
-      baseChroma * 2 / 3
+      chroma / 12,
+      chroma / 6,
+      chroma,
+      chroma / 3,
+      chroma * 2 / 3
     ];
 
     return chromas.map((ch, k) => {
@@ -87,21 +86,20 @@ require_once '../dist/colori.php';
   };
 
   class MonetPalette extends Palette {
-    constructor(hue) { super(hue, monetGenerator); }
+    constructor(hue) { super(hue, undefined, monetGenerator); }
   }
 
 
 
   // Whatever palet
 
-  const whateverGenerator = function(hue) {
+  const whateverGenerator = function(hue, chroma = 0.1) {
     const lightnesses = [];
     let i = 1;
     while (i >= 0) {
       lightnesses.push(i);
       i -= .1;
     }
-    const chroma = 0.1;
     const hues = [hue, hue, hue + 180, hue + 180];
 
     return hues.map((h, k) => {
@@ -114,14 +112,14 @@ require_once '../dist/colori.php';
   };
 
   class WhateverPalette extends Palette {
-    constructor(hue) { super(hue, whateverGenerator); }
+    constructor(hue) { super(hue, undefined, whateverGenerator); }
   }
 
 
 
   // Contrasted palet
 
-  const contrastedGenerator = function(hue) {
+  const contrastedGenerator = function(hue, chroma = 0.13) {
     const grey = new Couleur('color(oklab .5 0 0)');
     const light = [];
     const dark = [];
@@ -132,7 +130,7 @@ require_once '../dist/colori.php';
     }
     const lightnesses = [...light.reverse(), ...dark].map(c => c.okl);
 
-    const chromas = [0, 0.022, 0.043, 0.13];
+    const chromas = [0, chroma / 6, chroma / 3, 0.13];
     return chromas.map((c, k) => {
       return {
         lightnesses,
@@ -143,7 +141,7 @@ require_once '../dist/colori.php';
   };
 
   class ContrastedPalette extends Palette {
-    constructor(hue) { super(hue, contrastedGenerator); }
+    constructor(hue) { super(hue, undefined, contrastedGenerator); }
   }
 
 
