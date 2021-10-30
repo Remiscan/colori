@@ -175,11 +175,11 @@ require_once '../dist/colori.php';
           const otherContrast = Couleur.contrast(otherColor, color, { method: 'apca' });
           const cBlack = Couleur.contrast('black', color, { method: 'apca' });
           const cWhite = Couleur.contrast('white', color, { method: 'apca' });
-          html += `<div style="--color: ${color.hsl}; color: ${textColor}; display: grid; place-items: center;"
+          html += `<div style="--color: ${color.hsl}; color: ${textColor}; display: grid; place-items: center; font-family: system-ui;"
                         data-values="${color.values.join(' ; ')}"
                         data-rgb="${color.rgb}"
                         data-oklch="${color.valuesTo('oklch').join(' ; ')}">
-            <span style="color: ${textColor}">${Math.round(100 * contrast) / 100}</span>
+            <span style="color: ${textColor}; font-weight: 600;">${Math.round(100 * contrast) / 100}</span>
             <span style="color: ${otherColor}; font-size: .8em">${Math.round(100 * otherContrast) / 100}</span>
           </div>`;
         }
