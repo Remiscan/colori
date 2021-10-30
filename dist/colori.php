@@ -2423,9 +2423,9 @@
   class Palette {
     public array $colors;
 
-    function __construct(float $hue, float $chroma, callable $generator, string $clampSpace = 'srgb') {
+    function __construct(Couleur $color, callable $generator, string $clampSpace = 'srgb') {
       $this->colors = [];
-      $colors = $generator($hue, $chroma);
+      $colors = $generator($color);
 
       foreach ($colors as $color) {
         $nuances = [];

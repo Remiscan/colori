@@ -6,15 +6,14 @@ export default class Palette {
   colors: Couleur[][] = []; // Will be an array of arrays of color nuances.
 
   /**
-   * Creates a palette from a hue.
-   * @param hue The hue of the main color of the palette in OKLAB color space.
-   * @param chroma The chroma of the main color of the palette in OKLAB color space.
-   * @param generator A function that generates an array of { lightnesses, chroma, hue } objects.
+   * Creates a color palet from a hue.
+   * @param color The color from which the palet will be derived.
+   * @param generator A function that generates an array of { lightnesses, chroma, hue } objects (values in OKLAB color space).
    * @param options
    * @param options.clampSpace Color space to which the generated colors will be clamped. Null to disable clamping.
    */
-  constructor(hue: number, chroma: number, generator: (hue: number, chroma: number) => Array<{ lightnesses: number[], chroma: number, hue: number}> = () => [], { clampSpace = 'srgb' }: { clampSpace?: string } = {}) {
-    const colors = generator(hue, chroma);
+  constructor(color: Couleur, generator: (color: Couleur) => Array<{ lightnesses: number[], chroma: number, hue: number}> = () => [], { clampSpace = 'srgb' }: { clampSpace?: string } = {}) {
+    const colors = generator(color);
 
     // Create the nuances of each color.
     for (const color of colors) {

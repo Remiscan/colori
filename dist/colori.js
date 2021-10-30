@@ -3149,17 +3149,17 @@ class Couleur {
 }
 class Palette1 {
     colors = [];
-    constructor(hue, chroma, generator = ()=>[]
+    constructor(color, generator = ()=>[]
     , { clampSpace ='srgb'  } = {
     }){
-        const colors = generator(hue, chroma);
-        for (const color of colors){
+        const colors = generator(color);
+        for (const color1 of colors){
             const nuances = [];
-            for (const lightness of color.lightnesses){
+            for (const lightness of color1.lightnesses){
                 let rgb = Couleur.convert('oklch', 'srgb', [
                     lightness,
-                    color.chroma,
-                    color.hue
+                    color1.chroma,
+                    color1.hue
                 ]);
                 if (clampSpace != null) rgb = Couleur.toGamut(clampSpace, rgb);
                 const newColor = new Couleur(`color(srgb ${rgb.join(' ')})`);
