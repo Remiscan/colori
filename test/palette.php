@@ -125,7 +125,7 @@ require_once '../dist/colori.php';
     const grey = new Couleur('color(oklab .5 0 0)');
     const light = [];
     const dark = [];
-    const contrasts = [65, 75, 85, 95, 100, 105, 110];
+    const contrasts = [65, 75, 85, 95, 100, 105];
     for (const i of contrasts) {
       light.push(grey.improveContrast('black', i, { lower: true, as: 'background' }));
       dark.push(grey.improveContrast('white', i, { lower: true, as: 'background' }));
