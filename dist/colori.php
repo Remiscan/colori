@@ -2172,10 +2172,10 @@
 
       // Let's measure the initial contrast
       // and decide if we want it to go up or down.
-      $startContrast = self::contrast($text, $background, method: $method); // sign will be important
-      if (abs($startContrast) > $desiredContrast)     $directionContrast = -1;
-      elseif (abs($startContrast) < $desiredContrast) $directionContrast = 1;
-      else                                            $directionContrast = 0;
+      $startContrast = abs(self::contrast($text, $background, method: $method));
+      if ($startContrast > $desiredContrast)     $directionContrast = -1;
+      elseif ($startContrast < $desiredContrast) $directionContrast = 1;
+      else                                       $directionContrast = 0;
       // If the contrast is already higher than desired, and lowering it is not allowed, return the color as is.
       if (($directionContrast < 0 && $lower === false) || ($directionContrast === 0)) return $this;
 

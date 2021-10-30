@@ -1166,18 +1166,16 @@ export default class Couleur {
 
     // Let's measure the initial contrast
     // and decide if we want it to go up or down.
-    const startContrast = Couleur.contrast(text, background, { method }); // sign will be important
+    const startContrast = Math.abs(Couleur.contrast(text, background, { method }));
     let directionContrast;
-    if (Math.abs(startContrast) > desiredContrast)      directionContrast = -1;
-    else if (Math.abs(startContrast) < desiredContrast) directionContrast = 1;
-    else                                                directionContrast = 0;
+    if (startContrast > desiredContrast)      directionContrast = -1;
+    else if (startContrast < desiredContrast) directionContrast = 1;
+    else                                      directionContrast = 0;
     // If the contrast is already higher than desired, and lowering it is not allowed, return the color as is.
     if ((directionContrast < 0 && lower === false) || (directionContrast === 0)) return this;
 
     // Let's detect the color scheme if it isn't given.
-    const _colorScheme = colorScheme || ['wcag3', 'sapc', 'apca'].includes(method.toLowerCase())
-                                      ? (startContrast < 0 ? 'dark' : 'light')
-                                      : (backgroundLab[0] < textLab[0] ? 'dark' : 'light');
+    const _colorScheme = colorScheme || (backgroundLab[0] < textLab[0] ? 'dark' : 'light');
 
     // Let's measure the contrast of the background with black and white to know if
     // desiredContrast can be reached by lowering or raising the color's CIE lightness.

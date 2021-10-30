@@ -2850,19 +2850,15 @@ class Couleur {
         const backgroundLab = background.valuesTo('oklab');
         const textLab = text.valuesTo('oklab');
         const movingLab = as === 'text' ? textLab : backgroundLab;
-        const startContrast = Couleur.contrast(text, background, {
+        const startContrast = Math.abs(Couleur.contrast(text, background, {
             method
-        });
+        }));
         let directionContrast;
-        if (Math.abs(startContrast) > desiredContrast) directionContrast = -1;
-        else if (Math.abs(startContrast) < desiredContrast) directionContrast = 1;
+        if (startContrast > desiredContrast) directionContrast = -1;
+        else if (startContrast < desiredContrast) directionContrast = 1;
         else directionContrast = 0;
         if (directionContrast < 0 && lower === false || directionContrast === 0) return this;
-        const _colorScheme = colorScheme || [
-            'wcag3',
-            'sapc',
-            'apca'
-        ].includes(method.toLowerCase()) ? startContrast < 0 ? 'dark' : 'light' : backgroundLab[0] < textLab[0] ? 'dark' : 'light';
+        const _colorScheme = colorScheme || (backgroundLab[0] < textLab[0] ? 'dark' : 'light');
         const cBlack = Math.abs(as === 'text' ? Couleur.contrast(background, 'black', {
             method
         }) : Couleur.contrast('black', text, {
