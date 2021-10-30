@@ -280,16 +280,28 @@
     "resultatAttendu": true
   }, {
     "fonction": "Colour.contrast('#888', '#fff')",
-    "resultatAttendu": 66.89346308821438
+    "resultatAttendu": 63.056469930209424
+  }, {
+    "fonction": "Colour.contrast('#fff', '#888')",
+    "resultatAttendu": -68.54146436644962
+  }, {
+    "fonction": "Colour.contrast('#000', '#aaa')",
+    "resultatAttendu": 58.146262578561334
   }, {
     "fonction": "Colour.contrast('#aaa', '#000')",
-    "resultatAttendu": -60.438571788907524
+    "resultatAttendu": -56.24113336839742
+  }, {
+    "fonction": "Colour.contrast('#123', '#def', { method: 'apca' })",
+    "resultatAttendu": 91.66830811481631
   }, {
     "fonction": "Colour.contrast('#def', '#123', { method: 'apca' })",
-    "resultatAttendu": -98.44863435731266
+    "resultatAttendu": -93.06770049484275
   }, {
     "fonction": "Colour.contrast('#123', '#234', { method: 'apca' })",
-    "resultatAttendu": 1.276075977788573
+    "resultatAttendu": 1.7512243099356113
+  }, {
+    "fonction": "Colour.contrast('#234', '#123', { method: 'apca' })",
+    "resultatAttendu": -1.6349191031377903
   }, {
     "fonction": "Colour.contrast('#aaa', '#aaa')",
     "resultatAttendu": 0

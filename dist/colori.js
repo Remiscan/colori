@@ -514,8 +514,8 @@ function APCA(rgbText, rgbBack) {
         rgbBack
     ].map((rgb)=>luminance(rgb)
     );
-    const blackClampTrigger = 0.03;
-    const blackClampPow = 1.45;
+    const blackClampTrigger = 0.022;
+    const blackClampPow = 1.414;
     [Ltext, Lback] = [
         Ltext,
         Lback
@@ -523,14 +523,14 @@ function APCA(rgbText, rgbBack) {
     );
     if (Math.abs(Ltext - Lback) < 0.0005) return 0;
     let result;
-    const compute = (Lback, Ltext, powBack, powText)=>(Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * 1.25
+    const compute = (Lback, Ltext, powBack, powText)=>(Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * 1.14
     ;
-    const lowClip = 0.001, lowTrigger = 0.078, lowOffset = 0.06, invLowTrigger = 12.82051282051282;
+    const lowClip = 0.001, lowTrigger = 0.035991, lowOffset = 0.027, invLowTrigger = 27.7847239587675;
     if (Lback > Ltext) {
-        const SAPC = compute(Lback, Ltext, 0.55, 0.58);
+        const SAPC = compute(Lback, Ltext, 0.56, 0.57);
         result = SAPC < lowClip ? 0 : SAPC < lowTrigger ? SAPC * (1 - lowOffset * invLowTrigger) : SAPC - lowOffset;
     } else {
-        const SAPC = compute(Lback, Ltext, 0.62, 0.57);
+        const SAPC = compute(Lback, Ltext, 0.65, 0.62);
         result = SAPC > -lowClip ? 0 : SAPC > -lowTrigger ? SAPC * (1 - lowOffset * invLowTrigger) : SAPC + lowOffset;
     }
     return result * 100;
@@ -2850,15 +2850,19 @@ class Couleur {
         const backgroundLab = background.valuesTo('oklab');
         const textLab = text.valuesTo('oklab');
         const movingLab = as === 'text' ? textLab : backgroundLab;
-        const startContrast = Math.abs(Couleur.contrast(text, background, {
+        const startContrast = Couleur.contrast(text, background, {
             method
-        }));
+        });
         let directionContrast;
-        if (startContrast > desiredContrast) directionContrast = -1;
-        else if (startContrast < desiredContrast) directionContrast = 1;
+        if (Math.abs(startContrast) > desiredContrast) directionContrast = -1;
+        else if (Math.abs(startContrast) < desiredContrast) directionContrast = 1;
         else directionContrast = 0;
         if (directionContrast < 0 && lower === false || directionContrast === 0) return this;
-        const _colorScheme = colorScheme || (backgroundLab[0] < textLab[0] ? 'dark' : 'light');
+        const _colorScheme = colorScheme || [
+            'wcag3',
+            'sapc',
+            'apca'
+        ].includes(method.toLowerCase()) ? startContrast < 0 ? 'dark' : 'light' : backgroundLab[0] < textLab[0] ? 'dark' : 'light';
         const cBlack = Math.abs(as === 'text' ? Couleur.contrast(background, 'black', {
             method
         }) : Couleur.contrast('black', text, {

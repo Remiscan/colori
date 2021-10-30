@@ -32,8 +32,8 @@
     $Lback = $luminance($rgbBack);
     
     // 2. Clamp luminances
-    $blackClampTrigger = 0.03;
-    $blackClampPow = 1.45;
+    $blackClampTrigger = 0.022;
+    $blackClampPow = 1.414;
     $clamp = fn($L) => $L > $blackClampTrigger ? $L : $L + ($blackClampTrigger - $L)**$blackClampPow;
     $Ltext = $clamp($Ltext);
     $Lback = $clamp($Lback);
@@ -42,13 +42,13 @@
     if (abs($Ltext - $Lback) < $δLmin) return .0;
 
     // 3. Compute contrast
-    $scale = 1.25;
+    $scale = 1.14;
     $compute = fn($Lback, $Ltext, $powBack, $powText) => ($Lback**$powBack - $Ltext**$powText) * $scale;
-    $lowClip = 0.001; $lowTrigger = 0.078; $lowOffset = 0.06; $invLowTrigger = 12.82051282051282;
+    $lowClip = 0.001; $lowTrigger = 0.035991; $lowOffset = 0.027; $invLowTrigger = 27.7847239587675;
 
     // for dark text on light background
     if ($Lback > $Ltext) {
-      $powBack = 0.55; $powText = 0.58;
+      $powBack = 0.56; $powText = 0.57;
       $SAPC = $compute($Lback, $Ltext, $powBack, $powText);
       $result = ($SAPC < $lowClip) ? 0
               : (($SAPC < $lowTrigger) ? $SAPC * (1 - $lowOffset * $invLowTrigger)
@@ -57,7 +57,7 @@
 
     // for light text on dark background
     else {
-      $powBack = 0.62; $powText = 0.57;
+      $powBack = 0.65; $powText = 0.62;
       $SAPC = $compute($Lback, $Ltext, $powBack, $powText);
       $result = ($SAPC > -$lowClip) ? 0
               : (($SAPC > -$lowTrigger) ? $SAPC * (1 - $lowOffset * $invLowTrigger)

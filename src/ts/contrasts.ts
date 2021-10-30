@@ -39,8 +39,8 @@ export function APCA(rgbText: number[], rgbBack: number[]): number {
   let [Ltext, Lback] = [rgbText, rgbBack].map(rgb => luminance(rgb));
 
   // 2. Clamp luminances
-  const blackClampTrigger = 0.03;
-  const blackClampPow = 1.45;
+  const blackClampTrigger = 0.022;
+  const blackClampPow = 1.414;
   [Ltext, Lback] = [Ltext, Lback].map(L => L > blackClampTrigger ? L : L + Math.pow(blackClampTrigger - L, blackClampPow));
 
   const δLmin = 0.0005;
@@ -48,26 +48,26 @@ export function APCA(rgbText: number[], rgbBack: number[]): number {
 
   // 3. Compute contrast
   let result;
-  const scale = 1.25;
+  const scale = 1.14;
   const compute = (Lback: number, Ltext: number, powBack: number, powText: number) => (Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * scale;
-  const lowClip = 0.001, lowTrigger = 0.078, lowOffset = 0.06, invLowTrigger = 12.82051282051282;
+  const lowClip = 0.001, lowTrigger = 0.035991, lowOffset = 0.027, invLowTrigger = 27.7847239587675;
 
   // for dark text on light background
   if (Lback > Ltext) {
-    const powBack = 0.55, powText = 0.58;
+    const powBack = 0.56, powText = 0.57;
     const SAPC = compute(Lback, Ltext, powBack, powText);
     result = (SAPC < lowClip) ? 0
-            : (SAPC < lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
-            : SAPC - lowOffset;
+           : (SAPC < lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
+           : SAPC - lowOffset;
   }
 
   // for light text on dark background
   else {
-    const powBack = 0.62, powText = 0.57;
+    const powBack = 0.65, powText = 0.62;
     const SAPC = compute(Lback, Ltext, powBack, powText);
     result = (SAPC > -lowClip) ? 0
-            : (SAPC > -lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
-            : SAPC + lowOffset;
+           : (SAPC > -lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
+           : SAPC + lowOffset;
   }
 
   return result * 100;
