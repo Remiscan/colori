@@ -332,7 +332,7 @@
       $vals = array_slice($values, 0, 3);
       $a = $values[3];
 
-      switch ($spaceID) {
+      switch (strtolower($spaceID)) {
         case 'srgb':
         case 'display-p3':
         case 'a98-rgb':
@@ -365,8 +365,9 @@
     /* GENERAL EXPRESSION GETTER */
 
     /** Creates a string containing the CSS expression of a color. */
-    public function expr(array|string $format, ?int $precision = 0, bool $clamp = true): string {
-      $spaceID = is_string($format) ? str_replace('color-', '', $format) : $format;
+    public function expr(string $format, ?int $precision = 0, bool $clamp = true): string {
+      $format = strtolower($format);
+      $spaceID = str_replace('color-', '', $format);
       $space = self::getSpace($spaceID);
 
       $values = $this->valuesTo($space);
@@ -414,7 +415,8 @@
 
     /** Creates a string containing the CSS expression of a color from a list of values. */
     public static function makeExpr(string $format, array $values, array|string $valueSpaceID, ?int $precision = 0, bool $clamp = true): string {
-      $spaceID = is_string($format) ? str_replace('color-', '', $format) : $format;
+      $format = strtolower($format);
+      $spaceID = str_replace('color-', '', $format);
       $rgba = self::convert($valueSpaceID, $spaceID, array_slice($values, 0, 3)); $rgba[] = $this->a;
       return (new self($rgba))->expr($format, precision: $precision, clamp: $clamp);
     }
@@ -688,6 +690,7 @@
       $space = self::getSpace($spaceID);
       $valueSpace = self::getSpace($valueSpaceID);
       if (self::inGamut($space, $values, $valueSpace, tolerance: 0)) return $values;
+      $method = strtolower($method);
 
       // Naively clamp the values
       if ($method === 'naive') {
@@ -749,6 +752,7 @@
 
     /** Modifies a color by changing a specific property. */
     public function change(string $prop, string|float|int $value, ?string $action = null): self {
+      $action = is_string($action) ? strtolower($action) : $action;
       $replace = $action === 'replace';
       $scale = $action === 'scale';
       $val = $scale ? self::parse($value) : self::parse($value, $prop, clamp: false);
@@ -1112,15 +1116,15 @@
       $opaqueDist = +INF;
       $alphaCoeff = 1.0;
 
-      switch ($method) {
-        case 'CIEDE2000':
-        case 'deltaE2000':
+      switch (strtolower($method)) {
+        case 'ciede2000':
+        case 'deltae2000':
           $lab1 = $color1->valuesTo('lab');
           $lab2 = $color2->valuesTo('lab');
           $opaqueDist = distances\CIEDE2000($lab1, $lab2);
           $alphaCoeff = 50.0;
           break;
-        case 'deltaEOK':
+        case 'deltaeok':
           $oklab1 = $color1->valuesTo('oklab');
           $oklab2 = $color2->valuesTo('oklab');
           $opaqueDist = distances\euclidean($oklab1, $oklab2);
@@ -1212,7 +1216,7 @@
 
     /** Gets the names of the properties of a color used in a certain format. */
     protected static function propertiesOf(string $format): array {
-      switch($format) {
+      switch(strtolower($format)) {
         case 'rgb':
         case 'rgba':  return ['r', 'g', 'b'];
         case 'hsl':
@@ -1234,6 +1238,7 @@
     /** Gets a color space from its id. */
     protected static function getSpace(array|string $spaceID): array {
       if (is_array($spaceID)) return $spaceID;
+      $spaceID = strtolower($spaceID);
       $id = match ($spaceID) {
         'rgb', 'rgba' => 'srgb',
         'hsla' => 'hsl',

@@ -371,7 +371,7 @@ export default class Couleur {
     let vals = values.slice(0, 3).map(v => Couleur.parse(v));
     const a = Couleur.parse(values[3]);
 
-    switch (spaceID) {
+    switch (spaceID.toLowerCase()) {
       case 'srgb':
       case 'display-p3':
       case 'a98-rgb':
@@ -412,7 +412,8 @@ export default class Couleur {
    * @returns The expression of the color in the requested format.
    */
   public expr(format: string, { precision = 0, clamp = true }: { precision?: number, clamp?: boolean } = {}): string {
-    const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
+    const _format = format.toLowerCase();
+    const spaceID = _format.replace('color-', '');
     const space = Couleur.getSpace(spaceID);
 
     let values = this.valuesTo(space);
@@ -421,7 +422,7 @@ export default class Couleur {
     values = [...values, a];
 
     // If the requested expression is of the color(space, ...) type
-    if (format.slice(0, 5) === 'color') {
+    if (_format.toLowerCase().slice(0, 5) === 'color') {
       let string = `color(${space.id}`;
       for (const [k, v] of Object.entries(values)) {
         if (Number(k) === values.length - 1) {
@@ -436,22 +437,22 @@ export default class Couleur {
     }
 
     // If the requested expression is of the ${format}(...) type
-    const props = Couleur.propertiesOf(format);
+    const props = Couleur.propertiesOf(_format);
     const [x, y, z] = props.map((p, k) => Couleur.unparse(values[k], p, { precision }));
 
-    switch (format) {
+    switch (_format.toLowerCase()) {
       case 'rgb':
       case 'rgba':
       case 'hsl':
       case 'hsla': {
-        if ((format.length > 3 && format.slice(-1) === 'a') || a < 1)
-          return `${format}(${x}, ${y}, ${z}, ${a})`;
+        if ((_format.length > 3 && _format.slice(-1) === 'a') || a < 1)
+          return `${_format}(${x}, ${y}, ${z}, ${a})`;
         else
-          return `${format}(${x}, ${y}, ${z})`;
+          return `${_format}(${x}, ${y}, ${z})`;
       }
       default: {
-        if (a < 1) return `${format}(${x} ${y} ${z} / ${a})`;
-        else       return `${format}(${x} ${y} ${z})`;
+        if (a < 1) return `${_format}(${x} ${y} ${z} / ${a})`;
+        else       return `${_format}(${x} ${y} ${z})`;
       }
     }
   }
@@ -465,9 +466,10 @@ export default class Couleur {
    * @returns The expression of the color in the requested format.
    */
   public static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options = {}): string {
-    const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
+    const _format = format.toLowerCase();
+    const spaceID = _format.replace('color-', '');
     const rgba = [...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)), values[3]];
-    return (new Couleur(rgba)).expr(format, options);
+    return (new Couleur(rgba)).expr(_format, options);
   }
 
 
@@ -778,11 +780,12 @@ export default class Couleur {
   public static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'oklab' }: { method?: 'oklab'|'chroma'|'naive' } = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
+    const _method = method.toLowerCase();
 
     if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 })) return values;
     let clampedValues: number[], clampSpace: ColorSpace;
 
-    switch (method) {
+    switch (_method) {
 
       // OKLAB gamut clipping
       case 'oklab': {
@@ -828,7 +831,7 @@ export default class Couleur {
     }
 
     // Final naive clamp to get in the color space if the color is still just outside the border
-    if (method !== 'naive') clampedValues = Couleur.toGamut(space, clampedValues, clampSpace, { method: 'naive' });
+    if (_method !== 'naive') clampedValues = Couleur.toGamut(space, clampedValues, clampSpace, { method: 'naive' });
 
     // Send the values back in the same color space we found them in
     return Couleur.convert(clampSpace, valueSpace, clampedValues);
@@ -858,8 +861,8 @@ export default class Couleur {
    * @returns The modified color.
    */
   public change(prop: colorProperty, value: string | number, { action = null }: { action?: 'replace' | 'scale' | null } = {}): Couleur {
-    const replace = action === 'replace';
-    const scale = action === 'scale';
+    const replace = action?.toLowerCase() === 'replace';
+    const scale = action?.toLowerCase() === 'scale';
     const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, { clamp: false });
     const changedColor = new Couleur(this);
 
@@ -1160,14 +1163,17 @@ export default class Couleur {
    */
   public bestColorScheme(as: 'background'|'text' = 'background'): 'light'|'dark' {
     const rgba = [...this.toGamut('srgb').values, this.a];
-    if (as === 'text') {
-      const Cblack = Math.abs(Couleur.contrast(rgba, 'black', { method: 'apca' }));
-      const Cwhite = Math.abs(Couleur.contrast(rgba, 'white', { method: 'apca' }));
-      return (Cblack >= Cwhite) ? 'dark' : 'light';
-    } else {
-      const Cblack = Math.abs(Couleur.contrast('black', rgba, { method: 'apca' }));
-      const Cwhite = Math.abs(Couleur.contrast('white', rgba, { method: 'apca' }));
-      return (Cblack >= Cwhite) ? 'light' : 'dark';
+    switch (as) {
+      case 'text': {
+        const Cblack = Math.abs(Couleur.contrast(rgba, 'black', { method: 'apca' }));
+        const Cwhite = Math.abs(Couleur.contrast(rgba, 'white', { method: 'apca' }));
+        return (Cblack >= Cwhite) ? 'dark' : 'light';
+      }
+      case 'background': {
+        const Cblack = Math.abs(Couleur.contrast('black', rgba, { method: 'apca' }));
+        const Cwhite = Math.abs(Couleur.contrast('white', rgba, { method: 'apca' }));
+        return (Cblack >= Cwhite) ? 'light' : 'dark';
+      }
     }
   }
 
@@ -1317,14 +1323,14 @@ export default class Couleur {
     let opaqueDist: number = +Infinity;
     let alphaCoeff: number = 1;
 
-    switch (method) {
-      case 'CIEDE2000':
-      case 'deltaE2000': {
+    switch (method.toLowerCase()) {
+      case 'ciede2000':
+      case 'deltae2000': {
         const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
         opaqueDist = Distances.CIEDE2000(lab1, lab2);
         alphaCoeff = 50;
       } break;
-      case 'deltaEOK': {
+      case 'deltaeok': {
         const [oklab1, oklab2] = [colore1, colore2].map(c => c.valuesTo('oklab'));
         opaqueDist = Distances.euclidean(oklab1, oklab2);
       } break;
@@ -1430,7 +1436,7 @@ export default class Couleur {
    * @returns Array of color property names.
    */
   protected static propertiesOf(format: string): colorProperty[] {
-    switch(format) {
+    switch(format.toLowerCase()) {
       case 'rgb':
       case 'rgba':  return ['r', 'g', 'b'];
       case 'hsl':
@@ -1459,10 +1465,12 @@ export default class Couleur {
     let result: ColorSpace | undefined;
     if (typeof spaceID !== 'string') result = spaceID;
     else {
-      const id = spaceID === 'rgb' ? 'srgb'
-               : spaceID === 'rgba' ? 'srgb'
-               : spaceID === 'hsla' ? 'hsl'
-               : spaceID;
+      let id = spaceID.toLowerCase();
+      switch (id) {
+        case 'rgb':
+        case 'rgba': id = 'srgb'; break;
+        case 'hsla': id = 'hsl'; break;
+      }
       result = Couleur.colorSpaces.find(sp => sp.id == id);
     }
 

@@ -2074,7 +2074,7 @@ class Couleur {
         let vals = values.slice(0, 3).map((v)=>Couleur.parse(v)
         );
         const a = Couleur.parse(values[3]);
-        switch(spaceID){
+        switch(spaceID.toLowerCase()){
             case 'srgb':
             case 'display-p3':
             case 'a98-rgb':
@@ -2103,7 +2103,8 @@ class Couleur {
     }
     expr(format, { precision =0 , clamp =true  } = {
     }) {
-        const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
+        const _format = format.toLowerCase();
+        const spaceID = _format.replace('color-', '');
         const space = Couleur.getSpace(spaceID);
         let values = this.valuesTo(space);
         if (clamp) values = Couleur.toGamut(space, values, space);
@@ -2114,7 +2115,7 @@ class Couleur {
             ...values,
             a
         ];
-        if (format.slice(0, 5) === 'color') {
+        if (_format.toLowerCase().slice(0, 5) === 'color') {
             let string = `color(${space.id}`;
             for (const [k, v] of Object.entries(values)){
                 if (Number(k) === values.length - 1) {
@@ -2127,35 +2128,36 @@ class Couleur {
             string += `)`;
             return string;
         }
-        const props = Couleur.propertiesOf(format);
+        const props = Couleur.propertiesOf(_format);
         const [x, y, z] = props.map((p, k)=>Couleur.unparse(values[k], p, {
                 precision
             })
         );
-        switch(format){
+        switch(_format.toLowerCase()){
             case 'rgb':
             case 'rgba':
             case 'hsl':
             case 'hsla':
                 {
-                    if (format.length > 3 && format.slice(-1) === 'a' || a < 1) return `${format}(${x}, ${y}, ${z}, ${a})`;
-                    else return `${format}(${x}, ${y}, ${z})`;
+                    if (_format.length > 3 && _format.slice(-1) === 'a' || a < 1) return `${_format}(${x}, ${y}, ${z}, ${a})`;
+                    else return `${_format}(${x}, ${y}, ${z})`;
                 }
             default:
                 {
-                    if (a < 1) return `${format}(${x} ${y} ${z} / ${a})`;
-                    else return `${format}(${x} ${y} ${z})`;
+                    if (a < 1) return `${_format}(${x} ${y} ${z} / ${a})`;
+                    else return `${_format}(${x} ${y} ${z})`;
                 }
         }
     }
     static makeExpr(format, values, valueSpaceID, options = {
     }) {
-        const spaceID = typeof format === 'string' ? format.replace('color-', '') : format;
+        const _format = format.toLowerCase();
+        const spaceID = _format.replace('color-', '');
         const rgba = [
             ...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)),
             values[3]
         ];
-        return new Couleur(rgba).expr(format, options);
+        return new Couleur(rgba).expr(_format, options);
     }
     get values() {
         return [
@@ -2551,11 +2553,12 @@ class Couleur {
     }) {
         const space = Couleur.getSpace(spaceID);
         const valueSpace = Couleur.getSpace(valueSpaceID);
+        const _method = method.toLowerCase();
         if (Couleur.inGamut(space, values, valueSpace, {
             tolerance: 0
         })) return values;
         let clampedValues, clampSpace;
-        switch(method){
+        switch(_method){
             case 'oklab':
                 {
                     clampSpace = Couleur.getSpace('srgb');
@@ -2591,7 +2594,7 @@ class Couleur {
                     );
                 }
         }
-        if (method !== 'naive') clampedValues = Couleur.toGamut(space, clampedValues, clampSpace, {
+        if (_method !== 'naive') clampedValues = Couleur.toGamut(space, clampedValues, clampSpace, {
             method: 'naive'
         });
         return Couleur.convert(clampSpace, valueSpace, clampedValues);
@@ -2601,8 +2604,8 @@ class Couleur {
     }
     change(prop, value, { action =null  } = {
     }) {
-        const replace = action === 'replace';
-        const scale = action === 'scale';
+        const replace = action?.toLowerCase() === 'replace';
+        const scale = action?.toLowerCase() === 'scale';
         const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, {
             clamp: false
         });
@@ -2825,22 +2828,27 @@ class Couleur {
             ...this.toGamut('srgb').values,
             this.a
         ];
-        if (as === 'text') {
-            const Cblack = Math.abs(Couleur.contrast(rgba, 'black', {
-                method: 'apca'
-            }));
-            const Cwhite = Math.abs(Couleur.contrast(rgba, 'white', {
-                method: 'apca'
-            }));
-            return Cblack >= Cwhite ? 'dark' : 'light';
-        } else {
-            const Cblack = Math.abs(Couleur.contrast('black', rgba, {
-                method: 'apca'
-            }));
-            const Cwhite = Math.abs(Couleur.contrast('white', rgba, {
-                method: 'apca'
-            }));
-            return Cblack >= Cwhite ? 'light' : 'dark';
+        switch(as){
+            case 'text':
+                {
+                    const Cblack = Math.abs(Couleur.contrast(rgba, 'black', {
+                        method: 'apca'
+                    }));
+                    const Cwhite = Math.abs(Couleur.contrast(rgba, 'white', {
+                        method: 'apca'
+                    }));
+                    return Cblack >= Cwhite ? 'dark' : 'light';
+                }
+            case 'background':
+                {
+                    const Cblack = Math.abs(Couleur.contrast('black', rgba, {
+                        method: 'apca'
+                    }));
+                    const Cwhite = Math.abs(Couleur.contrast('white', rgba, {
+                        method: 'apca'
+                    }));
+                    return Cblack >= Cwhite ? 'light' : 'dark';
+                }
         }
     }
     improveContrast(referenceColor, desiredContrast, { as ='text' , lower =false , colorScheme =null , method ='APCA'  } = {
@@ -2935,9 +2943,9 @@ class Couleur {
         const colore2 = Couleur.makeInstance(color2);
         let opaqueDist = +Infinity;
         let alphaCoeff = 1;
-        switch(method){
-            case 'CIEDE2000':
-            case 'deltaE2000':
+        switch(method.toLowerCase()){
+            case 'ciede2000':
+            case 'deltae2000':
                 {
                     const [lab1, lab2] = [
                         colore1,
@@ -2948,7 +2956,7 @@ class Couleur {
                     alphaCoeff = 50;
                 }
                 break;
-            case 'deltaEOK':
+            case 'deltaeok':
                 {
                     const [oklab1, oklab2] = [
                         colore1,
@@ -3054,7 +3062,7 @@ class Couleur {
         return Couleur.gradient(this, color, steps, format);
     }
     static propertiesOf(format) {
-        switch(format){
+        switch(format.toLowerCase()){
             case 'rgb':
             case 'rgba':
                 return [
@@ -3130,7 +3138,16 @@ class Couleur {
         let result;
         if (typeof spaceID !== 'string') result = spaceID;
         else {
-            const id = spaceID === 'rgb' ? 'srgb' : spaceID === 'rgba' ? 'srgb' : spaceID === 'hsla' ? 'hsl' : spaceID;
+            let id = spaceID.toLowerCase();
+            switch(id){
+                case 'rgb':
+                case 'rgba':
+                    id = 'srgb';
+                    break;
+                case 'hsla':
+                    id = 'hsl';
+                    break;
+            }
             result = Couleur.colorSpaces.find((sp)=>sp.id == id
             );
         }
