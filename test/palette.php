@@ -128,7 +128,7 @@ require_once '../dist/colori.php';
   // Contrasted palet
 
   const contrastedGenerator = function(color) {
-    const grey = new Couleur('color(oklab .5 0 0)');
+    /*const grey = new Couleur('color(oklab .5 0 0)');
     const light = [];
     const dark = [];
     const contrasts = [65, 75, 85, 95, 100, 105];
@@ -137,7 +137,10 @@ require_once '../dist/colori.php';
       dark.push(grey.improveContrast('white', i, { lower: true, as: 'background' }));
     }
     const lightnesses = [...light.reverse(), ...dark].map(c => c.okl);
+    console.log(JSON.stringify(lightnesses));*/
 
+    // Lightnesses computed with the previous commented code
+    const lightnesses = [0.9948730403485463,0.969787591129796,0.9442748958172962,0.8917236262860462,0.8368530208172963,0.7792968684735463,0.6503906184735461,0.5809936458172961,0.5017700130047963,0.4064331001636162,0.3482665970166082,0.2636718715583154];
     const [x, chroma, hue] = color.valuesTo('oklch');
     const chromas = [0, chroma / 6, chroma / 3, 0.13];
     return chromas.map((c, k) => {
@@ -148,6 +151,29 @@ require_once '../dist/colori.php';
       };
     });
   };
+
+  // improveContrast after generating each color
+  // (way slower, more precise, maybe not worth it)
+  /*const contrastedGenerator2 = function(color) {
+    const [x, chroma, hue] = color.valuesTo('oklch');
+    const contrasts = [65, 75, 85, 95, 100, 105];
+    const chromas = [0, chroma / 6, chroma / 3, chroma];
+    return chromas.map((ch, k) => {
+      const base = (new Couleur(`color(oklch .5 ${ch} ${hue})`)).toGamut('srgb');
+      const light = [];
+      const dark = [];
+      for (const c of contrasts) {
+        light.push(base.improveContrast('black', c, { lower: true, as: 'background' }));
+        dark.push(base.improveContrast('white', c, { lower: true, as: 'background' }));
+      }
+      const lightnesses = [...light.reverse(), ...dark].map(e => e.okl);
+      return {
+        lightnesses,
+        chroma: ch,
+        hue
+      };
+    });
+  };*/
 
   class ContrastedPalette extends Palette {
     constructor(hue) {
