@@ -2330,11 +2330,12 @@
       $props = self::propertiesOf($spaceID); $props[] = 'a';
       $space = self::getSpace($spaceID);
       $startValues = $start->valuesTo($space); $startValues[] = $start->a;
+      $endValues = $end->valuesTo($space); $endValues[] = $end->a;
 
       // Calculate by how much each property will be changed at each steap
       $stepList = array_map(function($prop) use ($start, $end, $steps) {
         switch ($prop) {
-          case 'h': case 'cieh':
+          case 'h': case 'cieh': case 'okh':
             // Minimize the distance to travel through hues
             $stepUp = (($end->{$prop}() - $start->{$prop}()) % 360 + 360) % 360;
             $stepDown = (($start->{$prop}() - $end->{$prop}()) % 360 + 360) % 360;
