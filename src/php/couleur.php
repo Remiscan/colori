@@ -255,11 +255,12 @@
         case 'r': case 'g': case 'b':
           $unparsed = $precision === null ? (255 * $value) : round(10**$precision * 255 * $value) / (10**$precision);
           break;
-        case 's': case 'l': case 'w': case 'bk': case 'ciel':
+        case 's': case 'l': case 'w': case 'bk': case 'ciel': case 'okl':
           $unparsed = $precision === null ? (100 * $value).'%' : (round(10**$precision * 100 * $value) / (10**$precision)).'%';
           break;
         case 'oka': case 'okb': case 'okc':
           $unparsed = $precision === null ? (100 * $value) : round(10**$precision * 100 * $value) / (10**$precision);
+          break;
         case 'a':
           $unparsed = $precision === null ? $value : round(10**max($precision, 2) * $value) / (10**max($precision, 2));
           break;
@@ -341,6 +342,7 @@
     public function expr(array|string $format, ?int $precision = 0, bool $clamp = true): string {
       $spaceID = is_string($format) ? str_replace('color-', '', $format) : $format;
       $space = self::getSpace($spaceID);
+
       $values = $this->valuesTo($space);
       if ($clamp) $values = self::toGamut($space, $values, $space);
       $a = self::unparse($this->a, 'a', precision: $precision);
