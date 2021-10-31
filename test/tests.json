@@ -243,32 +243,52 @@
     "fonction": "Colour.contrast('hsl(55, 57%, 71%)', 'hsl(230, 25%, 10%)', { method: 'WCAG2' })",
     "resultatAttendu": 12.4
   }, {
-    "fonction": "Colour.gradient('lightgreen', 'blue').map(c => c.lch)",
-    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('lightgreen', 'blue'))",
+    "fonction": "Colour.gradient('lightgreen', 'blue').map(c => c.oklch)",
+    "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('lightgreen', 'blue'))",
     "resultatAttendu": [
-      "lch(86.6% 56.34 139.75)",
-      "lch(77.07% 56.96 167.04)",
-      "lch(69.51% 42.23 218.5)",
-      "lch(60.65% 61.35 265.24)",
-      "lch(48.2% 83.64 283.86)",
-      "lch(29.57% 131.2 301.37)"
+      "oklch(86.8% 15.58 144.09)",
+      "oklch(79.62% 16.7 165.18)",
+      "oklch(74.42% 12.75 192.78)",
+      "oklch(67.16% 14.64 236.91)",
+      "oklch(57.49% 22.81 259.47)",
+      "oklch(45.2% 31.32 264.05)"
     ]
   }, {
-    "fonction": "Colour.gradient('lightgreen', 'blue', 1).map(c => c.lch)",
-    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('lightgreen', 'blue', 1))",
-    "resultatAttendu": [ "lch(87% 56 140)", "lch(30% 131 301)" ]
+    "fonction": "Colour.gradient('lightgreen', 'blue', 1).map(c => c.oklch)",
+    "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('lightgreen', 'blue', 1))",
+    "resultatAttendu": [
+      "oklch(86.8% 15.58 144.09)",
+      "oklch(45.2% 31.32 264.05)"
+    ]
   }, {
-    "fonction": "Colour.gradient('lightgreen', 'blue', -5).map(c => c.lch)",
-    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('lightgreen', 'blue', -5))",
-    "resultatAttendu": [ "lch(87% 56 140)", "lch(30% 131 301)" ]
+    "fonction": "Colour.gradient('lightgreen', 'blue', -5).map(c => c.oklch)",
+    "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('lightgreen', 'blue', -5))",
+    "resultatAttendu": [
+      "oklch(86.8% 15.58 144.09)",
+      "oklch(45.2% 31.32 264.05)"
+    ]
   }, {
-    "fonction": "Colour.gradient('#1f005c', '#ffb56b').map(c => c.lch)",
-    "fonctionphp": "array_map(function($c) { return $c->lch(); }, Couleur::gradient('#1f005c', '#ffb56b'))",
-    "resultatAttendu": [ "lch(9% 59 305)", "lch(23% 58 329)", "lch(37% 57 353)", "lch(51% 56 17)", "lch(66% 54 41)", "lch(80% 53 65)" ]
+    "fonction": "Colour.gradient('#1f005c', '#ffb56b').map(c => c.oklch)",
+    "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('#1f005c', '#ffb56b'))",
+    "resultatAttendu": [
+      "oklch(23.84% 13.95 284.79)",
+      "oklch(35.64% 13.66 312.75)",
+      "oklch(47.44% 13.37 340.71)",
+      "oklch(59.24% 13.09 8.67)",
+      "oklch(71.03% 12.8 36.63)",
+      "oklch(82.83% 12.51 64.58)"
+    ]
   }, {
     "fonction": "Colour.gradient('lightgreen', 'blue', 5, 'hsl').map(c => c.hsl)",
     "fonctionphp": "array_map(function($c) { return $c->hsl(); }, Couleur::gradient('lightgreen', 'blue', 5, 'hsl'))",
-    "resultatAttendu": [ "hsl(120, 73%, 75%)", "hsl(144, 79%, 70%)", "hsl(168, 84%, 65%)", "hsl(192, 89%, 60%)", "hsl(216, 95%, 55%)", "hsl(240, 100%, 50%)" ]
+    "resultatAttendu": [
+      "hsl(120, 73%, 75%)",
+      "hsl(144, 79%, 70%)",
+      "hsl(168, 84%, 65%)",
+      "hsl(192, 89%, 60%)",
+      "hsl(216, 95%, 55%)",
+      "hsl(240, 100%, 50%)"
+    ]
   }, {
     "fonction": "Colour.distance('lab(50% 2.5 0)', 'lab(73% 25 -18)', { method: 'deltaE2000' })",
     "resultatAttendu": 27.1492

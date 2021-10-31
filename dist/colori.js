@@ -2991,7 +2991,7 @@ class Couleur {
     }) {
         return Couleur.same(this, color, options);
     }
-    static gradient(startColor, endColor, steps = 5, spaceID = 'lch') {
+    static gradient(startColor, endColor, steps = 5, spaceID = 'oklch') {
         const start = Couleur.makeInstance(startColor);
         const end = Couleur.makeInstance(endColor);
         const _steps = Math.max(1, steps);

@@ -1338,7 +1338,7 @@ export default class Couleur {
    * @param spaceID Identifier of the color space in which to compute the gradient.
    * @returns The array of (steps + 1) colors in the gradient.
    */
-  public static gradient(startColor: color, endColor: color, steps: number = 5, spaceID: string = 'lch'): Couleur[] {
+  public static gradient(startColor: color, endColor: color, steps: number = 5, spaceID: string = 'oklch'): Couleur[] {
     const start = Couleur.makeInstance(startColor);
     const end = Couleur.makeInstance(endColor);
     const _steps = Math.max(1, steps);

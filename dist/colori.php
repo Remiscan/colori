@@ -2321,7 +2321,7 @@
 
 
     /** Calculates the intermediate colors a gradient should use to go from one color to another without passing through the "desaturated zone". */
-    public static function gradient(self|array|string $startColor, self|array|string $endColor, int $steps = 5, array|string $spaceID = 'lch'): array {
+    public static function gradient(self|array|string $startColor, self|array|string $endColor, int $steps = 5, array|string $spaceID = 'oklch'): array {
       $start = self::makeInstance($startColor);
       $end = self::makeInstance($endColor);
       $steps = max(1, $steps);
