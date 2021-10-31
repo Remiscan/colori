@@ -175,7 +175,9 @@ export default class Couleur {
         // from any % or any number
         // clamped to [0, 100]% or [0, 255]
         // to [0, 1]
-        case 'r': case 'g': case 'b': {
+        case 'r':
+        case 'g':
+        case 'b': {
           // If n is a percentage
           if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
             if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
@@ -194,7 +196,9 @@ export default class Couleur {
         // from any angle or any number
         // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
         // to [0, 360]
-        case 'h': case 'cieh': case 'okh': {
+        case 'h':
+        case 'cieh':
+        case 'okh': {
           let h = nval;
           // If n is a number
           if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
@@ -219,7 +223,12 @@ export default class Couleur {
         // from any %
         // clamped to [0, 100]%
         // to [0, 1]
-        case 's': case 'l': case 'w': case 'bk': case 'ciel': case 'okl': {
+        case 's':
+        case 'l':
+        case 'w':
+        case 'bk':
+        case 'ciel':
+        case 'okl': {
           // If n is a percentage
           if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
             if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
@@ -230,7 +239,8 @@ export default class Couleur {
 
         // CIE axes values:
         // any number
-        case 'ciea': case 'cieb': {
+        case 'ciea':
+        case 'cieb': {
           // If n is a number
           if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
             return nval;
@@ -252,7 +262,9 @@ export default class Couleur {
 
         // OKLAB axes & chroma values:
         // any number
-        case 'oka': case 'okb': case 'okc': {
+        case 'oka':
+        case 'okb':
+        case 'okc': {
           // If n is a number
           if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
             return nval / 100;
@@ -293,11 +305,20 @@ export default class Couleur {
    */
   private static unparse(value: number, prop: colorProperty | null, { precision = 0 }: { precision?: number } = {}): string {
     switch (prop) {
-      case 'r': case 'g': case 'b':
+      case 'r':
+      case 'g':
+      case 'b':
         return precision === null ? `${255 * value}` : `${Math.round(10**precision * 255 * value) / (10**precision)}`;
-      case 's': case 'l': case 'w': case 'bk': case 'ciel': case 'okl':
+      case 's':
+      case 'l':
+      case 'w':
+      case 'bk':
+      case 'ciel':
+      case 'okl':
         return precision === null ? `${100 * value}%` : `${Math.round(10**precision * 100 * value) / (10**precision)}%`;
-      case 'oka': case 'okb': case 'okc':
+      case 'oka':
+      case 'okb':
+      case 'okc':
         return precision === null ? `${100 * value}` : `${Math.round(10**precision * 100 * value) / (10**precision)}`;
       case 'a':
         return precision === null ? `${value}` : `${Math.round(10**Math.max(precision, 2) * value) / (10**Math.max(precision, 2))}`;
@@ -351,8 +372,13 @@ export default class Couleur {
     const a = Couleur.parse(values[3]);
 
     switch (spaceID) {
-      case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
-      case 'oklab': case 'oklch':
+      case 'srgb':
+      case 'display-p3':
+      case 'a98-rgb':
+      case 'prophoto-rgb':
+      case 'rec2020':
+      case 'oklab':
+      case 'oklch':
       case 'xyz':
         vals = Couleur.convert(spaceID, 'srgb', vals);
         break;
@@ -414,7 +440,10 @@ export default class Couleur {
     const [x, y, z] = props.map((p, k) => Couleur.unparse(values[k], p, { precision }));
 
     switch (format) {
-      case 'rgb': case 'rgba': case 'hsl': case 'hsla': {
+      case 'rgb':
+      case 'rgba':
+      case 'hsl':
+      case 'hsla': {
         if ((format.length > 3 && format.slice(-1) === 'a') || a < 1)
           return `${format}(${x}, ${y}, ${z}, ${a})`;
         else
@@ -1106,7 +1135,9 @@ export default class Couleur {
     if (text.a < 1) text = Couleur.blend(background, text);
 
     switch (method.toLowerCase()) {
-      case 'wcag3': case 'sapc': case 'apca':
+      case 'wcag3':
+      case 'sapc':
+      case 'apca':
         return Contrasts.APCA(text.values, background.values);
       case 'wcag2':
       default:
@@ -1287,7 +1318,8 @@ export default class Couleur {
     let alphaCoeff: number = 1;
 
     switch (method) {
-      case 'CIEDE2000': case 'deltaE2000': {
+      case 'CIEDE2000':
+      case 'deltaE2000': {
         const [lab1, lab2] = [colore1, colore2].map(c => c.valuesTo('lab'));
         opaqueDist = Distances.CIEDE2000(lab1, lab2);
         alphaCoeff = 50;
@@ -1399,14 +1431,16 @@ export default class Couleur {
    */
   protected static propertiesOf(format: string): colorProperty[] {
     switch(format) {
-      case 'rgb': case 'rgba': return ['r', 'g', 'b'];
-      case 'hsl': case 'hsla': return ['h', 's', 'l'];
-      case 'hwb':              return ['h', 'w', 'bk'];
-      case 'lab':              return ['ciel', 'ciea', 'cieb'];
-      case 'lch':              return ['ciel', 'ciec', 'cieh'];
-      case 'oklab':            return ['okl', 'oka', 'okb'];
-      case 'oklch':            return ['okl', 'okc', 'okh'];
-      default:                 return [];
+      case 'rgb':
+      case 'rgba':  return ['r', 'g', 'b'];
+      case 'hsl':
+      case 'hsla':  return ['h', 's', 'l'];
+      case 'hwb':   return ['h', 'w', 'bk'];
+      case 'lab':   return ['ciel', 'ciea', 'cieb'];
+      case 'lch':   return ['ciel', 'ciec', 'cieh'];
+      case 'oklab': return ['okl', 'oka', 'okb'];
+      case 'oklch': return ['okl', 'okc', 'okh'];
+      default:      return [];
     }
   }
 

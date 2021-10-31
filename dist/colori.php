@@ -1359,7 +1359,9 @@
           // from any % or any number
           // clamped to [0, 100]% or [0, 255]
           // to [0, 1]
-          case 'r': case 'g': case 'b':
+          case 'r':
+          case 'g':
+          case 'b':
             // If n is a percentage
             if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
               if ($clamp) return max(.0, min(floatval($value) / 100, 1.0));
@@ -1376,7 +1378,9 @@
           // from any angle or any number
           // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
           // to [0, 1]
-          case 'h': case 'cieh': case 'okh':
+          case 'h':
+          case 'cieh':
+          case 'okh':
             $h = floatval($value);
             // If n is a number
             if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
@@ -1400,7 +1404,12 @@
           // from any %
           // clamped to [0, 100]%
           // to [0, 1]
-          case 's': case 'l': case 'w': case 'bk': case 'ciel': case 'okl':
+          case 's':
+          case 'l':
+          case 'w':
+          case 'bk':
+          case 'ciel':
+          case 'okl':
             // If n is a percentage
             if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
               if ($clamp) return max(0, min(floatval($value) / 100, 1));
@@ -1410,7 +1419,8 @@
 
           // CIE axes values:
           // any number
-          case 'ciea': case 'cieb':
+          case 'ciea':
+          case 'cieb':
             // If n is a number
             if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
               return floatval($value);
@@ -1430,7 +1440,9 @@
 
           // OKLAB axes & chroma values:
           // any number
-          case 'oka': case 'okb': case 'okc':
+          case 'oka':
+          case 'okb':
+          case 'okc':
             // If n is a number
             if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
               return floatval($value) / 100;
@@ -1463,13 +1475,22 @@
     private static function unparse(float $value, string $prop, ?int $precision = 0): string {
       $v = $value;
       switch ($prop) {
-        case 'r': case 'g': case 'b':
+        case 'r':
+        case 'g':
+        case 'b':
           $unparsed = $precision === null ? (255 * $value) : round(10**$precision * 255 * $value) / (10**$precision);
           break;
-        case 's': case 'l': case 'w': case 'bk': case 'ciel': case 'okl':
+        case 's':
+        case 'l':
+        case 'w':
+        case 'bk':
+        case 'ciel':
+        case 'okl':
           $unparsed = $precision === null ? (100 * $value).'%' : (round(10**$precision * 100 * $value) / (10**$precision)).'%';
           break;
-        case 'oka': case 'okb': case 'okc':
+        case 'oka':
+        case 'okb':
+        case 'okc':
           $unparsed = $precision === null ? (100 * $value) : round(10**$precision * 100 * $value) / (10**$precision);
           break;
         case 'a':
@@ -1523,8 +1544,13 @@
       $a = $values[3];
 
       switch ($spaceID) {
-        case 'srgb': case 'display-p3': case 'a98-rgb': case 'prophoto-rgb': case 'rec2020':
-        case 'oklab': case 'oklch':
+        case 'srgb':
+        case 'display-p3':
+        case 'a98-rgb':
+        case 'prophoto-rgb':
+        case 'rec2020':
+        case 'oklab':
+        case 'oklch':
         case 'xyz':
           $vals = self::convert($spaceID, 'srgb', $vals);
           break;
@@ -1582,7 +1608,10 @@
       [$x, $y, $z] = $unparsed;
 
       switch ($format) {
-        case 'rgb': case 'rgba': case 'hsl': case 'hsla':
+        case 'rgb':
+        case 'rgba':
+        case 'hsl':
+        case 'hsla':
           if ((strlen($format) > 3 && substr($format, -1) === 'a') || $a < 1.0)
             return "${format}(${x}, ${y}, ${z}, ${a})";
           else
@@ -2141,7 +2170,9 @@
       if ($text->a < 1) $text = self::blend($background, $text);
 
       switch (strtolower($method)) {
-        case 'wcag3': case 'sapc': case 'apca':
+        case 'wcag3':
+        case 'sapc':
+        case 'apca':
           return contrasts\APCA($text->values(), $background->values());
         default:
           return contrasts\WCAG2($text->values(), $background->values());
@@ -2289,7 +2320,8 @@
       $alphaCoeff = 1.0;
 
       switch ($method) {
-        case 'CIEDE2000': case 'deltaE2000':
+        case 'CIEDE2000':
+        case 'deltaE2000':
           $lab1 = $color1->valuesTo('lab');
           $lab2 = $color2->valuesTo('lab');
           $opaqueDist = distances\CIEDE2000($lab1, $lab2);
@@ -2335,13 +2367,18 @@
       // Calculate by how much each property will be changed at each steap
       $stepList = array_map(function($prop) use ($start, $end, $steps) {
         switch ($prop) {
-          case 'h': case 'cieh': case 'okh':
+          case 'h':
+          case 'cieh':
+          case 'okh':
             // Minimize the distance to travel through hues
             $stepUp = (($end->{$prop}() - $start->{$prop}()) % 360 + 360) % 360;
             $stepDown = (($start->{$prop}() - $end->{$prop}()) % 360 + 360) % 360;
             $step = (($stepUp <= $stepDown) ? $stepUp : -$stepDown) / $steps;
             break;
-          case 'r': case 'g': case 'b': case 'a':
+          case 'r':
+          case 'g':
+          case 'b':
+          case 'a':
             $step = ($end->{$prop} - $start->{$prop}) / $steps;
             break;
           default:
@@ -2382,13 +2419,15 @@
     /** Gets the names of the properties of a color used in a certain format. */
     protected static function propertiesOf(string $format): array {
       switch($format) {
-        case 'rgb': case 'rgba': return ['r', 'g', 'b'];
-        case 'hsl': case 'hsla': return ['h', 's', 'l'];
-        case 'hwb':              return ['h', 'w', 'bk'];
-        case 'lab':              return ['ciel', 'ciea', 'cieb'];
-        case 'lch':              return ['ciel', 'ciec', 'cieh'];
-        case 'oklab':            return ['okl', 'oka', 'okb'];
-        case 'oklch':            return ['okl', 'okc', 'okh'];
+        case 'rgb':
+        case 'rgba':  return ['r', 'g', 'b'];
+        case 'hsl':
+        case 'hsla':  return ['h', 's', 'l'];
+        case 'hwb':   return ['h', 'w', 'bk'];
+        case 'lab':   return ['ciel', 'ciea', 'cieb'];
+        case 'lch':   return ['ciel', 'ciec', 'cieh'];
+        case 'oklab': return ['okl', 'oka', 'okb'];
+        case 'oklch': return ['okl', 'okc', 'okh'];
         default: return [];
       }
     }
