@@ -1,8 +1,7 @@
 // ▼ ES modules cache-busted grâce à PHP
 /*<?php ob_start();?>*/
 
-import Couleur from '../dist/colori.js';
-import Colour from '../dist/colori.js';
+import { default as Colour, default as Couleur } from '../dist/colori.js';
 
 /*<?php $imports = ob_get_clean();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
@@ -112,8 +111,8 @@ export default class Test {
     let textColor= '', gradient = '';
     try {
       if (Array.isArray(resultat)) {
-        gradient = `linear-gradient(to right, ${resultat.map(c => (new Colour(c)).rgb).join(', ')})`;
-        backgroundColor = new Colour(resultat[0]);
+        if (resultat.length > 1) gradient = `linear-gradient(to right, ${resultat.map(c => (new Colour(c)).rgb).join(', ')})`;
+        if (resultat.length > 0) backgroundColor = new Colour(resultat[0]);
       } else {
         backgroundColor = new Colour(resultat);
       }

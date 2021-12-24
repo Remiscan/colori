@@ -1,12 +1,12 @@
-import * as Utils from './utils.js';
-import * as Conversions from './conversion.js';
-import Graph from './graph.js';
-import * as Contrasts from './contrasts.js';
-import * as Distances from './distances.js';
-import * as OklabGamut from './oklab-gamut.js';
 import colorSpaces, { ColorSpace } from './color-spaces.js';
+import * as Contrasts from './contrasts.js';
+import * as Conversions from './conversion.js';
+import { Format as CSSFormat, Formats, RegExps as ValueRegExps } from './css-formats.js';
+import * as Distances from './distances.js';
+import Graph from './graph.js';
 import namedColors from './named-colors.js';
-import { RegExps as ValueRegExps, Formats, Format as CSSFormat } from './css-formats.js';
+import * as OklabGamut from './oklab-gamut.js';
+import * as Utils from './utils.js';
 
 
 
@@ -1044,7 +1044,7 @@ export default class Couleur {
    * @param options.ignoreTransparent Whether to return the color 'transparent' when it's a solution.
    * @returns The solution(s) to the equation.
    */
-  public static whatToBlend(backgroundColor: color, mixColor: color, alphas: number | number[] = [], { ignoreTransparent = false }: { ignoreTransparent?: boolean } = {}): Couleur | Couleur[] | null {
+  public static whatToBlend(backgroundColor: color, mixColor: color, alphas: number | number[] = [], { ignoreTransparent = false }: { ignoreTransparent?: boolean } = {}): Couleur[] {
     const background = Couleur.makeInstance(backgroundColor);
     const mix = Couleur.makeInstance(mixColor);
     let overlays: Couleur[] = [];
@@ -1063,7 +1063,7 @@ export default class Couleur {
                                                       : Array.from({ length: 9 }, (v, k) => (k + 1) / 10);
 
     // The mix can't have lower opacity than the background
-    if (mix.a < background.a)      return null;
+    if (mix.a < background.a)      return [];
     // If the mix is more opaque than the background...
     else if (mix.a > background.a) {
       // If the background is partially transparent and the mix is opaque, the mix is the only solution
@@ -1076,7 +1076,7 @@ export default class Couleur {
       else {
         const a = (mix.a - background.a) / (1 - background.a);
         try { overlays.push(calculateSolution(a)); }
-        catch (error) { return null; }
+        catch (error) { return []; }
       }
     }
     // If the mix is as opaque as the background...
@@ -1088,7 +1088,7 @@ export default class Couleur {
       // if they're the same color, 'transparent' is solution. If not, there is no solution.
       else if (mix.a < 1) {
         if (Couleur.same(mix, background)) overlays.push(new Couleur('transparent'));
-        else                               return null;
+        else                               return [];
       }
       // If both mix and background are totally opaque, then there is an infinity of solutions
       // (one per alpha value from 0 (included only if same color) to 1). Let's calculate the ones
@@ -1108,13 +1108,11 @@ export default class Couleur {
                                             : overlays;
     if (ignoreTransparent) result = result.filter(r => r.a > 0);
 
-    return result.length === 0 ? null
-         : result.length === 1 ? result[0]
-         : result;
+    return result;
   }
 
   /** @see Couleur.whatToBlend - Non-static version. */
-  public whatToBlend(mixColor: color, alphas: number | number[]): Couleur | Couleur[] | null { return Couleur.whatToBlend(this, mixColor, alphas); }
+  public whatToBlend(mixColor: color, alphas: number | number[]): Couleur[] | null { return Couleur.whatToBlend(this, mixColor, alphas); }
 
 
   /* Color comparison */

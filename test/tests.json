@@ -98,51 +98,59 @@
     "fonction": "Colour.unblendAll('rgb(127.5, 191.25, 64)', 'rgba(0, 255, 0, .5)', 'rgba(255, 0, 0, .5)').rgb",
     "resultatAttendu": "rgb(255, 255, 255)"
   } , {
-    "fonction": "Colour.whatToBlend('red', 'red', 0).rgb",
-    "resultatAttendu": "transparent"
+    "fonction": "Colour.whatToBlend('red', 'red', 0).map(c => c.rgb)",
+    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('red', 'red', 0))",
+    "resultatAttendu": [ "transparent" ]
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 0)",
-    "resultatAttendu": null
+    "resultatAttendu": []
   }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 1).rgb",
-    "resultatAttendu": "red"
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 1).map(c => c.rgb)",
+    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 128, 128)', 'red', 1))",
+    "resultatAttendu": [ "red" ]
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'rgb(255, 0, 0, .5)', .9)",
-    "resultatAttendu": null
+    "resultatAttendu": []
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .2)', 'rgb(255, 0, 0, .9)', .9)",
-    "resultatAttendu": null
+    "resultatAttendu": []
   }, {
-    "fonction": "Colour.whatToBlend('transparent', 'rgb(255, 0, 0, .9)', .9).rgb",
-    "resultatAttendu": "rgb(255, 0, 0, .9)"
+    "fonction": "Colour.whatToBlend('transparent', 'rgb(255, 0, 0, .9)', .9).map(c => c.rgb)",
+    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('transparent', 'rgb(255, 0, 0, .9)', .9))",
+    "resultatAttendu": [ "rgb(255, 0, 0, .9)" ]
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'rgb(255, 0, 0, .5)')",
-    "resultatAttendu": null
+    "resultatAttendu": []
   }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0)').rgb",
-    "resultatAttendu": "rgb(255, 0, 0)"
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0)').map(c => c.rgb)",
+    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0)'))",
+    "resultatAttendu": [ "rgb(255, 0, 0)" ]
   }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, 0)', 'rgb(255, 0, 0, .5)').rgb",
-    "resultatAttendu": "rgb(255, 0, 0, .5)"
+    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, 0)', 'rgb(255, 0, 0, .5)').map(c => c.rgb)",
+    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 128, 128, 0)', 'rgb(255, 0, 0, .5)'))",
+    "resultatAttendu": [ "rgb(255, 0, 0, .5)" ]
   }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 128, 128, .75)').rgb",
-    "resultatAttendu": "rgb(255, 192, 192, 0.5)"
+    "fonction": "Colour.whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 128, 128, .75)').map(c => c.rgb)",
+    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 128, 128, .75)'))",
+    "resultatAttendu": [ "rgb(255, 192, 192, 0.5)" ]
   }, {
     "fonction": "Colour.blend('rgb(255, 0, 0, .5)', 'rgb(255, 192, 192, 0.5)').rgb",
     "resultatAttendu": "rgb(255, 128, 128, .75)"
   }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 0, 0, .5)').rgb",
-    "resultatAttendu": "transparent"
+    "fonction": "Colour.whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 0, 0, .5)').map(c => c.rgb)",
+    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 0, 0, .5)'))",
+    "resultatAttendu": [ "transparent" ]
   }, {
     "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0, .5)')",
-    "resultatAttendu": null
+    "resultatAttendu": []
   }, {
     "fonction": "Colour.whatToBlend('red', 'rgb(255, 128, 128)').map(c => c.hsla)",
     "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('red', 'rgb(255, 128, 128)'))",
     "resultatAttendu": [ "hsla(0, 0%, 100%, 0.5)", "hsla(0, 100%, 92%, 0.6)", "hsla(0, 100%, 86%, 0.7)", "hsla(0, 100%, 81%, 0.8)", "hsla(0, 100%, 78%, 0.9)", "hsla(0, 100%, 75%, 1)" ]
   }, {
-    "fonction": "Colour.whatToBlend('red', 'rgb(255, 128, 128)', .6).hsl",
-    "resultatAttendu": "hsla(0, 100%, 92%, 0.6)"
+    "fonction": "Colour.whatToBlend('red', 'rgb(255, 128, 128)', .6).map(c => c.hsl)",
+    "fonctionphp": "array_map(function($c) { return $c->hsl(); }, Couleur::whatToBlend('red', 'rgb(255, 128, 128)', .6))",
+    "resultatAttendu": [ "hsla(0, 100%, 92%, 0.6)" ]
   }, {
     "fonction": "(new Colour('hsl(200, 10%, 10%)'))",
     "resultatAttendu": {"r": 0.09, "g": 0.10333, "b": 0.11, "a": 1 }

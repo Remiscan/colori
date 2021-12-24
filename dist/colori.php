@@ -2088,7 +2088,7 @@
 
 
     /** Solves the equation mix = blend(background, overlay) with overlay unknown. */
-    public static function whatToBlend(self|array|string $backgroundColor, self|array|string $overlayColor, array|float $alphas = [], bool $ignoreTransparent = false): self|array|null {
+    public static function whatToBlend(self|array|string $backgroundColor, self|array|string $overlayColor, array|float $alphas = [], bool $ignoreTransparent = false): array {
       $background = self::makeInstance($backgroundColor);
       $mix = self::makeInstance($overlayColor);
       $overlays = [];
@@ -2110,7 +2110,7 @@
                                                     : $defaultAlphas;
 
       // The mix can't have lower opacity than the background
-      if ($mix->a < $background->a)    return null;
+      if ($mix->a < $background->a)    return [];
       // If the mix is more opaque than the background...
       elseif ($mix->a > $background->a) {
         // If the background is partially transparent and the mix is opaque, the mix is the only solution
@@ -2123,7 +2123,7 @@
         else {
           $a = ($mix->a - $background->a) / (1.0 - $background->a);
           try { $overlays[] = $calculateSolution($a); }
-          catch (\Throwable $error) { return null; }
+          catch (\Throwable $error) { return []; }
         }
       }
       // If the mix is as opaque as the background...
@@ -2135,7 +2135,7 @@
         // if they're the same color, 'transparent' is solution. If not, there is no solution.
         else if ($mix->a < 1.0) {
           if (self::same($mix, $background)) $overlays[] = new self('transparent');
-          else                               return null;
+          else                               return [];
         }
         // If both mix and background are totally opaque, then there is an infinity of solutions
         // (one per alpha value from 0 (included only if same color) to 1). Let's calculate the ones
@@ -2155,9 +2155,7 @@
                                             : $overlays;
       if ($ignoreTransparent) $result = array_filter($result, fn($a) => $a > .0);
 
-      return count($result) === 0 ? null
-          : (count($result) === 1 ? $result[0]
-          : $result);
+      return $result;
     }
 
 

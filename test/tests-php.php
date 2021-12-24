@@ -63,7 +63,7 @@ class Test {
   // Checks if the test results fit the expected results
   public function validate() {
     $resultat = $this->resultat();
-    $isError = (is_array($resultat) && $resultat[0] === 'Error');
+    $isError = (is_array($resultat) && count($resultat) > 0 && $resultat[0] === 'Error');
 
     // If result is an error, check if we expected one
     if ($isError === true)
@@ -121,7 +121,7 @@ class Test {
     $validation = $this->validate();
     $resultat = $this->resultat();
 
-    $isError = is_array($resultat) && $resultat[0] === 'Error';
+    $isError = is_array($resultat) && count($resultat) > 0 && $resultat[0] === 'Error';
     if ($isError) $resultat[1] = htmlspecialchars($resultat[1]);
     $titre = $this->nom();
     $time = $this->time * 1000;
@@ -137,8 +137,8 @@ class Test {
     $textColor = ''; $gradient = '';
     try {
       if (is_array($resultat) && !$isError) {
-        $gradient = 'linear-gradient(to right, ' . (implode(', ', array_map(function($c) { return (new Couleur($c))->rgb(); }, $resultat))) . ')';
-        $backgroundColor = new Couleur($resultat[0]);
+        if (count($resultat) > 1) $gradient = 'linear-gradient(to right, ' . (implode(', ', array_map(function($c) { return (new Couleur($c))->rgb(); }, $resultat))) . ')';
+        if (count($resultat) > 0) $backgroundColor = new Couleur($resultat[0]);
       } else {
         $backgroundColor = new Couleur($resultat);
       }
