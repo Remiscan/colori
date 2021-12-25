@@ -2198,6 +2198,30 @@ class Couleur {
         } else if (this.a === 0) return 'transparent';
         else return null;
     }
+    get closestName() {
+        if (this.a === 0) return 'transparent';
+        const allNames = Couleur.namedColors;
+        const [r, g, b] = [
+            255 * this.r,
+            255 * this.g,
+            255 * this.b
+        ];
+        let closest = '';
+        let lastDistance = +Infinity;
+        for (const [name, hex] of allNames.entries()){
+            const [r2, g2, b2] = [
+                parseInt(`${hex[0]}${hex[1]}`, 16),
+                parseInt(`${hex[2]}${hex[3]}`, 16),
+                parseInt(`${hex[4]}${hex[5]}`, 16)
+            ];
+            const distance = Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) + Math.abs(1 - this.a);
+            if (distance < lastDistance) {
+                lastDistance = distance;
+                closest = name;
+            }
+        }
+        return closest;
+    }
     get hex() {
         const values = Couleur.toGamut('srgb', this.values);
         const rgb = [

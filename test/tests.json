@@ -345,5 +345,26 @@
   }, {
     "fonction": "(new Colour('oklch(91.5% 13.04 169)')).rgb",
     "resultatAttendu": "rgb(127, 255, 212)"
+  }, {
+    "fonction": "(new Colour('red')).closestName",
+    "resultatAttendu": "red"
+  }, {
+    "fonction": "(new Colour('hsl(193, 100%, 50%)')).name",
+    "resultatAttendu": null
+  }, {
+    "fonction": "(new Colour('hsl(193, 100%, 50%)')).exactName",
+    "resultatAttendu": null
+  }, {
+    "fonction": "(new Colour('hsl(193, 100%, 50%)')).closestName",
+    "resultatAttendu": "deepskyblue"
+  }, {
+    "fonction": "(new Colour('oklch(75% 11 327)')).name",
+    "resultatAttendu": null
+  }, {
+    "fonction": "(new Colour('oklch(75% 11 327)')).exactName",
+    "resultatAttendu": null
+  }, {
+    "fonction": "(new Colour('oklch(75% 11 327)')).closestName",
+    "resultatAttendu": "plum"
   }
 ]

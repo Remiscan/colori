@@ -1642,28 +1642,44 @@
     /** The approximate name of the color. */
     public function name(): ?string {
       if ($this->a === 1.0) {
-        $allNames = self::NAMED_COLORS;
         [$r, $g, $b] = [255 * $this->r, 255 * $this->g, 255 * $this->b];
         $tolerance = 255 * .02;
-        foreach($allNames as $name => $hex) {
+        foreach (self::NAMED_COLORS as $name => $hex) {
           [$r2, $g2, $b2] = [intval(hexdec($hex[0].$hex[1])), intval(hexdec($hex[2].$hex[3])), intval(hexdec($hex[4].$hex[5]))];
           if (abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b) < $tolerance) return $name;
         }
         return null;
       }
-      else if ($this->a === 0) return 'transparent';
-      else                     return null;
+      else if ($this->a === 0.0) return 'transparent';
+      else                       return null;
     }
 
     /** The exact name of the color. */
     public function exactName(): ?string {
-      if ($this->a === 1) {
+      if ($this->a === 1.0) {
         $hex6 = substr($this->hex(), 1);
         $name = array_search($hex6, self::NAMED_COLORS);
-        return $name ?? null;
+        return $name ?: null;
       }
-      elseif ($this->a === 0)  return 'transparent';
-      else                     return null;
+      else if ($this->a === 0.0) return 'transparent';
+      else                       return null;
+    }
+
+    /** The name of the closest named color. */
+    public function closestName(): string {
+      if ($this->a === 0.0) return 'transparent';
+      [$r, $g, $b] = [255 * $this->r, 255 * $this->g, 255 * $this->b];
+      $closest = '';
+      $lastDistance = INF;
+      foreach (self::NAMED_COLORS as $name => $hex) {
+        [$r2, $g2, $b2] = [intval(hexdec($hex[0].$hex[1])), intval(hexdec($hex[2].$hex[3])), intval(hexdec($hex[4].$hex[5]))];
+        $distance = abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b) + abs(1.0 - $this->a);
+        if ($distance < $lastDistance) {
+          $lastDistance = $distance;
+          $closest = $name;
+        }
+      }
+      return $closest;
     }
 
 

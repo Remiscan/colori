@@ -10,7 +10,7 @@ class Test {
 
   function __construct($fonction = null, $resultatAttendu = null, $nophp = false, $ordre = 0) {
     // Convert JavaScript text to PHP test
-    $exGetters = ['name', 'exactName', 'hexa', 'hex', 'rgba', 'rgb', 'hsla', 'hsl', 'hwba', 'hwb', 'laba', 'lab', 'lcha', 'lch', 'luminance', 'values'];
+    $exGetters = ['name', 'exactName', 'closestName', 'hexa', 'hex', 'rgba', 'rgb', 'hsla', 'hsl', 'hwba', 'hwb', 'laba', 'lab', 'lcha', 'lch', 'luminance', 'values'];
     $f = str_replace(
       array_map(function($x) { return '.' . $x; }, $exGetters), 
       array_map(function($x) { return '->' . $x . '()'; }, $exGetters),
