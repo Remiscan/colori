@@ -447,11 +447,13 @@
 
     /** The name of the closest named color. */
     public function closestName(): string {
+      if ($this->a < 0.5) return 'transparent';
       [$r, $g, $b] = $this->values();
       $closest = '';
       $lastDistance = INF;
       foreach (self::NAMED_COLORS as $name => $hex) {
         [$r2, $g2, $b2] = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
+        $distance = abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b);
         if ($distance < $lastDistance) {
           $lastDistance = $distance;
           $closest = $name;

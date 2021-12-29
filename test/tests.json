@@ -367,4 +367,17 @@
     "fonction": "(new Colour('oklch(75% 11 327)')).closestName",
     "resultatAttendu": "plum"
   }
+  , {
+    "fonction": "(new Colour('oklch(75% 11 327 / .8)')).closestName",
+    "resultatAttendu": "plum"
+  }, {
+    "fonction": "(new Colour('oklch(75% 11 327 / .5)')).closestName",
+    "resultatAttendu": "plum"
+  }, {
+    "fonction": "(new Colour('oklch(75% 11 327 / .2)')).closestName",
+    "resultatAttendu": "transparent"
+  }, {
+    "fonction": "(new Colour('oklch(75% 11 327 / 0)')).closestName",
+    "resultatAttendu": "transparent"
+  }
 ]

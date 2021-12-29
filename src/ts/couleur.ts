@@ -512,14 +512,14 @@ export default class Couleur {
 
   /** @returns The name of the closest named color. */
   public get closestName(): string {
-    if (this.a === 0) return 'transparent';
+    if (this.a < .5) return 'transparent';
     const allNames = Couleur.namedColors;
     const [r, g, b] = this.values;
     let closest: string = '';
     let lastDistance = +Infinity;
     for (const [name, hex] of allNames.entries()) {
       const [r2, g2, b2] = Utils.fromHex([`${hex[0]}${hex[1]}`, `${hex[2]}${hex[3]}`, `${hex[4]}${hex[5]}`]);
-      const distance = Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) + Math.abs(1 - this.a);
+      const distance = Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b);
       if (distance < lastDistance) {
         lastDistance = distance;
         closest = name;

@@ -2204,7 +2204,7 @@ class Couleur {
         else return null;
     }
     get closestName() {
-        if (this.a === 0) return 'transparent';
+        if (this.a < 0.5) return 'transparent';
         const allNames = Couleur.namedColors;
         const [r, g, b] = this.values;
         let closest = '';
@@ -2215,7 +2215,7 @@ class Couleur {
                 `${hex[2]}${hex[3]}`,
                 `${hex[4]}${hex[5]}`
             ]);
-            const distance = Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) + Math.abs(1 - this.a);
+            const distance = Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b);
             if (distance < lastDistance) {
                 lastDistance = distance;
                 closest = name;
