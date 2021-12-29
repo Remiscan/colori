@@ -307,23 +307,13 @@
 
     /** Calculates all properties of the color from its hexadecimal expression. */
     private function setHex(array $hexa): void {
-      $r = $hexa[0];
-      $r = (strlen($r) === 1) ? $r.$r : $r;
-      $r = intval(hexdec($r));
+      $hexa[3] = $hexa[3] ?? 'ff';
+      $rgba = utils\fromHex($hexa);
+      foreach($rgba as $k => $v) {
+        if ($k !== 3) $rgba[$k] = $v * 255;
+      }
 
-      $g = $hexa[1];
-      $g = (strlen($g) === 1) ? $g.$g : $g;
-      $g = intval(hexdec($g));
-
-      $b = $hexa[2];
-      $b = (strlen($b) === 1) ? $b.$b : $b;
-      $b = intval(hexdec($b));
-
-      $a = $hexa[3] ?? 'ff';
-      $a = (strlen($a) === 1) ? $a.$a : $a;
-      $a = intval(hexdec($a)) / 255;
-
-      $this->set([$r, $g, $b, $a], ['r', 'g', 'b'], 'srgb');
+      $this->set($rgba, ['r', 'g', 'b'], 'srgb');
     }
 
 
@@ -432,10 +422,10 @@
     /** The approximate name of the color. */
     public function name(): ?string {
       if ($this->a === 1.0) {
-        [$r, $g, $b] = [255 * $this->r, 255 * $this->g, 255 * $this->b];
-        $tolerance = 255 * .02;
+        [$r, $g, $b] = $this->values();
+        $tolerance = .02;
         foreach (self::NAMED_COLORS as $name => $hex) {
-          [$r2, $g2, $b2] = [intval(hexdec($hex[0].$hex[1])), intval(hexdec($hex[2].$hex[3])), intval(hexdec($hex[4].$hex[5]))];
+          [$r2, $g2, $b2] = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
           if (abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b) < $tolerance) return $name;
         }
         return null;
@@ -457,13 +447,11 @@
 
     /** The name of the closest named color. */
     public function closestName(): string {
-      if ($this->a === 0.0) return 'transparent';
-      [$r, $g, $b] = [255 * $this->r, 255 * $this->g, 255 * $this->b];
+      [$r, $g, $b] = $this->values();
       $closest = '';
       $lastDistance = INF;
       foreach (self::NAMED_COLORS as $name => $hex) {
-        [$r2, $g2, $b2] = [intval(hexdec($hex[0].$hex[1])), intval(hexdec($hex[2].$hex[3])), intval(hexdec($hex[4].$hex[5]))];
-        $distance = abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b) + abs(1.0 - $this->a);
+        [$r2, $g2, $b2] = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
         if ($distance < $lastDistance) {
           $lastDistance = $distance;
           $closest = $name;
@@ -479,10 +467,7 @@
     public function hex(): string {
       $values = self::toGamut('srgb', $this->values());
       $values[] = $this->a;
-      foreach($values as $k => $v) {
-        $values[$k] = utils\pad(dechex(round($v * 255)));
-      }
-      [$r, $g, $b, $a] = $values;
+      [$r, $g, $b, $a] = utils\toHex($values);
       if ($this->a < 1) return '#'.$r.$g.$b.$a;
       else              return '#'.$r.$g.$b;
     }

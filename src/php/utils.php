@@ -24,5 +24,18 @@
     return $sign * pow(abs($number), 1 / $exponent);
   }
 
+  function toHex(array $rgba): array {
+    return array_map(fn($v) => pad(dechex(round($v * 255))), $rgba);
+  }
+
+  function fromHex(array $hexa): array {
+    foreach ($hexa as $k => $v) {
+      $v = (strlen($v) === 1) ? $v.$v : $v;
+      $v = intval(hexdec($v)) / 255;
+      $hexa[$k] = $v;
+    }
+    return $hexa;
+  }
+
 
 }
