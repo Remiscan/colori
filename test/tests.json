@@ -1,383 +1,408 @@
-[
-  {
-    "fonction": "new Colour('fuchsia')",
-    "resultatAttendu": { "r": 1, "g": 0, "b": 1, "a": 1 }
-  }, {
-    "fonction": "(new Colour('fuchsia')).name",
-    "resultatAttendu": "fuchsia"
-  }, {
-    "fonction": "(new Colour('#ff0101')).name",
-    "resultatAttendu": "red"
-  }, {
-    "fonction": "(new Colour('#ff0101')).exactName",
-    "resultatAttendu": null
-  }, {
-    "fonction": "new Colour(new Colour('fuchsia'))",
-    "resultatAttendu": { "r": 1, "g": 0, "b": 1, "a": 1 }
-  }, {
-    "fonction": "new Colour('#e5b')",
-    "resultatAttendu": {"r": 0.93333, "g": 0.33333, "b": 0.73333, "a": 1 }
-  }, {
-    "fonction": "new Colour('#e5bd')",
-    "resultatAttendu": {"r": 0.93333, "g": 0.33333, "b": 0.73333, "a": 0.86667 }
-  }, {
-    "fonction": "new Colour('#e5b32c')",
-    "resultatAttendu": {"r": 0.89804, "g": 0.70196, "b": 0.17255, "a": 1 }
-  }, {
-    "fonction": "new Colour('#e5b32cbd')",
-    "resultatAttendu": {"r": 0.89804, "g": 0.70196, "b": 0.17255, "a": 0.74118 }
-  }, {
-    "fonction": "new Colour('rgba(58, 184, 74, 0.4)')",
-    "resultatAttendu": {"r": 0.22745, "g": 0.72157, "b": 0.2902, "a": 0.4 }
-  }, {
-    "fonction": "new Colour('hsla(128, 52%, 47%, 0.4)')",
-    "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
-  }, {
-    "fonction": "new Colour([0.2256, 0.7144, 0.29079])",
-    "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 1 }
-  }, {
-    "fonction": "new Colour([0.2256, 0.7144, 0.29079, 0.4])",
-    "fonctionphp": "new Colour(['r' => 0.2256, 'g' => 0.7144, 'b' => 0.29079, 'a' => 0.4])",
-    "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
-  }, {
-    "fonction": "new Colour({r: 0.2256, g: 0.7144, b: 0.29079, a: 0.4 })",
-    "fonctionphp": "new Couleur((object) array('r' => 0.2256, 'g' => 0.7144, 'b' => 0.29079, 'a' => 0.4))",
-    "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).hex",
-    "resultatAttendu": "#3ab84a66"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).rgb",
-    "resultatAttendu": "rgb(58, 184, 74, 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).hsl",
-    "resultatAttendu": "hsl(128, 52%, 47%, 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).hwb",
-    "resultatAttendu": "hwb(128 23% 28% / 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).lab",
-    "resultatAttendu": "lab(66% -53 44 / 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).lch",
-    "resultatAttendu": "lch(66% 69 140 / 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).change('l', '20%', { action: 'replace' })",
-    "resultatAttendu": {"r": 0.096, "g": 0.304, "b": 0.12374, "a": 0.4 }
-  }, {
-    "fonction": "Colour.blend('red', 'white').rgb",
-    "resultatAttendu": "rgb(255, 255, 255)"
-  }, {
-    "fonction": "Colour.blend('red', 'lolilol')",
-    "resultatAttendu": "Error"
-  }, {
-    "fonction": "Colour.blend('red', (new Colour('white')).replace('a', '.5')).rgb",
-    "resultatAttendu": "rgb(255, 128, 128)"
-  }, {
-    "fonction": "Colour.blendAll('white', 'rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .5)').rgb",
-    "resultatAttendu": "rgb(128, 191, 64)"
-  }, {
-    "fonction": "Colour.blendAll('rgba(255, 255, 255, .3)', 'rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .5)').rgb",
-    "resultatAttendu": "rgb(100, 178, 23, 0.83)"
-  }, {
-    "fonction": "Colour.blend('rgb(25, 67, 85)', 'transparent').rgb",
-    "resultatAttendu": "rgb(25, 67, 85)"
-  }, {
-    "fonction": "Colour.unblend('red', 'white')",
-    "resultatAttendu": "Error"
-  }, {
-    "fonction": "Colour.unblend('rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .7)')",
-    "resultatAttendu": null
-  }, {
-    "fonction": "Colour.unblend('rgba(255, 0, 0, .5)', 'rgba(255, 0, 0, .5)').rgb",
-    "resultatAttendu": "transparent"
-  }, {
-    "fonction": "Colour.unblend('rgb(255, 128, 128)', 'rgba(255, 0, 0, .5)').rgb",
-    "resultatAttendu": "rgb(255, 255, 255)"
-  }, {
-    "fonction": "Colour.unblendAll('rgb(127.5, 191.25, 64)', 'rgba(0, 255, 0, .5)', 'rgba(255, 0, 0, .5)').rgb",
-    "resultatAttendu": "rgb(255, 255, 255)"
-  } , {
-    "fonction": "Colour.whatToBlend('red', 'red', 0).map(c => c.rgb)",
-    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('red', 'red', 0))",
-    "resultatAttendu": [ "transparent" ]
-  }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 0)",
-    "resultatAttendu": []
-  }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 1).map(c => c.rgb)",
-    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 128, 128)', 'red', 1))",
-    "resultatAttendu": [ "red" ]
-  }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'rgb(255, 0, 0, .5)', .9)",
-    "resultatAttendu": []
-  }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .2)', 'rgb(255, 0, 0, .9)', .9)",
-    "resultatAttendu": []
-  }, {
-    "fonction": "Colour.whatToBlend('transparent', 'rgb(255, 0, 0, .9)', .9).map(c => c.rgb)",
-    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('transparent', 'rgb(255, 0, 0, .9)', .9))",
-    "resultatAttendu": [ "rgb(255, 0, 0, .9)" ]
-  }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'rgb(255, 0, 0, .5)')",
-    "resultatAttendu": []
-  }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0)').map(c => c.rgb)",
-    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0)'))",
-    "resultatAttendu": [ "rgb(255, 0, 0)" ]
-  }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, 0)', 'rgb(255, 0, 0, .5)').map(c => c.rgb)",
-    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 128, 128, 0)', 'rgb(255, 0, 0, .5)'))",
-    "resultatAttendu": [ "rgb(255, 0, 0, .5)" ]
-  }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 128, 128, .75)').map(c => c.rgb)",
-    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 128, 128, .75)'))",
-    "resultatAttendu": [ "rgb(255, 192, 192, 0.5)" ]
-  }, {
-    "fonction": "Colour.blend('rgb(255, 0, 0, .5)', 'rgb(255, 192, 192, 0.5)').rgb",
-    "resultatAttendu": "rgb(255, 128, 128, .75)"
-  }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 0, 0, .5)').map(c => c.rgb)",
-    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 0, 0, .5)'))",
-    "resultatAttendu": [ "transparent" ]
-  }, {
-    "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0, .5)')",
-    "resultatAttendu": []
-  }, {
-    "fonction": "Colour.whatToBlend('red', 'rgb(255, 128, 128)').map(c => c.hsla)",
-    "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('red', 'rgb(255, 128, 128)'))",
-    "resultatAttendu": [ "hsla(0, 0%, 100%, 0.5)", "hsla(0, 100%, 92%, 0.6)", "hsla(0, 100%, 86%, 0.7)", "hsla(0, 100%, 81%, 0.8)", "hsla(0, 100%, 78%, 0.9)", "hsla(0, 100%, 75%, 1)" ]
-  }, {
-    "fonction": "Colour.whatToBlend('red', 'rgb(255, 128, 128)', .6).map(c => c.hsl)",
-    "fonctionphp": "array_map(function($c) { return $c->hsl(); }, Couleur::whatToBlend('red', 'rgb(255, 128, 128)', .6))",
-    "resultatAttendu": [ "hsla(0, 100%, 92%, 0.6)" ]
-  }, {
-    "fonction": "(new Colour('hsl(200, 10%, 10%)'))",
-    "resultatAttendu": {"r": 0.09, "g": 0.10333, "b": 0.11, "a": 1 }
-  }, {
-    "fonction": "(new Colour('hsl(200, 10%, 10%)')).rgb",
-    "resultatAttendu": "rgb(23, 26, 28)"
-  }, {
-    "fonction": "(new Colour('hsl(200, 10%, 10%)')).luminance",
-    "resultatAttendu": 0.0102
-  }, {
-    "fonction": "Colour.contrast('hsl(200, 10%, 10%)', 'rgb(58, 184, 74)', { method: 'WCAG2' })",
-    "resultatAttendu": 6.7566
-  }, {
-    "fonction": "Colour.contrast('hsl(200, 10%, 10%)', 'lolilol', { method: 'WCAG2' })",
-    "resultatAttendu": "Error"
-  }, {
-    "fonction": "(new Colour('hsl(200, 10%, 10%)')).bestColorScheme('background')",
-    "resultatAttendu": "dark"
-  }, {
-    "fonction": "(new Colour('hsl(200, 10%, 10%)')).bestColorScheme('text')",
-    "resultatAttendu": "light"
-  }, {
-    "fonction": "(new Colour('hsl(350, 25%, 52%)')).complement().hsl",
-    "resultatAttendu": "hsl(170, 25%, 52%)"
-  }, {
-    "fonction": "(new Colour('hsl(350, 25%, 52%)')).negative().rgb",
-    "resultatAttendu": "rgb(92, 153, 143)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).greyscale().rgb",
-    "resultatAttendu": "rgb(91, 91, 91, 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74)')).grayscale().rgb",
-    "resultatAttendu": "rgb(91, 91, 91)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).sepia().rgb",
-    "resultatAttendu": "rgb(178, 159, 124, 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).replace('l', '20%').hsl",
-    "resultatAttendu": "hsl(128, 52%, 20%, 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).scale('l', '20%').hsl",
-    "resultatAttendu": "hsl(128, 52%, 9%, 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).scale('r', '20%').rgb",
-    "resultatAttendu": "rgb(12, 184, 74, 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).scale('h', '20%').hsl",
-    "resultatAttendu": "hsl(26, 52%, 47%, 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).scale('bk', '20%').hwb",
-    "resultatAttendu": "hwb(128 23% 6% / 0.4)"
-  }, {
-    "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).scale('a', '20%').hsla",
-    "resultatAttendu": "hsla(128, 52%, 47%, 0.08)"
-  }, {
-    "fonction": "new Colour('lab(92% -45 9)')",
-    "resultatAttendu": {"r": 0.5102, "g": 1, "b": 0.83587, "a": 1 }
-  }, {
-    "fonction": "new Colour('lch(92% 46 168)')",
-    "resultatAttendu": {"r": 0.51239, "g": 1, "b": 0.8316, "a": 1 }
-  }, {
-    "fonction": "(new Colour('lab(92% -45 9)')).lab",
-    "resultatAttendu": "lab(92% -45 9)"
-  }, {
-    "fonction": "(new Colour('lab(92% -45 9)')).change('ciel', '-10%').lab",
-    "resultatAttendu": "lab(82% -44 9)"
-  }, {
-    "fonction": "(new Colour('lab(92% -45 9)')).change('ciea', '20').lab",
-    "resultatAttendu": "lab(92% -24 9)"
-  }, {
-    "fonction": "(new Colour('lab(92% -45 9)')).change('cieb', '20').lab",
-    "resultatAttendu": "lab(92% -44 29)"
-  }, {
-    "fonction": "(new Colour('lab(92% -45 9)')).lch",
-    "resultatAttendu": "lch(92% 46 169)"
-  }, {
-    "fonction": "(new Colour('lab(92% -45 9)')).change('ciec', '20').lch",
-    "resultatAttendu": "lch(92% 65 169)"
-  }, {
-    "fonction": "(new Colour('lab(92% -45 9)')).change('cieh', '20deg').lch",
-    "resultatAttendu": "lch(92% 45 189)"
-  }, {
-    "fonction": "Colour.contrast('hsl(230, 25%, 10%)', 'hsl(55, 85%, 80%)', { method: 'WCAG2' })",
-    "resultatAttendu": 15.511
-  }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 17, { method: 'WCAG2' }).lab",
-    "resultatAttendu": "lab(97.67% -7.32 38.92)"
-  }, {
-    "fonction": "Colour.contrast('hsl(53, 100%, 92%)', 'hsl(230, 25%, 10%)', { method: 'WCAG2' })",
-    "resultatAttendu": 17.213
-  }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 12, { method: 'WCAG2' }).hsl",
-    "resultatAttendu": "hsl(55, 85%, 80%)"
-  }, {
-    "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 12, { lower: true, method: 'WCAG2' }).lab",
-    "resultatAttendu": "hsl(55, 57%, 71%)"
-  }, {
-    "fonction": "Colour.contrast('hsl(55, 57%, 71%)', 'hsl(230, 25%, 10%)', { method: 'WCAG2' })",
-    "resultatAttendu": 12.4
-  }, {
-    "fonction": "Colour.gradient('lightgreen', 'blue').map(c => c.oklch)",
-    "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('lightgreen', 'blue'))",
-    "resultatAttendu": [
-      "oklch(86.8% 15.58 144.09)",
-      "oklch(79.62% 16.7 165.18)",
-      "oklch(74.42% 12.75 192.78)",
-      "oklch(67.16% 14.64 236.91)",
-      "oklch(57.49% 22.81 259.47)",
-      "oklch(45.2% 31.32 264.05)"
-    ]
-  }, {
-    "fonction": "Colour.gradient('lightgreen', 'blue', 1).map(c => c.oklch)",
-    "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('lightgreen', 'blue', 1))",
-    "resultatAttendu": [
-      "oklch(86.8% 15.58 144.09)",
-      "oklch(45.2% 31.32 264.05)"
-    ]
-  }, {
-    "fonction": "Colour.gradient('lightgreen', 'blue', -5).map(c => c.oklch)",
-    "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('lightgreen', 'blue', -5))",
-    "resultatAttendu": [
-      "oklch(86.8% 15.58 144.09)",
-      "oklch(45.2% 31.32 264.05)"
-    ]
-  }, {
-    "fonction": "Colour.gradient('#1f005c', '#ffb56b').map(c => c.oklch)",
-    "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('#1f005c', '#ffb56b'))",
-    "resultatAttendu": [
-      "oklch(23.84% 13.95 284.79)",
-      "oklch(35.64% 13.66 312.75)",
-      "oklch(47.44% 13.37 340.71)",
-      "oklch(59.24% 13.09 8.67)",
-      "oklch(71.03% 12.8 36.63)",
-      "oklch(82.83% 12.51 64.58)"
-    ]
-  }, {
-    "fonction": "Colour.gradient('lightgreen', 'blue', 5, 'hsl').map(c => c.hsl)",
-    "fonctionphp": "array_map(function($c) { return $c->hsl(); }, Couleur::gradient('lightgreen', 'blue', 5, 'hsl'))",
-    "resultatAttendu": [
-      "hsl(120, 73%, 75%)",
-      "hsl(144, 79%, 70%)",
-      "hsl(168, 84%, 65%)",
-      "hsl(192, 89%, 60%)",
-      "hsl(216, 95%, 55%)",
-      "hsl(240, 100%, 50%)"
-    ]
-  }, {
-    "fonction": "Colour.distance('lab(50% 2.5 0)', 'lab(73% 25 -18)', { method: 'deltaE2000' })",
-    "resultatAttendu": 27.1492
-  }, {
-    "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(0, 128, 255)')",
-    "resultatAttendu": false
-  }, {
-    "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(255, 128, 0)')",
-    "resultatAttendu": true
-  }, {
-    "fonction": "Colour.contrast('#888', '#fff')",
-    "resultatAttendu": 63.056469930209424
-  }, {
-    "fonction": "Colour.contrast('#fff', '#888')",
-    "resultatAttendu": -68.54146436644962
-  }, {
-    "fonction": "Colour.contrast('#000', '#aaa')",
-    "resultatAttendu": 58.146262578561334
-  }, {
-    "fonction": "Colour.contrast('#aaa', '#000')",
-    "resultatAttendu": -56.24113336839742
-  }, {
-    "fonction": "Colour.contrast('#123', '#def', { method: 'apca' })",
-    "resultatAttendu": 91.66830811481631
-  }, {
-    "fonction": "Colour.contrast('#def', '#123', { method: 'apca' })",
-    "resultatAttendu": -93.06770049484275
-  }, {
-    "fonction": "Colour.contrast('#123', '#234', { method: 'apca' })",
-    "resultatAttendu": 1.7512243099356113
-  }, {
-    "fonction": "Colour.contrast('#234', '#123', { method: 'apca' })",
-    "resultatAttendu": -1.6349191031377903
-  }, {
-    "fonction": "Colour.contrast('#aaa', '#aaa')",
-    "resultatAttendu": 0
-  }, {
-    "fonction": "(new Colour('lab(92% -45 9)')).rgb",
-    "resultatAttendu": "rgb(128.58, 255, 212.79)"
-  }, {
-    "fonction": "(new Colour('lab(92% -45 9)'))",
-    "resultatAttendu": [ 0.49651550606582623, 1.0018661032584417, 0.8340622807429307 ]
-  }, {
-    "fonction": "(new Colour('oklab(91.5% -12.8 2.49)')).rgb",
-    "resultatAttendu": "rgb(127, 255, 212)"
-  }, {
-    "fonction": "(new Colour('oklch(91.5% 13.04 169)')).rgb",
-    "resultatAttendu": "rgb(127, 255, 212)"
-  }, {
-    "fonction": "(new Colour('red')).closestName",
-    "resultatAttendu": "red"
-  }, {
-    "fonction": "(new Colour('hsl(193, 100%, 50%)')).name",
-    "resultatAttendu": null
-  }, {
-    "fonction": "(new Colour('hsl(193, 100%, 50%)')).exactName",
-    "resultatAttendu": null
-  }, {
-    "fonction": "(new Colour('hsl(193, 100%, 50%)')).closestName",
-    "resultatAttendu": "deepskyblue"
-  }, {
-    "fonction": "(new Colour('oklch(75% 11 327)')).name",
-    "resultatAttendu": null
-  }, {
-    "fonction": "(new Colour('oklch(75% 11 327)')).exactName",
-    "resultatAttendu": null
-  }, {
-    "fonction": "(new Colour('oklch(75% 11 327)')).closestName",
-    "resultatAttendu": "plum"
-  }
-  , {
-    "fonction": "(new Colour('oklch(75% 11 327 / .8)')).closestName",
-    "resultatAttendu": "plum"
-  }, {
-    "fonction": "(new Colour('oklch(75% 11 327 / .5)')).closestName",
-    "resultatAttendu": "plum"
-  }, {
-    "fonction": "(new Colour('oklch(75% 11 327 / .2)')).closestName",
-    "resultatAttendu": "transparent"
-  }, {
-    "fonction": "(new Colour('oklch(75% 11 327 / 0)')).closestName",
-    "resultatAttendu": "transparent"
-  }
-]
+{
+  "constructor": [
+    {
+      "fonction": "new Colour('fuchsia')",
+      "resultatAttendu": { "r": 1, "g": 0, "b": 1, "a": 1 }
+    }, {
+      "fonction": "new Colour(new Colour('fuchsia'))",
+      "resultatAttendu": { "r": 1, "g": 0, "b": 1, "a": 1 }
+    }, {
+      "fonction": "new Colour('#e5b')",
+      "resultatAttendu": {"r": 0.93333, "g": 0.33333, "b": 0.73333, "a": 1 }
+    }, {
+      "fonction": "new Colour('#e5bd')",
+      "resultatAttendu": {"r": 0.93333, "g": 0.33333, "b": 0.73333, "a": 0.86667 }
+    }, {
+      "fonction": "new Colour('#e5b32c')",
+      "resultatAttendu": {"r": 0.89804, "g": 0.70196, "b": 0.17255, "a": 1 }
+    }, {
+      "fonction": "new Colour('#e5b32cbd')",
+      "resultatAttendu": {"r": 0.89804, "g": 0.70196, "b": 0.17255, "a": 0.74118 }
+    }, {
+      "fonction": "new Colour('rgba(58, 184, 74, 0.4)')",
+      "resultatAttendu": {"r": 0.22745, "g": 0.72157, "b": 0.2902, "a": 0.4 }
+    }, {
+      "fonction": "new Colour('hsla(128, 52%, 47%, 0.4)')",
+      "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
+    }, {
+      "fonction": "new Colour('lab(92% -45 9)')",
+      "resultatAttendu": {"r": 0.5102, "g": 1, "b": 0.83587, "a": 1 }
+    }, {
+      "fonction": "new Colour('lch(92% 46 168)')",
+      "resultatAttendu": {"r": 0.51239, "g": 1, "b": 0.8316, "a": 1 }
+    }, {
+      "fonction": "new Colour([0.2256, 0.7144, 0.29079])",
+      "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 1 }
+    }, {
+      "fonction": "new Colour([0.2256, 0.7144, 0.29079, 0.4])",
+      "fonctionphp": "new Colour(['r' => 0.2256, 'g' => 0.7144, 'b' => 0.29079, 'a' => 0.4])",
+      "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
+    }, {
+      "fonction": "new Colour({r: 0.2256, g: 0.7144, b: 0.29079, a: 0.4 })",
+      "fonctionphp": "new Couleur((object) array('r' => 0.2256, 'g' => 0.7144, 'b' => 0.29079, 'a' => 0.4))",
+      "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
+    }, {
+      "fonction": "(new Colour('lab(92% -45 9)'))",
+      "resultatAttendu": [ 0.49651550606582623, 1.0018661032584417, 0.8340622807429307 ]
+    }
+  ],
+  "name, exactName, closestName": [
+    {
+      "fonction": "(new Colour('fuchsia')).name",
+      "resultatAttendu": "fuchsia"
+    }, {
+      "fonction": "(new Colour('#ff0101')).name",
+      "resultatAttendu": "red"
+    }, {
+      "fonction": "(new Colour('#ff0101')).exactName",
+      "resultatAttendu": null
+    }, {
+      "fonction": "(new Colour('red')).closestName",
+      "resultatAttendu": "red"
+    }, {
+      "fonction": "(new Colour('hsl(193, 100%, 50%)')).name",
+      "resultatAttendu": null
+    }, {
+      "fonction": "(new Colour('hsl(193, 100%, 50%)')).exactName",
+      "resultatAttendu": null
+    }, {
+      "fonction": "(new Colour('hsl(193, 100%, 50%)')).closestName",
+      "resultatAttendu": "deepskyblue"
+    }, {
+      "fonction": "(new Colour('oklch(75% 11 327)')).name",
+      "resultatAttendu": null
+    }, {
+      "fonction": "(new Colour('oklch(75% 11 327)')).exactName",
+      "resultatAttendu": null
+    }, {
+      "fonction": "(new Colour('oklch(75% 11 327)')).closestName",
+      "resultatAttendu": "plum"
+    }, {
+      "fonction": "(new Colour('oklch(75% 11 327 / .8)')).closestName",
+      "resultatAttendu": "plum"
+    }, {
+      "fonction": "(new Colour('oklch(75% 11 327 / .5)')).closestName",
+      "resultatAttendu": "plum"
+    }, {
+      "fonction": "(new Colour('oklch(75% 11 327 / .2)')).closestName",
+      "resultatAttendu": "transparent"
+    }, {
+      "fonction": "(new Colour('oklch(75% 11 327 / 0)')).closestName",
+      "resultatAttendu": "transparent"
+    }
+  ],
+  "expressions, conversion": [
+    {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).hex",
+      "resultatAttendu": "#3ab84a66"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).rgb",
+      "resultatAttendu": "rgb(58, 184, 74, 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).hsl",
+      "resultatAttendu": "hsl(128, 52%, 47%, 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).hwb",
+      "resultatAttendu": "hwb(128 23% 28% / 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).lab",
+      "resultatAttendu": "lab(66% -53 44 / 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).lch",
+      "resultatAttendu": "lch(66% 69 140 / 0.4)"
+    }, {
+      "fonction": "(new Colour('lab(92% -45 9)')).lab",
+      "resultatAttendu": "lab(92% -45 9)"
+    }, {
+      "fonction": "(new Colour('lab(92% -45 9)')).rgb",
+      "resultatAttendu": "rgb(128.58, 255, 212.79)"
+    }, {
+      "fonction": "(new Colour('oklab(91.5% -12.8 2.49)')).rgb",
+      "resultatAttendu": "rgb(127, 255, 212)"
+    }, {
+      "fonction": "(new Colour('oklch(91.5% 13.04 169)')).rgb",
+      "resultatAttendu": "rgb(127, 255, 212)"
+    }
+  ],
+  "change, replace, scale": [
+    {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).change('l', '20%', { action: 'replace' })",
+      "resultatAttendu": {"r": 0.096, "g": 0.304, "b": 0.12374, "a": 0.4 }
+    }, {
+      "fonction": "(new Colour('hsl(350, 25%, 52%)')).complement().hsl",
+      "resultatAttendu": "hsl(170, 25%, 52%)"
+    }, {
+      "fonction": "(new Colour('hsl(350, 25%, 52%)')).negative().rgb",
+      "resultatAttendu": "rgb(92, 153, 143)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).greyscale().rgb",
+      "resultatAttendu": "rgb(91, 91, 91, 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74)')).grayscale().rgb",
+      "resultatAttendu": "rgb(91, 91, 91)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).sepia().rgb",
+      "resultatAttendu": "rgb(178, 159, 124, 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).replace('l', '20%').hsl",
+      "resultatAttendu": "hsl(128, 52%, 20%, 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).scale('l', '20%').hsl",
+      "resultatAttendu": "hsl(128, 52%, 9%, 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).scale('r', '20%').rgb",
+      "resultatAttendu": "rgb(12, 184, 74, 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).scale('h', '20%').hsl",
+      "resultatAttendu": "hsl(26, 52%, 47%, 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).scale('bk', '20%').hwb",
+      "resultatAttendu": "hwb(128 23% 6% / 0.4)"
+    }, {
+      "fonction": "(new Colour('rgba(58, 184, 74, 0.4)')).scale('a', '20%').hsla",
+      "resultatAttendu": "hsla(128, 52%, 47%, 0.08)"
+    }, {
+      "fonction": "(new Colour('lab(92% -45 9)')).change('ciel', '-10%').lab",
+      "resultatAttendu": "lab(82% -44 9)"
+    }, {
+      "fonction": "(new Colour('lab(92% -45 9)')).change('ciea', '20').lab",
+      "resultatAttendu": "lab(92% -24 9)"
+    }, {
+      "fonction": "(new Colour('lab(92% -45 9)')).change('cieb', '20').lab",
+      "resultatAttendu": "lab(92% -44 29)"
+    }, {
+      "fonction": "(new Colour('lab(92% -45 9)')).lch",
+      "resultatAttendu": "lch(92% 46 169)"
+    }, {
+      "fonction": "(new Colour('lab(92% -45 9)')).change('ciec', '20').lch",
+      "resultatAttendu": "lch(92% 65 169)"
+    }, {
+      "fonction": "(new Colour('lab(92% -45 9)')).change('cieh', '20deg').lch",
+      "resultatAttendu": "lch(92% 45 189)"
+    }
+  ],
+  "blend, blendAll": [
+    {
+      "fonction": "Colour.blend('red', 'white').rgb",
+      "resultatAttendu": "rgb(255, 255, 255)"
+    }, {
+      "fonction": "Colour.blend('red', 'lolilol')",
+      "resultatAttendu": "Error"
+    }, {
+      "fonction": "Colour.blend('red', (new Colour('white')).replace('a', '.5')).rgb",
+      "resultatAttendu": "rgb(255, 128, 128)"
+    }, {
+      "fonction": "Colour.blendAll('white', 'rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .5)').rgb",
+      "resultatAttendu": "rgb(128, 191, 64)"
+    }, {
+      "fonction": "Colour.blendAll('rgba(255, 255, 255, .3)', 'rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .5)').rgb",
+      "resultatAttendu": "rgb(100, 178, 23, 0.83)"
+    }, {
+      "fonction": "Colour.blend('rgb(25, 67, 85)', 'transparent').rgb",
+      "resultatAttendu": "rgb(25, 67, 85)"
+    }
+  ],
+  "unblend, unblendAll": [
+    {
+      "fonction": "Colour.unblend('red', 'white')",
+      "resultatAttendu": "Error"
+    }, {
+      "fonction": "Colour.unblend('rgba(255, 0, 0, .5)', 'rgba(0, 255, 0, .7)')",
+      "resultatAttendu": null
+    }, {
+      "fonction": "Colour.unblend('rgba(255, 0, 0, .5)', 'rgba(255, 0, 0, .5)').rgb",
+      "resultatAttendu": "transparent"
+    }, {
+      "fonction": "Colour.unblend('rgb(255, 128, 128)', 'rgba(255, 0, 0, .5)').rgb",
+      "resultatAttendu": "rgb(255, 255, 255)"
+    }, {
+      "fonction": "Colour.unblendAll('rgb(127.5, 191.25, 64)', 'rgba(0, 255, 0, .5)', 'rgba(255, 0, 0, .5)').rgb",
+      "resultatAttendu": "rgb(255, 255, 255)"
+    }, {
+      "fonction": "Colour.blend('rgb(255, 0, 0, .5)', 'rgb(255, 192, 192, 0.5)').rgb",
+      "resultatAttendu": "rgb(255, 128, 128, .75)"
+    }
+  ],
+  "whatToBlend": [
+    {
+      "fonction": "Colour.whatToBlend('red', 'red', 0).map(c => c.rgb)",
+      "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('red', 'red', 0))",
+      "resultatAttendu": [ "transparent" ]
+    }, {
+      "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 0)",
+      "resultatAttendu": []
+    }, {
+      "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'red', 1).map(c => c.rgb)",
+      "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 128, 128)', 'red', 1))",
+      "resultatAttendu": [ "red" ]
+    }, {
+      "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'rgb(255, 0, 0, .5)', .9)",
+      "resultatAttendu": []
+    }, {
+      "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .2)', 'rgb(255, 0, 0, .9)', .9)",
+      "resultatAttendu": []
+    }, {
+      "fonction": "Colour.whatToBlend('transparent', 'rgb(255, 0, 0, .9)', .9).map(c => c.rgb)",
+      "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('transparent', 'rgb(255, 0, 0, .9)', .9))",
+      "resultatAttendu": [ "rgb(255, 0, 0, .9)" ]
+    }, {
+      "fonction": "Colour.whatToBlend('rgb(255, 128, 128)', 'rgb(255, 0, 0, .5)')",
+      "resultatAttendu": []
+    }, {
+      "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0)').map(c => c.rgb)",
+      "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0)'))",
+      "resultatAttendu": [ "rgb(255, 0, 0)" ]
+    }, {
+      "fonction": "Colour.whatToBlend('rgb(255, 128, 128, 0)', 'rgb(255, 0, 0, .5)').map(c => c.rgb)",
+      "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 128, 128, 0)', 'rgb(255, 0, 0, .5)'))",
+      "resultatAttendu": [ "rgb(255, 0, 0, .5)" ]
+    }, {
+      "fonction": "Colour.whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 128, 128, .75)').map(c => c.rgb)",
+      "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 128, 128, .75)'))",
+      "resultatAttendu": [ "rgb(255, 192, 192, 0.5)" ]
+    }, {
+      "fonction": "Colour.whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 0, 0, .5)').map(c => c.rgb)",
+      "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('rgb(255, 0, 0, .5)', 'rgb(255, 0, 0, .5)'))",
+      "resultatAttendu": [ "transparent" ]
+    }, {
+      "fonction": "Colour.whatToBlend('rgb(255, 128, 128, .5)', 'rgb(255, 0, 0, .5)')",
+      "resultatAttendu": []
+    }, {
+      "fonction": "Colour.whatToBlend('red', 'rgb(255, 128, 128)').map(c => c.hsla)",
+      "fonctionphp": "array_map(function($c) { return $c->hsla(); }, Couleur::whatToBlend('red', 'rgb(255, 128, 128)'))",
+      "resultatAttendu": [ "hsla(0, 0%, 100%, 0.5)", "hsla(0, 100%, 92%, 0.6)", "hsla(0, 100%, 86%, 0.7)", "hsla(0, 100%, 81%, 0.8)", "hsla(0, 100%, 78%, 0.9)", "hsla(0, 100%, 75%, 1)" ]
+    }, {
+      "fonction": "Colour.whatToBlend('red', 'rgb(255, 128, 128)', .6).map(c => c.hsl)",
+      "fonctionphp": "array_map(function($c) { return $c->hsl(); }, Couleur::whatToBlend('red', 'rgb(255, 128, 128)', .6))",
+      "resultatAttendu": [ "hsla(0, 100%, 92%, 0.6)" ]
+    }
+  ],
+  "contrast, luminance, bestColorScheme": [
+    {
+      "fonction": "(new Colour('hsl(200, 10%, 10%)')).luminance",
+      "resultatAttendu": 0.0102
+    }, {
+      "fonction": "Colour.contrast('hsl(200, 10%, 10%)', 'rgb(58, 184, 74)', { method: 'WCAG2' })",
+      "resultatAttendu": 6.7566
+    }, {
+      "fonction": "Colour.contrast('hsl(200, 10%, 10%)', 'lolilol', { method: 'WCAG2' })",
+      "resultatAttendu": "Error"
+    }, {
+      "fonction": "(new Colour('hsl(200, 10%, 10%)')).bestColorScheme('background')",
+      "resultatAttendu": "dark"
+    }, {
+      "fonction": "(new Colour('hsl(200, 10%, 10%)')).bestColorScheme('text')",
+      "resultatAttendu": "light"
+    }, {
+      "fonction": "Colour.contrast('#888', '#fff')",
+      "resultatAttendu": 63.056469930209424
+    }, {
+      "fonction": "Colour.contrast('#fff', '#888')",
+      "resultatAttendu": -68.54146436644962
+    }, {
+      "fonction": "Colour.contrast('#000', '#aaa')",
+      "resultatAttendu": 58.146262578561334
+    }, {
+      "fonction": "Colour.contrast('#aaa', '#000')",
+      "resultatAttendu": -56.24113336839742
+    }, {
+      "fonction": "Colour.contrast('#123', '#def', { method: 'apca' })",
+      "resultatAttendu": 91.66830811481631
+    }, {
+      "fonction": "Colour.contrast('#def', '#123', { method: 'apca' })",
+      "resultatAttendu": -93.06770049484275
+    }, {
+      "fonction": "Colour.contrast('#123', '#234', { method: 'apca' })",
+      "resultatAttendu": 1.7512243099356113
+    }, {
+      "fonction": "Colour.contrast('#234', '#123', { method: 'apca' })",
+      "resultatAttendu": -1.6349191031377903
+    }, {
+      "fonction": "Colour.contrast('#aaa', '#aaa')",
+      "resultatAttendu": 0
+    }
+  ],
+  "improveContrast": [
+    {
+      "fonction": "Colour.contrast('hsl(230, 25%, 10%)', 'hsl(55, 85%, 80%)', { method: 'WCAG2' })",
+      "resultatAttendu": 15.511
+    }, {
+      "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 17, { method: 'WCAG2' }).lab",
+      "resultatAttendu": "lab(97.67% -7.32 38.92)"
+    }, {
+      "fonction": "Colour.contrast('hsl(53, 100%, 92%)', 'hsl(230, 25%, 10%)', { method: 'WCAG2' })",
+      "resultatAttendu": 17.213
+    }, {
+      "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 12, { method: 'WCAG2' }).hsl",
+      "resultatAttendu": "hsl(55, 85%, 80%)"
+    }, {
+      "fonction": "(new Colour('hsl(55, 85%, 80%)')).improveContrast('hsl(230, 25%, 10%)', 12, { lower: true, method: 'WCAG2' }).lab",
+      "resultatAttendu": "hsl(55, 57%, 71%)"
+    }, {
+      "fonction": "Colour.contrast('hsl(55, 57%, 71%)', 'hsl(230, 25%, 10%)', { method: 'WCAG2' })",
+      "resultatAttendu": 12.4
+    }
+  ],
+  "distance, same": [
+    {
+      "fonction": "Colour.distance('lab(50% 2.5 0)', 'lab(73% 25 -18)', { method: 'deltaE2000' })",
+      "resultatAttendu": 27.1492
+    }, {
+      "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(0, 128, 255)')",
+      "resultatAttendu": false
+    }, {
+      "fonction": "Colour.same('rgb(255, 128, 0)', 'rgb(255, 128, 0)')",
+      "resultatAttendu": true
+    }
+  ],
+  "gradient": [
+    {
+      "fonction": "Colour.gradient('lightgreen', 'blue').map(c => c.oklch)",
+      "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('lightgreen', 'blue'))",
+      "resultatAttendu": [
+        "oklch(86.8% 15.58 144.09)",
+        "oklch(79.62% 16.7 165.18)",
+        "oklch(74.42% 12.75 192.78)",
+        "oklch(67.16% 14.64 236.91)",
+        "oklch(57.49% 22.81 259.47)",
+        "oklch(45.2% 31.32 264.05)"
+      ]
+    }, {
+      "fonction": "Colour.gradient('lightgreen', 'blue', 1).map(c => c.oklch)",
+      "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('lightgreen', 'blue', 1))",
+      "resultatAttendu": [
+        "oklch(86.8% 15.58 144.09)",
+        "oklch(45.2% 31.32 264.05)"
+      ]
+    }, {
+      "fonction": "Colour.gradient('lightgreen', 'blue', -5).map(c => c.oklch)",
+      "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('lightgreen', 'blue', -5))",
+      "resultatAttendu": [
+        "oklch(86.8% 15.58 144.09)",
+        "oklch(45.2% 31.32 264.05)"
+      ]
+    }, {
+      "fonction": "Colour.gradient('#1f005c', '#ffb56b').map(c => c.oklch)",
+      "fonctionphp": "array_map(function($c) { return $c->oklch(); }, Couleur::gradient('#1f005c', '#ffb56b'))",
+      "resultatAttendu": [
+        "oklch(23.84% 13.95 284.79)",
+        "oklch(35.64% 13.66 312.75)",
+        "oklch(47.44% 13.37 340.71)",
+        "oklch(59.24% 13.09 8.67)",
+        "oklch(71.03% 12.8 36.63)",
+        "oklch(82.83% 12.51 64.58)"
+      ]
+    }, {
+      "fonction": "Colour.gradient('lightgreen', 'blue', 5, 'hsl').map(c => c.hsl)",
+      "fonctionphp": "array_map(function($c) { return $c->hsl(); }, Couleur::gradient('lightgreen', 'blue', 5, 'hsl'))",
+      "resultatAttendu": [
+        "hsl(120, 73%, 75%)",
+        "hsl(144, 79%, 70%)",
+        "hsl(168, 84%, 65%)",
+        "hsl(192, 89%, 60%)",
+        "hsl(216, 95%, 55%)",
+        "hsl(240, 100%, 50%)"
+      ]
+    }
+  ]
+}

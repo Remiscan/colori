@@ -5,14 +5,9 @@ error_reporting(E_ALL);
 require_once '../dist/colori.php';
 require_once 'tests-php.php';
 
-
-
 $tests_json = file_get_contents('tests.json');
-$_tests = json_decode($tests_json);
-$tests = [];
-foreach($_tests as $k => $test) {
-  $tests[] = new Test($test->fonctionphp ?? $test->fonction, $test->resultatAttendu, property_exists($test, 'nophp'), $k);
-}
+$ordreMin = 4;
+
 ?>
 <!doctype html>
 <html>
@@ -46,7 +41,10 @@ foreach($_tests as $k => $test) {
       }
 
       h2 { grid-row: 2; }
-      h3 { padding: .5em; }
+      h3 {
+        font-size: 1.3rem;
+        text-align: center;
+      }
 
       div.js, div.php {
         border-top: 1px solid black;
@@ -57,12 +55,14 @@ foreach($_tests as $k => $test) {
       .php { grid-column: 1; }
       .js { grid-column: 2; }
 
-      h3 {
+      h4 {
         background-image: var(--gradient, linear-gradient(to right, var(--color, white) 0 100%)),
                           var(--echiquier-transparence);
         background-size: 100% 100%, 16px 16px, 16px 16px;
         background-position: 0 0, 0 0, 8px 8px;
         background-repeat: no-repeat, repeat, repeat;
+        font-size: 1.17rem;
+        padding: .5em;
       }
 
       span, pre { padding: 0 1rem; }
@@ -76,7 +76,7 @@ foreach($_tests as $k => $test) {
       }
 
       @media (prefers-color-scheme: dark) {
-        h3 {
+        h4 {
           background-image: var(--gradient, linear-gradient(to right, var(--color, #333) 0 100%)),
                             var(--echiquier-transparence);
         }
@@ -104,15 +104,29 @@ foreach($_tests as $k => $test) {
 
     <?php
     $failsList = [];
-    foreach($tests as $k => $test) {
-      if ($test->nophp) continue;
-      try {
-        $test->populate();
-        if (!$test->validate()) $failsList[] = '<li><a href="#php-'. ($test->ordre + 3) .'">'. $test->nom() .'</a></li>';
+
+    $testList = json_decode($tests_json);
+    $ordre = $ordreMin;
+
+    foreach($testList as $category => $tests) {
+      ?>
+      <h3 class="php" style="grid-row: <?=$ordre?>;"><?=$category?></h3>
+      <?php
+      $ordre++;
+
+      foreach($tests as $t) {
+        try {
+          $test = new Test($t->fonctionphp ?? $t->fonction, $t->resultatAttendu, property_exists($t, 'nophp'), $ordre);
+          if (!$test->nophp) {
+            $valid = $test->populate();
+            if (!$valid) {
+              $failsList[] = '<li><a href="#php-'. ($test->ordre + 3) .'">'. $test->nom() .'</a></li>';
+            }
+          }
+          $ordre++;
+        }
+        catch (Throwable $error) { var_dump($error); }
       }
-      catch (Error $error) { var_dump($error); }
-      catch (Exception $error) { var_dump($error); }
-      catch (SyntaxError $error) { var_dump($error); }
     }
     ?>
 
@@ -143,17 +157,32 @@ foreach($_tests as $k => $test) {
 
 
 
-      const tests_json = <?=$tests_json?>;
-      const tests = tests_json.map((test, k) => new Test(test.fonction, test.resultatAttendu, k));
       const failsList = document.querySelector('.failed-js');
       let fails = 0;
-      for (const test of tests) {
-        const valid = test.populate();
-        if (!valid) {   
-          failsList.innerHTML += `<li><a href="#js-${test.ordre + 3}">${test.nom}</a></li>`;
-          fails++;
+
+      const tests_json = `<?=$tests_json?>`;
+      const testList = JSON.parse(tests_json);
+      let ordre = <?=$ordreMin?>;
+
+      for (const [category, tests] of Object.entries(testList)) {
+        const h3 = document.createElement('h3');
+        h3.classList.add('js');
+        h3.style.setProperty('grid-row', ordre);
+        h3.innerHTML = category;
+        document.body.appendChild(h3);
+        ordre++;
+
+        for (const t of tests) {
+          const test = new Test(t.fonction, t.resultatAttendu, ordre);
+          const valid = test.populate();
+          if (!valid) {
+            failsList.innerHTML += `<li><a href="#js-${ordre}">${test.nom}</a></li>`;
+            fails++;
+          }
+          ordre++;
         }
       }
+
       document.querySelector('.failed-js-count').innerHTML = fails;
     </script>
   </body>

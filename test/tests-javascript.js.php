@@ -104,7 +104,7 @@ export default class Test {
     const div = document.createElement('div');
     div.classList.add('js');
     div.classList.add(validation ? 'yes' : 'no');
-    div.style.setProperty('grid-row', this.ordre + 3);
+    div.style.setProperty('grid-row', this.ordre);
 
     // Title background color (= visual test results)
     let backgroundColor = '';
@@ -124,8 +124,8 @@ export default class Test {
     backgroundColor = (backgroundColor instanceof Colour) ? backgroundColor.rgb : backgroundColor;
 
     div.innerHTML = `
-      <a id="js-${this.ordre + 3}"></a>
-      <h3 class="js" style="--color:${backgroundColor || ''}; --gradient:${gradient}; color:${textColor};">${this.nom}</h3>
+      <a id="js-${this.ordre}"></a>
+      <h4 class="js" style="--color:${backgroundColor || ''}; --gradient:${gradient}; color:${textColor};">${this.nom}</h4>
       <span class="js">${validation ? '✅ Success' : '❌ Failure'} in ${this.time} ms</span>
       <pre class="js">${'Reçu :\n\n' + JSON.stringify(resultat, null, 2)}</pre>
       <pre class="js">${'Attendu :\n\n' + JSON.stringify(this.resultatAttendu, null, 2)}</pre>

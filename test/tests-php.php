@@ -128,7 +128,7 @@ class Test {
 
     $class = $validation ? 'yes' : 'no';
     $texte = $validation ? '✅ Success' : '❌ Failure';
-    $row = $this->ordre + 3;
+    $row = $this->ordre;
 
     $recu = "\n\n".json_encode($resultat, JSON_PRETTY_PRINT);
     $attendu = "\n\n".json_encode($this->resultatAttendu, JSON_PRETTY_PRINT);
@@ -154,11 +154,13 @@ class Test {
     echo <<<DIV
     <div class="php ${class}" style="grid-row: ${row}" data-validate="${validation}">
       <a id="php-${row}"></a>
-      <h3 class="php" style="--color:${backgroundColor}; --gradient:${gradient}; color:${textColor};">${titre}</h3>
+      <h4 class="php" style="--color:${backgroundColor}; --gradient:${gradient}; color:${textColor};">${titre}</h4>
       <span class="php">${texte} in ${time} ms</span>
       <pre class="php">Reçu : ${recu}</pre>
       <pre class="php"">Attendu : ${attendu}</pre>
     </div>
     DIV;
+
+    return $validation;
   }
 }
