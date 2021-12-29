@@ -6,6 +6,8 @@ require_once '../dist/colori.php';
 require_once 'tests-php.php';
 
 $tests_json = file_get_contents('tests.json');
+$testList = json_decode($tests_json);
+
 $ordreMin = 4;
 
 ?>
@@ -38,6 +40,10 @@ $ordreMin = 4;
         --echiquier-transparence: linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
           linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
           linear-gradient(to right, #ddd 0% 100%);
+      }
+
+      .lists {
+        display: flex;
       }
 
       h2 { grid-row: 2; }
@@ -83,34 +89,40 @@ $ordreMin = 4;
 
         .no>pre:nth-of-type(1) { color: pink; }
       }
-
-      ul {
-        grid-column: 1 / -1;
-        grid-row: 1;
-      }
     </style>
   </head>
 
   <body>
-    <ul>
-      <li style="list-style: none">Other tests</li>
-      <li><a href="CIEDE2000.php">CIEDE2000 distance</a>
-      <li><a href="graph-conversion.php">Path-finding conversion</a>
-      <li><a href="oklab.php">oklab color space</a>
-      <li><a href="palette.php">Palette generation</a>
-    </ul>
+    <div class="lists">
+      <ul>
+        <li style="list-style: none">Categories</li>
+        <?php foreach($testList as $category => $tests) { ?>
+          <li><a href="#<?=$category?>"><?=$category?></a>
+        <?php } ?>
+      </ul>
+
+      <ul>
+        <li style="list-style: none">Other tests</li>
+        <li><a href="CIEDE2000.php">CIEDE2000 distance</a>
+        <li><a href="graph-conversion.php">Path-finding conversion</a>
+        <li><a href="oklab.php">oklab color space</a>
+        <li><a href="palette.php">Palette generation</a>
+      </ul>
+    </div>
 
     <h2 class="php">Tests de colori.php</h2>
 
     <?php
     $failsList = [];
 
-    $testList = json_decode($tests_json);
     $ordre = $ordreMin;
 
     foreach($testList as $category => $tests) {
       ?>
-      <h3 class="php" style="grid-row: <?=$ordre?>;"><?=$category?></h3>
+      <h3 class="php" style="grid-row: <?=$ordre?>;">
+        <a id="<?=$category?>"></a>
+        <?=$category?>
+      </h3>
       <?php
       $ordre++;
 
