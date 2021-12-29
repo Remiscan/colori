@@ -15,6 +15,19 @@ export function pRound(number: number, precision: number = 5): number {
   return Number(parseFloat(x.toPrecision(precision)));
 }
 
+/** Transforms a value into an unparsed alpha value. */
 export function toUnparsedAlpha(val: string | number, def: string = '1'): string {
   return !!val ? String(val) : (val === 0) ? '0' : def;
+}
+
+/** Casts numbers in [0, 1] to [00, ff]. */
+export function toHex(rgba: number[]): string[] {
+  return rgba.map(v => pad(Math.round(v * 255).toString(16)));
+}
+
+/** Casts values in [00, ff] to [0, 1]. */
+export function fromHex(hexa: string[]): number[] {
+  return hexa.map(v => v.length === 1 ? v.repeat(2) : v)
+             .map(v => parseInt(v, 16))
+             .map(v => v / 255);
 }

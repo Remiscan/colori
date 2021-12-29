@@ -1791,11 +1791,23 @@ function pRound(number, precision = 5) {
 function toUnparsedAlpha(val, def = '1') {
     return !!val ? String(val) : val === 0 ? '0' : def;
 }
+function toHex(rgba) {
+    return rgba.map((v)=>pad(Math.round(v * 255).toString(16))
+    );
+}
+function fromHex(hexa) {
+    return hexa.map((v)=>v.length === 1 ? v.repeat(2) : v
+    ).map((v)=>parseInt(v, 16)
+    ).map((v)=>v / 255
+    );
+}
 const mod5 = {
     pad: pad,
     angleToRange: angleToRange,
     pRound: pRound,
-    toUnparsedAlpha: toUnparsedAlpha
+    toUnparsedAlpha: toUnparsedAlpha,
+    toHex: toHex,
+    fromHex: fromHex
 };
 class Couleur {
     r = 0;
@@ -2055,15 +2067,13 @@ class Couleur {
         let [r, g, b] = hexa.map((v)=>String(v)
         );
         let a = String(hexa[3]) || 'ff';
-        const vals = [
+        const vals = fromHex([
             r,
             g,
             b,
             a
-        ].map((v)=>v.length === 1 ? v.repeat(2) : v
-        ).map((v)=>parseInt(v, 16)
+        ]).map((v, k)=>k === 3 ? v : v * 255
         );
-        vals[3] = vals[3] / 255;
         this.set(vals, [
             'r',
             'g',
@@ -2169,19 +2179,14 @@ class Couleur {
     get name() {
         if (this.a === 1) {
             const allNames = Couleur.namedColors;
-            const [r, g, b] = [
-                255 * this.r,
-                255 * this.g,
-                255 * this.b
-            ];
-            const tolerance = 255 * 0.02;
+            const [r, g, b] = this.values;
             for (const [name, hex] of allNames.entries()){
-                const [r2, g2, b2] = [
-                    parseInt(`${hex[0]}${hex[1]}`, 16),
-                    parseInt(`${hex[2]}${hex[3]}`, 16),
-                    parseInt(`${hex[4]}${hex[5]}`, 16)
-                ];
-                if (Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) < tolerance) return name;
+                const [r2, g2, b2] = fromHex([
+                    `${hex[0]}${hex[1]}`,
+                    `${hex[2]}${hex[3]}`,
+                    `${hex[4]}${hex[5]}`
+                ]);
+                if (Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) < 0.02) return name;
             }
             return null;
         } else if (this.a === 0) return 'transparent';
@@ -2201,19 +2206,15 @@ class Couleur {
     get closestName() {
         if (this.a === 0) return 'transparent';
         const allNames = Couleur.namedColors;
-        const [r, g, b] = [
-            255 * this.r,
-            255 * this.g,
-            255 * this.b
-        ];
+        const [r, g, b] = this.values;
         let closest = '';
         let lastDistance = +Infinity;
         for (const [name, hex] of allNames.entries()){
-            const [r2, g2, b2] = [
-                parseInt(`${hex[0]}${hex[1]}`, 16),
-                parseInt(`${hex[2]}${hex[3]}`, 16),
-                parseInt(`${hex[4]}${hex[5]}`, 16)
-            ];
+            const [r2, g2, b2] = fromHex([
+                `${hex[0]}${hex[1]}`,
+                `${hex[2]}${hex[3]}`,
+                `${hex[4]}${hex[5]}`
+            ]);
             const distance = Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) + Math.abs(1 - this.a);
             if (distance < lastDistance) {
                 lastDistance = distance;
@@ -2224,11 +2225,10 @@ class Couleur {
     }
     get hex() {
         const values = Couleur.toGamut('srgb', this.values);
-        const rgb = [
+        const rgb = toHex([
             ...values,
             this.a
-        ].map((v)=>pad(Math.round(v * 255).toString(16))
-        );
+        ]);
         if (this.a < 1) return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
         else return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
     }
