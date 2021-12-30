@@ -14,6 +14,9 @@ $ordreMin = 4;
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8">
+    <title>colori tests</title>
+
     <style>
       html { color-scheme: light dark; }
       .yes { background-color: palegreen; }
@@ -196,6 +199,8 @@ $ordreMin = 4;
       }
 
       document.querySelector('.failed-js-count').innerHTML = fails;
+      const totalErrors = fails + <?=count($failsList)?>;
+      document.querySelector('title').innerHTML = `colori tests (${totalErrors} error${totalErrors.length > 1 ? 's' : ''})`;
     </script>
   </body>
 </html>
