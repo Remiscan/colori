@@ -128,9 +128,10 @@ export default class Couleur {
           if (colorString === 'transparent') return { id: 'rgb', data: ['', '0', '0', '0', '0'] };
           const allNames = Couleur.namedColors;
           const hex = allNames.get(colorString.toLowerCase()) || null;
-          return Couleur.matchSyntax(`#${hex}`);
+          if (hex) return Couleur.matchSyntax(`#${hex}`);
+        } else {
+          return { id: format.id, data: result };
         }
-        return { id: format.id, data: result };
       }
     }
 

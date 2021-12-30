@@ -1927,12 +1927,13 @@ class Couleur {
                     };
                     const allNames = Couleur.namedColors;
                     const hex = allNames.get(colorString.toLowerCase()) || null;
-                    return Couleur.matchSyntax(`#${hex}`);
+                    if (hex) return Couleur.matchSyntax(`#${hex}`);
+                } else {
+                    return {
+                        id: format.id,
+                        data: result
+                    };
                 }
-                return {
-                    id: format.id,
-                    data: result
-                };
             }
         }
         throw `${JSON.stringify(colorString)} is not a valid color format`;

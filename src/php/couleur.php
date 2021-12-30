@@ -111,8 +111,9 @@
             $name = strtolower($colorString);
             if (array_key_exists($name, self::NAMED_COLORS))
               return self::matchSyntax('#' . self::NAMED_COLORS[strtolower($colorString)]);
+          } else {
+            return $resultat = ['id' => $format['id'], 'data' => $matches];
           }
-          return $resultat = ['id' => $format['id'], 'data' => $matches];
         }
       }
 
