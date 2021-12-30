@@ -778,31 +778,29 @@ function APCA(rgbText, rgbBack) {
     const luminance1 = (rgb)=>rgb.reduce((sum, v, i)=>sum + Math.pow(v, 2.4) * coeffs[i]
         , 0)
     ;
-    let [Ltext1, Lback1] = [
+    let [Ytext, Yback] = [
         rgbText,
         rgbBack
     ].map((rgb)=>luminance1(rgb)
     );
-    const blackClampTrigger = 0.022;
-    const blackClampPow = 1.414;
-    [Ltext1, Lback1] = [
-        Ltext1,
-        Lback1
-    ].map((L)=>L > blackClampTrigger ? L : L + Math.pow(blackClampTrigger - L, blackClampPow)
+    const normBG = 0.56, normTXT = 0.57, revTXT = 0.62, revBG = 0.65;
+    const blkThrs = 0.022, blkClmp = 1.414, scaleBoW = 1.14, scaleWoB = 1.14, loBoWthresh = 0.035991, loWoBthresh = 0.035991, loBoWfactor = 27.7847239587675, loWoBfactor = 27.7847239587675, loBoWoffset = 0.027, loWoBoffset = 0.027, loClip = 0.001;
+    [Ytext, Yback] = [
+        Ytext,
+        Yback
+    ].map((Y)=>Y > blkThrs ? Y : Y + Math.pow(blkThrs - Y, blkClmp)
     );
-    if (Math.abs(Ltext1 - Lback1) < 0.0005) return 0;
-    let result;
-    const compute = (Lback, Ltext, powBack, powText)=>(Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * 1.14
-    ;
-    const lowClip = 0.001, lowTrigger = 0.035991, lowOffset = 0.027, invLowTrigger = 27.7847239587675;
-    if (Lback1 > Ltext1) {
-        const SAPC = compute(Lback1, Ltext1, 0.56, 0.57);
-        result = SAPC < lowClip ? 0 : SAPC < lowTrigger ? SAPC * (1 - lowOffset * invLowTrigger) : SAPC - lowOffset;
+    if (Math.abs(Ytext - Yback) < 0.0005) return 0;
+    let SAPC = 0;
+    let output = 0;
+    if (Yback > Ytext) {
+        SAPC = (Math.pow(Yback, normBG) - Math.pow(Ytext, normTXT)) * scaleBoW;
+        output = SAPC < loClip ? 0 : SAPC < loBoWthresh ? SAPC - SAPC * loBoWfactor * loBoWoffset : SAPC - loBoWoffset;
     } else {
-        const SAPC = compute(Lback1, Ltext1, 0.65, 0.62);
-        result = SAPC > -lowClip ? 0 : SAPC > -lowTrigger ? SAPC * (1 - lowOffset * invLowTrigger) : SAPC + lowOffset;
+        SAPC = (Math.pow(Yback, revBG) - Math.pow(Ytext, revTXT)) * scaleWoB;
+        output = SAPC > -loClip ? 0 : SAPC > -loWoBthresh ? SAPC - SAPC * loWoBfactor * loWoBoffset : SAPC + loWoBoffset;
     }
-    return result * 100;
+    return output * 100;
 }
 const mod1 = {
     luminance: luminance,

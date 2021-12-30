@@ -30,45 +30,55 @@ export function WCAG2(rgbText: number[], rgbBack: number[]): number {
  * @param rgbBack Array of r, g, b values of the background.
  * @returns Contrast between the two colors.
  */
-// Source of the math: https://github.com/Myndex/SAPC-APCA
+// Source: https://github.com/Myndex/SAPC-APCA
 export function APCA(rgbText: number[], rgbBack: number[]): number {
-  // 1. Compute luminances
+  // 1. Compute luminances (slightly different from luminances used in WCAG2 contrast)
   const coeffs = [0.2126729, 0.7151522, 0.0721750];
   const gamma = 2.4;
   const luminance = (rgb: number[]) => rgb.reduce((sum, v, i) => sum + Math.pow(v, gamma) * coeffs[i], 0);
-  let [Ltext, Lback] = [rgbText, rgbBack].map(rgb => luminance(rgb));
+  let [Ytext, Yback] = [rgbText, rgbBack].map(rgb => luminance(rgb));
+
+  // APCA 0.0.98 G - 4g Constants
+  const normBG = 0.56,
+        normTXT = 0.57,
+        revTXT = 0.62,
+        revBG = 0.65;
+  const blkThrs = 0.022,
+        blkClmp = 1.414,
+        scaleBoW = 1.14,
+        scaleWoB = 1.14,
+        loBoWthresh = 0.035991,
+        loWoBthresh = 0.035991,
+        loBoWfactor = 27.7847239587675,
+        loWoBfactor = 27.7847239587675,
+        loBoWoffset = 0.027,
+        loWoBoffset = 0.027,
+        loClip = 0.001,
+        deltaYmin = 0.0005;
 
   // 2. Clamp luminances
-  const blackClampTrigger = 0.022;
-  const blackClampPow = 1.414;
-  [Ltext, Lback] = [Ltext, Lback].map(L => L > blackClampTrigger ? L : L + Math.pow(blackClampTrigger - L, blackClampPow));
-
-  const δLmin = 0.0005;
-  if (Math.abs(Ltext - Lback) < δLmin) return 0;
+  [Ytext, Yback] = [Ytext, Yback].map(Y => Y > blkThrs ? Y : Y + Math.pow(blkThrs - Y, blkClmp));
+  if (Math.abs(Ytext - Yback) < deltaYmin) return 0;
 
   // 3. Compute contrast
-  let result;
-  const scale = 1.14;
-  const compute = (Lback: number, Ltext: number, powBack: number, powText: number) => (Math.pow(Lback, powBack) - Math.pow(Ltext, powText)) * scale;
-  const lowClip = 0.001, lowTrigger = 0.035991, lowOffset = 0.027, invLowTrigger = 27.7847239587675;
+  let SAPC = 0;
+  let output = 0;
 
   // for dark text on light background
-  if (Lback > Ltext) {
-    const powBack = 0.56, powText = 0.57;
-    const SAPC = compute(Lback, Ltext, powBack, powText);
-    result = (SAPC < lowClip) ? 0
-           : (SAPC < lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
-           : SAPC - lowOffset;
+  if (Yback > Ytext) {
+    SAPC = (Math.pow(Yback, normBG) - Math.pow(Ytext, normTXT)) * scaleBoW;
+    output = (SAPC < loClip) ? 0
+           : (SAPC < loBoWthresh) ? SAPC - SAPC * loBoWfactor * loBoWoffset
+           : SAPC - loBoWoffset;
   }
 
   // for light text on dark background
   else {
-    const powBack = 0.65, powText = 0.62;
-    const SAPC = compute(Lback, Ltext, powBack, powText);
-    result = (SAPC > -lowClip) ? 0
-           : (SAPC > -lowTrigger) ? SAPC * (1 - lowOffset * invLowTrigger)
-           : SAPC + lowOffset;
+    SAPC = (Math.pow(Yback, revBG) - Math.pow(Ytext, revTXT)) * scaleWoB;
+    output = (SAPC > -loClip) ? 0
+           : (SAPC > -loWoBthresh) ? SAPC - SAPC * loWoBfactor * loWoBoffset
+           : SAPC + loWoBoffset;
   }
 
-  return result * 100;
+  return output * 100;
 }
