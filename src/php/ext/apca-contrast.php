@@ -43,9 +43,9 @@
     $clamp = fn($Y) => $Y > $blkThrs ? $Y : $Y + ($blkThrs - $Y) ** $blkClmp;
     $Ytext = $clamp($Ytext);
     $Yback = $clamp($Yback);
-    if (abs($Ytext - $Yback) < $deltaYmin) return .0;
 
     // 3. Compute contrast
+    if (abs($Ytext - $Yback) < $deltaYmin) return .0;
     $SAPC = .0;
     $output = .0;
 

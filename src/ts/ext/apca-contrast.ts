@@ -38,9 +38,9 @@ export function APCAcontrast(rgbText: number[], rgbBack: number[]): number {
 
   // 2. Clamp luminances
   [Ytext, Yback] = [Ytext, Yback].map(Y => Y > blkThrs ? Y : Y + Math.pow(blkThrs - Y, blkClmp));
-  if (Math.abs(Ytext - Yback) < deltaYmin) return 0;
 
   // 3. Compute contrast
+  if (Math.abs(Ytext - Yback) < deltaYmin) return 0;
   let SAPC = 0;
   let output = 0;
 
