@@ -1,18 +1,21 @@
+import { walk } from 'https://deno.land/std/fs/mod.ts';
 import * as path from 'https://deno.land/std@0.105.0/path/mod.ts';
 import { rollup } from 'https://deno.land/x/drollup@2.58.0+0.20.0/mod.ts';
 import { terser } from 'https://deno.land/x/drollup@2.58.0+0.20.0/plugins/terser/mod.ts';
-import { getFiles } from 'https://deno.land/x/getfiles@v1.0.0/mod.ts';
 
 
 // Build the import map
 const basePath = 'src/ts';
 const importMap = { imports: {} };
-const modules = getFiles(basePath);
-for (const module of modules) {
-  const newPath = module.path.replace(basePath, '.');
+const modules = walk(basePath);
+for await (const module of modules) {
+  if (!module.isFile) continue;
+  const path = module.path.replaceAll('\\', '/');
+  const newPath = path.replace(basePath, '.');
   const oldPath = newPath.replace('.ts', '.js');
   importMap.imports[oldPath] = newPath;
 }
+console.log(importMap);
 const importMapUrl = path.toFileUrl(path.resolve(`./${basePath}`)).href;
 
 
