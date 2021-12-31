@@ -1,8 +1,5 @@
 /************************************************************************************************
- * Derived from https://www.w3.org/TR/css-color-4/#rgb-to-lab                                   *
- *            & https://drafts.csswg.org/css-color/#predefined-to-predefined                    *
- *            & https://github.com/w3c/csswg-drafts/blob/main/css-color-4/utilities.js          *
- *            & https://github.com/w3c/csswg-drafts/blob/main/css-color-4/conversions.js        *
+ * Derived from https://github.com/w3c/csswg-drafts/tree/main/css-color-4                       *
  * under W3C License (https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document) *
  ************************************************************************************************/
 
