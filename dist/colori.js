@@ -100,11 +100,11 @@ const colorSpaces = [
             ],
             [
                 -Infinity,
-                Infinity
+                +Infinity
             ],
             [
                 -Infinity,
-                Infinity
+                +Infinity
             ]
         ],
         links: [
@@ -365,11 +365,11 @@ const colorSpaces = [
             ],
             [
                 -Infinity,
-                Infinity
+                +Infinity
             ],
             [
                 -Infinity,
-                Infinity
+                +Infinity
             ]
         ],
         links: [
@@ -399,6 +399,40 @@ const colorSpaces = [
         ]
     }
 ];
+function lin_srgb_to_oklab(rgb) {
+    const [r, g, b] = rgb;
+    let l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+    let m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+    let s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+    l = Math.cbrt(l);
+    m = Math.cbrt(m);
+    s = Math.cbrt(s);
+    const okl = 0.2104542553 * l + 0.793617785 * m + -0.0040720468 * s;
+    const oka = 1.9779984951 * l + -2.428592205 * m + 0.4505937099 * s;
+    const okb = 0.0259040371 * l + 0.7827717662 * m + -0.808675766 * s;
+    return [
+        okl,
+        oka,
+        okb
+    ];
+}
+function oklab_to_lin_srgb(lab) {
+    const [okl, oka, okb] = lab;
+    let l = okl + 0.3963377774 * oka + 0.2158037573 * okb;
+    let m = okl + -0.1055613458 * oka + -0.0638541728 * okb;
+    let s = okl + -0.0894841775 * oka + -1.291485548 * okb;
+    l = l ** 3;
+    m = m ** 3;
+    s = s ** 3;
+    const r = 4.0767416621 * l + -3.3077115913 * m + 0.2309699292 * s;
+    const g = -1.2684380046 * l + 2.6097574011 * m + -0.3413193965 * s;
+    const b = -0.0041960863 * l + -0.7034186147 * m + 1.707614701 * s;
+    return [
+        r,
+        g,
+        b
+    ];
+}
 function srgb_to_lin_srgb(rgb) {
     return rgb.map((x)=>Math.abs(x) < 0.04045 ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4)
     );
@@ -421,88 +455,6 @@ function d65xyz_to_lin_srgb(xyz) {
         3.2409699419045226 * x + -1.537383177570094 * y + -0.4986107602930034 * z,
         -0.9692436362808796 * x + 1.8759675015077202 * y + 0.04155505740717559 * z,
         0.05563007969699366 * x + -0.20397695888897652 * y + 1.0569715142428786 * z
-    ];
-}
-function srgb_to_hsl(rgb) {
-    const [r, g, b] = rgb;
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const chroma = max - min;
-    const l = (max + min) / 2;
-    let h;
-    if (chroma === 0) h = 0;
-    else switch(max){
-        case r:
-            h = (g - b) / chroma;
-            break;
-        case g:
-            h = (b - r) / chroma + 2;
-            break;
-        default:
-            h = (r - g) / chroma + 4;
-    }
-    h = 60 * h;
-    while(h < 0)h += 360;
-    while(h > 360)h -= 360;
-    let s;
-    if (l === 0 || l === 1) s = 0;
-    else if (l <= 0.5) s = chroma / (2 * l);
-    else s = chroma / (2 - 2 * l);
-    return [
-        h,
-        s,
-        l
-    ];
-}
-function hsl_to_srgb(hsl) {
-    const [h, s, l] = hsl;
-    const m = s * Math.min(l, 1 - l);
-    const k = (n)=>(n + h / 30) % 12
-    ;
-    const f = (n)=>l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1)
-    ;
-    const r = f(0);
-    const g = f(8);
-    const b = f(4);
-    return [
-        r,
-        g,
-        b
-    ];
-}
-function hsl_to_hwb(hsl) {
-    const [h, s, l] = hsl;
-    let _s;
-    const v = l + s * Math.min(l, 1 - l);
-    if (v === 0) _s = 0;
-    else _s = 2 - 2 * l / v;
-    const w = (1 - _s) * v;
-    const bk = 1 - v;
-    return [
-        h,
-        w,
-        bk
-    ];
-}
-function hwb_to_hsl(hwb) {
-    const [h, w, bk] = hwb;
-    let _w = w, _bk = bk;
-    if (w + bk > 1) {
-        _w = w / (w + bk);
-        _bk = bk / (w + bk);
-    }
-    let _s;
-    const v = 1 - _bk;
-    if (_bk === 1) _s = 0;
-    else _s = 1 - _w / v;
-    let s;
-    const l = v - v * _s / 2;
-    if (l === 0 || l === 1) s = 0;
-    else s = (v - l) / Math.min(l, 1 - l);
-    return [
-        h,
-        s,
-        l
     ];
 }
 function displayp3_to_lin_displayp3(rgb) {
@@ -668,46 +620,6 @@ function lch_to_lab(lch) {
         cieb
     ];
 }
-function lin_srgb_to_oklab(rgb) {
-    const [r, g, b] = rgb;
-    let l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
-    let m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
-    let s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
-    l = Math.cbrt(l);
-    m = Math.cbrt(m);
-    s = Math.cbrt(s);
-    const okl = 0.2104542553 * l + 0.793617785 * m + -0.0040720468 * s;
-    const oka = 1.9779984951 * l + -2.428592205 * m + 0.4505937099 * s;
-    const okb = 0.0259040371 * l + 0.7827717662 * m + -0.808675766 * s;
-    return [
-        okl,
-        oka,
-        okb
-    ];
-}
-function oklab_to_lin_srgb(lab) {
-    const [okl, oka, okb] = lab;
-    let l = okl + 0.3963377774 * oka + 0.2158037573 * okb;
-    let m = okl + -0.1055613458 * oka + -0.0638541728 * okb;
-    let s = okl + -0.0894841775 * oka + -1.291485548 * okb;
-    l = l ** 3;
-    m = m ** 3;
-    s = s ** 3;
-    const r = 4.0767416621 * l + -3.3077115913 * m + 0.2309699292 * s;
-    const g = -1.2684380046 * l + 2.6097574011 * m + -0.3413193965 * s;
-    const b = -0.0041960863 * l + -0.7034186147 * m + 1.707614701 * s;
-    return [
-        r,
-        g,
-        b
-    ];
-}
-function oklab_to_oklch(lab) {
-    return lab_to_lch(lab);
-}
-function oklch_to_oklab(lch) {
-    return lch_to_lab(lch);
-}
 function d65xyz_to_xyz(xyz) {
     const [x, y, z] = xyz;
     return [
@@ -724,52 +636,215 @@ function xyz_to_d65xyz(xyz) {
         0.012314001688319899 * x + -0.020507696433477912 * y + 1.3303659366080753 * z
     ];
 }
+function srgb_to_lin_srgb1(rgb) {
+    return srgb_to_lin_srgb(rgb);
+}
+function lin_srgb_to_srgb1(rgb) {
+    return lin_srgb_to_srgb(rgb);
+}
+function lin_srgb_to_d65xyz1(rgb) {
+    return lin_srgb_to_d65xyz(rgb);
+}
+function d65xyz_to_lin_srgb1(xyz) {
+    return d65xyz_to_lin_srgb(xyz);
+}
+function srgb_to_hsl(rgb) {
+    const [r, g, b] = rgb;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const chroma = max - min;
+    const l = (max + min) / 2;
+    let h;
+    if (chroma === 0) h = 0;
+    else switch(max){
+        case r:
+            h = (g - b) / chroma;
+            break;
+        case g:
+            h = (b - r) / chroma + 2;
+            break;
+        default:
+            h = (r - g) / chroma + 4;
+    }
+    h = 60 * h;
+    while(h < 0)h += 360;
+    while(h > 360)h -= 360;
+    let s;
+    if (l === 0 || l === 1) s = 0;
+    else if (l <= 0.5) s = chroma / (2 * l);
+    else s = chroma / (2 - 2 * l);
+    return [
+        h,
+        s,
+        l
+    ];
+}
+function hsl_to_srgb(hsl) {
+    const [h, s, l] = hsl;
+    const m = s * Math.min(l, 1 - l);
+    const k = (n)=>(n + h / 30) % 12
+    ;
+    const f = (n)=>l - m * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1)
+    ;
+    const r = f(0);
+    const g = f(8);
+    const b = f(4);
+    return [
+        r,
+        g,
+        b
+    ];
+}
+function hsl_to_hwb(hsl) {
+    const [h, s, l] = hsl;
+    let _s;
+    const v = l + s * Math.min(l, 1 - l);
+    if (v === 0) _s = 0;
+    else _s = 2 - 2 * l / v;
+    const w = (1 - _s) * v;
+    const bk = 1 - v;
+    return [
+        h,
+        w,
+        bk
+    ];
+}
+function hwb_to_hsl(hwb) {
+    const [h, w, bk] = hwb;
+    let _w = w, _bk = bk;
+    if (w + bk > 1) {
+        _w = w / (w + bk);
+        _bk = bk / (w + bk);
+    }
+    let _s;
+    const v = 1 - _bk;
+    if (_bk === 1) _s = 0;
+    else _s = 1 - _w / v;
+    let s;
+    const l = v - v * _s / 2;
+    if (l === 0 || l === 1) s = 0;
+    else s = (v - l) / Math.min(l, 1 - l);
+    return [
+        h,
+        s,
+        l
+    ];
+}
+function displayp3_to_lin_displayp31(rgb) {
+    return displayp3_to_lin_displayp3(rgb);
+}
+function lin_displayp3_to_displayp31(rgb) {
+    return lin_displayp3_to_displayp3(rgb);
+}
+function lin_displayp3_to_d65xyz1(rgb) {
+    return lin_displayp3_to_d65xyz(rgb);
+}
+function d65xyz_to_lin_displayp31(xyz) {
+    return d65xyz_to_lin_displayp3(xyz);
+}
+function prophotorgb_to_lin_prophotorgb1(rgb) {
+    return prophotorgb_to_lin_prophotorgb(rgb);
+}
+function lin_prophotorgb_to_prophotorgb1(rgb) {
+    return lin_prophotorgb_to_prophotorgb(rgb);
+}
+function lin_prophotorgb_to_xyz1(rgb) {
+    return lin_prophotorgb_to_xyz(rgb);
+}
+function xyz_to_lin_prophotorgb1(xyz) {
+    return xyz_to_lin_prophotorgb(xyz);
+}
+function a98rgb_to_lin_a98rgb1(rgb) {
+    return a98rgb_to_lin_a98rgb(rgb);
+}
+function lin_a98rgb_to_a98rgb1(rgb) {
+    return lin_a98rgb_to_a98rgb(rgb);
+}
+function lin_a98rgb_to_d65xyz1(rgb) {
+    return lin_a98rgb_to_d65xyz(rgb);
+}
+function d65xyz_to_lin_a98rgb1(xyz) {
+    return d65xyz_to_lin_a98rgb(xyz);
+}
+function rec2020_to_lin_rec20201(rgb) {
+    return rec2020_to_lin_rec2020(rgb);
+}
+function lin_rec2020_to_rec20201(rgb) {
+    return lin_rec2020_to_rec2020(rgb);
+}
+function lin_rec2020_to_d65xyz1(rgb) {
+    return lin_rec2020_to_d65xyz(rgb);
+}
+function d65xyz_to_lin_rec20201(xyz) {
+    return d65xyz_to_lin_rec2020(xyz);
+}
+function xyz_to_lab1(xyz) {
+    return xyz_to_lab(xyz);
+}
+function lab_to_xyz1(lab) {
+    return lab_to_xyz(lab);
+}
+function lab_to_lch1(lab) {
+    return lab_to_lch(lab);
+}
+function lch_to_lab1(lch) {
+    return lch_to_lab(lch);
+}
+function lin_srgb_to_oklab1(rgb) {
+    return lin_srgb_to_oklab(rgb);
+}
+function oklab_to_lin_srgb1(lab) {
+    return oklab_to_lin_srgb(lab);
+}
+function oklab_to_oklch(lab) {
+    return lab_to_lch1(lab);
+}
+function oklch_to_oklab(lch) {
+    return lch_to_lab1(lch);
+}
+function d65xyz_to_xyz1(xyz) {
+    return d65xyz_to_xyz(xyz);
+}
+function xyz_to_d65xyz1(xyz) {
+    return xyz_to_d65xyz(xyz);
+}
 const mod = {
-    srgb_to_lin_srgb: srgb_to_lin_srgb,
-    lin_srgb_to_srgb: lin_srgb_to_srgb,
-    lin_srgb_to_d65xyz: lin_srgb_to_d65xyz,
-    d65xyz_to_lin_srgb: d65xyz_to_lin_srgb,
+    srgb_to_lin_srgb: srgb_to_lin_srgb1,
+    lin_srgb_to_srgb: lin_srgb_to_srgb1,
+    lin_srgb_to_d65xyz: lin_srgb_to_d65xyz1,
+    d65xyz_to_lin_srgb: d65xyz_to_lin_srgb1,
     srgb_to_hsl: srgb_to_hsl,
     hsl_to_srgb: hsl_to_srgb,
     hsl_to_hwb: hsl_to_hwb,
     hwb_to_hsl: hwb_to_hsl,
-    displayp3_to_lin_displayp3: displayp3_to_lin_displayp3,
-    lin_displayp3_to_displayp3: lin_displayp3_to_displayp3,
-    lin_displayp3_to_d65xyz: lin_displayp3_to_d65xyz,
-    d65xyz_to_lin_displayp3: d65xyz_to_lin_displayp3,
-    prophotorgb_to_lin_prophotorgb: prophotorgb_to_lin_prophotorgb,
-    lin_prophotorgb_to_prophotorgb: lin_prophotorgb_to_prophotorgb,
-    lin_prophotorgb_to_xyz: lin_prophotorgb_to_xyz,
-    xyz_to_lin_prophotorgb: xyz_to_lin_prophotorgb,
-    a98rgb_to_lin_a98rgb: a98rgb_to_lin_a98rgb,
-    lin_a98rgb_to_a98rgb: lin_a98rgb_to_a98rgb,
-    lin_a98rgb_to_d65xyz: lin_a98rgb_to_d65xyz,
-    d65xyz_to_lin_a98rgb: d65xyz_to_lin_a98rgb,
-    rec2020_to_lin_rec2020: rec2020_to_lin_rec2020,
-    lin_rec2020_to_rec2020: lin_rec2020_to_rec2020,
-    lin_rec2020_to_d65xyz: lin_rec2020_to_d65xyz,
-    d65xyz_to_lin_rec2020: d65xyz_to_lin_rec2020,
-    xyz_to_lab: xyz_to_lab,
-    lab_to_xyz: lab_to_xyz,
-    lab_to_lch: lab_to_lch,
-    lch_to_lab: lch_to_lab,
-    lin_srgb_to_oklab: lin_srgb_to_oklab,
-    oklab_to_lin_srgb: oklab_to_lin_srgb,
+    displayp3_to_lin_displayp3: displayp3_to_lin_displayp31,
+    lin_displayp3_to_displayp3: lin_displayp3_to_displayp31,
+    lin_displayp3_to_d65xyz: lin_displayp3_to_d65xyz1,
+    d65xyz_to_lin_displayp3: d65xyz_to_lin_displayp31,
+    prophotorgb_to_lin_prophotorgb: prophotorgb_to_lin_prophotorgb1,
+    lin_prophotorgb_to_prophotorgb: lin_prophotorgb_to_prophotorgb1,
+    lin_prophotorgb_to_xyz: lin_prophotorgb_to_xyz1,
+    xyz_to_lin_prophotorgb: xyz_to_lin_prophotorgb1,
+    a98rgb_to_lin_a98rgb: a98rgb_to_lin_a98rgb1,
+    lin_a98rgb_to_a98rgb: lin_a98rgb_to_a98rgb1,
+    lin_a98rgb_to_d65xyz: lin_a98rgb_to_d65xyz1,
+    d65xyz_to_lin_a98rgb: d65xyz_to_lin_a98rgb1,
+    rec2020_to_lin_rec2020: rec2020_to_lin_rec20201,
+    lin_rec2020_to_rec2020: lin_rec2020_to_rec20201,
+    lin_rec2020_to_d65xyz: lin_rec2020_to_d65xyz1,
+    d65xyz_to_lin_rec2020: d65xyz_to_lin_rec20201,
+    xyz_to_lab: xyz_to_lab1,
+    lab_to_xyz: lab_to_xyz1,
+    lab_to_lch: lab_to_lch1,
+    lch_to_lab: lch_to_lab1,
+    lin_srgb_to_oklab: lin_srgb_to_oklab1,
+    oklab_to_lin_srgb: oklab_to_lin_srgb1,
     oklab_to_oklch: oklab_to_oklch,
     oklch_to_oklab: oklch_to_oklab,
-    d65xyz_to_xyz: d65xyz_to_xyz,
-    xyz_to_d65xyz: xyz_to_d65xyz
+    d65xyz_to_xyz: d65xyz_to_xyz1,
+    xyz_to_d65xyz: xyz_to_d65xyz1
 };
-function luminance(rgb) {
-    const linrgb = srgb_to_lin_srgb(rgb);
-    return 0.2126729 * linrgb[0] + 0.7151522 * linrgb[1] + 0.072175 * linrgb[2];
-}
-function WCAG2(rgbText, rgbBack) {
-    const L1 = luminance(rgbText);
-    const L2 = luminance(rgbBack);
-    return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
-}
-function APCA(rgbText, rgbBack) {
+function APCAcontrast(rgbText, rgbBack) {
     const coeffs = [
         0.2126729,
         0.7151522,
@@ -801,6 +876,18 @@ function APCA(rgbText, rgbBack) {
         output = SAPC > -loClip ? 0 : SAPC > -loWoBthresh ? SAPC - SAPC * loWoBfactor * loWoBoffset : SAPC + loWoBoffset;
     }
     return output * 100;
+}
+function luminance(rgb) {
+    const linrgb = srgb_to_lin_srgb1(rgb);
+    return 0.2126729 * linrgb[0] + 0.7151522 * linrgb[1] + 0.072175 * linrgb[2];
+}
+function WCAG2(rgbText, rgbBack) {
+    const L1 = luminance(rgbText);
+    const L2 = luminance(rgbBack);
+    return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+}
+function APCA(rgbText, rgbBack) {
+    return APCAcontrast(rgbText, rgbBack);
 }
 const mod1 = {
     luminance: luminance,
@@ -925,14 +1012,160 @@ const mod3 = {
     euclidean: euclidean,
     CIEDE2000: CIEDE2000
 };
+function maxSaturation(a, b) {
+    let k0, k1, k2, k3, k4, wl, wm, ws;
+    if (-1.88170328 * a - 0.80936493 * b > 1) {
+        k0 = 1.19086277;
+        k1 = 1.76576728;
+        k2 = 0.59662641;
+        k3 = 0.75515197;
+        k4 = 0.56771245;
+        wl = 4.0767416621;
+        wm = -3.3077115913;
+        ws = 0.2309699292;
+    } else if (1.81444104 * a - 1.19445276 * b > 1) {
+        k0 = 0.73956515;
+        k1 = -0.45954404;
+        k2 = 0.08285427;
+        k3 = 0.1254107;
+        k4 = 0.14503204;
+        wl = -1.2684380046;
+        wm = 2.6097574011;
+        ws = -0.3413193965;
+    } else {
+        k0 = 1.35733652;
+        k1 = -0.00915799;
+        k2 = -1.1513021;
+        k3 = -0.50559606;
+        k4 = 0.00692167;
+        wl = -0.0041960863;
+        wm = -0.7034186147;
+        ws = +1.707614701;
+    }
+    let S = k0 + k1 * a + k2 * b + k3 * a * a + k4 * a * b;
+    const k_l = 0.3963377774 * a + 0.2158037573 * b;
+    const k_m = -0.1055613458 * a - 0.0638541728 * b;
+    const k_s = -0.0894841775 * a - 1.291485548 * b;
+    for(let i = 0; i < 1; i++){
+        const [l_, m_, s_] = [
+            k_l,
+            k_m,
+            k_s
+        ].map((v)=>1 + S * v
+        );
+        const [l, m, s] = [
+            l_,
+            m_,
+            s_
+        ].map((v)=>v ** 3
+        );
+        const l_dS = 3 * k_l * l_ * l_, m_dS = 3 * k_m * m_ * m_, s_dS = 3 * k_s * s_ * s_;
+        const l_dS2 = 6 * k_l * k_l * l_, m_dS2 = 6 * k_m * k_m * m_, s_dS2 = 6 * k_s * k_s * s_;
+        const f = wl * l + wm * m + ws * s, f1 = wl * l_dS + wm * m_dS + ws * s_dS, f2 = wl * l_dS2 + wm * m_dS2 + ws * s_dS2;
+        S = S - f * f1 / (f1 * f1 - 0.5 * f * f2);
+    }
+    return S;
+}
+function cusp(a, b) {
+    const Scusp = maxSaturation(a, b);
+    const rgbMax = oklab_to_lin_srgb1([
+        1,
+        Scusp * a,
+        Scusp * b
+    ]);
+    const Lcusp = Math.cbrt(1 / Math.max(...rgbMax));
+    const Ccusp = Lcusp * Scusp;
+    return [
+        Lcusp,
+        Ccusp
+    ];
+}
+function gamutIntersection(a, b, L1, C1, L0) {
+    const [Lcusp, Ccusp] = cusp(a, b);
+    let t1;
+    if ((L1 - L0) * Ccusp - (Lcusp - L0) * C1 <= 0) {
+        t1 = Ccusp * L0 / (C1 * Lcusp + Ccusp * (L0 - L1));
+    } else {
+        t1 = Ccusp * (L0 - 1) / (C1 * (Lcusp - 1) + Ccusp * (L0 - L1));
+        const dL = L1 - L0, dC = C1;
+        const k_l = 0.3963377774 * a + 0.2158037573 * b, k_m = -0.1055613458 * a - 0.0638541728 * b, k_s = -0.0894841775 * a - 1.291485548 * b;
+        const [l_dt, m_dt, s_dt] = [
+            k_l,
+            k_m,
+            k_s
+        ].map((v)=>dL + dC * v
+        );
+        for(let i = 0; i < 1; i++){
+            const L = L0 * (1 - t1) + t1 * L1;
+            const C = t1 * C1;
+            const [l_, m_, s_] = [
+                k_l,
+                k_m,
+                k_s
+            ].map((v)=>L + C * v
+            );
+            const [l, m, s] = [
+                l_,
+                m_,
+                s_
+            ].map((v)=>v ** 3
+            );
+            const ldt = 3 * l_dt * l_ * l_, mdt = 3 * m_dt * m_ * m_, sdt = 3 * s_dt * s_ * s_;
+            const ldt2 = 6 * l_dt * l_dt * l_, mdt2 = 6 * m_dt * m_dt * m_, sdt2 = 6 * s_dt * s_dt * s_;
+            const term = (v1, v2, v3)=>{
+                const w = v1 * l + v2 * m + v3 * s - 1, w1 = v1 * ldt + v2 * mdt + v3 * sdt, w2 = v1 * ldt2 + v2 * mdt2 + v3 * sdt2;
+                const u = w1 / (w1 * w1 - 0.5 * w * w2);
+                const t = u >= 0 ? -w * u : Number.MAX_VALUE;
+                return t;
+            };
+            const t_r = term(4.0767416621, -3.3077115913, 0.2309699292);
+            const t_g = term(-1.2684380046, 2.6097574011, -0.3413193965);
+            const t_b = term(-0.0041960863, -0.7034186147, 1.707614701);
+            t1 += Math.min(t_r, t_g, t_b);
+        }
+    }
+    return t1;
+}
+function clip(rgb) {
+    if (rgb.every((v)=>v > 0 && v < 1
+    )) return rgb;
+    const [okl, oka, okb] = lin_srgb_to_oklab1(srgb_to_lin_srgb1(rgb));
+    const [x, okc, okh] = oklab_to_oklch([
+        okl,
+        oka,
+        okb
+    ]);
+    const C = Math.max(0.00001, okc);
+    const a = oka / C, b = okb / C;
+    const Ld = okl - 0.5;
+    const e1 = 0.5 + Math.abs(Ld) + 0.05 * C;
+    const L0 = 0.5 * (1 + Math.sign(Ld) * (e1 - Math.sqrt(e1 * e1 - 2 * Math.abs(Ld))));
+    const t = gamutIntersection(a, b, okl, C, L0);
+    const Lclipped = L0 * (1 - t) + t * okl;
+    const Cclipped = t * C;
+    const clampedValues = lin_srgb_to_srgb1(oklab_to_lin_srgb1([
+        Lclipped,
+        Cclipped * a,
+        Cclipped * b
+    ]));
+    return clampedValues;
+}
+const mod4 = {
+    maxSaturation: maxSaturation,
+    cusp: cusp,
+    gamutIntersection: gamutIntersection,
+    clip: clip
+};
 class GraphNode {
     id;
     links;
     visited = false;
     predecessor = null;
+    data = null;
     constructor(object){
         this.id = object.id;
         this.links = object.links;
+        this.data = object.data ?? null;
     }
     visit(mark = true) {
         this.visited = mark;
@@ -1629,150 +1862,6 @@ const namedColors = new Map([
         '9acd32'
     ]
 ]);
-function maxSaturation(a, b) {
-    let k0, k1, k2, k3, k4, wl, wm, ws;
-    if (-1.88170328 * a - 0.80936493 * b > 1) {
-        k0 = 1.19086277;
-        k1 = 1.76576728;
-        k2 = 0.59662641;
-        k3 = 0.75515197;
-        k4 = 0.56771245;
-        wl = 4.0767416621;
-        wm = -3.3077115913;
-        ws = 0.2309699292;
-    } else if (1.81444104 * a - 1.19445276 * b > 1) {
-        k0 = 0.73956515;
-        k1 = -0.45954404;
-        k2 = 0.08285427;
-        k3 = 0.1254107;
-        k4 = 0.14503204;
-        wl = -1.2684380046;
-        wm = 2.6097574011;
-        ws = -0.3413193965;
-    } else {
-        k0 = 1.35733652;
-        k1 = -0.00915799;
-        k2 = -1.1513021;
-        k3 = -0.50559606;
-        k4 = 0.00692167;
-        wl = -0.0041960863;
-        wm = -0.7034186147;
-        ws = +1.707614701;
-    }
-    let S = k0 + k1 * a + k2 * b + k3 * a * a + k4 * a * b;
-    const k_l = 0.3963377774 * a + 0.2158037573 * b;
-    const k_m = -0.1055613458 * a - 0.0638541728 * b;
-    const k_s = -0.0894841775 * a - 1.291485548 * b;
-    for(let i = 0; i < 1; i++){
-        const [l_, m_, s_] = [
-            k_l,
-            k_m,
-            k_s
-        ].map((v)=>1 + S * v
-        );
-        const [l, m, s] = [
-            l_,
-            m_,
-            s_
-        ].map((v)=>v ** 3
-        );
-        const l_dS = 3 * k_l * l_ * l_, m_dS = 3 * k_m * m_ * m_, s_dS = 3 * k_s * s_ * s_;
-        const l_dS2 = 6 * k_l * k_l * l_, m_dS2 = 6 * k_m * k_m * m_, s_dS2 = 6 * k_s * k_s * s_;
-        const f = wl * l + wm * m + ws * s, f1 = wl * l_dS + wm * m_dS + ws * s_dS, f2 = wl * l_dS2 + wm * m_dS2 + ws * s_dS2;
-        S = S - f * f1 / (f1 * f1 - 0.5 * f * f2);
-    }
-    return S;
-}
-function cusp(a, b) {
-    const Scusp = maxSaturation(a, b);
-    const rgbMax = oklab_to_lin_srgb([
-        1,
-        Scusp * a,
-        Scusp * b
-    ]);
-    const Lcusp = Math.cbrt(1 / Math.max(...rgbMax));
-    const Ccusp = Lcusp * Scusp;
-    return [
-        Lcusp,
-        Ccusp
-    ];
-}
-function gamutIntersection(a, b, L1, C1, L0) {
-    const [Lcusp, Ccusp] = cusp(a, b);
-    let t1;
-    if ((L1 - L0) * Ccusp - (Lcusp - L0) * C1 <= 0) {
-        t1 = Ccusp * L0 / (C1 * Lcusp + Ccusp * (L0 - L1));
-    } else {
-        t1 = Ccusp * (L0 - 1) / (C1 * (Lcusp - 1) + Ccusp * (L0 - L1));
-        const dL = L1 - L0, dC = C1;
-        const k_l = 0.3963377774 * a + 0.2158037573 * b, k_m = -0.1055613458 * a - 0.0638541728 * b, k_s = -0.0894841775 * a - 1.291485548 * b;
-        const [l_dt, m_dt, s_dt] = [
-            k_l,
-            k_m,
-            k_s
-        ].map((v)=>dL + dC * v
-        );
-        for(let i = 0; i < 1; i++){
-            const L = L0 * (1 - t1) + t1 * L1;
-            const C = t1 * C1;
-            const [l_, m_, s_] = [
-                k_l,
-                k_m,
-                k_s
-            ].map((v)=>L + C * v
-            );
-            const [l, m, s] = [
-                l_,
-                m_,
-                s_
-            ].map((v)=>v ** 3
-            );
-            const ldt = 3 * l_dt * l_ * l_, mdt = 3 * m_dt * m_ * m_, sdt = 3 * s_dt * s_ * s_;
-            const ldt2 = 6 * l_dt * l_dt * l_, mdt2 = 6 * m_dt * m_dt * m_, sdt2 = 6 * s_dt * s_dt * s_;
-            const term = (v1, v2, v3)=>{
-                const w = v1 * l + v2 * m + v3 * s - 1, w1 = v1 * ldt + v2 * mdt + v3 * sdt, w2 = v1 * ldt2 + v2 * mdt2 + v3 * sdt2;
-                const u = w1 / (w1 * w1 - 0.5 * w * w2);
-                const t = u >= 0 ? -w * u : Number.MAX_VALUE;
-                return t;
-            };
-            const t_r = term(4.0767416621, -3.3077115913, 0.2309699292);
-            const t_g = term(-1.2684380046, 2.6097574011, -0.3413193965);
-            const t_b = term(-0.0041960863, -0.7034186147, 1.707614701);
-            t1 += Math.min(t_r, t_g, t_b);
-        }
-    }
-    return t1;
-}
-function clip(rgb) {
-    if (rgb.every((v)=>v > 0 && v < 1
-    )) return rgb;
-    const [okl, oka, okb] = lin_srgb_to_oklab(srgb_to_lin_srgb(rgb));
-    const [x, okc, okh] = oklab_to_oklch([
-        okl,
-        oka,
-        okb
-    ]);
-    const C = Math.max(0.00001, okc);
-    const a = oka / C, b = okb / C;
-    const Ld = okl - 0.5;
-    const e1 = 0.5 + Math.abs(Ld) + 0.05 * C;
-    const L0 = 0.5 * (1 + Math.sign(Ld) * (e1 - Math.sqrt(e1 * e1 - 2 * Math.abs(Ld))));
-    const t = gamutIntersection(a, b, okl, C, L0);
-    const Lclipped = L0 * (1 - t) + t * okl;
-    const Cclipped = t * C;
-    const clampedValues = lin_srgb_to_srgb(oklab_to_lin_srgb([
-        Lclipped,
-        Cclipped * a,
-        Cclipped * b
-    ]));
-    return clampedValues;
-}
-const mod4 = {
-    maxSaturation: maxSaturation,
-    cusp: cusp,
-    gamutIntersection: gamutIntersection,
-    clip: clip
-};
 function pad(s) {
     return s.length < 2 ? `0${s}` : s;
 }

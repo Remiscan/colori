@@ -28,7 +28,7 @@
       'id' => 'lab',
       'whitepoint' => 'd50',
       'CSSformat' => 'lab',
-      'gamut' => [ [0, 4], [-INF, INF], [-INF, INF] ],
+      'gamut' => [ [0, 4], [-INF, +INF], [-INF, +INF] ],
       'links' => ['xyz', 'lch']
     ), array(
       'id' => 'lch',
@@ -136,7 +136,13 @@
   }
 
 
-} namespace colori\conversions {
+} namespace colori\ext {
+
+
+  /************************************************************************************************
+   * Derived from https://github.com/w3c/csswg-drafts/tree/main/css-color-4                       *
+   * under W3C License (https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document) *
+   ************************************************************************************************/
 
 
   /* srgb */
@@ -171,95 +177,6 @@
       -0.9692436362808796 * $x + 1.8759675015077202 * $y + 0.04155505740717559 * $z,
       0.05563007969699366 * $x - 0.20397695888897652 * $y + 1.0569715142428786 * $z
     ];
-  }
-
-
-  /* hsl */
-
-  function srgb_to_hsl(array $rgb): array {
-    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
-    [$r, $g, $b] = $rgb;
-    
-    $max = max($r, $g, $b);
-    $min = min($r, $g, $b);
-    $chroma = $max - $min;
-    
-    $l = ($max + $min) / 2;
-    
-    if ($chroma === .0) $h = .0;
-    else {
-      switch($max) {
-        case $r: $h = ($g - $b) / $chroma; break;
-        case $g: $h = ($b - $r) / $chroma + 2; break;
-        case $b: $h = ($r - $g) / $chroma + 4; break;
-      }
-      $h = 60.0 * $h;
-      while ($h < .0)    $h += 360.0;
-      while ($h > 360.0) $h -= 360.0;
-
-    }
-
-    if ($l === .0 || $l === 1.0) $s = .0;
-    elseif ($l <= 0.5)           $s = $chroma / (2.0 * $l);
-    else                         $s = $chroma / (2.0 - 2.0 * $l);
-    
-    return [$h, $s, $l];
-  }
-
-  function hsl_to_srgb(array $hsl): array {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
-    [$h, $s, $l] = $hsl;
-
-    $m = $s * min($l, 1.0 - $l);
-
-    $rgb = [0, 8, 4];
-    for ($i = 0; $i <= 2; $i++) {
-      $k = fmod($rgb[$i] + $h / 30, 12);
-      $rgb[$i] = $l - $m * max(min($k - 3, 9 - $k, 1), -1);
-    }
-
-    return $rgb;
-  }
-
-
-  /* hwb */
-
-  function hsl_to_hwb(array $hsl): array {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
-    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
-    [$h, $s, $l] = $hsl;
-
-    $v = $l + $s * min($l, 1.0 - $l);
-    if ($v === .0) $_s = .0;
-    else           $_s = 2.0 - 2.0 * $l / $v;
-
-    $w = (1.0 - $_s) * $v;
-    $bk = 1.0 - $v;
-
-    return [$h, $w, $bk];
-  }
-
-
-  function hwb_to_hsl(array $hwb): array {
-    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
-    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
-    [$h, $w, $bk] = $hwb;
-
-    $_w = $w; $_bk = $bk;
-    if ($w + $bk > 1.0) {
-      $_w = $w / ($w + $bk);
-      $_bk = $bk / ($w + $bk);
-    }
-
-    $v = 1.0 - $_bk;
-    if ($_bk === 1.0) $_s = .0;
-    else              $_s = 1.0 - $_w / $v;
-
-    $l = $v - $v * $_s / 2;
-    if ($l === .0 || $l === 1.0) $s = .0;
-    else                         $s = ($v - $l) / min($l, 1.0 - $l);
-
-    return [$h, $s, $l];
   }
 
 
@@ -457,7 +374,35 @@
   }
 
 
-  /* oklab */
+  /* Bradford transform */
+
+  function d65xyz_to_xyz(array $xyz): array {
+    [$x, $y, $z] = $xyz;
+    return [
+      1.0479298208405488 * $x + 0.022946793341019088 * $y - 0.05019222954313557 * $z,
+      0.029627815688159344 * $x + 0.990434484573249 * $y - 0.01707382502938514 * $z,
+      -0.009243058152591178 * $x + 0.015055144896577895 * $y + 0.7518742899580008 * $z
+    ];
+  }
+
+  function xyz_to_d65xyz(array $xyz): array {
+    [$x, $y, $z] = $xyz;
+    return [
+      0.9554734527042182 * $x - 0.023098536874261423 * $y + 0.0632593086610217 * $z,
+      -0.028369706963208136 * $x + 1.0099954580058226 * $y + 0.021041398966943008 * $z,
+      0.012314001688319899 * $x - 0.020507696433477912 * $y + 1.3303659366080753 * $z
+    ];
+  }
+
+
+} namespace colori\ext {
+
+
+  /*****************************************************************
+   * Derived from https://bottosson.github.io/posts/gamutclipping/ *
+   * under MIT license (Copyright (c) 2021 Björn Ottosson)         *
+   *****************************************************************/
+
 
   function lin_srgb_to_oklab(array $rgb): array {
     [$r, $g, $b] = $rgb;
@@ -493,6 +438,219 @@
     return [$r, $g, $b];
   }
 
+
+} namespace colori\conversions {
+
+
+  /* srgb */
+
+  function srgb_to_lin_srgb(array $rgb): array {
+    return \colori\ext\srgb_to_lin_srgb($rgb);
+  }
+
+  function lin_srgb_to_srgb(array $rgb): array {
+    return \colori\ext\lin_srgb_to_srgb($rgb);
+  }
+
+  function lin_srgb_to_d65xyz(array $rgb): array {
+    return \colori\ext\lin_srgb_to_d65xyz($rgb);
+  }
+
+  function d65xyz_to_lin_srgb(array $xyz): array {
+    return \colori\ext\d65xyz_to_lin_srgb($xyz);
+  }
+
+
+  /* hsl */
+
+  function srgb_to_hsl(array $rgb): array {
+    // (source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach)
+    [$r, $g, $b] = $rgb;
+    
+    $max = max($r, $g, $b);
+    $min = min($r, $g, $b);
+    $chroma = $max - $min;
+    
+    $l = ($max + $min) / 2;
+    
+    if ($chroma === .0) $h = .0;
+    else {
+      switch($max) {
+        case $r: $h = ($g - $b) / $chroma; break;
+        case $g: $h = ($b - $r) / $chroma + 2; break;
+        case $b: $h = ($r - $g) / $chroma + 4; break;
+      }
+      $h = 60.0 * $h;
+      while ($h < .0)    $h += 360.0;
+      while ($h > 360.0) $h -= 360.0;
+
+    }
+
+    if ($l === .0 || $l === 1.0) $s = .0;
+    elseif ($l <= 0.5)           $s = $chroma / (2.0 * $l);
+    else                         $s = $chroma / (2.0 - 2.0 * $l);
+    
+    return [$h, $s, $l];
+  }
+
+  function hsl_to_srgb(array $hsl): array {
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
+    [$h, $s, $l] = $hsl;
+
+    $m = $s * min($l, 1.0 - $l);
+
+    $rgb = [0, 8, 4];
+    for ($i = 0; $i <= 2; $i++) {
+      $k = fmod($rgb[$i] + $h / 30, 12);
+      $rgb[$i] = $l - $m * max(min($k - 3, 9 - $k, 1), -1);
+    }
+
+    return $rgb;
+  }
+
+
+  /* hwb */
+
+  function hsl_to_hwb(array $hsl): array {
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
+    [$h, $s, $l] = $hsl;
+
+    $v = $l + $s * min($l, 1.0 - $l);
+    if ($v === .0) $_s = .0;
+    else           $_s = 2.0 - 2.0 * $l / $v;
+
+    $w = (1.0 - $_s) * $v;
+    $bk = 1.0 - $v;
+
+    return [$h, $w, $bk];
+  }
+
+
+  function hwb_to_hsl(array $hwb): array {
+    // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
+    //                   & http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
+    [$h, $w, $bk] = $hwb;
+
+    $_w = $w; $_bk = $bk;
+    if ($w + $bk > 1.0) {
+      $_w = $w / ($w + $bk);
+      $_bk = $bk / ($w + $bk);
+    }
+
+    $v = 1.0 - $_bk;
+    if ($_bk === 1.0) $_s = .0;
+    else              $_s = 1.0 - $_w / $v;
+
+    $l = $v - $v * $_s / 2;
+    if ($l === .0 || $l === 1.0) $s = .0;
+    else                         $s = ($v - $l) / min($l, 1.0 - $l);
+
+    return [$h, $s, $l];
+  }
+
+
+  /* display-p3 */
+
+  function displayp3_to_lin_displayp3(array $rgb): array { return \colori\ext\displayp3_to_lin_displayp3($rgb); }
+  function lin_displayp3_to_displayp3(array $rgb): array { return \colori\ext\lin_displayp3_to_displayp3($rgb); }
+
+  function lin_displayp3_to_d65xyz(array $rgb): array {
+    return \colori\ext\lin_displayp3_to_d65xyz($rgb);
+  }
+
+  function d65xyz_to_lin_displayp3(array $xyz): array {
+    return \colori\ext\d65xyz_to_lin_displayp3($xyz);
+  }
+
+
+  /* prophoto-rgb */
+
+  function prophotorgb_to_lin_prophotorgb(array $rgb): array {
+    return \colori\ext\prophotorgb_to_lin_prophotorgb($rgb);
+  }
+
+  function lin_prophotorgb_to_prophotorgb(array $rgb): array {
+    return \colori\ext\lin_prophotorgb_to_prophotorgb($rgb);
+  }
+
+  function lin_prophotorgb_to_xyz(array $rgb): array {
+    return \colori\ext\lin_prophotorgb_to_xyz($rgb);
+  }
+
+  function xyz_to_lin_prophotorgb(array $xyz): array {
+    return \colori\ext\xyz_to_lin_prophotorgb($xyz);
+  }
+
+
+  /* a98-rgb */
+
+  function a98rgb_to_lin_a98rgb(array $rgb): array {
+    return \colori\ext\a98rgb_to_lin_a98rgb($rgb);
+  }
+
+  function lin_a98rgb_to_a98rgb(array $rgb): array {
+    return \colori\ext\lin_a98rgb_to_a98rgb($rgb);
+  }
+
+  function lin_a98rgb_to_d65xyz(array $rgb): array {
+    return \colori\ext\lin_a98rgb_to_d65xyz($rgb);
+  }
+
+  function d65xyz_to_lin_a98rgb(array $xyz): array {
+    return \colori\ext\d65xyz_to_lin_a98rgb($xyz);
+  }
+
+
+  /* rec2020 */
+
+  function rec2020_to_lin_rec2020(array $rgb): array {
+    return \colori\ext\rec2020_to_lin_rec2020($rgb);
+  }
+
+  function lin_rec2020_to_rec2020(array $rgb): array {
+    return \colori\ext\lin_rec2020_to_rec2020($rgb);
+  }
+
+  function lin_rec2020_to_d65xyz(array $rgb): array {
+    return \colori\ext\lin_rec2020_to_d65xyz($rgb);
+  }
+
+  function d65xyz_to_lin_rec2020(array $xyz): array {
+    return \colori\ext\d65xyz_to_lin_rec2020($xyz);
+  }
+
+
+  /* lab */
+
+  function xyz_to_lab(array $xyz): array {
+    return \colori\ext\xyz_to_lab($xyz);
+  }
+
+  function lab_to_xyz(array $lab): array {
+    return \colori\ext\lab_to_xyz($lab);
+  }
+
+  function lab_to_lch(array $lab): array {
+    return \colori\ext\lab_to_lch($lab);
+  }
+
+
+  function lch_to_lab(array $lch): array {
+    return \colori\ext\lch_to_lab($lch);
+  }
+
+
+  /* oklab */
+
+  function lin_srgb_to_oklab(array $rgb): array {
+    return \colori\ext\lin_srgb_to_oklab($rgb);
+  }
+
+  function oklab_to_lin_srgb(array $lab): array {
+    return \colori\ext\oklab_to_lin_srgb($lab);
+  }
+
   function oklab_to_oklch(array $lab): array { return lab_to_lch($lab); }
   function oklch_to_oklab(array $lch): array { return lch_to_lab($lch); }
 
@@ -500,41 +658,24 @@
   /* Bradford transform */
 
   function d65xyz_to_xyz(array $xyz): array {
-    [$x, $y, $z] = $xyz;
-    return [
-      1.0479298208405488 * $x + 0.022946793341019088 * $y - 0.05019222954313557 * $z,
-      0.029627815688159344 * $x + 0.990434484573249 * $y - 0.01707382502938514 * $z,
-      -0.009243058152591178 * $x + 0.015055144896577895 * $y + 0.7518742899580008 * $z
-    ];
+    return \colori\ext\d65xyz_to_xyz($xyz);
   }
 
   function xyz_to_d65xyz(array $xyz): array {
-    [$x, $y, $z] = $xyz;
-    return [
-      0.9554734527042182 * $x - 0.023098536874261423 * $y + 0.0632593086610217 * $z,
-      -0.028369706963208136 * $x + 1.0099954580058226 * $y + 0.021041398966943008 * $z,
-      0.012314001688319899 * $x - 0.020507696433477912 * $y + 1.3303659366080753 * $z
-    ];
+    return \colori\ext\xyz_to_d65xyz($xyz);
   }
 
 
-} namespace colori\contrasts {
+} namespace colori\ext {
 
 
-  function luminance(array $rgb): float {
-    $rgb = \colori\conversions\srgb_to_lin_srgb($rgb);
-    return 0.2126 * $rgb[0] + 0.7152 * $rgb[1] + 0.0722 * $rgb[2];
-  }
+  /****************************************************
+   * Derived from https://github.com/Myndex/SAPC-APCA *
+   * under AGPL v3 license                            *
+   ****************************************************/
 
 
-  function WCAG2(array $rgbText, array $rgbBack): float {
-    $L1 = luminance($rgbText);
-    $L2 = luminance($rgbBack);
-    return (max($L1, $L2) + 0.05) / (min($L1, $L2) + 0.05);
-  }
-
-
-  function APCA(array $rgbText, array $rgbBack): float {
+  function APCAcontrast(array $rgbText, array $rgbBack): float {
     // 1. Compute luminances (slightly different from luminances used in WCAG2 contrast)
     $coeffs = [0.2126729, 0.7151522, 0.0721750];
     $gamma = 2.4;
@@ -570,9 +711,9 @@
     $clamp = fn($Y) => $Y > $blkThrs ? $Y : $Y + ($blkThrs - $Y) ** $blkClmp;
     $Ytext = $clamp($Ytext);
     $Yback = $clamp($Yback);
-    if (abs($Ytext - $Yback) < $deltaYmin) return .0;
 
     // 3. Compute contrast
+    if (abs($Ytext - $Yback) < $deltaYmin) return .0;
     $SAPC = .0;
     $output = .0;
 
@@ -594,6 +735,27 @@
 
     return $output * 100.0;
   }
+  
+
+} namespace colori\contrasts {
+
+
+  function luminance(array $rgb): float {
+    $rgb = \colori\conversions\srgb_to_lin_srgb($rgb);
+    return 0.2126 * $rgb[0] + 0.7152 * $rgb[1] + 0.0722 * $rgb[2];
+  }
+
+
+  function WCAG2(array $rgbText, array $rgbBack): float {
+    $L1 = luminance($rgbText);
+    $L2 = luminance($rgbBack);
+    return (max($L1, $L2) + 0.05) / (min($L1, $L2) + 0.05);
+  }
+
+
+  function APCA(array $rgbText, array $rgbBack): float {
+    return \colori\ext\APCAcontrast($rgbText, $rgbBack);
+  }
 
 
 } namespace colori {
@@ -604,18 +766,21 @@
     private bool $visited;
     private ?string $predecessorID;
     private array $links;
+    private mixed $data;
 
     public function __construct(array $array) {
       $this->id = $array['id'];
       $this->visited = false;
       $this->predecessor = null;
       $this->links = $array['links'];
+      $this->data = isset($array['data']) ? $array['data'] : null;
     }
 
     public function id(): string { return $this->id; }
     public function visited(): bool { return $this->visited; }
     public function links(): array { return $this->links; }
     public function predecessor(): ?GraphNode { return $this->predecessor; }
+    public function data(): mixed { return $this->data; }
 
     public function visit(mixed $mark = true): void {
       $this->visited = $mark;
@@ -704,7 +869,7 @@
 
         $this->cleanUp();
         return array_reverse($path);
-      } catch (\Exception $error) {
+      } catch (\Throwable $error) {
         $this->cleanUp();
         throw $error;
       }
@@ -734,7 +899,7 @@
 
         $this->cleanUp();
         return array_reverse($orderedList);
-      } catch (\Exception $error) {
+      } catch (\Throwable $error) {
         $this->cleanUp();
         throw $error;
       }
@@ -1947,6 +2112,11 @@
 
       // Let's reduce the chroma until the color is in the color space
       elseif ($method === 'chroma') {
+        /******************************************************************************
+         * Derived from https://github.com/LeaVerou/color.js/blob/master/src/color.js *
+         * under MIT license (Copyright (c) 2021 Lea Verou, Chris Lilley)             *
+         ******************************************************************************/
+        
         $clampSpace = self::getSpace('lch');
         $lch = self::convert($valueSpace, $clampSpace, $values);
 

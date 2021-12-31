@@ -1,17 +1,19 @@
+import * as path from 'https://deno.land/std@0.105.0/path/mod.ts';
 import { rollup } from 'https://deno.land/x/drollup@2.58.0+0.20.0/mod.ts';
 import { terser } from 'https://deno.land/x/drollup@2.58.0+0.20.0/plugins/terser/mod.ts';
-import * as path from 'https://deno.land/std@0.105.0/path/mod.ts';
+import { getFiles } from 'https://deno.land/x/getfiles@v1.0.0/mod.ts';
 
 
 // Build the import map
+const basePath = 'src/ts';
 const importMap = { imports: {} };
-for await (const entry of Deno.readDir('src/ts')) {
-  if (!entry.isFile) continue;
-  const oldPath = `./${entry.name.replace('.ts', '.js')}`;
-  const newPath = `./${entry.name}`;
+const modules = getFiles(basePath);
+for (const module of modules) {
+  const newPath = module.path.replace(basePath, '.');
+  const oldPath = newPath.replace('.ts', '.js');
   importMap.imports[oldPath] = newPath;
 }
-const importMapUrl = path.toFileUrl(path.resolve('./src/ts')).href;
+const importMapUrl = path.toFileUrl(path.resolve(`./${basePath}`)).href;
 
 
 // Bundle the module files

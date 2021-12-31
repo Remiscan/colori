@@ -5,13 +5,21 @@ require_once $dir.'/src/php/graph.php';
 
 $source = $dir.'/src/php';
 $destination = $dir.'/dist/colori.php';
-$files = array_diff(scandir($source), array('.', '..'));
+$files = new RecursiveIteratorIterator(
+  new RecursiveDirectoryIterator(
+    $source,
+    RecursiveDirectoryIterator::SKIP_DOTS
+  ),
+  RecursiveIteratorIterator::SELF_FIRST
+);
 
 // Build a list of modules and their dependencies
 $modules = [];
 foreach($files as $k => $file) {
+  if (is_dir($k)) continue;
+
   // Get file contents
-  $content = file_get_contents("$source/$file");
+  $content = file_get_contents($file->getPathname());
 
   // Get dependencies list
   $links = [];
@@ -21,23 +29,25 @@ foreach($files as $k => $file) {
     $links[] = $idMatches[1];
   }
   $modules[] = [
-    'id' => str_replace('.php', '', $file),
-    'links' => $links
+    'id' => str_replace('.php', '', $file->getFilename()),
+    'links' => $links,
+    'data' => $file
   ];
 }
 
 // Build a graph with these modules, and get a topological order
 $modulesGraph = new colori\Graph($modules);
-$orderedModules = $modulesGraph->topologicalOrder();
-$orderedModules = array_reverse(array_map(function ($mod) { return $mod->id(); }, $orderedModules));
+$orderedModules = array_reverse(
+  $modulesGraph->topologicalOrder()
+);
 
 // Build colori.php by bundling the modules together
 echo "Starting to build $destination ...\n";
 
 foreach($orderedModules as $k => $module) {
   // Get file contents
-  $file = $module.'.php';
-  $content = file_get_contents("$source/$file");
+  $file = $module->data()->getFilename();
+  $content = file_get_contents($module->data()->getPathname());
   echo "File $file opened\n";
 
   // Remove php tags
