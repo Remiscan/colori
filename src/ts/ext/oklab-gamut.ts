@@ -1,8 +1,12 @@
-import * as Conversions from './conversion.js';
+import * as Conversions from '../conversion.js';
 
 
 
-// Source of the math: https://bottosson.github.io/posts/gamutclipping/
+/*****************************************************************
+ * Derived from https://bottosson.github.io/posts/gamutclipping/ *
+ * under MIT license (Copyright (c) 2021 Björn Ottosson)         *
+ *****************************************************************/
+
 
 
 export function maxSaturation(a: number, b: number): number {

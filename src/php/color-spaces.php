@@ -27,7 +27,7 @@
       'id' => 'lab',
       'whitepoint' => 'd50',
       'CSSformat' => 'lab',
-      'gamut' => [ [0, 4], [-INF, INF], [-INF, INF] ],
+      'gamut' => [ [0, 4], [-INF, +INF], [-INF, +INF] ],
       'links' => ['xyz', 'lch']
     ), array(
       'id' => 'lch',

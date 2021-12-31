@@ -3,9 +3,9 @@ import * as Contrasts from './contrasts.js';
 import * as Conversions from './conversion.js';
 import { Format as CSSFormat, Formats, RegExps as ValueRegExps } from './css-formats.js';
 import * as Distances from './distances.js';
+import * as OklabGamut from './ext/oklab-gamut.js';
 import Graph from './graph.js';
 import namedColors from './named-colors.js';
-import * as OklabGamut from './oklab-gamut.js';
 import * as Utils from './utils.js';
 
 
@@ -815,7 +815,11 @@ export default class Couleur {
       
       // Let's reduce the LCH chroma until the color is in the color space.
       case 'chroma': {
-        // Source of the math: https://github.com/LeaVerou/color.js/blob/master/src/color.js
+        /******************************************************************************
+         * Derived from https://github.com/LeaVerou/color.js/blob/master/src/color.js *
+         * under MIT license (Copyright (c) 2021 Lea Verou, Chris Lilley)             *
+         ******************************************************************************/
+        
         clampSpace = Couleur.getSpace('lch');
         let lch = Couleur.convert(valueSpace, clampSpace, values);
 

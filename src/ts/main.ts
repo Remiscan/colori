@@ -8,4 +8,4 @@ export * as Conversions from './conversion.js';
 export * as CSSFormats from './css-formats.js';
 export * as Contrasts from './contrasts.js';
 export * as Distances from './distances.js';
-export * as OklabGamut from './oklab-gamut.js';
+export * as OklabGamut from './ext/oklab-gamut.js';

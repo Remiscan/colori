@@ -33,7 +33,7 @@ const colorSpaces: ColorSpace[] = [
     id: 'lab',
     whitepoint: 'd50',
     CSSformat: 'lab',
-    gamut: [ [0, 4], [-Infinity, Infinity], [-Infinity, Infinity] ],
+    gamut: [ [0, 4], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
     links: ['xyz', 'lch']
   }, {
     id: 'lch',
@@ -95,7 +95,7 @@ const colorSpaces: ColorSpace[] = [
   }, {
     id: 'oklab',
     whitepoint: 'd65',
-    gamut: [ [0, 4], [-Infinity, Infinity], [-Infinity, Infinity] ],
+    gamut: [ [0, 4], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
     links: ['lin_srgb', 'oklch']
   }, {
     id: 'oklch',

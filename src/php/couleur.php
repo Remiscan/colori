@@ -6,7 +6,7 @@
   require_once __DIR__ . '/graph.php';
   require_once __DIR__ . '/contrasts.php';
   require_once __DIR__ . '/distances.php';
-  require_once __DIR__ . '/oklab-gamut.php';
+  require_once __DIR__ . '/ext/oklab-gamut.php';
   require_once __DIR__ . '/color-spaces.php';
   require_once __DIR__ . '/named-colors.php';
   require_once __DIR__ . '/css-formats.php';
@@ -715,6 +715,11 @@
 
       // Let's reduce the chroma until the color is in the color space
       elseif ($method === 'chroma') {
+        /******************************************************************************
+         * Derived from https://github.com/LeaVerou/color.js/blob/master/src/color.js *
+         * under MIT license (Copyright (c) 2021 Lea Verou, Chris Lilley)             *
+         ******************************************************************************/
+        
         $clampSpace = self::getSpace('lch');
         $lch = self::convert($valueSpace, $clampSpace, $values);
 
