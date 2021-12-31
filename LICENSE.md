@@ -1,5 +1,5 @@
 All files in this repository are under MIT License, except:
-- files in ```src/ext``` (and the bundled parts of their code in ```dist```) for which the license is mentioned in the files themselves, 
+- files in ```src/*/ext``` (and the bundled parts of their code in ```dist```) for which the license is mentioned in the files themselves, 
 - other files or parts of files if a different license is mentioned.
 
 ---
