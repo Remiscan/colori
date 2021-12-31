@@ -6,14 +6,16 @@ class GraphNode {
   links: id[];
   visited: boolean | id = false;
   predecessor: GraphNode | null = null;
+  data: any = null;
 
   /**
    * Builds a graph node from an object.
    * @param object An { id, links } object.
    */
-  constructor(object: { id: id, links: id[] }) {
+  constructor(object: { id: id, links: id[], data?: any }) {
     this.id = object.id;
     this.links = object.links;
+    this.data = object.data ?? null;
   }
 
   visit(mark: boolean | id = true) { this.visited = mark; }

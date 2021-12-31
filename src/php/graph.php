@@ -6,18 +6,21 @@
     private bool $visited;
     private ?string $predecessorID;
     private array $links;
+    private mixed $data;
 
     public function __construct(array $array) {
       $this->id = $array['id'];
       $this->visited = false;
       $this->predecessor = null;
       $this->links = $array['links'];
+      $this->data = isset($array['data']) ? $array['data'] : null;
     }
 
     public function id(): string { return $this->id; }
     public function visited(): bool { return $this->visited; }
     public function links(): array { return $this->links; }
     public function predecessor(): ?GraphNode { return $this->predecessor; }
+    public function data(): mixed { return $this->data; }
 
     public function visit(mixed $mark = true): void {
       $this->visited = $mark;
@@ -106,7 +109,7 @@
 
         $this->cleanUp();
         return array_reverse($path);
-      } catch (\Exception $error) {
+      } catch (\Throwable $error) {
         $this->cleanUp();
         throw $error;
       }
@@ -136,7 +139,7 @@
 
         $this->cleanUp();
         return array_reverse($orderedList);
-      } catch (\Exception $error) {
+      } catch (\Throwable $error) {
         $this->cleanUp();
         throw $error;
       }
