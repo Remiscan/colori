@@ -1,31 +1,12 @@
-import * as OKLABConversions from './ext/oklab-conversion.js';
-import * as W3Conversions from './ext/w3-conversion.js';
+import { lab_to_lch, lch_to_lab } from './ext/w3-conversion.js';
+export * from './ext/oklab-conversion.js';
+export * from './ext/w3-conversion.js';
 
 
 
 // All of these functions take an array of parsed color values (without alpha),
 // and return an array of parsed color values (without alpha) converted into the 
 // desired color space or CSS format.
-
-
-
-/* srgb */
-
-export function srgb_to_lin_srgb(rgb: number[]): number[] {
-  return W3Conversions.srgb_to_lin_srgb(rgb);
-}
-
-export function lin_srgb_to_srgb(rgb: number[]): number[] {
-  return W3Conversions.lin_srgb_to_srgb(rgb);
-}
-
-export function lin_srgb_to_d65xyz(rgb: number[]): number[] {
-  return W3Conversions.lin_srgb_to_d65xyz(rgb);
-}
-
-export function d65xyz_to_lin_srgb(xyz: number[]): number[] {
-  return W3Conversions.d65xyz_to_lin_srgb(xyz);
-}
 
 
 
@@ -121,122 +102,7 @@ export function hwb_to_hsl(hwb: number[]): number[] {
 
 
 
-/* display-p3 */
-
-export function displayp3_to_lin_displayp3(rgb: number[]): number[] { return W3Conversions.displayp3_to_lin_displayp3(rgb); }
-export function lin_displayp3_to_displayp3(rgb: number[]): number[] { return W3Conversions.lin_displayp3_to_displayp3(rgb); }
-
-export function lin_displayp3_to_d65xyz(rgb: number[]): number[] {
-  return W3Conversions.lin_displayp3_to_d65xyz(rgb);
-}
-
-export function d65xyz_to_lin_displayp3(xyz: number[]): number[] {
-  return W3Conversions.d65xyz_to_lin_displayp3(xyz);
-}
-
-
-
-/* prophoto-rgb */
-
-export function prophotorgb_to_lin_prophotorgb(rgb: number[]): number[] {
-  return W3Conversions.prophotorgb_to_lin_prophotorgb(rgb);
-}
-
-export function lin_prophotorgb_to_prophotorgb(rgb: number[]): number[] {
-  return W3Conversions.lin_prophotorgb_to_prophotorgb(rgb);
-}
-
-export function lin_prophotorgb_to_xyz(rgb: number[]): number[] {
-  return W3Conversions.lin_prophotorgb_to_xyz(rgb);
-}
-
-export function xyz_to_lin_prophotorgb(xyz: number[]): number[] {
-  return W3Conversions.xyz_to_lin_prophotorgb(xyz);
-}
-
-
-
-/* a98-rgb */
-
-export function a98rgb_to_lin_a98rgb(rgb: number[]): number[] {
-  return W3Conversions.a98rgb_to_lin_a98rgb(rgb);
-}
-
-export function lin_a98rgb_to_a98rgb(rgb: number[]): number[] {
-  return W3Conversions.lin_a98rgb_to_a98rgb(rgb);
-}
-
-export function lin_a98rgb_to_d65xyz(rgb: number[]): number[] {
-  return W3Conversions.lin_a98rgb_to_d65xyz(rgb);
-}
-
-export function d65xyz_to_lin_a98rgb(xyz: number[]): number[] {
-  return W3Conversions.d65xyz_to_lin_a98rgb(xyz);
-}
-
-
-
-/* rec2020 */
-
-export function rec2020_to_lin_rec2020(rgb: number[]): number[] {
-  return W3Conversions.rec2020_to_lin_rec2020(rgb);
-}
-
-export function lin_rec2020_to_rec2020(rgb: number[]): number[] {
-  return W3Conversions.lin_rec2020_to_rec2020(rgb);
-}
-
-export function lin_rec2020_to_d65xyz(rgb: number[]): number[] {
-  return W3Conversions.lin_rec2020_to_d65xyz(rgb);
-}
-
-export function d65xyz_to_lin_rec2020(xyz: number[]): number[] {
-  return W3Conversions.d65xyz_to_lin_rec2020(xyz);
-}
-
-
-
-/* lab */
-
-export function xyz_to_lab(xyz: number[]): number[] {
-  return W3Conversions.xyz_to_lab(xyz);
-}
-
-export function lab_to_xyz(lab: number[]): number[] {
-  return W3Conversions.lab_to_xyz(lab);
-}
-
-export function lab_to_lch(lab: number[]): number[] {
-  return W3Conversions.lab_to_lch(lab);
-}
-
-export function lch_to_lab(lch: number[]): number[] {
-  return W3Conversions.lch_to_lab(lch);
-}
-
-
-
-/* oklab */
-
-export function lin_srgb_to_oklab(rgb: number[]): number[] {
-  return OKLABConversions.lin_srgb_to_oklab(rgb);
-}
-
-export function oklab_to_lin_srgb(lab: number[]): number[] {
-  return OKLABConversions.oklab_to_lin_srgb(lab);
-}
+/* oklch */
 
 export function oklab_to_oklch(lab: number[]): number[] { return lab_to_lch(lab); }
 export function oklch_to_oklab(lch: number[]): number[] { return lch_to_lab(lch); }
-
-
-
-/* Bradford transform */
-
-export function d65xyz_to_xyz(xyz: number[]): number[] {
-  return W3Conversions.d65xyz_to_xyz(xyz);
-}
-
-export function xyz_to_d65xyz(xyz: number[]): number[] {
-  return W3Conversions.xyz_to_d65xyz(xyz);
-}

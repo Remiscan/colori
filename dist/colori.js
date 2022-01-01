@@ -399,40 +399,6 @@ const colorSpaces = [
         ]
     }
 ];
-function lin_srgb_to_oklab(rgb) {
-    const [r, g, b] = rgb;
-    let l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
-    let m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
-    let s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
-    l = Math.cbrt(l);
-    m = Math.cbrt(m);
-    s = Math.cbrt(s);
-    const okl = 0.2104542553 * l + 0.793617785 * m + -0.0040720468 * s;
-    const oka = 1.9779984951 * l + -2.428592205 * m + 0.4505937099 * s;
-    const okb = 0.0259040371 * l + 0.7827717662 * m + -0.808675766 * s;
-    return [
-        okl,
-        oka,
-        okb
-    ];
-}
-function oklab_to_lin_srgb(lab) {
-    const [okl, oka, okb] = lab;
-    let l = okl + 0.3963377774 * oka + 0.2158037573 * okb;
-    let m = okl + -0.1055613458 * oka + -0.0638541728 * okb;
-    let s = okl + -0.0894841775 * oka + -1.291485548 * okb;
-    l = l ** 3;
-    m = m ** 3;
-    s = s ** 3;
-    const r = 4.0767416621 * l + -3.3077115913 * m + 0.2309699292 * s;
-    const g = -1.2684380046 * l + 2.6097574011 * m + -0.3413193965 * s;
-    const b = -0.0041960863 * l + -0.7034186147 * m + 1.707614701 * s;
-    return [
-        r,
-        g,
-        b
-    ];
-}
 function srgb_to_lin_srgb(rgb) {
     return rgb.map((x)=>Math.abs(x) < 0.04045 ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4)
     );
@@ -636,17 +602,39 @@ function xyz_to_d65xyz(xyz) {
         0.012314001688319899 * x + -0.020507696433477912 * y + 1.3303659366080753 * z
     ];
 }
-function srgb_to_lin_srgb1(rgb) {
-    return srgb_to_lin_srgb(rgb);
+function lin_srgb_to_oklab(rgb) {
+    const [r, g, b] = rgb;
+    let l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+    let m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+    let s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+    l = Math.cbrt(l);
+    m = Math.cbrt(m);
+    s = Math.cbrt(s);
+    const okl = 0.2104542553 * l + 0.793617785 * m + -0.0040720468 * s;
+    const oka = 1.9779984951 * l + -2.428592205 * m + 0.4505937099 * s;
+    const okb = 0.0259040371 * l + 0.7827717662 * m + -0.808675766 * s;
+    return [
+        okl,
+        oka,
+        okb
+    ];
 }
-function lin_srgb_to_srgb1(rgb) {
-    return lin_srgb_to_srgb(rgb);
-}
-function lin_srgb_to_d65xyz1(rgb) {
-    return lin_srgb_to_d65xyz(rgb);
-}
-function d65xyz_to_lin_srgb1(xyz) {
-    return d65xyz_to_lin_srgb(xyz);
+function oklab_to_lin_srgb(lab) {
+    const [okl, oka, okb] = lab;
+    let l = okl + 0.3963377774 * oka + 0.2158037573 * okb;
+    let m = okl + -0.1055613458 * oka + -0.0638541728 * okb;
+    let s = okl + -0.0894841775 * oka + -1.291485548 * okb;
+    l = l ** 3;
+    m = m ** 3;
+    s = s ** 3;
+    const r = 4.0767416621 * l + -3.3077115913 * m + 0.2309699292 * s;
+    const g = -1.2684380046 * l + 2.6097574011 * m + -0.3413193965 * s;
+    const b = -0.0041960863 * l + -0.7034186147 * m + 1.707614701 * s;
+    return [
+        r,
+        g,
+        b
+    ];
 }
 function srgb_to_hsl(rgb) {
     const [r, g, b] = rgb;
@@ -730,119 +718,47 @@ function hwb_to_hsl(hwb) {
         l
     ];
 }
-function displayp3_to_lin_displayp31(rgb) {
-    return displayp3_to_lin_displayp3(rgb);
-}
-function lin_displayp3_to_displayp31(rgb) {
-    return lin_displayp3_to_displayp3(rgb);
-}
-function lin_displayp3_to_d65xyz1(rgb) {
-    return lin_displayp3_to_d65xyz(rgb);
-}
-function d65xyz_to_lin_displayp31(xyz) {
-    return d65xyz_to_lin_displayp3(xyz);
-}
-function prophotorgb_to_lin_prophotorgb1(rgb) {
-    return prophotorgb_to_lin_prophotorgb(rgb);
-}
-function lin_prophotorgb_to_prophotorgb1(rgb) {
-    return lin_prophotorgb_to_prophotorgb(rgb);
-}
-function lin_prophotorgb_to_xyz1(rgb) {
-    return lin_prophotorgb_to_xyz(rgb);
-}
-function xyz_to_lin_prophotorgb1(xyz) {
-    return xyz_to_lin_prophotorgb(xyz);
-}
-function a98rgb_to_lin_a98rgb1(rgb) {
-    return a98rgb_to_lin_a98rgb(rgb);
-}
-function lin_a98rgb_to_a98rgb1(rgb) {
-    return lin_a98rgb_to_a98rgb(rgb);
-}
-function lin_a98rgb_to_d65xyz1(rgb) {
-    return lin_a98rgb_to_d65xyz(rgb);
-}
-function d65xyz_to_lin_a98rgb1(xyz) {
-    return d65xyz_to_lin_a98rgb(xyz);
-}
-function rec2020_to_lin_rec20201(rgb) {
-    return rec2020_to_lin_rec2020(rgb);
-}
-function lin_rec2020_to_rec20201(rgb) {
-    return lin_rec2020_to_rec2020(rgb);
-}
-function lin_rec2020_to_d65xyz1(rgb) {
-    return lin_rec2020_to_d65xyz(rgb);
-}
-function d65xyz_to_lin_rec20201(xyz) {
-    return d65xyz_to_lin_rec2020(xyz);
-}
-function xyz_to_lab1(xyz) {
-    return xyz_to_lab(xyz);
-}
-function lab_to_xyz1(lab) {
-    return lab_to_xyz(lab);
-}
-function lab_to_lch1(lab) {
+function oklab_to_oklch(lab) {
     return lab_to_lch(lab);
 }
-function lch_to_lab1(lch) {
+function oklch_to_oklab(lch) {
     return lch_to_lab(lch);
 }
-function lin_srgb_to_oklab1(rgb) {
-    return lin_srgb_to_oklab(rgb);
-}
-function oklab_to_lin_srgb1(lab) {
-    return oklab_to_lin_srgb(lab);
-}
-function oklab_to_oklch(lab) {
-    return lab_to_lch1(lab);
-}
-function oklch_to_oklab(lch) {
-    return lch_to_lab1(lch);
-}
-function d65xyz_to_xyz1(xyz) {
-    return d65xyz_to_xyz(xyz);
-}
-function xyz_to_d65xyz1(xyz) {
-    return xyz_to_d65xyz(xyz);
-}
 const mod = {
-    srgb_to_lin_srgb: srgb_to_lin_srgb1,
-    lin_srgb_to_srgb: lin_srgb_to_srgb1,
-    lin_srgb_to_d65xyz: lin_srgb_to_d65xyz1,
-    d65xyz_to_lin_srgb: d65xyz_to_lin_srgb1,
     srgb_to_hsl: srgb_to_hsl,
     hsl_to_srgb: hsl_to_srgb,
     hsl_to_hwb: hsl_to_hwb,
     hwb_to_hsl: hwb_to_hsl,
-    displayp3_to_lin_displayp3: displayp3_to_lin_displayp31,
-    lin_displayp3_to_displayp3: lin_displayp3_to_displayp31,
-    lin_displayp3_to_d65xyz: lin_displayp3_to_d65xyz1,
-    d65xyz_to_lin_displayp3: d65xyz_to_lin_displayp31,
-    prophotorgb_to_lin_prophotorgb: prophotorgb_to_lin_prophotorgb1,
-    lin_prophotorgb_to_prophotorgb: lin_prophotorgb_to_prophotorgb1,
-    lin_prophotorgb_to_xyz: lin_prophotorgb_to_xyz1,
-    xyz_to_lin_prophotorgb: xyz_to_lin_prophotorgb1,
-    a98rgb_to_lin_a98rgb: a98rgb_to_lin_a98rgb1,
-    lin_a98rgb_to_a98rgb: lin_a98rgb_to_a98rgb1,
-    lin_a98rgb_to_d65xyz: lin_a98rgb_to_d65xyz1,
-    d65xyz_to_lin_a98rgb: d65xyz_to_lin_a98rgb1,
-    rec2020_to_lin_rec2020: rec2020_to_lin_rec20201,
-    lin_rec2020_to_rec2020: lin_rec2020_to_rec20201,
-    lin_rec2020_to_d65xyz: lin_rec2020_to_d65xyz1,
-    d65xyz_to_lin_rec2020: d65xyz_to_lin_rec20201,
-    xyz_to_lab: xyz_to_lab1,
-    lab_to_xyz: lab_to_xyz1,
-    lab_to_lch: lab_to_lch1,
-    lch_to_lab: lch_to_lab1,
-    lin_srgb_to_oklab: lin_srgb_to_oklab1,
-    oklab_to_lin_srgb: oklab_to_lin_srgb1,
     oklab_to_oklch: oklab_to_oklch,
     oklch_to_oklab: oklch_to_oklab,
-    d65xyz_to_xyz: d65xyz_to_xyz1,
-    xyz_to_d65xyz: xyz_to_d65xyz1
+    srgb_to_lin_srgb,
+    lin_srgb_to_srgb,
+    lin_srgb_to_d65xyz,
+    d65xyz_to_lin_srgb,
+    displayp3_to_lin_displayp3,
+    lin_displayp3_to_displayp3,
+    lin_displayp3_to_d65xyz,
+    d65xyz_to_lin_displayp3,
+    prophotorgb_to_lin_prophotorgb,
+    lin_prophotorgb_to_prophotorgb,
+    lin_prophotorgb_to_xyz,
+    xyz_to_lin_prophotorgb,
+    a98rgb_to_lin_a98rgb,
+    lin_a98rgb_to_a98rgb,
+    lin_a98rgb_to_d65xyz,
+    d65xyz_to_lin_a98rgb,
+    rec2020_to_lin_rec2020,
+    lin_rec2020_to_rec2020,
+    lin_rec2020_to_d65xyz,
+    d65xyz_to_lin_rec2020,
+    xyz_to_lab,
+    lab_to_xyz,
+    lab_to_lch,
+    lch_to_lab,
+    d65xyz_to_xyz,
+    xyz_to_d65xyz,
+    lin_srgb_to_oklab,
+    oklab_to_lin_srgb
 };
 function APCAcontrast(rgbText, rgbBack) {
     const coeffs = [
@@ -878,7 +794,7 @@ function APCAcontrast(rgbText, rgbBack) {
     return output * 100;
 }
 function luminance(rgb) {
-    const linrgb = srgb_to_lin_srgb1(rgb);
+    const linrgb = srgb_to_lin_srgb(rgb);
     return 0.2126729 * linrgb[0] + 0.7151522 * linrgb[1] + 0.072175 * linrgb[2];
 }
 function WCAG2(rgbText, rgbBack) {
@@ -1068,7 +984,7 @@ function maxSaturation(a, b) {
 }
 function cusp(a, b) {
     const Scusp = maxSaturation(a, b);
-    const rgbMax = oklab_to_lin_srgb1([
+    const rgbMax = oklab_to_lin_srgb([
         1,
         Scusp * a,
         Scusp * b
@@ -1129,7 +1045,7 @@ function gamutIntersection(a, b, L1, C1, L0) {
 function clip(rgb) {
     if (rgb.every((v)=>v > 0 && v < 1
     )) return rgb;
-    const [okl, oka, okb] = lin_srgb_to_oklab1(srgb_to_lin_srgb1(rgb));
+    const [okl, oka, okb] = lin_srgb_to_oklab(srgb_to_lin_srgb(rgb));
     const [x, okc, okh] = oklab_to_oklch([
         okl,
         oka,
@@ -1143,7 +1059,7 @@ function clip(rgb) {
     const t = gamutIntersection(a, b, okl, C, L0);
     const Lclipped = L0 * (1 - t) + t * okl;
     const Cclipped = t * C;
-    const clampedValues = lin_srgb_to_srgb1(oklab_to_lin_srgb1([
+    const clampedValues = lin_srgb_to_srgb(oklab_to_lin_srgb([
         Lclipped,
         Cclipped * a,
         Cclipped * b

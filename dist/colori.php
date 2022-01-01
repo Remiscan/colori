@@ -136,7 +136,7 @@
   }
 
 
-} namespace colori\ext {
+} namespace colori\conversions {
 
 
   /************************************************************************************************
@@ -395,7 +395,7 @@
   }
 
 
-} namespace colori\ext {
+} namespace colori\conversions {
 
 
   /*****************************************************************
@@ -440,25 +440,6 @@
 
 
 } namespace colori\conversions {
-
-
-  /* srgb */
-
-  function srgb_to_lin_srgb(array $rgb): array {
-    return \colori\ext\srgb_to_lin_srgb($rgb);
-  }
-
-  function lin_srgb_to_srgb(array $rgb): array {
-    return \colori\ext\lin_srgb_to_srgb($rgb);
-  }
-
-  function lin_srgb_to_d65xyz(array $rgb): array {
-    return \colori\ext\lin_srgb_to_d65xyz($rgb);
-  }
-
-  function d65xyz_to_lin_srgb(array $xyz): array {
-    return \colori\ext\d65xyz_to_lin_srgb($xyz);
-  }
 
 
   /* hsl */
@@ -550,120 +531,10 @@
   }
 
 
-  /* display-p3 */
-
-  function displayp3_to_lin_displayp3(array $rgb): array { return \colori\ext\displayp3_to_lin_displayp3($rgb); }
-  function lin_displayp3_to_displayp3(array $rgb): array { return \colori\ext\lin_displayp3_to_displayp3($rgb); }
-
-  function lin_displayp3_to_d65xyz(array $rgb): array {
-    return \colori\ext\lin_displayp3_to_d65xyz($rgb);
-  }
-
-  function d65xyz_to_lin_displayp3(array $xyz): array {
-    return \colori\ext\d65xyz_to_lin_displayp3($xyz);
-  }
-
-
-  /* prophoto-rgb */
-
-  function prophotorgb_to_lin_prophotorgb(array $rgb): array {
-    return \colori\ext\prophotorgb_to_lin_prophotorgb($rgb);
-  }
-
-  function lin_prophotorgb_to_prophotorgb(array $rgb): array {
-    return \colori\ext\lin_prophotorgb_to_prophotorgb($rgb);
-  }
-
-  function lin_prophotorgb_to_xyz(array $rgb): array {
-    return \colori\ext\lin_prophotorgb_to_xyz($rgb);
-  }
-
-  function xyz_to_lin_prophotorgb(array $xyz): array {
-    return \colori\ext\xyz_to_lin_prophotorgb($xyz);
-  }
-
-
-  /* a98-rgb */
-
-  function a98rgb_to_lin_a98rgb(array $rgb): array {
-    return \colori\ext\a98rgb_to_lin_a98rgb($rgb);
-  }
-
-  function lin_a98rgb_to_a98rgb(array $rgb): array {
-    return \colori\ext\lin_a98rgb_to_a98rgb($rgb);
-  }
-
-  function lin_a98rgb_to_d65xyz(array $rgb): array {
-    return \colori\ext\lin_a98rgb_to_d65xyz($rgb);
-  }
-
-  function d65xyz_to_lin_a98rgb(array $xyz): array {
-    return \colori\ext\d65xyz_to_lin_a98rgb($xyz);
-  }
-
-
-  /* rec2020 */
-
-  function rec2020_to_lin_rec2020(array $rgb): array {
-    return \colori\ext\rec2020_to_lin_rec2020($rgb);
-  }
-
-  function lin_rec2020_to_rec2020(array $rgb): array {
-    return \colori\ext\lin_rec2020_to_rec2020($rgb);
-  }
-
-  function lin_rec2020_to_d65xyz(array $rgb): array {
-    return \colori\ext\lin_rec2020_to_d65xyz($rgb);
-  }
-
-  function d65xyz_to_lin_rec2020(array $xyz): array {
-    return \colori\ext\d65xyz_to_lin_rec2020($xyz);
-  }
-
-
-  /* lab */
-
-  function xyz_to_lab(array $xyz): array {
-    return \colori\ext\xyz_to_lab($xyz);
-  }
-
-  function lab_to_xyz(array $lab): array {
-    return \colori\ext\lab_to_xyz($lab);
-  }
-
-  function lab_to_lch(array $lab): array {
-    return \colori\ext\lab_to_lch($lab);
-  }
-
-
-  function lch_to_lab(array $lch): array {
-    return \colori\ext\lch_to_lab($lch);
-  }
-
-
-  /* oklab */
-
-  function lin_srgb_to_oklab(array $rgb): array {
-    return \colori\ext\lin_srgb_to_oklab($rgb);
-  }
-
-  function oklab_to_lin_srgb(array $lab): array {
-    return \colori\ext\oklab_to_lin_srgb($lab);
-  }
+  /* oklch */
 
   function oklab_to_oklch(array $lab): array { return lab_to_lch($lab); }
   function oklch_to_oklab(array $lch): array { return lch_to_lab($lch); }
-
-
-  /* Bradford transform */
-
-  function d65xyz_to_xyz(array $xyz): array {
-    return \colori\ext\d65xyz_to_xyz($xyz);
-  }
-
-  function xyz_to_d65xyz(array $xyz): array {
-    return \colori\ext\xyz_to_d65xyz($xyz);
-  }
 
 
 } namespace colori\ext {
