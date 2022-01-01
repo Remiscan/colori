@@ -124,4 +124,19 @@ $version = version();
       table.appendChild(tr);
     }
   }
+
+  // Topological order test
+  // https://en.wikipedia.org/wiki/Topological_sorting#Examples
+  /*const exampleGraph = new Graph([
+    { id: 5, links: [11] },
+    { id: 11, links: [2, 9, 10] },
+    { id: 2, links: [] },
+    { id: 7, links: [11, 8] },
+    { id: 8, links: [9] },
+    { id: 9, links: [] },
+    { id: 3, links: [8, 10] },
+    { id: 10, links: [] }
+  ]);
+  console.log(exampleGraph.topologicalOrder()); // correct! :)
+  */
 </script>
