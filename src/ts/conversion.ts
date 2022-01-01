@@ -1,4 +1,3 @@
-import { lab_to_lch, lch_to_lab } from './ext/w3-conversion.js';
 export * from './ext/oklab-conversion.js';
 export * from './ext/w3-conversion.js';
 
@@ -99,10 +98,3 @@ export function hwb_to_hsl(hwb: number[]): number[] {
 
   return [h, s, l]; // h in [0, 360], s & l in [0, 1]
 }
-
-
-
-/* oklch */
-
-export function oklab_to_oklch(lab: number[]): number[] { return lab_to_lch(lab); }
-export function oklch_to_oklab(lch: number[]): number[] { return lch_to_lab(lch); }

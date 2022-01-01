@@ -613,6 +613,12 @@ function oklab_to_lin_srgb(lab) {
         b
     ];
 }
+function oklab_to_oklch(lab) {
+    return lab_to_lch(lab);
+}
+function oklch_to_oklab(lch) {
+    return lch_to_lab(lch);
+}
 function srgb_to_hsl(rgb) {
     const [r, g, b] = rgb;
     const max = Math.max(r, g, b);
@@ -695,19 +701,15 @@ function hwb_to_hsl(hwb) {
         l
     ];
 }
-function oklab_to_oklch(lab) {
-    return lab_to_lch(lab);
-}
-function oklch_to_oklab(lch) {
-    return lch_to_lab(lch);
-}
 const mod = {
     srgb_to_hsl: srgb_to_hsl,
     hsl_to_srgb: hsl_to_srgb,
     hsl_to_hwb: hsl_to_hwb,
     hwb_to_hsl: hwb_to_hsl,
-    oklab_to_oklch: oklab_to_oklch,
-    oklch_to_oklab: oklch_to_oklab,
+    lin_srgb_to_oklab,
+    oklab_to_lin_srgb,
+    oklab_to_oklch,
+    oklch_to_oklab,
     srgb_to_lin_srgb,
     lin_srgb_to_srgb,
     lin_srgb_to_d65xyz,
@@ -733,9 +735,7 @@ const mod = {
     lab_to_lch,
     lch_to_lab,
     d65xyz_to_xyz,
-    xyz_to_d65xyz,
-    lin_srgb_to_oklab,
-    oklab_to_lin_srgb
+    xyz_to_d65xyz
 };
 function APCAcontrast(rgbText, rgbBack) {
     const coeffs = [

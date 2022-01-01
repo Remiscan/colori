@@ -96,10 +96,4 @@
   }
 
 
-  /* oklch */
-
-  function oklab_to_oklch(array $lab): array { return lab_to_lch($lab); }
-  function oklch_to_oklab(array $lch): array { return lch_to_lab($lch); }
-
-
 }

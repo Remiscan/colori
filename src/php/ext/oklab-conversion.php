@@ -1,6 +1,10 @@
 <?php namespace colori\conversions {
 
 
+  require_once __DIR__ . '/ext/w3-conversion.php';
+
+
+
   /*****************************************************************
    * Derived from https://bottosson.github.io/posts/gamutclipping/ *
    * under MIT license (Copyright (c) 2021 Björn Ottosson)         *
@@ -41,6 +45,9 @@
 
     return [$r, $g, $b];
   }
+
+  function oklab_to_oklch(array $lab): array { return lab_to_lch($lab); }
+  function oklch_to_oklab(array $lch): array { return lch_to_lab($lch); }
 
 
 }

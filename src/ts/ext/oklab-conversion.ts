@@ -1,3 +1,7 @@
+import { lab_to_lch, lch_to_lab } from './w3-conversion.js';
+
+
+
 /*****************************************************************
  * Derived from https://bottosson.github.io/posts/gamutclipping/ *
  * under MIT license (Copyright (c) 2021 Björn Ottosson)         *
@@ -38,3 +42,6 @@ export function oklab_to_lin_srgb(lab: number[]): number[] {
 
   return [r, g, b];
 }
+
+export function oklab_to_oklch(lab: number[]): number[] { return lab_to_lch(lab); }
+export function oklch_to_oklab(lch: number[]): number[] { return lch_to_lab(lch); }
