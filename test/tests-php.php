@@ -156,8 +156,8 @@ class Test {
       <a id="php-${row}"></a>
       <h4 class="php" style="--color:${backgroundColor}; --gradient:${gradient}; color:${textColor};">${titre}</h4>
       <span class="php">${texte} in ${time} ms</span>
-      <pre class="php">Reçu : ${recu}</pre>
-      <pre class="php"">Attendu : ${attendu}</pre>
+      <pre class="php">Result: ${recu}</pre>
+      <pre class="php"">Expected: ${attendu}</pre>
     </div>
     DIV;
 

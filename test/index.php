@@ -2,17 +2,17 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
 require_once '../dist/colori.php';
 require_once 'tests-php.php';
 
 $tests_json = file_get_contents('tests.json');
 $testList = json_decode($tests_json);
-
 $ordreMin = 4;
-
 ?>
+
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <title>colori tests</title>
@@ -52,6 +52,8 @@ $ordreMin = 4;
       h2 { grid-row: 2; }
       h3 {
         font-size: 1.3rem;
+      }
+      h3.php, h3.js {
         text-align: center;
       }
 
@@ -97,23 +99,27 @@ $ordreMin = 4;
 
   <body>
     <div class="lists">
-      <ul>
-        <li style="list-style: none">Categories</li>
-        <?php foreach($testList as $category => $tests) { ?>
-          <li><a href="#<?=$category?>"><?=$category?></a>
-        <?php } ?>
-      </ul>
+      <div>
+        <h2>Categories</h2>
+        <ul>
+          <?php foreach($testList as $category => $tests) { ?>
+            <li><a href="#<?=$category?>"><?=$category?></a>
+          <?php } ?>
+        </ul>
+      </div>
 
-      <ul>
-        <li style="list-style: none">Other tests</li>
-        <li><a href="CIEDE2000.php">CIEDE2000 distance</a>
-        <li><a href="graph-conversion.php">Path-finding conversion</a>
-        <li><a href="oklab.php">oklab color space</a>
-        <li><a href="palette.php">Palette generation</a>
-      </ul>
+      <div>
+        <h2>Other tests</h2>
+        <ul>
+          <li><a href="CIEDE2000.php">CIEDE2000 distance</a>
+          <li><a href="graph-conversion.php">Path-finding conversion</a>
+          <li><a href="oklab.php">oklab color space</a>
+          <li><a href="palette.php">Palette generation</a>
+        </ul>
+      </div>
     </div>
 
-    <h2 class="php">Tests de colori.php</h2>
+    <h2 class="php">colori.php tests</h2>
 
     <?php
     $failsList = [];
@@ -147,17 +153,17 @@ $ordreMin = 4;
 
     <aside>
       <h2>Failed tests</h2>
+      <h3>PHP (<span class="failed-php-count"><?php echo count($failsList); ?></span>)</h3>
       <ul class="failed-php">
-        <li style="list-style: none">PHP (<span class="failed-php-count"><?php echo count($failsList); ?></span>)</li>
         <?php echo implode('', $failsList); ?>
       </ul>
 
+      <h3>JavaScript (<span class="failed-js-count">0</span>)</h3>
       <ul class="failed-js">
-        <li style="list-style: none">JavaScript (<span class="failed-js-count">0</span>)</li>
       </ul>
     </aside>
 
-    <h2 class="js">Tests de colori.js</h2>
+    <h2 class="js">colori.js tests</h2>
 
     <script type="module">
       // ▼ ES modules cache-busted grâce à PHP
