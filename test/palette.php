@@ -154,6 +154,7 @@ require_once '../dist/colori.php';
 
   // improveContrast after generating each color
   // (way slower, more precise, maybe not worth it)
+  // (contrasts may still be very slightly lower than requested because of the clamping to srgb in Palette constructor)
   /*const contrastedGenerator2 = function(color) {
     const [x, chroma, hue] = color.valuesTo('oklch');
     const contrasts = [65, 75, 85, 95, 100, 105];
