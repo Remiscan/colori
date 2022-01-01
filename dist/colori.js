@@ -802,13 +802,10 @@ function WCAG2(rgbText, rgbBack) {
     const L2 = luminance(rgbBack);
     return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
 }
-function APCA(rgbText, rgbBack) {
-    return APCAcontrast(rgbText, rgbBack);
-}
 const mod1 = {
+    APCA: APCAcontrast,
     luminance: luminance,
-    WCAG2: WCAG2,
-    APCA: APCA
+    WCAG2: WCAG2
 };
 const numberExp = '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?';
 const RegExps = {
@@ -2841,7 +2838,7 @@ class Couleur {
             case 'wcag3':
             case 'sapc':
             case 'apca':
-                return APCA(text.values, background.values);
+                return APCAcontrast(text.values, background.values);
             case 'wcag2':
             default:
                 return WCAG2(text.values, background.values);

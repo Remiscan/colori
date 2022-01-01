@@ -1,5 +1,5 @@
 import * as Conversions from './conversion.js';
-import { APCAcontrast } from './ext/apca-contrast.js';
+export { APCAcontrast as APCA } from './ext/apca-contrast.js';
 
 
 
@@ -23,14 +23,3 @@ export function WCAG2(rgbText: number[], rgbBack: number[]): number {
   const L2 = luminance(rgbBack);
   return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
 }
-
-
-/**
- * Computes the SAPC/APCA contrast between two colors as defined by WCAG3.
- * @param rgbText Array of r, g, b values of the text.
- * @param rgbBack Array of r, g, b values of the background.
- * @returns Contrast between the two colors.
- */
- export function APCA(rgbText: number[], rgbBack: number[]): number {
-   return APCAcontrast(rgbText, rgbBack);
- }

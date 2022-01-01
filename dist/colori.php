@@ -537,7 +537,7 @@
   function oklch_to_oklab(array $lch): array { return lch_to_lab($lch); }
 
 
-} namespace colori\ext {
+} namespace colori\contrasts {
 
 
   /****************************************************
@@ -625,7 +625,7 @@
 
 
   function APCA(array $rgbText, array $rgbBack): float {
-    return \colori\ext\APCAcontrast($rgbText, $rgbBack);
+    return APCAcontrast($rgbText, $rgbBack);
   }
 
 

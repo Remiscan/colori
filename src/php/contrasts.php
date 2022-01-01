@@ -19,7 +19,7 @@
 
 
   function APCA(array $rgbText, array $rgbBack): float {
-    return \colori\ext\APCAcontrast($rgbText, $rgbBack);
+    return APCAcontrast($rgbText, $rgbBack);
   }
 
 
