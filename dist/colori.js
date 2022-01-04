@@ -2602,7 +2602,10 @@ class Couleur {
         return Couleur.convert(clampSpace, valueSpace, clampedValues);
     }
     toGamut(spaceID) {
-        return new Couleur(Couleur.toGamut(spaceID, this.values, 'srgb'));
+        return new Couleur([
+            ...Couleur.toGamut(spaceID, this.values, 'srgb'),
+            this.a
+        ]);
     }
     change(prop, value, { action =null  } = {
     }) {

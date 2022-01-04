@@ -860,7 +860,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.toGamut - Non-static version. */
-  public toGamut(spaceID: colorSpaceOrID): Couleur { return new Couleur(Couleur.toGamut(spaceID, this.values, 'srgb')); }
+  public toGamut(spaceID: colorSpaceOrID): Couleur { return new Couleur([...Couleur.toGamut(spaceID, this.values, 'srgb'), this.a]); }
 
 
 
