@@ -16,6 +16,7 @@ function version()
 $version = version();
 ?>
 
+<!doctype html>
 <body>
 
 <button type="button" id="run-test">Run test again</button>

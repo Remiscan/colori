@@ -2,6 +2,7 @@
 require_once '../dist/colori.php';
 ?>
 
+<!doctype html>
 <link rel="stylesheet" href="./styles.css">
 
 <h1>Testing colori's implementation of oklab and oklch color spaces</h1>

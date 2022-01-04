@@ -6,7 +6,7 @@ body { color: black; }
 
 @media (prefers-color-scheme: dark) {
   body {color: white; }
-  .yes { background-color: #98fb9833; }
-  .close { background-color: #ffd70033; }
-  .no { background-color: #ffc0cb33; }
+  .yes { background-color: #004909; }
+  .close { background-color: #473a00; }
+  .no { background-color: #5a2834; }
 }

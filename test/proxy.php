@@ -1,3 +1,4 @@
+<!doctype html>
 <link rel="stylesheet" href="./styles.css">
 
 <h1>Testing proxy performance</h1>

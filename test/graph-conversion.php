@@ -16,6 +16,7 @@ function version()
 $version = version();
 ?>
 
+<!doctype html>
 <link rel="stylesheet" href="./styles.css">
 
 <h1>Testing colori's pathfinding conversion</h1>
