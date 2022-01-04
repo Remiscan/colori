@@ -32,9 +32,9 @@ export default class Graph {
 
   /**
    * Builds a graph from an array.
-   * @param array Array of { id, links } objects.
+   * @param array Array of { id, links, data? } objects.
    */
-  constructor(array: Array<{ id: id, links: id[] }>) {
+  constructor(array: Array<{ id: id, links: id[], data?: any }>) {
     this.nodes = array.map(e => new GraphNode(e));
   }
 
