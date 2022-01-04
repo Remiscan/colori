@@ -113,13 +113,13 @@
 
     start = performance.now();
     for (let i = 0; i < test.iterations; i++) {
-      const lab = color.lab;
+      test.function(color);
     }
     const colorDuration = performance.now() - start;
 
     start = performance.now();
     for (let i = 0; i < test.iterations; i++) {
-      const lab = proxy.lab;
+      test.function(proxy);
     }
     const proxyDuration = performance.now() - start;
 
