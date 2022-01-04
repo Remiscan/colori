@@ -1,6 +1,5 @@
 demo/
 wiki/
-test/proxy.php
 tsconfig.json
 .vscode/settings.json
 build/docs
