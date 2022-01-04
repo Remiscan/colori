@@ -61,7 +61,7 @@ export default class Graph {
    * Finds the shortest path between two nodes.
    * @param startID Identifier of the first node.
    * @param endID Identifier of the last node.
-   * @returns An array of node IDs, ordered from first to last along the shortest path.
+   * @returns An array of graph nodes, ordered from first to last along the shortest path.
    */
   shortestPath(startID: id, endID: id): GraphNode[] {
     // Source of the math: https://en.wikipedia.org/wiki/Breadth-first_search  
