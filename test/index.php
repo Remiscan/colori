@@ -17,19 +17,8 @@ $ordreMin = 4;
     <meta charset="utf-8">
     <title>colori tests</title>
 
+    <link rel="stylesheet" href="./styles.css">
     <style>
-      html { color-scheme: light dark; }
-      .yes { background-color: palegreen; }
-      .close { background-color: gold; }
-      .no { background-color: pink; }
-      
-      @media (prefers-color-scheme: dark) {
-        body {color: white; }
-        .yes { background-color: <?php $c = new Couleur('palegreen'); echo $c->replace('a', '.2')->hsl(); ?>; }
-        .close { background-color: <?php $c = new Couleur('gold'); echo $c->replace('a', '.2')->hsl(); ?>; }
-        .no { background-color: <?php $c = new Couleur('pink'); echo $c->replace('a', '.2')->hsl(); ?>;}
-      }
-
       body {
         width: 100%;
         height: 100%;
