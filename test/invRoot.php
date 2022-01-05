@@ -40,7 +40,7 @@ require_once '../src/php/utils.php';
         <td><?=$n?></td>
         <td>${js}</td>
         <td class="${(Math.round(10**3 * js) / 10**3) === (Math.round(10**3 * expjs) / 10**3) ? 'yes' : 'no'}">${expjs}</td>
-        <td class="${(Math.round(10**3 * js) / 10**3) === (Math.round(10**3 * <?=$expphp?>) / 10**3) ? 'yes' : 'no'}">${<?=$expphp?>}</td>
+        <td class="${(Math.round(10**3 * js) / 10**3) === (Math.round(10**3 * <?=$expphp?>) / 10**3) ? 'yes' : 'no'}"><?=$expphp?></td>
         <td class="${(Math.round(10**3 * js) / 10**3) === (Math.round(10**3 * <?=$php?>) / 10**3) ? 'yes' : 'no'}"><?=$php?></td>
       </tr>`;
     <?php

@@ -1,21 +1,3 @@
-<?php
-require_once '../dist/colori.php';
-function version()
-{
-  $listeFichiers = ['../dist/colori.js'];
-  $versionFichiers = 0;
-  foreach($listeFichiers as $fichier)
-  {
-    $date_fichier = filemtime($fichier);
-    if ($date_fichier > $versionFichiers)
-      $versionFichiers = $date_fichier;
-  }
-  $versionFichiers = date('Y.m.d_H.i.s', $versionFichiers);
-  return $versionFichiers;
-}
-$version = version();
-?>
-
 <!doctype html>
 <link rel="stylesheet" href="./styles.css">
 
@@ -56,7 +38,16 @@ $version = version();
 </table>
 
 <script type="module">
-  import Couleur, { Graph } from '../dist/colori--<?=$version?>.js';
+  // ▼ ES modules cache-busted grâce à PHP
+  /*<?php ob_start();?>*/
+
+  import Couleur, { Graph } from '../dist/colori.js';
+
+  /*<?php $imports = ob_get_clean();
+  require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
+  echo versionizeFiles($imports, __DIR__); ?>*/
+
+
 
   const colorSpaces = Couleur.colorSpaces;
   let max = 0;

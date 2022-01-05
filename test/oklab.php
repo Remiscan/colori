@@ -1,7 +1,3 @@
-<?php
-require_once '../dist/colori.php';
-?>
-
 <!doctype html>
 <link rel="stylesheet" href="./styles.css">
 
