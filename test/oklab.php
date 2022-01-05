@@ -125,14 +125,26 @@
 
   /* Perform the test */
   function performTest() {
+    let successDistance = 0.0005;
+    let closeDistance = 0.01;
+
+    const ignoreLCH = (oklch, k) => (
+      ((oklch[0] < successDistance || oklch[0] > 1 - successDistance) && k > 0) // chroma and hue don't matter for black or white
+      || (oklch[1] < successDistance && k === 2) // hue doesn't matter for greys
+    );
+
+    const ignoreLAB = (oklab, k) => (
+      ((oklab[0] < successDistance || oklab[0] > 1 - successDistance) && k > 0) // A and B don't matter for black or white
+    );
+
     // XYZ to oklab tests
     for (const [k, test] of Object.entries(tests)) {
       const xyz = test;
       const oklab = Couleur.convert('d65xyz', 'oklab', xyz);
       
       const expected = expectedResults[Number(k)];
-      const verif = oklab.every((e, k) => Math.abs(e - expected[k]) < 0.0005);
-      const verif2 = oklab.every((e, k) => Math.abs(e - expected[k]) < 0.01);
+      const verif = oklab.every((e, k) => Math.abs(e - expected[k]) < successDistance);
+      const verif2 = oklab.every((e, k) => Math.abs(e - expected[k]) < closeDistance);
 
       document.querySelector('table.xyz').innerHTML += `
         <tr class="${verif ? 'yes' : verif2 ? 'close' : 'no'}">
@@ -151,8 +163,8 @@
       const oklab = c.valuesTo('oklab');
       
       const expected = expectedNames[Number(k)];
-      const verif = oklab.every((e, k) => Math.abs(e - expected[k]) < 0.0005);
-      const verif2 = oklab.every((e, k) => Math.abs(e - expected[k]) < 0.01);
+      const verif = oklab.every((e, k) => ignoreLAB(oklab, k) || Math.abs(e - expected[k]) < successDistance);
+      const verif2 = oklab.every((e, k) => Math.abs(e - expected[k]) < closeDistance);
 
       document.querySelector('table.names').innerHTML += `
         <tr class="${verif ? 'yes' : verif2 ? 'close' : 'no'}">
@@ -168,16 +180,16 @@
     for (const [k, test] of Object.entries(testsNames)) {
       const xyz = test;
       const c = new Couleur(test);
-      const oklab = c.valuesTo('oklch');
+      const oklch = c.valuesTo('oklch');
       
       const expected = expectedNamesLCH[Number(k)];
-      const verif = oklab.every((e, k) => Math.abs(e - expected[k]) < (k == 2 ? 360 : 1) * 0.0005);
-      const verif2 = oklab.every((e, k) => Math.abs(e - expected[k]) < (k == 2 ? 360 : 1) * 0.01);
+      const verif = oklch.every((e, k) => ignoreLCH(oklch, k) || Math.abs(e - expected[k]) < (k == 2 ? 360 : 1) * successDistance);
+      const verif2 = oklch.every((e, k) => Math.abs(e - expected[k]) < (k == 2 ? 360 : 1) * closeDistance);
 
       document.querySelector('table.namesLCH').innerHTML += `
         <tr class="${verif ? 'yes' : verif2 ? 'close' : 'no'}">
           <td>${test}</td>
-          <td>${oklab.join(' ')}</td>
+          <td>${oklch.join(' ')}</td>
           <td>${expected.join(' ')}</td>
           <td>${verif ? 'yes' : verif2 ? 'close' : 'no'}</td>
         </tr>
@@ -190,8 +202,8 @@
       const oklch = Couleur.convert('oklab', 'oklch', oklab);
       
       const expected = expectedNamesLCH[Number(k)];
-      const verif = oklch.every((e, k) => Math.abs(e - expected[k]) < (k == 2 ? 360 : 1) * 0.0005);
-      const verif2 = oklch.every((e, k) => Math.abs(e - expected[k]) < (k == 2 ? 360 : 1) * 0.01);
+      const verif = oklch.every((e, k) => ignoreLCH(oklch, k) || Math.abs(e - expected[k]) < (k == 2 ? 360 : 1) * successDistance);
+      const verif2 = oklch.every((e, k) => Math.abs(e - expected[k]) < (k == 2 ? 360 : 1) * closeDistance);
 
       document.querySelector('table.lab_to_lch').innerHTML += `
         <tr class="${verif ? 'yes' : verif2 ? 'close' : 'no'}">
@@ -209,8 +221,8 @@
       const oklab = Couleur.convert('oklch', 'oklab', oklch);
       
       const expected = expectedNames[Number(k)];
-      const verif = oklab.every((e, k) => Math.abs(e - expected[k]) < 0.0005);
-      const verif2 = oklab.every((e, k) => Math.abs(e - expected[k]) < 0.01);
+      const verif = oklab.every((e, k) => ignoreLAB(oklab, k) || Math.abs(e - expected[k]) < successDistance);
+      const verif2 = oklab.every((e, k) => Math.abs(e - expected[k]) < closeDistance);
 
       document.querySelector('table.lch_to_lab').innerHTML += `
         <tr class="${verif ? 'yes' : verif2 ? 'close' : 'no'}">
