@@ -737,22 +737,24 @@ const mod = {
     d65xyz_to_xyz,
     xyz_to_d65xyz
 };
-function APCAcontrast(rgbText, rgbBack) {
+function luminance(rgb) {
     const coeffs = [
         0.2126729,
         0.7151522,
         0.072175
     ];
-    const luminance1 = (rgb)=>rgb.reduce((sum, v, i)=>sum + Math.pow(v, 2.4) * coeffs[i]
-        , 0)
-    ;
+    return rgb.reduce((sum, v, i)=>sum + Math.pow(v, 2.4) * coeffs[i]
+    , 0);
+}
+function APCAcontrast(rgbText, rgbBack) {
     let [Ytext, Yback] = [
         rgbText,
         rgbBack
-    ].map((rgb)=>luminance1(rgb)
+    ].map((rgb)=>luminance(rgb)
     );
+    if (isNaN(Ytext) || isNaN(Yback) || Math.min(Ytext, Yback) < 0 || Math.max(Ytext, Yback) > 1.1) return 0;
     const normBG = 0.56, normTXT = 0.57, revTXT = 0.62, revBG = 0.65;
-    const blkThrs = 0.022, blkClmp = 1.414, scaleBoW = 1.14, scaleWoB = 1.14, loBoWthresh = 0.035991, loWoBthresh = 0.035991, loBoWfactor = 27.7847239587675, loWoBfactor = 27.7847239587675, loBoWoffset = 0.027, loWoBoffset = 0.027, loClip = 0.001;
+    const blkThrs = 0.022, blkClmp = 1.414, scaleBoW = 1.14, scaleWoB = 1.14, loBoWoffset = 0.027, loWoBoffset = 0.027, loClip = 0.1;
     [Ytext, Yback] = [
         Ytext,
         Yback
@@ -763,25 +765,25 @@ function APCAcontrast(rgbText, rgbBack) {
     let output = 0;
     if (Yback > Ytext) {
         SAPC = (Math.pow(Yback, normBG) - Math.pow(Ytext, normTXT)) * scaleBoW;
-        output = SAPC < loClip ? 0 : SAPC < loBoWthresh ? SAPC - SAPC * loBoWfactor * loBoWoffset : SAPC - loBoWoffset;
+        output = SAPC < loClip ? 0 : SAPC - loBoWoffset;
     } else {
         SAPC = (Math.pow(Yback, revBG) - Math.pow(Ytext, revTXT)) * scaleWoB;
-        output = SAPC > -loClip ? 0 : SAPC > -loWoBthresh ? SAPC - SAPC * loWoBfactor * loWoBoffset : SAPC + loWoBoffset;
+        output = SAPC > -loClip ? 0 : SAPC + loWoBoffset;
     }
     return output * 100;
 }
-function luminance(rgb) {
+function luminance1(rgb) {
     const linrgb = srgb_to_lin_srgb(rgb);
     return 0.2126729 * linrgb[0] + 0.7151522 * linrgb[1] + 0.072175 * linrgb[2];
 }
 function WCAG2(rgbText, rgbBack) {
-    const L1 = luminance(rgbText);
-    const L2 = luminance(rgbBack);
+    const L1 = luminance1(rgbText);
+    const L2 = luminance1(rgbBack);
     return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
 }
 const mod1 = {
     APCA: APCAcontrast,
-    luminance: luminance,
+    luminance: luminance1,
     WCAG2: WCAG2
 };
 const numberExp = '(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?';
@@ -2499,7 +2501,7 @@ class Couleur {
     }
     get luminance() {
         if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
-        return luminance(this.values);
+        return luminance1(this.values);
     }
     static convert(startSpaceID, endSpaceID, values) {
         if (typeof startSpaceID === typeof endSpaceID && startSpaceID === endSpaceID || typeof startSpaceID === 'string' && typeof endSpaceID !== 'string' && startSpaceID === endSpaceID.id || typeof startSpaceID !== 'string' && typeof endSpaceID === 'string' && startSpaceID.id === endSpaceID) return values;

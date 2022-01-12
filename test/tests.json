@@ -312,11 +312,11 @@
       "fonction": "Colour.contrast('#def', '#123', { method: 'apca' })",
       "resultatAttendu": -93.06770049484275
     }, {
-      "fonction": "Colour.contrast('#123', '#234', { method: 'apca' })",
-      "resultatAttendu": 1.7512243099356113
+      "fonction": "Colour.contrast('#123', '#444', { method: 'apca' })",
+      "resultatAttendu": 8.32326136957393
     }, {
-      "fonction": "Colour.contrast('#234', '#123', { method: 'apca' })",
-      "resultatAttendu": -1.6349191031377903
+      "fonction": "Colour.contrast('#444', '#123', { method: 'apca' })",
+      "resultatAttendu": -7.526878460278154
     }, {
       "fonction": "Colour.contrast('#aaa', '#aaa')",
       "resultatAttendu": 0
