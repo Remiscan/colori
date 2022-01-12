@@ -27,7 +27,7 @@ export function APCAcontrast(rgbText: number[], rgbBack: number[]): number {
   let [Ytext, Yback] = [rgbText, rgbBack].map(rgb => luminance(rgb));
   if (isNaN(Ytext) || isNaN(Yback) || Math.min(Ytext, Yback) < 0 || Math.max(Ytext, Yback) > 1.1) return 0;
 
-  // APCA 0.0.98 G - 4g Constants
+  // APCA 0.1.1   G - 4g - W3 Constants
   const normBG = 0.56,
         normTXT = 0.57,
         revTXT = 0.62,

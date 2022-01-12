@@ -540,7 +540,7 @@
     $Ytext = $luminance($rgbText);
     $Yback = $luminance($rgbBack);
 
-    // APCA 0.0.98 G - 4g Constants
+    // APCA 0.1.1   G - 4g - W3 Constants
     $normBG = 0.56;
     $normTXT = 0.57;
     $revTXT = 0.62;
