@@ -125,7 +125,7 @@ export default class Test {
 
     div.innerHTML = `
       <a id="js-${this.ordre}"></a>
-      <h4 class="js" style="--color:${backgroundColor || ''}; --gradient:${gradient}; color:${textColor};">${this.nom}</h4>
+      <h4 class="js" style="--color:${backgroundColor || ''}; ${gradient ? `--gradient:${gradient}` : ''}; color:${textColor};">${this.nom}</h4>
       <span class="js">${validation ? '✅ Success' : '❌ Failure'} in ${this.time} ms</span>
       <pre class="js">${'Result:\n\n' + JSON.stringify(resultat, null, 2)}</pre>
       <pre class="js">${'Expected:\n\n' + JSON.stringify(this.resultatAttendu, null, 2)}</pre>

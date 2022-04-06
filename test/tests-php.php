@@ -150,11 +150,12 @@ class Test {
                    Couleur::blend('white', $backgroundColor)->bestColorScheme() === 'light' ? 'black' : 'white'
                  ): 'initial';
     $backgroundColor = ($backgroundColor instanceof Couleur) ? $backgroundColor->rgb() : $backgroundColor;
+    $gradientStyle = $gradient ? "--gradient:$gradient" : "";
 
     echo <<<DIV
     <div class="php ${class}" style="grid-row: ${row}" data-validate="${validation}">
       <a id="php-${row}"></a>
-      <h4 class="php" style="--color:${backgroundColor}; --gradient:${gradient}; color:${textColor};">${titre}</h4>
+      <h4 class="php" style="--color:${backgroundColor}; ${gradientStyle}; color:${textColor};">${titre}</h4>
       <span class="php">${texte} in ${time} ms</span>
       <pre class="php">Result: ${recu}</pre>
       <pre class="php"">Expected: ${attendu}</pre>
