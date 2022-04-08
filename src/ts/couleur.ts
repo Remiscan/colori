@@ -787,7 +787,7 @@ export default class Couleur {
    * @param valueSpaceID Color space of the given values, or its identifier.
    * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
-  public static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'oklch' }: { method?: 'oklch'|'chroma'|'naive' } = {}): number[] {
+  public static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'okchroma' }: { method?: 'okchroma'|'naive' } = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
     const _method = method.toLowerCase();
@@ -799,11 +799,12 @@ export default class Couleur {
 
       // OKLCH chroma gamut clipping
       // Source of the math: https://www.w3.org/TR/css-color-4/#gamut-mapping
-      case 'oklch': {
+      case 'okchroma': {
         clampSpace = Couleur.getSpace('oklch');
         let oklch = Couleur.convert(valueSpace, clampSpace, values);
+        oklch = Couleur.toGamut(clampSpace, oklch, clampSpace, { method: 'naive' });
 
-        const τ = .0001;
+        const τ = .000001;
         const δ = .02;
         let Cmin = 0;
         let Cmax = oklch[1];
@@ -813,9 +814,12 @@ export default class Couleur {
           if (Couleur.inGamut(space, oklch, clampSpace, { tolerance: 0 })) {
             Cmin = oklch[1];
           } else {
-            const naive = Couleur.toGamut(space, oklch, clampSpace, { method: 'naive' });
-            if (Couleur.distance(naive, oklch, { method: 'deltaeok' }) < δ) {
-              oklch = naive;
+            const naiveOklch = Couleur.toGamut(space, oklch, clampSpace, { method: 'naive' });
+            const naiveOklab = Couleur.convert(clampSpace, 'oklab', naiveOklch);
+            const oklab = Couleur.convert(clampSpace, 'oklab', oklch);
+
+            if (Distances.euclidean(naiveOklab, oklab) < δ) {
+              oklch = naiveOklch;
               break;
             }
             Cmax = oklch[1];
@@ -824,35 +828,6 @@ export default class Couleur {
         }
 
         clampedValues = oklch;
-      } break;
-      
-      // Let's reduce the LCH chroma until the color is in the color space.
-      case 'chroma': {
-        /******************************************************************************
-         * Derived from https://github.com/LeaVerou/color.js/blob/master/src/color.js *
-         * under MIT license (Copyright (c) 2021 Lea Verou, Chris Lilley)             *
-         ******************************************************************************/
-        
-        clampSpace = Couleur.getSpace('lch');
-        let lch = Couleur.convert(valueSpace, clampSpace, values);
-
-        const τ = .01;
-        let Cmin = 0;
-        let Cmax = lch[1];
-        lch[1] = lch[1] / 2;
-
-        while (Cmax - Cmin > τ) {
-          const naive = Couleur.toGamut(space, lch, clampSpace, { method: 'naive' });
-
-          // If the color is close to the color space border
-          if (Couleur.distance(naive, lch, { method: 'CIEDE2000' }) < 2 + τ)
-            Cmin = lch[1];
-          else
-            Cmax = lch[1];
-          lch[1] = (Cmin + Cmax) / 2;
-        }
-
-        clampedValues = lch;
       } break;
 
       // Naively clamp the values

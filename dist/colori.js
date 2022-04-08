@@ -2395,7 +2395,7 @@ class Couleur {
     inGamut(spaceID, options = {}) {
         return Couleur.inGamut(spaceID, this.values, 'srgb', options);
     }
-    static toGamut(spaceID, values, valueSpaceID = 'srgb', { method ='oklch'  } = {}) {
+    static toGamut(spaceID, values, valueSpaceID = 'srgb', { method ='okchroma'  } = {}) {
         const space = Couleur.getSpace(spaceID);
         const valueSpace = Couleur.getSpace(valueSpaceID);
         const _method = method.toLowerCase();
@@ -2404,26 +2404,29 @@ class Couleur {
         })) return values;
         let clampedValues, clampSpace;
         switch(_method){
-            case 'oklch':
+            case 'okchroma':
                 {
                     clampSpace = Couleur.getSpace('oklch');
                     let oklch = Couleur.convert(valueSpace, clampSpace, values);
+                    oklch = Couleur.toGamut(clampSpace, oklch, clampSpace, {
+                        method: 'naive'
+                    });
                     let Cmin = 0;
                     let Cmax = oklch[1];
                     oklch[1] = oklch[1] / 2;
-                    while(Cmax - Cmin > 0.0001){
+                    while(Cmax - Cmin > 0.000001){
                         if (Couleur.inGamut(space, oklch, clampSpace, {
                             tolerance: 0
                         })) {
                             Cmin = oklch[1];
                         } else {
-                            const naive = Couleur.toGamut(space, oklch, clampSpace, {
+                            const naiveOklch = Couleur.toGamut(space, oklch, clampSpace, {
                                 method: 'naive'
                             });
-                            if (Couleur.distance(naive, oklch, {
-                                method: 'deltaeok'
-                            }) < 0.02) {
-                                oklch = naive;
+                            const naiveOklab = Couleur.convert(clampSpace, 'oklab', naiveOklch);
+                            const oklab = Couleur.convert(clampSpace, 'oklab', oklch);
+                            if (euclidean(naiveOklab, oklab) < 0.02) {
+                                oklch = naiveOklch;
                                 break;
                             }
                             Cmax = oklch[1];
@@ -2431,26 +2434,6 @@ class Couleur {
                         oklch[1] = (Cmin + Cmax) / 2;
                     }
                     clampedValues = oklch;
-                }
-                break;
-            case 'chroma':
-                {
-                    clampSpace = Couleur.getSpace('lch');
-                    let lch = Couleur.convert(valueSpace, clampSpace, values);
-                    let Cmin = 0;
-                    let Cmax = lch[1];
-                    lch[1] = lch[1] / 2;
-                    while(Cmax - Cmin > 0.01){
-                        const naive = Couleur.toGamut(space, lch, clampSpace, {
-                            method: 'naive'
-                        });
-                        if (Couleur.distance(naive, lch, {
-                            method: 'CIEDE2000'
-                        }) < 2 + 0.01) Cmin = lch[1];
-                        else Cmax = lch[1];
-                        lch[1] = (Cmin + Cmax) / 2;
-                    }
-                    clampedValues = lch;
                 }
                 break;
             default:

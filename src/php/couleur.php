@@ -683,28 +683,19 @@
 
 
     /** Clamps parsed values in valueSpaceID color space to the spaceID color space. */
-    public static function toGamut(array|string $spaceID, array $values, array|string $valueSpaceID = 'srgb', string $method = 'oklch'): array {
+    public static function toGamut(array|string $spaceID, array $values, array|string $valueSpaceID = 'srgb', string $method = 'okchroma'): array {
       $space = self::getSpace($spaceID);
       $valueSpace = self::getSpace($valueSpaceID);
       if (self::inGamut($space, $values, $valueSpace, tolerance: 0)) return $values;
       $method = strtolower($method);
 
-      // Naively clamp the values
-      if ($method === 'naive') {
-        $clampSpace = $space;
-        $convertedValues = self::convert($valueSpace, $clampSpace, $values);
-        $clampedValues = [];
-        foreach($convertedValues as $k => $v) {
-          $clampedValues[] = max($space['gamut'][$k][0], min($v, $space['gamut'][$k][1]));
-        }
-      }
-
       // OKLCH chroma gamut clipping
-      elseif ($method === 'oklch') {
+      if ($method === 'okchroma') {
         $clampSpace = self::getSpace('oklch');
         $oklch = self::convert($valueSpace, $clampSpace, $values);
+        $oklch = self::toGamut($clampSpace, $oklch, $clampSpace, method: 'naive');
 
-        $τ = .0001;
+        $τ = .000001;
         $δ = .02;
         $Cmin = 0;
         $Cmax = $oklch[1];
@@ -714,9 +705,12 @@
           if (self::inGamut($space, $oklch, $clampSpace, tolerance: 0 )) {
             $Cmin = $oklch[1];
           } else {
-            $naive = self::toGamut($space, $oklch, $clampSpace, method: 'naive');
-            if (self::distance($naive, $oklch, method: 'deltaeok') < $δ) {
-              $oklch = $naive;
+            $naiveOklch = self::toGamut($space, $oklch, $clampSpace, method: 'naive');
+            $naiveOklab = self::convert($clampSpace, 'oklab', $naiveOklch);
+            $oklab = self::convert($clampSpace, 'oklab', $oklch);
+
+            if (distances\euclidean($naiveOklab, $oklab) < $δ) {
+              $oklch = $naiveOklch;
               break;
             }
             $Cmax = $oklch[1];
@@ -727,33 +721,14 @@
         $clampedValues = $oklch;
       }
 
-      // Let's reduce the chroma until the color is in the color space
-      elseif ($method === 'chroma') {
-        /******************************************************************************
-         * Derived from https://github.com/LeaVerou/color.js/blob/master/src/color.js *
-         * under MIT license (Copyright (c) 2021 Lea Verou, Chris Lilley)             *
-         ******************************************************************************/
-        
-        $clampSpace = self::getSpace('lch');
-        $lch = self::convert($valueSpace, $clampSpace, $values);
-
-        $τ = .01;
-        $Cmin = 0;
-        $Cmax = $lch[1];
-        $lch[1] = $lch[1] / 2;
-
-        while($Cmax - $Cmin > $τ) {
-          $naive = self::toGamut($space, $lch, $clampSpace, method: 'naive');
-
-          // If the color is close to the color space border
-          if (self::distance($naive, $lch, method: 'CIEDE2000') < 2 + $τ)
-            $Cmin = $lch[1];
-          else
-            $Cmax = $lch[1];
-          $lch[1] = ($Cmin + $Cmax) / 2;
+      // Naively clamp the values
+      else {
+        $clampSpace = $space;
+        $convertedValues = self::convert($valueSpace, $clampSpace, $values);
+        $clampedValues = [];
+        foreach($convertedValues as $k => $v) {
+          $clampedValues[] = max($space['gamut'][$k][0], min($v, $space['gamut'][$k][1]));
         }
-
-        $clampedValues = $lch;
       }
 
       // Final naive clamp to get in the color space if the color is still just outside the border
