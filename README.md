@@ -32,7 +32,7 @@ echo $color->rgb(); // prints 'rgb(0, 0, 255)'
 
 ## Features
 
-- **color conversion**: supported CSS formats are RGB (hexadecimal or functional), HSL, HWB, LAB, LCH and the color() function (+ OKLAB and OKLCH, but their syntax may change). Convert any color from any of these formats to any other with ease.
+- **color conversion**: supported CSS formats are RGB (hexadecimal or functional), HSL, HWB, LAB, LCH, OKLAB, OKLCH and the color() function. Convert any color from any of these formats to any other with ease.
 - **color blending**: overlay multiple colors over each other and compute the resulting visible color with alpha blending. Colors can also be *un*blended.
 - **contrast computing**: calculate the contrast between two colors. Automatically modify a color to improve its contrast with another.
 - **gradients**: create beautiful gradients in any supported color space, avoiding the *desaturated zone* of native CSS gradients.
