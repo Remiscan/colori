@@ -103,7 +103,7 @@ $ordreMin = 4;
           <li><a href="CIEDE2000.php">CIEDE2000 distance</a>
           <li><a href="graph-conversion.php">Path-finding conversion</a>
           <li><a href="oklab.php">oklab color space</a>
-          <li><a href="palette.php">Palette generation</a>
+          <li><a href="../palette/test/">Palette generation</a>
         </ul>
       </div>
     </div>

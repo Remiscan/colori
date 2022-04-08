@@ -3026,32 +3026,10 @@ class Couleur {
         return namedColors;
     }
 }
-class Palette {
-    colors = [];
-    constructor(color, generator = ()=>[]
-    , { clampSpace ='srgb'  } = {}){
-        const colors = generator(color);
-        for (const color1 of colors){
-            const nuances = [];
-            for (const lightness of color1.lightnesses){
-                let rgb = Couleur.convert('oklch', 'srgb', [
-                    lightness,
-                    color1.chroma,
-                    color1.hue
-                ]);
-                if (clampSpace != null) rgb = Couleur.toGamut(clampSpace, rgb);
-                const newColor = new Couleur(`color(srgb ${rgb.join(' ')})`);
-                nuances.push(newColor);
-            }
-            this.colors.push(nuances);
-        }
-    }
-}
 export { colorSpaces as ColorSpaces };
 export { Couleur as default };
 export { Graph as Graph };
 export { namedColors as namedColors };
-export { Palette as Palette };
 export { mod1 as Contrasts };
 export { mod as Conversions };
 export { mod2 as CSSFormats };

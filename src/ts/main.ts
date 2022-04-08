@@ -6,5 +6,5 @@ export * as CSSFormats from './css-formats.js';
 export * as Distances from './distances.js';
 export { default as Graph } from './graph.js';
 export { default as namedColors } from './named-colors.js';
-export { default as Palette } from './palette.js';
 export * as Utils from './utils.js';
+
