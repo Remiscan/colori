@@ -6,7 +6,6 @@
   require_once __DIR__ . '/graph.php';
   require_once __DIR__ . '/contrasts.php';
   require_once __DIR__ . '/distances.php';
-  require_once __DIR__ . '/ext/oklab-gamut.php';
   require_once __DIR__ . '/color-spaces.php';
   require_once __DIR__ . '/named-colors.php';
   require_once __DIR__ . '/css-formats.php';
@@ -207,10 +206,15 @@
             }
             else throw new \Exception('invalid');
 
-          // CIE axes values:
+          // CIE axes values
+          // and OKLAB axes values
+          // and OKLCH chroma value:
           // any number
           case 'ciea':
           case 'cieb':
+          case 'oka':
+          case 'okb':
+          case 'okc':
             // If n is a number
             if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
               return floatval($value);
@@ -225,17 +229,6 @@
             if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
               if ($clamp) return max(0, $value);
               else        return floatval($value);
-            }
-            else throw new \Exception('invalid');
-
-          // OKLAB axes & chroma values:
-          // any number
-          case 'oka':
-          case 'okb':
-          case 'okc':
-            // If n is a number
-            if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
-              return floatval($value) / 100;
             }
             else throw new \Exception('invalid');
 
@@ -281,7 +274,7 @@
         case 'oka':
         case 'okb':
         case 'okc':
-          $unparsed = $precision === null ? (100 * $value) : round(10**$precision * 100 * $value) / (10**$precision);
+          $unparsed = $precision === null ? $value : round(10**max($precision, 4) * $value) / (10**max($precision, 4));
           break;
         case 'a':
           $unparsed = $precision === null ? $value : round(10**max($precision, 2) * $value) / (10**max($precision, 2));
@@ -408,7 +401,7 @@
     public static function makeExpr(string $format, array $values, array|string $valueSpaceID, ?int $precision = 0, bool $clamp = true): string {
       $format = strtolower($format);
       $spaceID = str_replace('color-', '', $format);
-      $rgba = self::convert($valueSpaceID, $spaceID, array_slice($values, 0, 3)); $rgba[] = $this->a;
+      $rgba = self::convert($valueSpaceID, $spaceID, array_slice($values, 0, 3)); $rgba[] = $values[3];
       return (new self($rgba))->expr($format, precision: $precision, clamp: $clamp);
     }
 
@@ -690,7 +683,7 @@
 
 
     /** Clamps parsed values in valueSpaceID color space to the spaceID color space. */
-    public static function toGamut(array|string $spaceID, array $values, array|string $valueSpaceID = 'srgb', string $method = 'oklab'): array {
+    public static function toGamut(array|string $spaceID, array $values, array|string $valueSpaceID = 'srgb', string $method = 'oklch'): array {
       $space = self::getSpace($spaceID);
       $valueSpace = self::getSpace($valueSpaceID);
       if (self::inGamut($space, $values, $valueSpace, tolerance: 0)) return $values;
@@ -706,11 +699,32 @@
         }
       }
 
-      // OKLab gamut clipping
-      elseif ($method === 'oklab') {
-        $clampSpace = self::getSpace('srgb');
-        $rgb = self::convert($valueSpace, $clampSpace, $values);
-        $clampedValues = oklab_gamut\clip($rgb);
+      // OKLCH chroma gamut clipping
+      elseif ($method === 'oklch') {
+        $clampSpace = self::getSpace('oklch');
+        $oklch = self::convert($valueSpace, $clampSpace, $values);
+
+        $τ = .0001;
+        $δ = .02;
+        $Cmin = 0;
+        $Cmax = $oklch[1];
+        $oklch[1] = $oklch[1] / 2;
+
+        while ($Cmax - $Cmin > $τ) {
+          if (self::inGamut($space, $oklch, $clampSpace, tolerance: 0 )) {
+            $Cmin = $oklch[1];
+          } else {
+            $naive = self::toGamut($space, $oklch, $clampSpace, method: 'naive');
+            if (self::distance($naive, $oklch, method: 'deltaeok') < $δ) {
+              $oklch = $naive;
+              break;
+            }
+            $Cmax = $oklch[1];
+          }
+          $oklch[1] = ($Cmin + $Cmax) / 2;
+        }
+
+        $clampedValues = $oklch;
       }
 
       // Let's reduce the chroma until the color is in the color space
@@ -1198,7 +1212,7 @@
         $next = [];
         foreach($props as $k => $prop) {
           $v = $previous[$k] + $stepList[$k];
-          if (in_array($prop, ['h', 'cieh'])) $next[] = utils\angleToRange($v);
+          if (in_array($prop, ['h', 'cieh', 'okh'])) $next[] = utils\angleToRange($v);
           else $next[] = $v;
         }
         $a = $next[3];

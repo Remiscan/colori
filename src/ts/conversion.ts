@@ -1,4 +1,3 @@
-export * from './ext/oklab-conversion.js';
 export * from './ext/w3-conversion.js';
 
 

@@ -1,3 +1,7 @@
+// deno-fmt-ignore-file
+// deno-lint-ignore-file
+// This code was bundled using `deno bundle` and it's not recommended to edit it manually
+
 const colorSpaces = [
     {
         id: 'srgb',
@@ -38,8 +42,7 @@ const colorSpaces = [
         ],
         links: [
             'srgb',
-            'd65xyz',
-            'oklab'
+            'd65xyz'
         ]
     },
     {
@@ -167,7 +170,8 @@ const colorSpaces = [
             'lin_srgb',
             'lin_display-p3',
             'lin_a98-rgb',
-            'lin_rec2020'
+            'lin_rec2020',
+            'oklab'
         ]
     },
     {
@@ -351,7 +355,7 @@ const colorSpaces = [
             ]
         ],
         links: [
-            'lin_srgb',
+            'd65xyz',
             'oklch'
         ]
     },
@@ -563,6 +567,42 @@ function lch_to_lab(lch) {
         cieb
     ];
 }
+function d65xyz_to_oklab(xyz) {
+    const [x, y, z] = xyz;
+    const lms = [
+        0.8190224432164319 * x + 0.3619062562801221 * y + -0.12887378261216414 * z,
+        0.0329836671980271 * x + 0.9292868468965546 * y + 0.03614466816999844 * z,
+        0.048177199566046255 * x + 0.26423952494422764 * y + 0.6335478258136937 * z
+    ];
+    const [l, m, s] = lms.map((v)=>Math.cbrt(v)
+    );
+    return [
+        0.2104542553 * l + 0.793617785 * m + -0.0040720468 * s,
+        1.9779984951 * l + -2.428592205 * m + 0.4505937099 * s,
+        0.0259040371 * l + 0.7827717662 * m + -0.808675766 * s
+    ];
+}
+function oklab_to_d65xyz(oklab) {
+    const [okl, oka, okb] = oklab;
+    const lms = [
+        0.9999999984505198 * okl + 0.39633779217376786 * oka + 0.2158037580607588 * okb,
+        1.0000000088817609 * okl + -0.10556134232365635 * oka + -0.06385417477170591 * okb,
+        1.0000000546724108 * okl + -0.08948418209496575 * oka + -1.2914855378640917 * okb
+    ];
+    const [l, m, s] = lms.map((v)=>v ** 3
+    );
+    return [
+        1.2268798733741557 * l + -0.5578149965554813 * m + 0.28139105017721583 * s,
+        -0.04057576262431372 * l + 1.1122868293970594 * m + -0.07171106666151701 * s,
+        -0.07637294974672142 * l + -0.4214933239627914 * m + 1.5869240244272418 * s
+    ];
+}
+function oklab_to_oklch(lab) {
+    return lab_to_lch(lab);
+}
+function oklch_to_oklab(lch) {
+    return lch_to_lab(lch);
+}
 function d65xyz_to_xyz(xyz) {
     const [x, y, z] = xyz;
     return [
@@ -578,46 +618,6 @@ function xyz_to_d65xyz(xyz) {
         -0.028369706963208136 * x + 1.0099954580058226 * y + 0.021041398966943008 * z,
         0.012314001688319899 * x + -0.020507696433477912 * y + 1.3303659366080753 * z
     ];
-}
-function lin_srgb_to_oklab(rgb) {
-    const [r, g, b] = rgb;
-    let l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
-    let m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
-    let s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
-    l = Math.cbrt(l);
-    m = Math.cbrt(m);
-    s = Math.cbrt(s);
-    const okl = 0.2104542553 * l + 0.793617785 * m + -0.0040720468 * s;
-    const oka = 1.9779984951 * l + -2.428592205 * m + 0.4505937099 * s;
-    const okb = 0.0259040371 * l + 0.7827717662 * m + -0.808675766 * s;
-    return [
-        okl,
-        oka,
-        okb
-    ];
-}
-function oklab_to_lin_srgb(lab) {
-    const [okl, oka, okb] = lab;
-    let l = okl + 0.3963377774 * oka + 0.2158037573 * okb;
-    let m = okl + -0.1055613458 * oka + -0.0638541728 * okb;
-    let s = okl + -0.0894841775 * oka + -1.291485548 * okb;
-    l = l ** 3;
-    m = m ** 3;
-    s = s ** 3;
-    const r = 4.0767416621 * l + -3.3077115913 * m + 0.2309699292 * s;
-    const g = -1.2684380046 * l + 2.6097574011 * m + -0.3413193965 * s;
-    const b = -0.0041960863 * l + -0.7034186147 * m + 1.707614701 * s;
-    return [
-        r,
-        g,
-        b
-    ];
-}
-function oklab_to_oklch(lab) {
-    return lab_to_lch(lab);
-}
-function oklch_to_oklab(lch) {
-    return lch_to_lab(lch);
 }
 function srgb_to_hsl(rgb) {
     const [r, g, b] = rgb;
@@ -706,10 +706,6 @@ const mod = {
     hsl_to_srgb: hsl_to_srgb,
     hsl_to_hwb: hsl_to_hwb,
     hwb_to_hsl: hwb_to_hsl,
-    lin_srgb_to_oklab,
-    oklab_to_lin_srgb,
-    oklab_to_oklch,
-    oklch_to_oklab,
     srgb_to_lin_srgb,
     lin_srgb_to_srgb,
     lin_srgb_to_d65xyz,
@@ -734,6 +730,10 @@ const mod = {
     lab_to_xyz,
     lab_to_lch,
     lch_to_lab,
+    d65xyz_to_oklab,
+    oklab_to_d65xyz,
+    oklab_to_oklch,
+    oklch_to_oklab,
     d65xyz_to_xyz,
     xyz_to_d65xyz
 };
@@ -903,150 +903,6 @@ function CIEDE2000([l1, a1, b1], [l2, a2, b2]) {
 const mod3 = {
     euclidean: euclidean,
     CIEDE2000: CIEDE2000
-};
-function maxSaturation(a, b) {
-    let k0, k1, k2, k3, k4, wl, wm, ws;
-    if (-1.88170328 * a - 0.80936493 * b > 1) {
-        k0 = 1.19086277;
-        k1 = 1.76576728;
-        k2 = 0.59662641;
-        k3 = 0.75515197;
-        k4 = 0.56771245;
-        wl = 4.0767416621;
-        wm = -3.3077115913;
-        ws = 0.2309699292;
-    } else if (1.81444104 * a - 1.19445276 * b > 1) {
-        k0 = 0.73956515;
-        k1 = -0.45954404;
-        k2 = 0.08285427;
-        k3 = 0.1254107;
-        k4 = 0.14503204;
-        wl = -1.2684380046;
-        wm = 2.6097574011;
-        ws = -0.3413193965;
-    } else {
-        k0 = 1.35733652;
-        k1 = -0.00915799;
-        k2 = -1.1513021;
-        k3 = -0.50559606;
-        k4 = 0.00692167;
-        wl = -0.0041960863;
-        wm = -0.7034186147;
-        ws = +1.707614701;
-    }
-    let S = k0 + k1 * a + k2 * b + k3 * a * a + k4 * a * b;
-    const k_l = 0.3963377774 * a + 0.2158037573 * b;
-    const k_m = -0.1055613458 * a - 0.0638541728 * b;
-    const k_s = -0.0894841775 * a - 1.291485548 * b;
-    for(let i = 0; i < 1; i++){
-        const [l_, m_, s_] = [
-            k_l,
-            k_m,
-            k_s
-        ].map((v)=>1 + S * v
-        );
-        const [l, m, s] = [
-            l_,
-            m_,
-            s_
-        ].map((v)=>v ** 3
-        );
-        const l_dS = 3 * k_l * l_ * l_, m_dS = 3 * k_m * m_ * m_, s_dS = 3 * k_s * s_ * s_;
-        const l_dS2 = 6 * k_l * k_l * l_, m_dS2 = 6 * k_m * k_m * m_, s_dS2 = 6 * k_s * k_s * s_;
-        const f = wl * l + wm * m + ws * s, f1 = wl * l_dS + wm * m_dS + ws * s_dS, f2 = wl * l_dS2 + wm * m_dS2 + ws * s_dS2;
-        S = S - f * f1 / (f1 * f1 - 0.5 * f * f2);
-    }
-    return S;
-}
-function cusp(a, b) {
-    const Scusp = maxSaturation(a, b);
-    const rgbMax = oklab_to_lin_srgb([
-        1,
-        Scusp * a,
-        Scusp * b
-    ]);
-    const Lcusp = Math.cbrt(1 / Math.max(...rgbMax));
-    const Ccusp = Lcusp * Scusp;
-    return [
-        Lcusp,
-        Ccusp
-    ];
-}
-function gamutIntersection(a, b, L1, C1, L0) {
-    const [Lcusp, Ccusp] = cusp(a, b);
-    let t1;
-    if ((L1 - L0) * Ccusp - (Lcusp - L0) * C1 <= 0) {
-        t1 = Ccusp * L0 / (C1 * Lcusp + Ccusp * (L0 - L1));
-    } else {
-        t1 = Ccusp * (L0 - 1) / (C1 * (Lcusp - 1) + Ccusp * (L0 - L1));
-        const dL = L1 - L0, dC = C1;
-        const k_l = 0.3963377774 * a + 0.2158037573 * b, k_m = -0.1055613458 * a - 0.0638541728 * b, k_s = -0.0894841775 * a - 1.291485548 * b;
-        const [l_dt, m_dt, s_dt] = [
-            k_l,
-            k_m,
-            k_s
-        ].map((v)=>dL + dC * v
-        );
-        for(let i = 0; i < 1; i++){
-            const L = L0 * (1 - t1) + t1 * L1;
-            const C = t1 * C1;
-            const [l_, m_, s_] = [
-                k_l,
-                k_m,
-                k_s
-            ].map((v)=>L + C * v
-            );
-            const [l, m, s] = [
-                l_,
-                m_,
-                s_
-            ].map((v)=>v ** 3
-            );
-            const ldt = 3 * l_dt * l_ * l_, mdt = 3 * m_dt * m_ * m_, sdt = 3 * s_dt * s_ * s_;
-            const ldt2 = 6 * l_dt * l_dt * l_, mdt2 = 6 * m_dt * m_dt * m_, sdt2 = 6 * s_dt * s_dt * s_;
-            const term = (v1, v2, v3)=>{
-                const w = v1 * l + v2 * m + v3 * s - 1, w1 = v1 * ldt + v2 * mdt + v3 * sdt, w2 = v1 * ldt2 + v2 * mdt2 + v3 * sdt2;
-                const u = w1 / (w1 * w1 - 0.5 * w * w2);
-                const t = u >= 0 ? -w * u : Number.MAX_VALUE;
-                return t;
-            };
-            const t_r = term(4.0767416621, -3.3077115913, 0.2309699292);
-            const t_g = term(-1.2684380046, 2.6097574011, -0.3413193965);
-            const t_b = term(-0.0041960863, -0.7034186147, 1.707614701);
-            t1 += Math.min(t_r, t_g, t_b);
-        }
-    }
-    return t1;
-}
-function clip(rgb) {
-    if (rgb.every((v)=>v > 0 && v < 1
-    )) return rgb;
-    const [okl, oka, okb] = lin_srgb_to_oklab(srgb_to_lin_srgb(rgb));
-    const [x, okc, okh] = oklab_to_oklch([
-        okl,
-        oka,
-        okb
-    ]);
-    const C = Math.max(0.00001, okc);
-    const a = oka / C, b = okb / C;
-    const Ld = okl - 0.5;
-    const e1 = 0.5 + Math.abs(Ld) + 0.05 * C;
-    const L0 = 0.5 * (1 + Math.sign(Ld) * (e1 - Math.sqrt(e1 * e1 - 2 * Math.abs(Ld))));
-    const t = gamutIntersection(a, b, okl, C, L0);
-    const Lclipped = L0 * (1 - t) + t * okl;
-    const Cclipped = t * C;
-    const clampedValues = lin_srgb_to_srgb(oklab_to_lin_srgb([
-        Lclipped,
-        Cclipped * a,
-        Cclipped * b
-    ]));
-    return clampedValues;
-}
-const mod4 = {
-    maxSaturation: maxSaturation,
-    cusp: cusp,
-    gamutIntersection: gamutIntersection,
-    clip: clip
 };
 class GraphNode {
     id;
@@ -1780,7 +1636,7 @@ function fromHex(hexa) {
     ).map((v)=>v / 255
     );
 }
-const mod5 = {
+const mod4 = {
     pad: pad,
     angleToRange: angleToRange,
     pRound: pRound,
@@ -1917,8 +1773,7 @@ class Couleur {
         }
         throw `${JSON.stringify(colorString)} is not a valid color format`;
     }
-    static parse(value, prop = null, { clamp =true  } = {
-    }) {
+    static parse(value, prop = null, { clamp =true  } = {}) {
         const val = String(value);
         const nval = parseFloat(val);
         try {
@@ -1953,8 +1808,7 @@ class Couleur {
                         if (new RegExp('^' + RegExps.number + '$').test(val)) {
                             return angleToRange(h);
                         } else if (new RegExp('^' + RegExps.angle + '$').test(val)) {
-                            if (val.slice(-3) === 'deg') {
-                            } else if (val.slice(-4) === 'grad') h = h * 360 / 400;
+                            if (val.slice(-3) === 'deg') {} else if (val.slice(-4) === 'grad') h = h * 360 / 400;
                             else if (val.slice(-3) === 'rad') h = h * 180 / Math.PI;
                             else if (val.slice(-4) === 'turn') h = h * 360;
                             else throw 'angle';
@@ -1975,6 +1829,9 @@ class Couleur {
                     }
                 case 'ciea':
                 case 'cieb':
+                case 'oka':
+                case 'okb':
+                case 'okc':
                     {
                         if (new RegExp('^' + RegExps.number + '$').test(val)) {
                             return nval;
@@ -1985,14 +1842,6 @@ class Couleur {
                         if (new RegExp('^' + RegExps.number + '$').test(val)) {
                             if (clamp) return Math.max(0, nval);
                             else return nval;
-                        } else throw 'invalid';
-                    }
-                case 'oka':
-                case 'okb':
-                case 'okc':
-                    {
-                        if (new RegExp('^' + RegExps.number + '$').test(val)) {
-                            return nval / 100;
                         } else throw 'invalid';
                     }
                 default:
@@ -2010,8 +1859,7 @@ class Couleur {
             else throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
         }
     }
-    static unparse(value, prop, { precision =0  } = {
-    }) {
+    static unparse(value, prop, { precision =0  } = {}) {
         switch(prop){
             case 'r':
             case 'g':
@@ -2027,15 +1875,14 @@ class Couleur {
             case 'oka':
             case 'okb':
             case 'okc':
-                return precision === null ? `${100 * value}` : `${Math.round(10 ** precision * 100 * value) / 10 ** precision}`;
+                return precision === null ? `${value}` : `${Math.round(10 ** Math.max(precision, 4) * value) / 10 ** Math.max(precision, 4)}`;
             case 'a':
                 return precision === null ? `${value}` : `${Math.round(10 ** Math.max(precision, 2) * value) / 10 ** Math.max(precision, 2)}`;
             default:
                 return precision === null ? `${value}` : `${Math.round(10 ** precision * value) / 10 ** precision}`;
         }
     }
-    set(data, props, spaceID, { parsed =false  } = {
-    }) {
+    set(data, props, spaceID, { parsed =false  } = {}) {
         const space = Couleur.getSpace(spaceID);
         const values = parsed ? data.map((v)=>Number(v)
         ) : props.map((p, i)=>Couleur.parse(data[i], p)
@@ -2091,8 +1938,7 @@ class Couleur {
             null
         ], 'srgb');
     }
-    expr(format, { precision =0 , clamp =true  } = {
-    }) {
+    expr(format, { precision =0 , clamp =true  } = {}) {
         const _format = format.toLowerCase();
         const spaceID = _format.replace('color-', '');
         const space = Couleur.getSpace(spaceID);
@@ -2139,8 +1985,7 @@ class Couleur {
                 }
         }
     }
-    static makeExpr(format, values, valueSpaceID, options = {
-    }) {
+    static makeExpr(format, values, valueSpaceID, options = {}) {
         const _format = format.toLowerCase();
         const spaceID = _format.replace('color-', '');
         const rgba = [
@@ -2535,26 +2380,22 @@ class Couleur {
         }
         return result;
     }
-    valuesTo(spaceID, { clamp =false  } = {
-    }) {
+    valuesTo(spaceID, { clamp =false  } = {}) {
         const space = Couleur.getSpace(spaceID);
         let values = Couleur.convert('srgb', space, this.values);
         if (clamp) values = Couleur.toGamut(space, values);
         return values;
     }
-    static inGamut(spaceID, values, valueSpaceID = 'srgb', { tolerance =0.0001  } = {
-    }) {
+    static inGamut(spaceID, values, valueSpaceID = 'srgb', { tolerance =0.0001  } = {}) {
         const space = Couleur.getSpace(spaceID);
         const convertedValues = Couleur.convert(valueSpaceID, space, values);
         return convertedValues.every((v, k)=>v >= space.gamut[k][0] - tolerance && v <= space.gamut[k][1] + tolerance
         );
     }
-    inGamut(spaceID, options = {
-    }) {
+    inGamut(spaceID, options = {}) {
         return Couleur.inGamut(spaceID, this.values, 'srgb', options);
     }
-    static toGamut(spaceID, values, valueSpaceID = 'srgb', { method ='oklab'  } = {
-    }) {
+    static toGamut(spaceID, values, valueSpaceID = 'srgb', { method ='oklch'  } = {}) {
         const space = Couleur.getSpace(spaceID);
         const valueSpace = Couleur.getSpace(valueSpaceID);
         const _method = method.toLowerCase();
@@ -2563,13 +2404,35 @@ class Couleur {
         })) return values;
         let clampedValues, clampSpace;
         switch(_method){
-            case 'oklab':
+            case 'oklch':
                 {
-                    clampSpace = Couleur.getSpace('srgb');
-                    const rgb = Couleur.convert(valueSpace, clampSpace, values);
-                    clampedValues = clip(rgb);
-                    break;
+                    clampSpace = Couleur.getSpace('oklch');
+                    let oklch = Couleur.convert(valueSpace, clampSpace, values);
+                    let Cmin = 0;
+                    let Cmax = oklch[1];
+                    oklch[1] = oklch[1] / 2;
+                    while(Cmax - Cmin > 0.0001){
+                        if (Couleur.inGamut(space, oklch, clampSpace, {
+                            tolerance: 0
+                        })) {
+                            Cmin = oklch[1];
+                        } else {
+                            const naive = Couleur.toGamut(space, oklch, clampSpace, {
+                                method: 'naive'
+                            });
+                            if (Couleur.distance(naive, oklch, {
+                                method: 'deltaeok'
+                            }) < 0.02) {
+                                oklch = naive;
+                                break;
+                            }
+                            Cmax = oklch[1];
+                        }
+                        oklch[1] = (Cmin + Cmax) / 2;
+                    }
+                    clampedValues = oklch;
                 }
+                break;
             case 'chroma':
                 {
                     clampSpace = Couleur.getSpace('lch');
@@ -2588,8 +2451,8 @@ class Couleur {
                         lch[1] = (Cmin + Cmax) / 2;
                     }
                     clampedValues = lch;
-                    break;
                 }
+                break;
             default:
                 {
                     clampSpace = space;
@@ -2609,8 +2472,7 @@ class Couleur {
             this.a
         ]);
     }
-    change(prop, value, { action =null  } = {
-    }) {
+    change(prop, value, { action =null  } = {}) {
         const replace = action?.toLowerCase() === 'replace';
         const scale = action?.toLowerCase() === 'scale';
         const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, {
@@ -2736,8 +2598,7 @@ class Couleur {
     unblendAll(...colors) {
         return Couleur.unblendAll(this, ...colors);
     }
-    static whatToBlend(backgroundColor, mixColor, alphas = [], { ignoreTransparent =false  } = {
-    }) {
+    static whatToBlend(backgroundColor, mixColor, alphas = [], { ignoreTransparent =false  } = {}) {
         const background = Couleur.makeInstance(backgroundColor);
         const mix = Couleur.makeInstance(mixColor);
         let overlays = [];
@@ -2810,8 +2671,7 @@ class Couleur {
     whatToBlend(mixColor, alphas) {
         return Couleur.whatToBlend(this, mixColor, alphas);
     }
-    static contrast(textColor, backgroundColor, { method ='APCA'  } = {
-    }) {
+    static contrast(textColor, backgroundColor, { method ='APCA'  } = {}) {
         const background = Couleur.makeInstance(backgroundColor);
         if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
         let text = Couleur.makeInstance(textColor);
@@ -2826,8 +2686,7 @@ class Couleur {
                 return WCAG2(text.values, background.values);
         }
     }
-    contrast(backgroundColor, options = {
-    }) {
+    contrast(backgroundColor, options = {}) {
         return Couleur.contrast(this, backgroundColor, options);
     }
     bestColorScheme(as = 'background') {
@@ -2858,8 +2717,7 @@ class Couleur {
                 }
         }
     }
-    improveContrast(referenceColor, desiredContrast, { as ='text' , lower =false , colorScheme =null , method ='APCA'  } = {
-    }) {
+    improveContrast(referenceColor, desiredContrast, { as ='text' , lower =false , colorScheme =null , method ='APCA'  } = {}) {
         const background = as === 'text' ? Couleur.makeInstance(referenceColor) : this;
         const text = as === 'text' ? this : Couleur.makeInstance(referenceColor);
         const backgroundLab = background.valuesTo('oklab');
@@ -2944,8 +2802,7 @@ class Couleur {
         }
         return new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
     }
-    static distance(color1, color2, { method ='deltaE2000' , alpha =true  } = {
-    }) {
+    static distance(color1, color2, { method ='deltaE2000' , alpha =true  } = {}) {
         const colore1 = Couleur.makeInstance(color1);
         const colore2 = Couleur.makeInstance(color2);
         let opaqueDist = +Infinity;
@@ -2991,19 +2848,16 @@ class Couleur {
         ]) : 0;
         return opaqueDist + alphaCoeff * alphaDist;
     }
-    distance(color, options = {
-    }) {
+    distance(color, options = {}) {
         return Couleur.distance(this, color, options);
     }
-    static same(color1, color2, { tolerance =1 , method ='deltaE2000'  } = {
-    }) {
+    static same(color1, color2, { tolerance =1 , method ='deltaE2000'  } = {}) {
         if (Couleur.distance(color1, color2, {
             method
         }) > tolerance) return false;
         else return true;
     }
-    same(color, options = {
-    }) {
+    same(color, options = {}) {
         return Couleur.same(this, color, options);
     }
     static gradient(startColor, endColor, steps = 5, spaceID = 'oklch') {
@@ -3047,7 +2901,8 @@ class Couleur {
                 let v = previous[k] + stepList[k];
                 if ([
                     'h',
-                    'cieh'
+                    'cieh',
+                    'okh'
                 ].includes(prop)) return angleToRange(v);
                 else return v;
             });
@@ -3174,8 +3029,7 @@ class Couleur {
 class Palette {
     colors = [];
     constructor(color, generator = ()=>[]
-    , { clampSpace ='srgb'  } = {
-    }){
+    , { clampSpace ='srgb'  } = {}){
         const colors = generator(color);
         for (const color1 of colors){
             const nuances = [];
@@ -3193,14 +3047,13 @@ class Palette {
         }
     }
 }
-export { Couleur as default };
-export { Palette as Palette };
-export { Graph as Graph };
 export { colorSpaces as ColorSpaces };
+export { Couleur as default };
+export { Graph as Graph };
 export { namedColors as namedColors };
-export { mod5 as Utils };
+export { Palette as Palette };
+export { mod1 as Contrasts };
 export { mod as Conversions };
 export { mod2 as CSSFormats };
-export { mod1 as Contrasts };
 export { mod3 as Distances };
-export { mod4 as OklabGamut };
+export { mod4 as Utils };

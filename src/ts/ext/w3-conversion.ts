@@ -206,6 +206,43 @@ export function lch_to_lab(lch: number[]): number[] {
 
 
 
+/* oklab */
+
+export function d65xyz_to_oklab(xyz: number[]): number[] {
+  const [x, y, z] = xyz;
+  const lms = [
+    0.8190224432164319 * x + 0.3619062562801221 * y + -0.12887378261216414 * z,
+		0.0329836671980271 * x + 0.9292868468965546 * y + 0.03614466816999844 * z,
+		0.048177199566046255 * x + 0.26423952494422764 * y + 0.6335478258136937 * z
+  ];
+  const [l, m, s] = lms.map(v => Math.cbrt(v));
+  return [
+    0.2104542553 * l + 0.7936177850 * m + -0.0040720468 * s,
+		1.9779984951 * l + -2.4285922050 * m + 0.4505937099 * s,
+		0.0259040371 * l + 0.7827717662 * m + -0.8086757660 * s
+  ];
+}
+
+export function oklab_to_d65xyz(oklab: number[]): number[] {
+  const [okl, oka, okb] = oklab;
+  const lms = [
+    0.99999999845051981432 * okl + 0.39633779217376785678 * oka + 0.21580375806075880339 * okb,
+    1.0000000088817607767 * okl + -0.1055613423236563494 * oka + -0.063854174771705903402 * okb,
+    1.0000000546724109177 * okl + -0.089484182094965759684 * oka + -1.2914855378640917399 * okb
+  ];
+  const [l, m, s] = lms.map(v => v ** 3);
+  return [
+    1.2268798733741557 * l + -0.5578149965554813 * m + 0.28139105017721583 * s,
+		-0.04057576262431372 * l + 1.1122868293970594 * m + -0.07171106666151701 * s,
+		-0.07637294974672142 * l + -0.4214933239627914 * m + 1.5869240244272418 * s
+  ]
+}
+
+export function oklab_to_oklch(lab: number[]): number[] { return lab_to_lch(lab); }
+export function oklch_to_oklab(lch: number[]): number[] { return lch_to_lab(lch); }
+
+
+
 /* Bradford transform */
 
 export function d65xyz_to_xyz(xyz: number[]): number[] {

@@ -10,7 +10,7 @@
     ), array(
       'id' => 'lin_srgb',
       'gamut' =>[ [0, 1], [0, 1], [0, 1] ],
-      'links' => ['srgb', 'd65xyz', 'oklab']
+      'links' => ['srgb', 'd65xyz']
     ), array(
       'id' => 'hsl',
       'gamut' => [ [0, 360], [0, 1], [0, 1] ],
@@ -34,7 +34,7 @@
     ), array(
       'id' => 'd65xyz',
       'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020']
+      'links' => ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020', 'oklab']
     ), array(
       'id' => 'display-p3',
       'gamut' => [ [0, 1], [0, 1], [0, 1] ],
@@ -70,7 +70,7 @@
     ), array(
       'id' => 'oklab',
       'gamut' => [ [0, 4], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['lin_srgb', 'oklch']
+      'links' => ['d65xyz', 'oklch']
     ), array(
       'id' => 'oklch',
       'gamut' => [ [0, 4], [0, +INF], [0, 360] ],
@@ -357,6 +357,47 @@
   }
 
 
+  /* oklab */
+
+  function d65xyz_to_oklab(array $xyz): array {
+    [$x, $y, $z] = $xyz;
+
+    $l = 0.8190224432164319 * $x + 0.3619062562801221 * $y + -0.12887378261216414 * $z;
+    $m = 0.0329836671980271 * $x + 0.9292868468965546 * $y + 0.03614466816999844 * $z;
+    $s = 0.048177199566046255 * $x + 0.26423952494422764 * $y + 0.6335478258136937 * $z;
+
+    $l = \colori\utils\invRoot($l, 3);
+    $m = \colori\utils\invRoot($m, 3);
+    $s = \colori\utils\invRoot($s, 3);
+
+    $okl = 0.2104542553 * $l + 0.7936177850 * $m + -0.0040720468 * $s;
+    $oka = 1.9779984951 * $l + -2.4285922050 * $m + 0.4505937099 * $s;
+    $okb = 0.0259040371 * $l + 0.7827717662 * $m + -0.8086757660 * $s;
+    return [$okl, $oka, $okb];
+  }
+  
+  function oklab_to_d65xyz(array $oklab): array {
+    [$okl, $oka, $okb] = $oklab;
+
+    $l = 0.99999999845051981432 * $okl + 0.39633779217376785678 * $oka + 0.21580375806075880339 * $okb;
+    $m = 1.0000000088817607767 * $okl + -0.1055613423236563494 * $oka + -0.063854174771705903402 * $okb;
+    $s = 1.0000000546724109177 * $okl + -0.089484182094965759684 * $oka + -1.2914855378640917399 * $okb;
+
+    $l = $l ** 3;
+    $m = $m ** 3;
+    $s = $s ** 3;
+
+    $x = 1.2268798733741557 * $l + -0.5578149965554813 * $m + 0.28139105017721583 * $s;
+    $y = -0.04057576262431372 * $l + 1.1122868293970594 * $m + -0.07171106666151701 * $s;
+    $z = -0.07637294974672142 * $l + -0.4214933239627914 * $m + 1.5869240244272418 * $s;
+    
+    return [$x, $y, $z];
+  }
+  
+  function oklab_to_oklch(array $lab): array { return lab_to_lch($lab); }
+  function oklch_to_oklab(array $lch): array { return lch_to_lab($lch); }
+
+
   /* Bradford transform */
 
   function d65xyz_to_xyz(array $xyz): array {
@@ -376,53 +417,6 @@
       0.012314001688319899 * $x - 0.020507696433477912 * $y + 1.3303659366080753 * $z
     ];
   }
-
-
-} namespace colori\conversions {
-
-
-  /*****************************************************************
-   * Derived from https://bottosson.github.io/posts/gamutclipping/ *
-   * under MIT license (Copyright (c) 2021 Björn Ottosson)         *
-   *****************************************************************/
-
-
-  function lin_srgb_to_oklab(array $rgb): array {
-    [$r, $g, $b] = $rgb;
-
-    $l = 0.4122214708 * $r + 0.5363325363 * $g + 0.0514459929 * $b;
-    $m = 0.2119034982 * $r + 0.6806995451 * $g + 0.1073969566 * $b;
-    $s = 0.0883024619 * $r + 0.2817188376 * $g + 0.6299787005 * $b;
-    $l = \colori\utils\invRoot($l, 3);
-    $m = \colori\utils\invRoot($m, 3);
-    $s = \colori\utils\invRoot($s, 3);
-      
-    $okl = 0.2104542553 * $l + 0.7936177850 * $m + -0.0040720468 * $s;
-    $oka = 1.9779984951 * $l + -2.4285922050 * $m + 0.4505937099 * $s;
-    $okb = 0.0259040371 * $l + 0.7827717662 * $m + -0.8086757660 * $s;
-
-    return [$okl, $oka, $okb];
-  }
-
-  function oklab_to_lin_srgb(array $lab): array {
-    [$okl, $oka, $okb] = $lab;
-
-    $l = $okl + 0.3963377774 * $oka + 0.2158037573 * $okb;
-    $m = $okl + -0.1055613458 * $oka + -0.0638541728 * $okb;
-    $s = $okl + -0.0894841775 * $oka + -1.2914855480 * $okb;
-    $l = $l ** 3;
-    $m = $m ** 3;
-    $s = $s ** 3;
-
-    $r = 4.0767416621 * $l + -3.3077115913 * $m + 0.2309699292 * $s;
-    $g = -1.2684380046 * $l + 2.6097574011 * $m + -0.3413193965 * $s;
-    $b = -0.0041960863 * $l + -0.7034186147 * $m + 1.7076147010 * $s;
-
-    return [$r, $g, $b];
-  }
-
-  function oklab_to_oklch(array $lab): array { return lab_to_lch($lab); }
-  function oklch_to_oklab(array $lch): array { return lch_to_lab($lch); }
 
 
 } namespace colori\conversions {
@@ -813,163 +807,6 @@
       + ($dH / $SH) ** 2
       + $RT * ($dC / $SC) * ($dH / $SH)
     );
-  }
-
-
-} namespace colori\oklab_gamut {
-
-
-  // Source of the math: https://bottosson.github.io/posts/gamutclipping/
-
-  function maxSaturation(float $a, float $b): float {
-    // If red goes negative first
-    if (-1.88170328 * $a - 0.80936493 * $b > 1) {
-        $k0 = 1.19086277; $k1 = 1.76576728; $k2 = 0.59662641; $k3 = 0.75515197; $k4 = 0.56771245;
-        $wl = 4.0767416621; $wm = -3.3077115913; $ws = 0.2309699292;
-    }
-    // If green goes negative first
-    else if (1.81444104 * $a - 1.19445276 * $b > 1) {
-        $k0 = 0.73956515; $k1 = -0.45954404; $k2 = 0.08285427; $k3 = 0.12541070; $k4 = 0.14503204;
-        $wl = -1.2684380046; $wm = 2.6097574011; $ws = -0.3413193965;
-    }
-    // If blue goes negative first
-    else {
-        $k0 = 1.35733652; $k1 = -0.00915799; $k2 = -1.15130210; $k3 = -0.50559606; $k4 = 0.00692167;
-        $wl = -0.0041960863; $wm = -0.7034186147; $ws = +1.7076147010;
-    }
-
-    // Approximate max saturation
-    $S = $k0 + $k1 * $a + $k2 * $b + $k3 * $a * $a + $k4 * $a * $b;
-
-    $k_l = 0.3963377774 * $a + 0.2158037573 * $b;
-    $k_m = -0.1055613458 * $a - 0.0638541728 * $b;
-    $k_s = -0.0894841775 * $a - 1.2914855480 * $b;
-
-    for ($i = 0; $i < 1; $i++) {
-      $l_ = 1 + $S * $k_l;
-      $m_ = 1 + $S * $k_m;
-      $s_ = 1 + $S * $k_s;
-
-      $l = $l_ ** 3;
-      $m = $m_ ** 3;
-      $s = $s_ ** 3;
-
-      $l_dS = 3 * $k_l * $l_ * $l_;
-      $m_dS = 3 * $k_m * $m_ * $m_;
-      $s_dS = 3 * $k_s * $s_ * $s_;
-
-      $l_dS2 = 6 * $k_l * $k_l * $l_;
-      $m_dS2 = 6 * $k_m * $k_m * $m_;
-      $s_dS2 = 6 * $k_s * $k_s * $s_;
-
-      $f  = $wl * $l     + $wm * $m     + $ws * $s;
-      $f1 = $wl * $l_dS  + $wm * $m_dS  + $ws * $s_dS;
-      $f2 = $wl * $l_dS2 + $wm * $m_dS2 + $ws * $s_dS2;
-
-      $S = $S - $f * $f1 / ($f1 * $f1 - 0.5 * $f * $f2);
-    }
-    return $S;
-  }
-
-
-  function cusp(float $a, float $b): array {
-    $Scusp = maxSaturation($a, $b);
-
-    $rgbMax = \colori\conversions\oklab_to_lin_srgb([1, $Scusp * $a, $Scusp * $b]);
-    $Lcusp = \colori\utils\invRoot(1 / max($rgbMax), 3);
-    $Ccusp = $Lcusp * $Scusp;
-
-    return [$Lcusp, $Ccusp];
-  }
-
-
-  function gamutIntersection(float $a, float $b, float $L1, float $C1, float $L0): float {
-    [$Lcusp, $Ccusp] = cusp($a, $b);
-
-    if ((($L1 - $L0) * $Ccusp - ($Lcusp - $L0) * $C1) <= 0) {
-      $t = $Ccusp * $L0 / ($C1 * $Lcusp + $Ccusp * ($L0 - $L1));
-    } else {
-      $t = $Ccusp * ($L0 - 1) / ($C1 * ($Lcusp - 1) + $Ccusp * ($L0 - $L1));
-
-      $dL = $L1 - $L0;
-      $dC = $C1;
-      
-      $k_l = 0.3963377774 * $a + 0.2158037573 * $b;
-      $k_m = -0.1055613458 * $a - 0.0638541728 * $b;
-      $k_s = -0.0894841775 * $a - 1.2914855480 * $b;
-
-      $l_dt = $dL + $dC * $k_l;
-      $m_dt = $dL + $dC * $k_m;
-      $s_dt = $dL + $dC * $k_s;
-
-      for ($i = 0; $i < 1; $i++) {
-        $L = $L0 * (1 - $t) + $t * $L1;
-        $C = $t * $C1;
-
-        $l_ = $L + $C * $k_l;
-        $m_ = $L + $C * $k_m;
-        $s_ = $L + $C * $k_s;
-
-        $l = $l_ ** 3;
-        $m = $m_ ** 3;
-        $s = $s_ ** 3;
-
-        $ldt = 3 * $l_dt * $l_ * $l_;
-        $mdt = 3 * $m_dt * $m_ * $m_;
-        $sdt = 3 * $s_dt * $s_ * $s_;
-
-        $ldt2 = 6 * $l_dt * $l_dt * $l_;
-        $mdt2 = 6 * $m_dt * $m_dt * $m_;
-        $sdt2 = 6 * $s_dt * $s_dt * $s_;
-
-        $term = function(float $v1, float $v2, float $v3) use ($l, $m, $s, $ldt, $mdt, $sdt, $ldt2, $mdt2, $sdt2) {
-          $w = $v1 * $l + $v2 * $m + $v3 * $s - 1;
-          $w1 = $v1 * $ldt + $v2 * $mdt + $v3 * $sdt;
-          $w2 = $v1 * $ldt2 + $v2 * $mdt2 + $v3 * $sdt2;
-
-          $u = $w1 / ($w1 * $w1 - .5 * $w * $w2);
-          $t = $u >= 0 ? (-$w * $u) : PHP_FLOAT_MAX;
-          return $t;
-        };
-
-        $t_r = $term(4.0767416621, -3.3077115913, 0.2309699292);
-        $t_g = $term(-1.2684380046, 2.6097574011, -0.3413193965);
-        $t_b = $term(-0.0041960863, -0.7034186147, 1.7076147010);
-
-        $t += min($t_r, $t_g, $t_b);
-      }
-    }
-
-    return $t;
-  }
-
-
-  function clip(array $rgb): array {
-    $continue = false;
-    foreach ($rgb as $v) {
-      if ($v < 0 || $v > 1) { $continue = true; break; }
-    }
-    if ($continue === false) return $rgb;
-    
-    [$okl, $oka, $okb] = \colori\conversions\lin_srgb_to_oklab(\colori\conversions\srgb_to_lin_srgb($rgb));
-    [$x, $okc, $okh] = \colori\conversions\oklab_to_oklch([$okl, $oka, $okb]);
-    
-    $τ = .00001;
-    $α = .05;
-    $C = max($τ, $okc);
-    $a = $oka / $C; $b = $okb / $C;
-    
-    $Ld = $okl - .5;
-    $e1 = .5 + abs($Ld) + $α * $C;
-    $sign = function(int|float $n): int { return ($n > 0) - ($n < 0); };
-    $L0 = .5 * (1 + $sign($Ld) * ($e1 - sqrt($e1 * $e1 - 2 * abs($Ld))));
-    
-    $t = gamutIntersection($a, $b, $okl, $C, $L0);
-    $Lclipped = $L0 * (1 - $t) + $t * $okl;
-    $Cclipped = $t * $C;
-    
-    $clampedValues = \colori\conversions\lin_srgb_to_srgb(\colori\conversions\oklab_to_lin_srgb([$Lclipped, $Cclipped * $a, $Cclipped * $b]));
-    return $clampedValues;
   }
 
 
@@ -1450,10 +1287,15 @@
             }
             else throw new \Exception('invalid');
 
-          // CIE axes values:
+          // CIE axes values
+          // and OKLAB axes values
+          // and OKLCH chroma value:
           // any number
           case 'ciea':
           case 'cieb':
+          case 'oka':
+          case 'okb':
+          case 'okc':
             // If n is a number
             if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
               return floatval($value);
@@ -1468,17 +1310,6 @@
             if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
               if ($clamp) return max(0, $value);
               else        return floatval($value);
-            }
-            else throw new \Exception('invalid');
-
-          // OKLAB axes & chroma values:
-          // any number
-          case 'oka':
-          case 'okb':
-          case 'okc':
-            // If n is a number
-            if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
-              return floatval($value) / 100;
             }
             else throw new \Exception('invalid');
 
@@ -1524,7 +1355,7 @@
         case 'oka':
         case 'okb':
         case 'okc':
-          $unparsed = $precision === null ? (100 * $value) : round(10**$precision * 100 * $value) / (10**$precision);
+          $unparsed = $precision === null ? $value : round(10**max($precision, 4) * $value) / (10**max($precision, 4));
           break;
         case 'a':
           $unparsed = $precision === null ? $value : round(10**max($precision, 2) * $value) / (10**max($precision, 2));
@@ -1650,7 +1481,7 @@
     public static function makeExpr(string $format, array $values, array|string $valueSpaceID, ?int $precision = 0, bool $clamp = true): string {
       $format = strtolower($format);
       $spaceID = str_replace('color-', '', $format);
-      $rgba = self::convert($valueSpaceID, $spaceID, array_slice($values, 0, 3)); $rgba[] = $this->a;
+      $rgba = self::convert($valueSpaceID, $spaceID, array_slice($values, 0, 3)); $rgba[] = $values[3];
       return (new self($rgba))->expr($format, precision: $precision, clamp: $clamp);
     }
 
@@ -1930,7 +1761,7 @@
 
 
     /** Clamps parsed values in valueSpaceID color space to the spaceID color space. */
-    public static function toGamut(array|string $spaceID, array $values, array|string $valueSpaceID = 'srgb', string $method = 'oklab'): array {
+    public static function toGamut(array|string $spaceID, array $values, array|string $valueSpaceID = 'srgb', string $method = 'oklch'): array {
       $space = self::getSpace($spaceID);
       $valueSpace = self::getSpace($valueSpaceID);
       if (self::inGamut($space, $values, $valueSpace, tolerance: 0)) return $values;
@@ -1946,11 +1777,32 @@
         }
       }
 
-      // OKLab gamut clipping
-      elseif ($method === 'oklab') {
-        $clampSpace = self::getSpace('srgb');
-        $rgb = self::convert($valueSpace, $clampSpace, $values);
-        $clampedValues = oklab_gamut\clip($rgb);
+      // OKLCH chroma gamut clipping
+      elseif ($method === 'oklch') {
+        $clampSpace = self::getSpace('oklch');
+        $oklch = self::convert($valueSpace, $clampSpace, $values);
+
+        $τ = .0001;
+        $δ = .02;
+        $Cmin = 0;
+        $Cmax = $oklch[1];
+        $oklch[1] = $oklch[1] / 2;
+
+        while ($Cmax - $Cmin > $τ) {
+          if (self::inGamut($space, $oklch, $clampSpace, tolerance: 0 )) {
+            $Cmin = $oklch[1];
+          } else {
+            $naive = self::toGamut($space, $oklch, $clampSpace, method: 'naive');
+            if (self::distance($naive, $oklch, method: 'deltaeok') < $δ) {
+              $oklch = $naive;
+              break;
+            }
+            $Cmax = $oklch[1];
+          }
+          $oklch[1] = ($Cmin + $Cmax) / 2;
+        }
+
+        $clampedValues = $oklch;
       }
 
       // Let's reduce the chroma until the color is in the color space
@@ -2437,7 +2289,7 @@
         $next = [];
         foreach($props as $k => $prop) {
           $v = $previous[$k] + $stepList[$k];
-          if (in_array($prop, ['h', 'cieh'])) $next[] = utils\angleToRange($v);
+          if (in_array($prop, ['h', 'cieh', 'okh'])) $next[] = utils\angleToRange($v);
           else $next[] = $v;
         }
         $a = $next[3];

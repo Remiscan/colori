@@ -3,7 +3,6 @@ import * as Contrasts from './contrasts.js';
 import * as Conversions from './conversion.js';
 import { Format as CSSFormat, Formats, RegExps as ValueRegExps } from './css-formats.js';
 import * as Distances from './distances.js';
-import * as OklabGamut from './ext/oklab-gamut.js';
 import Graph from './graph.js';
 import namedColors from './named-colors.js';
 import * as Utils from './utils.js';
@@ -238,10 +237,15 @@ export default class Couleur {
           else throw 'invalid';
         }
 
-        // CIE axes values:
+        // CIE axes values
+        // and OKLAB axes values
+        // and OKLCH chroma value:
         // any number
         case 'ciea':
-        case 'cieb': {
+        case 'cieb':
+        case 'oka':
+        case 'okb':
+        case 'okc': {
           // If n is a number
           if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
             return nval;
@@ -257,18 +261,6 @@ export default class Couleur {
           if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
             if (clamp)  return Math.max(0, nval);
             else        return nval;
-          }
-          else throw 'invalid';
-        }
-
-        // OKLAB axes & chroma values:
-        // any number
-        case 'oka':
-        case 'okb':
-        case 'okc': {
-          // If n is a number
-          if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-            return nval / 100;
           }
           else throw 'invalid';
         }
@@ -320,7 +312,7 @@ export default class Couleur {
       case 'oka':
       case 'okb':
       case 'okc':
-        return precision === null ? `${100 * value}` : `${Math.round(10**precision * 100 * value) / (10**precision)}`;
+        return precision === null ? `${value}` : `${Math.round(10**Math.max(precision, 4) * value) / (10**Math.max(precision, 4))}`;
       case 'a':
         return precision === null ? `${value}` : `${Math.round(10**Math.max(precision, 2) * value) / (10**Math.max(precision, 2))}`;
       default:
@@ -795,7 +787,7 @@ export default class Couleur {
    * @param valueSpaceID Color space of the given values, or its identifier.
    * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
-  public static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'oklab' }: { method?: 'oklab'|'chroma'|'naive' } = {}): number[] {
+  public static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'oklch' }: { method?: 'oklch'|'chroma'|'naive' } = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
     const _method = method.toLowerCase();
@@ -805,13 +797,34 @@ export default class Couleur {
 
     switch (_method) {
 
-      // OKLAB gamut clipping
-      case 'oklab': {
-        clampSpace = Couleur.getSpace('srgb');
-        const rgb = Couleur.convert(valueSpace, clampSpace, values);
-        clampedValues = OklabGamut.clip(rgb);
-        break;
-      }
+      // OKLCH chroma gamut clipping
+      // Source of the math: https://www.w3.org/TR/css-color-4/#gamut-mapping
+      case 'oklch': {
+        clampSpace = Couleur.getSpace('oklch');
+        let oklch = Couleur.convert(valueSpace, clampSpace, values);
+
+        const τ = .0001;
+        const δ = .02;
+        let Cmin = 0;
+        let Cmax = oklch[1];
+        oklch[1] = oklch[1] / 2;
+
+        while (Cmax - Cmin > τ) {
+          if (Couleur.inGamut(space, oklch, clampSpace, { tolerance: 0 })) {
+            Cmin = oklch[1];
+          } else {
+            const naive = Couleur.toGamut(space, oklch, clampSpace, { method: 'naive' });
+            if (Couleur.distance(naive, oklch, { method: 'deltaeok' }) < δ) {
+              oklch = naive;
+              break;
+            }
+            Cmax = oklch[1];
+          }
+          oklch[1] = (Cmin + Cmax) / 2;
+        }
+
+        clampedValues = oklch;
+      } break;
       
       // Let's reduce the LCH chroma until the color is in the color space.
       case 'chroma': {
@@ -840,8 +853,7 @@ export default class Couleur {
         }
 
         clampedValues = lch;
-        break;
-      }
+      } break;
 
       // Naively clamp the values
       default: {
@@ -1429,7 +1441,7 @@ export default class Couleur {
       let previous = intermediateColors[i - 1];
       let next = props.map((prop, k) => {
         let v = previous[k] + stepList[k];
-        if (['h', 'cieh'].includes(prop)) return Utils.angleToRange(v);
+        if (['h', 'cieh', 'okh'].includes(prop)) return Utils.angleToRange(v);
         else return v;
       });
       const a = next[3];

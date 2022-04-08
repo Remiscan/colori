@@ -9,7 +9,7 @@
     ), array(
       'id' => 'lin_srgb',
       'gamut' =>[ [0, 1], [0, 1], [0, 1] ],
-      'links' => ['srgb', 'd65xyz', 'oklab']
+      'links' => ['srgb', 'd65xyz']
     ), array(
       'id' => 'hsl',
       'gamut' => [ [0, 360], [0, 1], [0, 1] ],
@@ -33,7 +33,7 @@
     ), array(
       'id' => 'd65xyz',
       'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020']
+      'links' => ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020', 'oklab']
     ), array(
       'id' => 'display-p3',
       'gamut' => [ [0, 1], [0, 1], [0, 1] ],
@@ -69,7 +69,7 @@
     ), array(
       'id' => 'oklab',
       'gamut' => [ [0, 4], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['lin_srgb', 'oklch']
+      'links' => ['d65xyz', 'oklch']
     ), array(
       'id' => 'oklch',
       'gamut' => [ [0, 4], [0, +INF], [0, 360] ],

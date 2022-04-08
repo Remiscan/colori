@@ -12,7 +12,7 @@ const colorSpaces: ColorSpace[] = [
   }, {
     id: 'lin_srgb',
     gamut: [ [0, 1], [0, 1], [0, 1] ],
-    links: ['srgb', 'd65xyz', 'oklab']
+    links: ['srgb', 'd65xyz']
   }, {
     id: 'hsl',
     gamut: [ [0, 360], [0, 1], [0, 1] ],
@@ -36,7 +36,7 @@ const colorSpaces: ColorSpace[] = [
   }, {
     id: 'd65xyz',
     gamut: [ [-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
-    links: ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020']
+    links: ['xyz', 'lin_srgb', 'lin_display-p3', 'lin_a98-rgb', 'lin_rec2020', 'oklab']
   }, {
     id: 'display-p3',
     gamut: [ [0, 1], [0, 1], [0, 1] ],
@@ -72,7 +72,7 @@ const colorSpaces: ColorSpace[] = [
   }, {
     id: 'oklab',
     gamut: [ [0, 4], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
-    links: ['lin_srgb', 'oklch']
+    links: ['d65xyz', 'oklch']
   }, {
     id: 'oklch',
     gamut: [ [0, 4], [0, +Infinity], [0, 360] ],

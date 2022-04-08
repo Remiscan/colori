@@ -69,25 +69,25 @@
       "fonction": "(new Colour('hsl(193, 100%, 50%)')).closestName",
       "resultatAttendu": "deepskyblue"
     }, {
-      "fonction": "(new Colour('oklch(75% 11 327)')).name",
+      "fonction": "(new Colour('oklch(75% 0.11 327)')).name",
       "resultatAttendu": null
     }, {
-      "fonction": "(new Colour('oklch(75% 11 327)')).exactName",
+      "fonction": "(new Colour('oklch(75% 0.11 327)')).exactName",
       "resultatAttendu": null
     }, {
-      "fonction": "(new Colour('oklch(75% 11 327)')).closestName",
+      "fonction": "(new Colour('oklch(75% 0.11 327)')).closestName",
       "resultatAttendu": "plum"
     }, {
-      "fonction": "(new Colour('oklch(75% 11 327 / .8)')).closestName",
+      "fonction": "(new Colour('oklch(75% 0.11 327 / .8)')).closestName",
       "resultatAttendu": "plum"
     }, {
-      "fonction": "(new Colour('oklch(75% 11 327 / .5)')).closestName",
+      "fonction": "(new Colour('oklch(75% 0.11 327 / .5)')).closestName",
       "resultatAttendu": "plum"
     }, {
-      "fonction": "(new Colour('oklch(75% 11 327 / .2)')).closestName",
+      "fonction": "(new Colour('oklch(75% 0.11 327 / .2)')).closestName",
       "resultatAttendu": "transparent"
     }, {
-      "fonction": "(new Colour('oklch(75% 11 327 / 0)')).closestName",
+      "fonction": "(new Colour('oklch(75% 0.11 327 / 0)')).closestName",
       "resultatAttendu": "transparent"
     }
   ],
@@ -117,10 +117,10 @@
       "fonction": "(new Colour('lab(92% -45 9)')).rgb",
       "resultatAttendu": "rgb(128.58, 255, 212.79)"
     }, {
-      "fonction": "(new Colour('oklab(91.5% -12.8 2.49)')).rgb",
+      "fonction": "(new Colour('oklab(91.5% -0.128 0.0249)')).rgb",
       "resultatAttendu": "rgb(127, 255, 212)"
     }, {
-      "fonction": "(new Colour('oklch(91.5% 13.04 169)')).rgb",
+      "fonction": "(new Colour('oklch(91.5% 0.1304 169)')).rgb",
       "resultatAttendu": "rgb(127, 255, 212)"
     }
   ],
@@ -360,37 +360,37 @@
       "fonction": "Colour.gradient('lightgreen', 'blue').map(c => c.oklch)",
       "fonctionphp": "array_map(fn($c) => $c->oklch(), Couleur::gradient('lightgreen', 'blue'))",
       "resultatAttendu": [
-        "oklch(86.8% 15.58 144.09)",
-        "oklch(79.62% 16.7 165.18)",
-        "oklch(74.42% 12.75 192.78)",
-        "oklch(67.16% 14.64 236.91)",
-        "oklch(57.49% 22.81 259.47)",
-        "oklch(45.2% 31.32 264.05)"
+        "oklch(86.8% 0.1558 144.09)",
+        "oklch(79.62% 0.167 165.18)",
+        "oklch(74.42% 0.1275 192.78)",
+        "oklch(67.16% 0.1464 236.91)",
+        "oklch(57.49% 0.2281 259.47)",
+        "oklch(45.2% 0.3132 264.05)"
       ]
     }, {
       "fonction": "Colour.gradient('lightgreen', 'blue', 1).map(c => c.oklch)",
       "fonctionphp": "array_map(fn($c) => $c->oklch(), Couleur::gradient('lightgreen', 'blue', 1))",
       "resultatAttendu": [
-        "oklch(86.8% 15.58 144.09)",
-        "oklch(45.2% 31.32 264.05)"
+        "oklch(86.8% 0.1558 144.09)",
+        "oklch(45.2% 0.3132 264.05)"
       ]
     }, {
       "fonction": "Colour.gradient('lightgreen', 'blue', -5).map(c => c.oklch)",
       "fonctionphp": "array_map(fn($c) => $c->oklch(), Couleur::gradient('lightgreen', 'blue', -5))",
       "resultatAttendu": [
-        "oklch(86.8% 15.58 144.09)",
-        "oklch(45.2% 31.32 264.05)"
+        "oklch(86.8% 0.1558 144.09)",
+        "oklch(45.2% 0.3132 264.05)"
       ]
     }, {
       "fonction": "Colour.gradient('#1f005c', '#ffb56b').map(c => c.oklch)",
       "fonctionphp": "array_map(fn($c) => $c->oklch(), Couleur::gradient('#1f005c', '#ffb56b'))",
       "resultatAttendu": [
-        "oklch(23.84% 13.95 284.79)",
-        "oklch(35.64% 13.66 312.75)",
-        "oklch(47.44% 13.37 340.71)",
-        "oklch(59.24% 13.09 8.67)",
-        "oklch(71.03% 12.8 36.63)",
-        "oklch(82.83% 12.51 64.58)"
+        "oklch(23.84% 0.1395 284.79)",
+        "oklch(35.64% 0.1366 312.75)",
+        "oklch(47.44% 0.1337 340.71)",
+        "oklch(59.24% 0.1309 8.67)",
+        "oklch(71.03% 0.128 36.63)",
+        "oklch(82.83% 0.1251 64.58)"
       ]
     }, {
       "fonction": "Colour.gradient('lightgreen', 'blue', 5, 'hsl').map(c => c.hsl)",
