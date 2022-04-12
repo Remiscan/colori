@@ -323,7 +323,8 @@
         case 'a98-rgb':
         case 'prophoto-rgb':
         case 'rec2020':
-        case 'xyz':
+        case 'xyz-d50':
+        case 'xyz-d65':
           $vals = self::convert($spaceID, 'srgb', $vals);
           break;
         default:
@@ -1237,7 +1238,7 @@
       $id = match ($spaceID) {
         'rgb', 'rgba' => 'srgb',
         'hsla' => 'hsl',
-        'xyz-d50' => 'xyz',
+        'xyz' => 'xyz-d65',
         default => $spaceID
       };
       return Graph::array_find(fn($e) => $e['id'] === $id, self::COLOR_SPACES);

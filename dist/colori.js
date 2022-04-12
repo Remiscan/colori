@@ -103,7 +103,7 @@ const colorSpaces = [
             ]
         ],
         links: [
-            'xyz',
+            'xyz-d50',
             'lch'
         ]
     },
@@ -128,7 +128,7 @@ const colorSpaces = [
         ]
     },
     {
-        id: 'xyz',
+        id: 'xyz-d50',
         gamut: [
             [
                 -Infinity,
@@ -166,7 +166,7 @@ const colorSpaces = [
             ]
         ],
         links: [
-            'xyz',
+            'xyz-d50',
             'srgb-linear',
             'display-p3-linear',
             'a98-rgb-linear',
@@ -294,7 +294,7 @@ const colorSpaces = [
         ],
         links: [
             'prophoto-rgb',
-            'xyz'
+            'xyz-d50'
         ]
     },
     {
@@ -434,7 +434,7 @@ function prophotorgblinear_to_prophotorgb(rgb) {
     return rgb.map((v)=>Math.abs(v) >= 1 / 512 ? (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1 / 1.8) : 16 * v
     );
 }
-function prophotorgblinear_to_xyz(rgb) {
+function prophotorgblinear_to_xyzd50(rgb) {
     const [r, g, b] = rgb;
     return [
         0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
@@ -442,7 +442,7 @@ function prophotorgblinear_to_xyz(rgb) {
         0 * r + 0 * g + 0.8251046025104601 * b
     ];
 }
-function xyz_to_prophotorgblinear(xyz) {
+function xyzd50_to_prophotorgblinear(xyz) {
     const [x, y, z] = xyz;
     return [
         1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
@@ -498,7 +498,7 @@ function xyzd65_to_rec2020linear(xyz) {
         0.017639857445310783 * x + -0.042770613257808524 * y + 0.9421031212354738 * z
     ];
 }
-function xyz_to_lab(xyz) {
+function xyzd50_to_lab(xyz) {
     const ε = 216 / 24389;
     const κ = 24389 / 27;
     const w = [
@@ -522,7 +522,7 @@ function xyz_to_lab(xyz) {
         200 * (f1 - f2)
     ];
 }
-function lab_to_xyz(lab) {
+function lab_to_xyzd50(lab) {
     const ε = 216 / 24389;
     const κ = 24389 / 27;
     const w = [
@@ -603,7 +603,7 @@ function oklab_to_oklch(lab) {
 function oklch_to_oklab(lch) {
     return lch_to_lab(lch);
 }
-function xyzd65_to_xyz(xyz) {
+function xyzd65_to_xyzd50(xyz) {
     const [x, y, z] = xyz;
     return [
         1.0479298208405488 * x + 0.022946793341019088 * y + -0.05019222954313557 * z,
@@ -611,7 +611,7 @@ function xyzd65_to_xyz(xyz) {
         -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z
     ];
 }
-function xyz_to_xyzd65(xyz) {
+function xyzd50_to_xyzd65(xyz) {
     const [x, y, z] = xyz;
     return [
         0.9554734527042182 * x + -0.023098536874261423 * y + 0.0632593086610217 * z,
@@ -716,8 +716,8 @@ const mod = {
     xyzd65_to_displayp3linear,
     prophotorgb_to_prophotorgblinear,
     prophotorgblinear_to_prophotorgb,
-    prophotorgblinear_to_xyz,
-    xyz_to_prophotorgblinear,
+    prophotorgblinear_to_xyzd50,
+    xyzd50_to_prophotorgblinear,
     a98rgb_to_a98rgblinear,
     a98rgblinear_to_a98rgb,
     a98rgblinear_to_xyzd65,
@@ -726,16 +726,16 @@ const mod = {
     rec2020linear_to_rec2020,
     rec2020linear_to_xyzd65,
     xyzd65_to_rec2020linear,
-    xyz_to_lab,
-    lab_to_xyz,
+    xyzd50_to_lab,
+    lab_to_xyzd50,
     lab_to_lch,
     lch_to_lab,
     xyzd65_to_oklab,
     oklab_to_xyzd65,
     oklab_to_oklch,
     oklch_to_oklab,
-    xyzd65_to_xyz,
-    xyz_to_xyzd65
+    xyzd65_to_xyzd50,
+    xyzd50_to_xyzd65
 };
 function luminance(rgb) {
     const coeffs = [
@@ -1918,7 +1918,6 @@ class Couleur {
             case 'a98-rgb':
             case 'prophoto-rgb':
             case 'rec2020':
-            case 'xyz':
             case 'xyz-d50':
             case 'xyz-d65':
                 vals = Couleur.convert(spaceID, 'srgb', vals);
@@ -2993,8 +2992,8 @@ class Couleur {
                 case 'hsla':
                     id = 'hsl';
                     break;
-                case 'xyz-d50':
-                    id = 'xyz';
+                case 'xyz':
+                    id = 'xyz-d65';
                     break;
             }
             result = Couleur.colorSpaces.find((sp)=>sp.id == id

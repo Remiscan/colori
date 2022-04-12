@@ -21,19 +21,19 @@
     ), array(
       'id' => 'lab',
       'gamut' => [ [0, 4], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['xyz', 'lch']
+      'links' => ['xyz-d50', 'lch']
     ), array(
       'id' => 'lch',
       'gamut' => [ [0, 4], [0, +INF], [0, 360] ],
       'links' => ['lab']
     ), array(
-      'id' => 'xyz',
+      'id' => 'xyz-d50',
       'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
       'links' => ['lab', 'xyz-d65', 'prophoto-rgb-linear']
     ), array(
       'id' => 'xyz-d65',
       'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['xyz', 'srgb-linear', 'display-p3-linear', 'a98-rgb-linear', 'rec2020-linear', 'oklab']
+      'links' => ['xyz-d50', 'srgb-linear', 'display-p3-linear', 'a98-rgb-linear', 'rec2020-linear', 'oklab']
     ), array(
       'id' => 'display-p3',
       'gamut' => [ [0, 1], [0, 1], [0, 1] ],
@@ -57,7 +57,7 @@
     ), array(
       'id' => 'prophoto-rgb-linear',
       'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['prophoto-rgb', 'xyz']
+      'links' => ['prophoto-rgb', 'xyz-d50']
     ), array(
       'id' => 'rec2020',
       'gamut' => [ [0, 1], [0, 1], [0, 1] ],

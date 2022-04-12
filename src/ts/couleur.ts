@@ -370,7 +370,6 @@ export default class Couleur {
       case 'a98-rgb':
       case 'prophoto-rgb':
       case 'rec2020':
-      case 'xyz':
       case 'xyz-d50':
       case 'xyz-d65':
         vals = Couleur.convert(spaceID, 'srgb', vals);
@@ -1478,7 +1477,7 @@ export default class Couleur {
         case 'rgb':
         case 'rgba': id = 'srgb'; break;
         case 'hsla': id = 'hsl'; break;
-        case 'xyz-d50': id = 'xyz'; break;
+        case 'xyz': id = 'xyz-d65'; break;
       }
       result = Couleur.colorSpaces.find(sp => sp.id == id);
     }

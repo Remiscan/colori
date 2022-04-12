@@ -70,7 +70,7 @@ export function prophotorgblinear_to_prophotorgb(rgb: number[]): number[] {
   return rgb.map(v => Math.abs(v) >= 1/512 ? (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1/1.8) : 16 * v);
 }
 
-export function prophotorgblinear_to_xyz(rgb: number[]): number[] {
+export function prophotorgblinear_to_xyzd50(rgb: number[]): number[] {
   const [r, g, b] = rgb;
   return [
     0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
@@ -79,7 +79,7 @@ export function prophotorgblinear_to_xyz(rgb: number[]): number[] {
   ];
 }
 
-export function xyz_to_prophotorgblinear(xyz: number[]): number[] {
+export function xyzd50_to_prophotorgblinear(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   return [
     1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
@@ -154,7 +154,7 @@ export function xyzd65_to_rec2020linear(xyz: number[]): number[] {
 
 /* lab */
 
-export function xyz_to_lab(xyz: number[]): number[] {
+export function xyzd50_to_lab(xyz: number[]): number[] {
   const ε = 216/24389;
   const κ = 24389/27;
   const w = [0.96422, 1, 0.82521];
@@ -169,7 +169,7 @@ export function xyz_to_lab(xyz: number[]): number[] {
   ];
 }
 
-export function lab_to_xyz(lab: number[]): number[] {
+export function lab_to_xyzd50(lab: number[]): number[] {
   const ε = 216/24389;
   const κ = 24389/27;
   const w = [0.96422, 1, 0.82521];
@@ -245,7 +245,7 @@ export function oklch_to_oklab(lch: number[]): number[] { return lch_to_lab(lch)
 
 /* Bradford transform */
 
-export function xyzd65_to_xyz(xyz: number[]): number[] {
+export function xyzd65_to_xyzd50(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   return [
     1.0479298208405488 * x + 0.022946793341019088 * y + -0.05019222954313557 * z,
@@ -254,7 +254,7 @@ export function xyzd65_to_xyz(xyz: number[]): number[] {
   ];
 }
 
-export function xyz_to_xyzd65(xyz: number[]): number[] {
+export function xyzd50_to_xyzd65(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   return [
     0.9554734527042182 * x + -0.023098536874261423 * y + 0.0632593086610217 * z,

@@ -53,11 +53,11 @@
   let max = 0;
 
   const tests = [
-    { ids: ['srgb', 'lab'], expected: ['srgb', 'srgb-linear', 'xyz-d65', 'xyz', 'lab'] },
+    { ids: ['srgb', 'lab'], expected: ['srgb', 'srgb-linear', 'xyz-d65', 'xyz-d50', 'lab'] },
     { ids: ['hsl', 'hwb'], expected: ['hsl', 'hwb'] },
     { ids: ['lab', 'lch'], expected: ['lab', 'lch'] },
     { ids: ['hwb', 'display-p3'], expected: ['hwb', 'hsl', 'srgb', 'srgb-linear', 'xyz-d65', 'display-p3-linear', 'display-p3'] },
-    { ids: ['prophoto-rgb', 'lab'], expected: ['prophoto-rgb', 'prophoto-rgb-linear', 'xyz', 'lab'] },
+    { ids: ['prophoto-rgb', 'lab'], expected: ['prophoto-rgb', 'prophoto-rgb-linear', 'xyz-d50', 'lab'] },
     { ids: ['lab', 'lab'], expected: [] }
   ];
   performTest(tests, document.querySelector('tbody.manual'));

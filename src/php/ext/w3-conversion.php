@@ -85,7 +85,7 @@
     return $rgb;
   }
 
-  function prophotorgblinear_to_xyz(array $rgb): array {
+  function prophotorgblinear_to_xyzd50(array $rgb): array {
     [$r, $g, $b] = $rgb;
     return [
       0.7977604896723027 * $r + 0.13518583717574031 * $g + 0.0313493495815248 * $b,
@@ -94,7 +94,7 @@
     ];
   }
 
-  function xyz_to_prophotorgblinear(array $xyz): array {
+  function xyzd50_to_prophotorgblinear(array $xyz): array {
     [$x, $y, $z] = $xyz;
     return [
       1.3457989731028281 * $x + -0.25558010007997534 * $y + -0.05110628506753401 * $z,
@@ -182,7 +182,7 @@
 
   /* lab */
 
-  function xyz_to_lab(array $xyz): array {
+  function xyzd50_to_lab(array $xyz): array {
     $ε = 216/24389;
     $κ = 24389/27;
     $w = [0.96422, 1, 0.82521];
@@ -200,7 +200,7 @@
     ];
   }
 
-  function lab_to_xyz(array $lab): array {
+  function lab_to_xyzd50(array $lab): array {
     $ε = 216/24389;
     $κ = 24389/27;
     $w = [0.96422, 1, 0.82521];
@@ -280,7 +280,7 @@
 
   /* Bradford transform */
 
-  function xyzd65_to_xyz(array $xyz): array {
+  function xyzd65_to_xyzd50(array $xyz): array {
     [$x, $y, $z] = $xyz;
     return [
       1.0479298208405488 * $x + 0.022946793341019088 * $y - 0.05019222954313557 * $z,
@@ -289,7 +289,7 @@
     ];
   }
 
-  function xyz_to_xyzd65(array $xyz): array {
+  function xyzd50_to_xyzd65(array $xyz): array {
     [$x, $y, $z] = $xyz;
     return [
       0.9554734527042182 * $x - 0.023098536874261423 * $y + 0.0632593086610217 * $z,
