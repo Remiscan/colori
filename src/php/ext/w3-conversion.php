@@ -10,21 +10,21 @@
 
   /* srgb */
 
-  function srgb_to_lin_srgb(array $rgb): array {
+  function srgb_to_srgblinear(array $rgb): array {
     return array_map(function($x) {
       $sign = $x < 0 ? -1 : 1;
       return (abs($x) < 0.04045) ? $x / 12.92 : $sign * ((abs($x) + 0.055) / 1.055) ** 2.4;
     }, $rgb);
   }
 
-  function lin_srgb_to_srgb(array $rgb): array {
+  function srgblinear_to_srgb(array $rgb): array {
     return array_map(function($x) {
       $sign = $x < 0 ? -1 : 1;
       return (abs($x) > 0.0031308) ? $sign * (1.055 * (abs($x) ** (1 / 2.4)) - 0.055) : 12.92 * $x;
     }, $rgb);
   }
 
-  function lin_srgb_to_d65xyz(array $rgb): array {
+  function srgblinear_to_xyzd65(array $rgb): array {
     [$r, $g, $b] = $rgb;
     return [
       0.41239079926595934 * $r + 0.357584339383878 * $g + 0.1804807884018343 * $b,
@@ -33,7 +33,7 @@
     ];
   }
 
-  function d65xyz_to_lin_srgb(array $xyz): array {
+  function xyzd65_to_srgblinear(array $xyz): array {
     [$x, $y, $z] = $xyz;
     return [
       3.2409699419045226 * $x - 1.537383177570094 * $y - 0.4986107602930034 * $z,
@@ -45,10 +45,10 @@
 
   /* display-p3 */
 
-  function displayp3_to_lin_displayp3(array $rgb): array { return srgb_to_lin_srgb($rgb); }
-  function lin_displayp3_to_displayp3(array $rgb): array { return lin_srgb_to_srgb($rgb); }
+  function displayp3_to_displayp3linear(array $rgb): array { return srgb_to_srgblinear($rgb); }
+  function displayp3linear_to_displayp3(array $rgb): array { return srgblinear_to_srgb($rgb); }
 
-  function lin_displayp3_to_d65xyz(array $rgb): array {
+  function displayp3linear_to_xyzd65(array $rgb): array {
     [$r, $g, $b] = $rgb;
     return [
       0.4865709486482162 * $r + 0.26566769316909306 * $g + 0.1982172852343625 * $b,
@@ -57,7 +57,7 @@
     ];
   }
 
-  function d65xyz_to_lin_displayp3(array $xyz): array {
+  function xyzd65_to_displayp3linear(array $xyz): array {
     [$x, $y, $z] = $xyz;
     return [
       2.493496911941425 * $x + -0.9313836179191239 * $y + -0.40271078445071684 * $z,
@@ -69,7 +69,7 @@
 
   /* prophoto-rgb */
 
-  function prophotorgb_to_lin_prophotorgb(array $rgb): array {
+  function prophotorgb_to_prophotorgblinear(array $rgb): array {
     foreach($rgb as $k => $v) {
       $sign = $v < 0 ? -1 : 1;
       $rgb[$k] = abs($v) <= 16/512 ? $v / 16 : $sign * $v**1.8;
@@ -77,7 +77,7 @@
     return $rgb;
   }
 
-  function lin_prophotorgb_to_prophotorgb(array $rgb): array {
+  function prophotorgblinear_to_prophotorgb(array $rgb): array {
     foreach($rgb as $k => $v) {
       $sign = $v < 0 ? -1 : 1;
       $rgb[$k] = abs($v) >= 1/512 ? $sign * abs($v)**(1/1.8) : 16 * $v;
@@ -85,7 +85,7 @@
     return $rgb;
   }
 
-  function lin_prophotorgb_to_xyz(array $rgb): array {
+  function prophotorgblinear_to_xyz(array $rgb): array {
     [$r, $g, $b] = $rgb;
     return [
       0.7977604896723027 * $r + 0.13518583717574031 * $g + 0.0313493495815248 * $b,
@@ -94,7 +94,7 @@
     ];
   }
 
-  function xyz_to_lin_prophotorgb(array $xyz): array {
+  function xyz_to_prophotorgblinear(array $xyz): array {
     [$x, $y, $z] = $xyz;
     return [
       1.3457989731028281 * $x + -0.25558010007997534 * $y + -0.05110628506753401 * $z,
@@ -106,7 +106,7 @@
 
   /* a98-rgb */
 
-  function a98rgb_to_lin_a98rgb(array $rgb): array {
+  function a98rgb_to_a98rgblinear(array $rgb): array {
     foreach($rgb as $k => $v) {
       $sign = $v < 0 ? -1 : 1;
       $rgb[$k] = $sign * abs($v)**(563/256);
@@ -114,7 +114,7 @@
     return $rgb;
   }
 
-  function lin_a98rgb_to_a98rgb(array $rgb): array {
+  function a98rgblinear_to_a98rgb(array $rgb): array {
     foreach($rgb as $k => $v) {
       $sign = $v < 0 ? -1 : 1;
       $rgb[$k] = $sign * abs($v)**(256/563);
@@ -122,7 +122,7 @@
     return $rgb;
   }
 
-  function lin_a98rgb_to_d65xyz(array $rgb): array {
+  function a98rgblinear_to_xyzd65(array $rgb): array {
     [$r, $g, $b] = $rgb;
     return [
       0.5766690429101305 * $r + 0.1855582379065463 * $g + 0.1882286462349947 * $b,
@@ -131,7 +131,7 @@
     ];
   }
 
-  function d65xyz_to_lin_a98rgb(array $xyz): array {
+  function xyzd65_to_a98rgblinear(array $xyz): array {
     [$x, $y, $z] = $xyz;
     return [
       2.0415879038107465 * $x + -0.5650069742788596 * $y + -0.34473135077832956 * $z,
@@ -143,7 +143,7 @@
 
   /* rec2020 */
 
-  function rec2020_to_lin_rec2020(array $rgb): array {
+  function rec2020_to_rec2020linear(array $rgb): array {
     $e = 1.09929682680944;
     foreach($rgb as $k => $v) {
       $sign = $v < 0 ? -1 : 1;
@@ -152,7 +152,7 @@
     return $rgb;
   }
 
-  function lin_rec2020_to_rec2020(array $rgb): array {
+  function rec2020linear_to_rec2020(array $rgb): array {
     $e = 1.09929682680944;
     foreach($rgb as $k => $v) {
       $sign = $v < 0 ? -1 : 1;
@@ -161,7 +161,7 @@
     return $rgb;
   }
 
-  function lin_rec2020_to_d65xyz(array $rgb): array {
+  function rec2020linear_to_xyzd65(array $rgb): array {
     [$r, $g, $b] = $rgb;
     return [
       0.6369580483012914 * $r + 0.14461690358620832 * $g + 0.1688809751641721 * $b,
@@ -170,7 +170,7 @@
     ];
   }
 
-  function d65xyz_to_lin_rec2020(array $xyz): array {
+  function xyzd65_to_rec2020linear(array $xyz): array {
     [$x, $y, $z] = $xyz;
     return [
       1.7166511879712674 * $x + -0.35567078377639233 * $y + -0.25336628137365974 * $z,
@@ -239,7 +239,7 @@
 
   /* oklab */
 
-  function d65xyz_to_oklab(array $xyz): array {
+  function xyzd65_to_oklab(array $xyz): array {
     [$x, $y, $z] = $xyz;
 
     $l = 0.8190224432164319 * $x + 0.3619062562801221 * $y + -0.12887378261216414 * $z;
@@ -256,7 +256,7 @@
     return [$okl, $oka, $okb];
   }
   
-  function oklab_to_d65xyz(array $oklab): array {
+  function oklab_to_xyzd65(array $oklab): array {
     [$okl, $oka, $okb] = $oklab;
 
     $l = 0.99999999845051981432 * $okl + 0.39633779217376785678 * $oka + 0.21580375806075880339 * $okb;
@@ -280,7 +280,7 @@
 
   /* Bradford transform */
 
-  function d65xyz_to_xyz(array $xyz): array {
+  function xyzd65_to_xyz(array $xyz): array {
     [$x, $y, $z] = $xyz;
     return [
       1.0479298208405488 * $x + 0.022946793341019088 * $y - 0.05019222954313557 * $z,
@@ -289,7 +289,7 @@
     ];
   }
 
-  function xyz_to_d65xyz(array $xyz): array {
+  function xyz_to_xyzd65(array $xyz): array {
     [$x, $y, $z] = $xyz;
     return [
       0.9554734527042182 * $x - 0.023098536874261423 * $y + 0.0632593086610217 * $z,

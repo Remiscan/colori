@@ -7,15 +7,15 @@
 
 /* srgb */
 
-export function srgb_to_lin_srgb(rgb: number[]): number[] {
+export function srgb_to_srgblinear(rgb: number[]): number[] {
   return rgb.map(x => (Math.abs(x) < 0.04045) ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4));
 }
 
-export function lin_srgb_to_srgb(rgb: number[]): number[] {
+export function srgblinear_to_srgb(rgb: number[]): number[] {
   return rgb.map(x => (Math.abs(x) > 0.0031308) ? (Math.sign(x) || 1) * (1.055 * Math.pow(Math.abs(x), 1 / 2.4) - 0.055) : 12.92 * x);
 }
 
-export function lin_srgb_to_d65xyz(rgb: number[]): number[] {
+export function srgblinear_to_xyzd65(rgb: number[]): number[] {
   const [r, g, b] = rgb;
   return [
     0.41239079926595934 * r + 0.357584339383878 * g + 0.1804807884018343 * b,
@@ -24,7 +24,7 @@ export function lin_srgb_to_d65xyz(rgb: number[]): number[] {
   ];
 }
 
-export function d65xyz_to_lin_srgb(xyz: number[]): number[] {
+export function xyzd65_to_srgblinear(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   return [
     3.2409699419045226 * x + -1.537383177570094 * y + -0.4986107602930034 * z,
@@ -37,10 +37,10 @@ export function d65xyz_to_lin_srgb(xyz: number[]): number[] {
 
 /* display-p3 */
 
-export function displayp3_to_lin_displayp3(rgb: number[]): number[] { return srgb_to_lin_srgb(rgb); }
-export function lin_displayp3_to_displayp3(rgb: number[]): number[] { return lin_srgb_to_srgb(rgb); }
+export function displayp3_to_displayp3linear(rgb: number[]): number[] { return srgb_to_srgblinear(rgb); }
+export function displayp3linear_to_displayp3(rgb: number[]): number[] { return srgblinear_to_srgb(rgb); }
 
-export function lin_displayp3_to_d65xyz(rgb: number[]): number[] {
+export function displayp3linear_to_xyzd65(rgb: number[]): number[] {
   const [r, g, b] = rgb;
   return [
     0.4865709486482162 * r + 0.26566769316909306 * g + 0.1982172852343625 * b,
@@ -49,7 +49,7 @@ export function lin_displayp3_to_d65xyz(rgb: number[]): number[] {
   ];
 }
 
-export function d65xyz_to_lin_displayp3(xyz: number[]): number[] {
+export function xyzd65_to_displayp3linear(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   return [
     2.493496911941425 * x + -0.9313836179191239 * y + -0.40271078445071684 * z,
@@ -62,15 +62,15 @@ export function d65xyz_to_lin_displayp3(xyz: number[]): number[] {
 
 /* prophoto-rgb */
 
-export function prophotorgb_to_lin_prophotorgb(rgb: number[]): number[] {
+export function prophotorgb_to_prophotorgblinear(rgb: number[]): number[] {
   return rgb.map(v => Math.abs(v) <= 16/512 ? v / 16 : (Math.sign(v) || 1) * Math.pow(v, 1.8));
 }
 
-export function lin_prophotorgb_to_prophotorgb(rgb: number[]): number[] {
+export function prophotorgblinear_to_prophotorgb(rgb: number[]): number[] {
   return rgb.map(v => Math.abs(v) >= 1/512 ? (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1/1.8) : 16 * v);
 }
 
-export function lin_prophotorgb_to_xyz(rgb: number[]): number[] {
+export function prophotorgblinear_to_xyz(rgb: number[]): number[] {
   const [r, g, b] = rgb;
   return [
     0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
@@ -79,7 +79,7 @@ export function lin_prophotorgb_to_xyz(rgb: number[]): number[] {
   ];
 }
 
-export function xyz_to_lin_prophotorgb(xyz: number[]): number[] {
+export function xyz_to_prophotorgblinear(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   return [
     1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
@@ -92,15 +92,15 @@ export function xyz_to_lin_prophotorgb(xyz: number[]): number[] {
 
 /* a98-rgb */
 
-export function a98rgb_to_lin_a98rgb(rgb: number[]): number[] {
+export function a98rgb_to_a98rgblinear(rgb: number[]): number[] {
   return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 563/256));
 }
 
-export function lin_a98rgb_to_a98rgb(rgb: number[]): number[] {
+export function a98rgblinear_to_a98rgb(rgb: number[]): number[] {
   return rgb.map(v => (Math.sign(v) || 1) * Math.pow(Math.abs(v), 256/563));
 }
 
-export function lin_a98rgb_to_d65xyz(rgb: number[]): number[] {
+export function a98rgblinear_to_xyzd65(rgb: number[]): number[] {
   const [r, g, b] = rgb;
   return [
     0.5766690429101305 * r + 0.1855582379065463 * g + 0.1882286462349947 * b,
@@ -109,7 +109,7 @@ export function lin_a98rgb_to_d65xyz(rgb: number[]): number[] {
   ];
 }
 
-export function d65xyz_to_lin_a98rgb(xyz: number[]): number[] {
+export function xyzd65_to_a98rgblinear(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   return [
     2.0415879038107465 * x + -0.5650069742788596 * y + -0.34473135077832956 * z,
@@ -122,17 +122,17 @@ export function d65xyz_to_lin_a98rgb(xyz: number[]): number[] {
 
 /* rec2020 */
 
-export function rec2020_to_lin_rec2020(rgb: number[]): number[] {
+export function rec2020_to_rec2020linear(rgb: number[]): number[] {
   const e = 1.09929682680944;
   return rgb.map(v => Math.abs(v) < 0.018053968510807 * 4.5 ? v / 4.5 : (Math.sign(v) || 1) * Math.pow(Math.abs(v) + e - 1, 1/0.45));
 }
 
-export function lin_rec2020_to_rec2020(rgb: number[]): number[] {
+export function rec2020linear_to_rec2020(rgb: number[]): number[] {
   const e = 1.09929682680944;
   return rgb.map(v => Math.abs(v) > 0.018053968510807 ? (Math.sign(v) || 1) * (e * Math.pow(Math.abs(v), 0.45) - (e - 1)) : 4.5 * v);
 }
 
-export function lin_rec2020_to_d65xyz(rgb: number[]): number[] {
+export function rec2020linear_to_xyzd65(rgb: number[]): number[] {
   const [r, g, b] = rgb;
   return [
     0.6369580483012914 * r + 0.14461690358620832 * g + 0.1688809751641721 * b,
@@ -141,7 +141,7 @@ export function lin_rec2020_to_d65xyz(rgb: number[]): number[] {
   ];
 }
 
-export function d65xyz_to_lin_rec2020(xyz: number[]): number[] {
+export function xyzd65_to_rec2020linear(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   return [
     1.7166511879712674 * x + -0.35567078377639233 * y + -0.25336628137365974 * z,
@@ -208,7 +208,7 @@ export function lch_to_lab(lch: number[]): number[] {
 
 /* oklab */
 
-export function d65xyz_to_oklab(xyz: number[]): number[] {
+export function xyzd65_to_oklab(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   const lms = [
     0.8190224432164319 * x + 0.3619062562801221 * y + -0.12887378261216414 * z,
@@ -223,7 +223,7 @@ export function d65xyz_to_oklab(xyz: number[]): number[] {
   ];
 }
 
-export function oklab_to_d65xyz(oklab: number[]): number[] {
+export function oklab_to_xyzd65(oklab: number[]): number[] {
   const [okl, oka, okb] = oklab;
   const lms = [
     0.99999999845051981432 * okl + 0.39633779217376785678 * oka + 0.21580375806075880339 * okb,
@@ -245,7 +245,7 @@ export function oklch_to_oklab(lch: number[]): number[] { return lch_to_lab(lch)
 
 /* Bradford transform */
 
-export function d65xyz_to_xyz(xyz: number[]): number[] {
+export function xyzd65_to_xyz(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   return [
     1.0479298208405488 * x + 0.022946793341019088 * y + -0.05019222954313557 * z,
@@ -254,7 +254,7 @@ export function d65xyz_to_xyz(xyz: number[]): number[] {
   ];
 }
 
-export function xyz_to_d65xyz(xyz: number[]): number[] {
+export function xyz_to_xyzd65(xyz: number[]): number[] {
   const [x, y, z] = xyz;
   return [
     0.9554734527042182 * x + -0.023098536874261423 * y + 0.0632593086610217 * z,

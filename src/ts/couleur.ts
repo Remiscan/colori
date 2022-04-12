@@ -365,13 +365,14 @@ export default class Couleur {
 
     switch (spaceID.toLowerCase()) {
       case 'srgb':
+      case 'srgb-linear':
       case 'display-p3':
       case 'a98-rgb':
       case 'prophoto-rgb':
       case 'rec2020':
-      case 'oklab':
-      case 'oklch':
       case 'xyz':
+      case 'xyz-d50':
+      case 'xyz-d65':
         vals = Couleur.convert(spaceID, 'srgb', vals);
         break;
       default:
@@ -1477,6 +1478,7 @@ export default class Couleur {
         case 'rgb':
         case 'rgba': id = 'srgb'; break;
         case 'hsla': id = 'hsl'; break;
+        case 'xyz-d50': id = 'xyz'; break;
       }
       result = Couleur.colorSpaces.find(sp => sp.id == id);
     }

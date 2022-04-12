@@ -6,7 +6,7 @@ export { APCAcontrast as APCA } from './ext/apca-contrast.js';
 /** @returns Luminance of the color. */
 // Source of the math: https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
 export function luminance(rgb: number[]): number {
-  const linrgb = Conversions.srgb_to_lin_srgb(rgb);
+  const linrgb = Conversions.srgb_to_srgblinear(rgb);
   return 0.2126729 * linrgb[0] + 0.7151522 * linrgb[1] + 0.0721750 * linrgb[2];
 }
 

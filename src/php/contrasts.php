@@ -6,7 +6,7 @@
 
 
   function luminance(array $rgb): float {
-    $rgb = \colori\conversions\srgb_to_lin_srgb($rgb);
+    $rgb = \colori\conversions\srgb_to_srgblinear($rgb);
     return 0.2126 * $rgb[0] + 0.7152 * $rgb[1] + 0.0722 * $rgb[2];
   }
 

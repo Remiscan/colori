@@ -20,12 +20,12 @@ const colorSpaces = [
             ]
         ],
         links: [
-            'lin_srgb',
+            'srgb-linear',
             'hsl'
         ]
     },
     {
-        id: 'lin_srgb',
+        id: 'srgb-linear',
         gamut: [
             [
                 0,
@@ -42,7 +42,7 @@ const colorSpaces = [
         ],
         links: [
             'srgb',
-            'd65xyz'
+            'xyz-d65'
         ]
     },
     {
@@ -145,12 +145,12 @@ const colorSpaces = [
         ],
         links: [
             'lab',
-            'd65xyz',
-            'lin_prophoto-rgb'
+            'xyz-d65',
+            'prophoto-rgb-linear'
         ]
     },
     {
-        id: 'd65xyz',
+        id: 'xyz-d65',
         gamut: [
             [
                 -Infinity,
@@ -167,10 +167,10 @@ const colorSpaces = [
         ],
         links: [
             'xyz',
-            'lin_srgb',
-            'lin_display-p3',
-            'lin_a98-rgb',
-            'lin_rec2020',
+            'srgb-linear',
+            'display-p3-linear',
+            'a98-rgb-linear',
+            'rec2020-linear',
             'oklab'
         ]
     },
@@ -191,11 +191,11 @@ const colorSpaces = [
             ]
         ],
         links: [
-            'lin_display-p3'
+            'display-p3-linear'
         ]
     },
     {
-        id: 'lin_display-p3',
+        id: 'display-p3-linear',
         gamut: [
             [
                 -Infinity,
@@ -212,7 +212,7 @@ const colorSpaces = [
         ],
         links: [
             'display-p3',
-            'd65xyz'
+            'xyz-d65'
         ]
     },
     {
@@ -232,11 +232,11 @@ const colorSpaces = [
             ]
         ],
         links: [
-            'lin_a98-rgb'
+            'a98-rgb-linear'
         ]
     },
     {
-        id: 'lin_a98-rgb',
+        id: 'a98-rgb-linear',
         gamut: [
             [
                 -Infinity,
@@ -253,7 +253,7 @@ const colorSpaces = [
         ],
         links: [
             'a98-rgb',
-            'd65xyz'
+            'xyz-d65'
         ]
     },
     {
@@ -273,11 +273,11 @@ const colorSpaces = [
             ]
         ],
         links: [
-            'lin_prophoto-rgb'
+            'prophoto-rgb-linear'
         ]
     },
     {
-        id: 'lin_prophoto-rgb',
+        id: 'prophoto-rgb-linear',
         gamut: [
             [
                 -Infinity,
@@ -314,11 +314,11 @@ const colorSpaces = [
             ]
         ],
         links: [
-            'lin_rec2020'
+            'rec2020-linear'
         ]
     },
     {
-        id: 'lin_rec2020',
+        id: 'rec2020-linear',
         gamut: [
             [
                 -Infinity,
@@ -335,7 +335,7 @@ const colorSpaces = [
         ],
         links: [
             'rec2020',
-            'd65xyz'
+            'xyz-d65'
         ]
     },
     {
@@ -355,7 +355,7 @@ const colorSpaces = [
             ]
         ],
         links: [
-            'd65xyz',
+            'xyz-d65',
             'oklch'
         ]
     },
@@ -380,15 +380,15 @@ const colorSpaces = [
         ]
     }
 ];
-function srgb_to_lin_srgb(rgb) {
+function srgb_to_srgblinear(rgb) {
     return rgb.map((x)=>Math.abs(x) < 0.04045 ? x / 12.92 : (Math.sign(x) || 1) * Math.pow((Math.abs(x) + 0.055) / 1.055, 2.4)
     );
 }
-function lin_srgb_to_srgb(rgb) {
+function srgblinear_to_srgb(rgb) {
     return rgb.map((x)=>Math.abs(x) > 0.0031308 ? (Math.sign(x) || 1) * (1.055 * Math.pow(Math.abs(x), 1 / 2.4) - 0.055) : 12.92 * x
     );
 }
-function lin_srgb_to_d65xyz(rgb) {
+function srgblinear_to_xyzd65(rgb) {
     const [r, g, b] = rgb;
     return [
         0.41239079926595934 * r + 0.357584339383878 * g + 0.1804807884018343 * b,
@@ -396,7 +396,7 @@ function lin_srgb_to_d65xyz(rgb) {
         0.01933081871559182 * r + 0.11919477979462598 * g + 0.9505321522496607 * b
     ];
 }
-function d65xyz_to_lin_srgb(xyz) {
+function xyzd65_to_srgblinear(xyz) {
     const [x, y, z] = xyz;
     return [
         3.2409699419045226 * x + -1.537383177570094 * y + -0.4986107602930034 * z,
@@ -404,13 +404,13 @@ function d65xyz_to_lin_srgb(xyz) {
         0.05563007969699366 * x + -0.20397695888897652 * y + 1.0569715142428786 * z
     ];
 }
-function displayp3_to_lin_displayp3(rgb) {
-    return srgb_to_lin_srgb(rgb);
+function displayp3_to_displayp3linear(rgb) {
+    return srgb_to_srgblinear(rgb);
 }
-function lin_displayp3_to_displayp3(rgb) {
-    return lin_srgb_to_srgb(rgb);
+function displayp3linear_to_displayp3(rgb) {
+    return srgblinear_to_srgb(rgb);
 }
-function lin_displayp3_to_d65xyz(rgb) {
+function displayp3linear_to_xyzd65(rgb) {
     const [r, g, b] = rgb;
     return [
         0.4865709486482162 * r + 0.26566769316909306 * g + 0.1982172852343625 * b,
@@ -418,7 +418,7 @@ function lin_displayp3_to_d65xyz(rgb) {
         0 * r + 0.04511338185890264 * g + 1.043944368900976 * b
     ];
 }
-function d65xyz_to_lin_displayp3(xyz) {
+function xyzd65_to_displayp3linear(xyz) {
     const [x, y, z] = xyz;
     return [
         2.493496911941425 * x + -0.9313836179191239 * y + -0.40271078445071684 * z,
@@ -426,15 +426,15 @@ function d65xyz_to_lin_displayp3(xyz) {
         0.03584583024378447 * x + -0.07617238926804182 * y + 0.9568845240076872 * z
     ];
 }
-function prophotorgb_to_lin_prophotorgb(rgb) {
+function prophotorgb_to_prophotorgblinear(rgb) {
     return rgb.map((v)=>Math.abs(v) <= 16 / 512 ? v / 16 : (Math.sign(v) || 1) * Math.pow(v, 1.8)
     );
 }
-function lin_prophotorgb_to_prophotorgb(rgb) {
+function prophotorgblinear_to_prophotorgb(rgb) {
     return rgb.map((v)=>Math.abs(v) >= 1 / 512 ? (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1 / 1.8) : 16 * v
     );
 }
-function lin_prophotorgb_to_xyz(rgb) {
+function prophotorgblinear_to_xyz(rgb) {
     const [r, g, b] = rgb;
     return [
         0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
@@ -442,7 +442,7 @@ function lin_prophotorgb_to_xyz(rgb) {
         0 * r + 0 * g + 0.8251046025104601 * b
     ];
 }
-function xyz_to_lin_prophotorgb(xyz) {
+function xyz_to_prophotorgblinear(xyz) {
     const [x, y, z] = xyz;
     return [
         1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
@@ -450,15 +450,15 @@ function xyz_to_lin_prophotorgb(xyz) {
         0 * x + 0 * y + 1.2119675456389454 * z
     ];
 }
-function a98rgb_to_lin_a98rgb(rgb) {
+function a98rgb_to_a98rgblinear(rgb) {
     return rgb.map((v)=>(Math.sign(v) || 1) * Math.pow(Math.abs(v), 563 / 256)
     );
 }
-function lin_a98rgb_to_a98rgb(rgb) {
+function a98rgblinear_to_a98rgb(rgb) {
     return rgb.map((v)=>(Math.sign(v) || 1) * Math.pow(Math.abs(v), 256 / 563)
     );
 }
-function lin_a98rgb_to_d65xyz(rgb) {
+function a98rgblinear_to_xyzd65(rgb) {
     const [r, g, b] = rgb;
     return [
         0.5766690429101305 * r + 0.1855582379065463 * g + 0.1882286462349947 * b,
@@ -466,7 +466,7 @@ function lin_a98rgb_to_d65xyz(rgb) {
         0.02703136138641234 * r + 0.07068885253582723 * g + 0.9913375368376388 * b
     ];
 }
-function d65xyz_to_lin_a98rgb(xyz) {
+function xyzd65_to_a98rgblinear(xyz) {
     const [x, y, z] = xyz;
     return [
         2.0415879038107465 * x + -0.5650069742788596 * y + -0.34473135077832956 * z,
@@ -474,15 +474,15 @@ function d65xyz_to_lin_a98rgb(xyz) {
         0.013444280632031142 * x + -0.11836239223101838 * y + 1.0151749943912054 * z
     ];
 }
-function rec2020_to_lin_rec2020(rgb) {
+function rec2020_to_rec2020linear(rgb) {
     return rgb.map((v)=>Math.abs(v) < 0.018053968510807 * 4.5 ? v / 4.5 : (Math.sign(v) || 1) * Math.pow(Math.abs(v) + 1.09929682680944 - 1, 1 / 0.45)
     );
 }
-function lin_rec2020_to_rec2020(rgb) {
+function rec2020linear_to_rec2020(rgb) {
     return rgb.map((v)=>Math.abs(v) > 0.018053968510807 ? (Math.sign(v) || 1) * (1.09929682680944 * Math.pow(Math.abs(v), 0.45) - (1.09929682680944 - 1)) : 4.5 * v
     );
 }
-function lin_rec2020_to_d65xyz(rgb) {
+function rec2020linear_to_xyzd65(rgb) {
     const [r, g, b] = rgb;
     return [
         0.6369580483012914 * r + 0.14461690358620832 * g + 0.1688809751641721 * b,
@@ -490,7 +490,7 @@ function lin_rec2020_to_d65xyz(rgb) {
         0 * r + 0.028072693049087428 * g + 1.060985057710791 * b
     ];
 }
-function d65xyz_to_lin_rec2020(xyz) {
+function xyzd65_to_rec2020linear(xyz) {
     const [x, y, z] = xyz;
     return [
         1.7166511879712674 * x + -0.35567078377639233 * y + -0.25336628137365974 * z,
@@ -567,7 +567,7 @@ function lch_to_lab(lch) {
         cieb
     ];
 }
-function d65xyz_to_oklab(xyz) {
+function xyzd65_to_oklab(xyz) {
     const [x, y, z] = xyz;
     const lms = [
         0.8190224432164319 * x + 0.3619062562801221 * y + -0.12887378261216414 * z,
@@ -582,7 +582,7 @@ function d65xyz_to_oklab(xyz) {
         0.0259040371 * l + 0.7827717662 * m + -0.808675766 * s
     ];
 }
-function oklab_to_d65xyz(oklab) {
+function oklab_to_xyzd65(oklab) {
     const [okl, oka, okb] = oklab;
     const lms = [
         0.9999999984505198 * okl + 0.39633779217376786 * oka + 0.2158037580607588 * okb,
@@ -603,7 +603,7 @@ function oklab_to_oklch(lab) {
 function oklch_to_oklab(lch) {
     return lch_to_lab(lch);
 }
-function d65xyz_to_xyz(xyz) {
+function xyzd65_to_xyz(xyz) {
     const [x, y, z] = xyz;
     return [
         1.0479298208405488 * x + 0.022946793341019088 * y + -0.05019222954313557 * z,
@@ -611,7 +611,7 @@ function d65xyz_to_xyz(xyz) {
         -0.009243058152591178 * x + 0.015055144896577895 * y + 0.7518742899580008 * z
     ];
 }
-function xyz_to_d65xyz(xyz) {
+function xyz_to_xyzd65(xyz) {
     const [x, y, z] = xyz;
     return [
         0.9554734527042182 * x + -0.023098536874261423 * y + 0.0632593086610217 * z,
@@ -706,36 +706,36 @@ const mod = {
     hsl_to_srgb: hsl_to_srgb,
     hsl_to_hwb: hsl_to_hwb,
     hwb_to_hsl: hwb_to_hsl,
-    srgb_to_lin_srgb,
-    lin_srgb_to_srgb,
-    lin_srgb_to_d65xyz,
-    d65xyz_to_lin_srgb,
-    displayp3_to_lin_displayp3,
-    lin_displayp3_to_displayp3,
-    lin_displayp3_to_d65xyz,
-    d65xyz_to_lin_displayp3,
-    prophotorgb_to_lin_prophotorgb,
-    lin_prophotorgb_to_prophotorgb,
-    lin_prophotorgb_to_xyz,
-    xyz_to_lin_prophotorgb,
-    a98rgb_to_lin_a98rgb,
-    lin_a98rgb_to_a98rgb,
-    lin_a98rgb_to_d65xyz,
-    d65xyz_to_lin_a98rgb,
-    rec2020_to_lin_rec2020,
-    lin_rec2020_to_rec2020,
-    lin_rec2020_to_d65xyz,
-    d65xyz_to_lin_rec2020,
+    srgb_to_srgblinear,
+    srgblinear_to_srgb,
+    srgblinear_to_xyzd65,
+    xyzd65_to_srgblinear,
+    displayp3_to_displayp3linear,
+    displayp3linear_to_displayp3,
+    displayp3linear_to_xyzd65,
+    xyzd65_to_displayp3linear,
+    prophotorgb_to_prophotorgblinear,
+    prophotorgblinear_to_prophotorgb,
+    prophotorgblinear_to_xyz,
+    xyz_to_prophotorgblinear,
+    a98rgb_to_a98rgblinear,
+    a98rgblinear_to_a98rgb,
+    a98rgblinear_to_xyzd65,
+    xyzd65_to_a98rgblinear,
+    rec2020_to_rec2020linear,
+    rec2020linear_to_rec2020,
+    rec2020linear_to_xyzd65,
+    xyzd65_to_rec2020linear,
     xyz_to_lab,
     lab_to_xyz,
     lab_to_lch,
     lch_to_lab,
-    d65xyz_to_oklab,
-    oklab_to_d65xyz,
+    xyzd65_to_oklab,
+    oklab_to_xyzd65,
     oklab_to_oklch,
     oklch_to_oklab,
-    d65xyz_to_xyz,
-    xyz_to_d65xyz
+    xyzd65_to_xyz,
+    xyz_to_xyzd65
 };
 function luminance(rgb) {
     const coeffs = [
@@ -773,7 +773,7 @@ function APCAcontrast(rgbText, rgbBack) {
     return output * 100;
 }
 function luminance1(rgb) {
-    const linrgb = srgb_to_lin_srgb(rgb);
+    const linrgb = srgb_to_srgblinear(rgb);
     return 0.2126729 * linrgb[0] + 0.7151522 * linrgb[1] + 0.072175 * linrgb[2];
 }
 function WCAG2(rgbText, rgbBack) {
@@ -1913,13 +1913,14 @@ class Couleur {
         const a = Couleur.parse(values[3]);
         switch(spaceID.toLowerCase()){
             case 'srgb':
+            case 'srgb-linear':
             case 'display-p3':
             case 'a98-rgb':
             case 'prophoto-rgb':
             case 'rec2020':
-            case 'oklab':
-            case 'oklch':
             case 'xyz':
+            case 'xyz-d50':
+            case 'xyz-d65':
                 vals = Couleur.convert(spaceID, 'srgb', vals);
                 break;
             default:
@@ -2991,6 +2992,9 @@ class Couleur {
                     break;
                 case 'hsla':
                     id = 'hsl';
+                    break;
+                case 'xyz-d50':
+                    id = 'xyz';
                     break;
             }
             result = Couleur.colorSpaces.find((sp)=>sp.id == id

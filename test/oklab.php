@@ -140,7 +140,7 @@
     // XYZ to oklab tests
     for (const [k, test] of Object.entries(tests)) {
       const xyz = test;
-      const oklab = Couleur.convert('d65xyz', 'oklab', xyz);
+      const oklab = Couleur.convert('xyz-d65', 'oklab', xyz);
       
       const expected = expectedResults[Number(k)];
       const verif = oklab.every((e, k) => Math.abs(e - expected[k]) < successDistance);
