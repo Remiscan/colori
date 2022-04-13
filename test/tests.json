@@ -122,6 +122,12 @@
     }, {
       "fonction": "(new Colour('oklch(91.5% 0.1304 169)')).rgb",
       "resultatAttendu": "rgb(127, 255, 212)"
+    }, {
+      "fonction": "(new Colour('cadetblue')).expr('color-srgb', { precision: 4 })",
+      "resultatAttendu": "color(srgb 0.3725 0.6196 0.6275)"
+    }, {
+      "fonction": "(new Colour('cadetblue')).replace('a', .5).expr('color-srgb', { precision: 4 })",
+      "resultatAttendu": "color(srgb 0.3725 0.6196 0.6275 / .5)"
     }
   ],
   "change, replace, scale": [

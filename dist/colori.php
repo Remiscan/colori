@@ -1443,7 +1443,7 @@
       if (substr($format, 0, 5) === 'color') {
         $string = "color(".$space['id'];
         foreach($values as $k => $v) {
-          if ((float) $k === count($values) - 1) {
+          if ((int) $k === count($values) - 1) {
             if ($a >= 1) break;
             $string .= " / $a";
           } else {
