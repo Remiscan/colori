@@ -2481,14 +2481,24 @@ class Couleur {
         return this.change('h', 180);
     }
     negative() {
-        return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`);
+        return new Couleur([
+            1 - this.r,
+            1 - this.g,
+            1 - this.b,
+            this.a
+        ]);
     }
     invert() {
         return this.negative();
     }
     greyscale() {
-        const L = 255 * this.replace('a', 1).luminance;
-        return new Couleur(`rgb(${L}, ${L}, ${L}, ${this.a})`);
+        const L = this.replace('a', 1).luminance;
+        return new Couleur([
+            L,
+            L,
+            L,
+            this.a
+        ]);
     }
     grayscale() {
         return this.greyscale();
@@ -2497,7 +2507,12 @@ class Couleur {
         const r = Math.min(0.393 * this.r + 0.769 * this.g + 0.189 * this.b, 1);
         const g = Math.min(0.349 * this.r + 0.686 * this.g + 0.168 * this.b, 1);
         const b = Math.min(0.272 * this.r + 0.534 * this.g + 0.131 * this.b, 1);
-        return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${this.a})`);
+        return new Couleur([
+            r,
+            g,
+            b,
+            this.a
+        ]);
     }
     static blend(backgroundColor, overlayColor, alpha) {
         const background = Couleur.makeInstance(backgroundColor);
@@ -2750,9 +2765,9 @@ class Couleur {
         let OKLmin = directionOKL > 0 ? movingLab[0] : 0;
         let OKLmax = directionOKL > 0 ? 1 : movingLab[0];
         while(OKLmax - OKLmin > 0.0001){
-            const ciel = (OKLmin + OKLmax) / 2;
+            const okl = (OKLmin + OKLmax) / 2;
             const newValues = movingLab;
-            newValues[0] = ciel;
+            newValues[0] = okl;
             const newContrast = Math.abs(as === 'text' ? Couleur.contrast(Couleur.convert('oklab', 'srgb', newValues), background, {
                 method
             }) : Couleur.contrast(text, Couleur.convert('oklab', 'srgb', newValues), {
@@ -2760,13 +2775,13 @@ class Couleur {
             }));
             const condition = directionContrast > 0 ? newContrast < desiredContrast : newContrast > desiredContrast;
             if (condition) {
-                if (directionOKL > 0) OKLmin = ciel;
-                else OKLmax = ciel;
+                if (directionOKL > 0) OKLmin = okl;
+                else OKLmax = okl;
             } else {
-                if (directionOKL > 0) OKLmax = ciel;
-                else OKLmin = ciel;
+                if (directionOKL > 0) OKLmax = okl;
+                else OKLmin = okl;
             }
-            movingLab[0] = ciel;
+            movingLab[0] = okl;
         }
         let result = new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
         const lastContrast = Math.abs(as === 'text' ? Couleur.contrast(result, background, {

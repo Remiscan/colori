@@ -781,15 +781,14 @@
 
     /** The inverse color. */
     public function negative(): self {
-      return new self('rgb(' . 255 * (1 - $this->r) . ', ' . 255 * (1 - $this->g) . ', ' . 255 * (1 - $this->b) . ', ' . $this->a . ')');
+      return new self([1 - $this->r, 1 - $this->g, 1 - $this->b, $this->a]);
     }
     public function invert(): self { return $this->negative(); }
 
     /** The shade of grey of the color. */
     public function greyscale(): self {
-      $L = 255 * $this->replace('a', 1)->luminance();
-      $a = $this->a;
-      return new self("rgb(${L}, ${L}, ${L}, ${a})");
+      $L = $this->replace('a', 1)->luminance();
+      return new self([$L, $L, $L, $this->a]);
     }
     public function grayscale(): self { return $this->greyscale(); }
 
@@ -798,7 +797,7 @@
       $r = min(0.393 * $this->r + 0.769 * $this->g + 0.189 * $this->b, 1);
       $g = min(0.349 * $this->r + 0.686 * $this->g + 0.168 * $this->b, 1);
       $b = min(0.272 * $this->r + 0.534 * $this->g + 0.131 * $this->b, 1);
-      return new self('rgb('. 255 * $r .', '. 255 * $g .', '. 255 * $b .', '. $this->a .')');
+      return new self([$r, $g, $b, $this->a]);
     }
 
 
@@ -988,7 +987,7 @@
     }
 
 
-    /** Modifies the CIE lightness of a color to give it better contrast with a background color. */
+    /** Modifies the OK lightness of a color to give it better contrast with a background color. */
     public function improveContrast(self|array|string $referenceColor, float $desiredContrast, string $as = 'text', bool $lower = false, ?string $colorScheme = null, string $method = 'APCA'): self {
       $background = $as === 'text' ? self::makeInstance($referenceColor) : $this;
       $text =       $as === 'text' ? $this : self::makeInstance($referenceColor);

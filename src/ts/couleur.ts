@@ -916,13 +916,13 @@ export default class Couleur {
   public complement(): Couleur { return this.change('h', 180); }
 
   /** @returns The inverse color. */
-  public negative(): Couleur { return new Couleur(`rgb(${255 * (1 - this.r)}, ${255 * (1 - this.g)}, ${255 * (1 - this.b)}, ${this.a})`); }
+  public negative(): Couleur { return new Couleur([1 - this.r, 1 - this.g, 1 - this.b, this.a]); }
   public invert(): Couleur { return this.negative(); }
 
   /** @returns The shade of grey of the color. */
   public greyscale(): Couleur {
-    const L = 255 * this.replace('a', 1).luminance;
-    return new Couleur(`rgb(${L}, ${L}, ${L}, ${this.a})`);
+    const L = this.replace('a', 1).luminance;
+    return new Couleur([L, L, L, this.a]);
   }
   public grayscale(): Couleur { return this.greyscale(); }
 
@@ -931,7 +931,7 @@ export default class Couleur {
     const r = Math.min(0.393 * this.r + 0.769 * this.g + 0.189 * this.b, 1);
     const g = Math.min(0.349 * this.r + 0.686 * this.g + 0.168 * this.b, 1);
     const b = Math.min(0.272 * this.r + 0.534 * this.g + 0.131 * this.b, 1);
-    return new Couleur(`rgb(${255 * r}, ${255 * g}, ${255 * b}, ${this.a})`);
+    return new Couleur([r, g, b, this.a]);
   }
 
 
@@ -1190,7 +1190,7 @@ export default class Couleur {
 
 
   /**
-   * Modifies the CIE lightness of a color to give it better contrast with another color.
+   * Modifies the OK lightness of a color to give it better contrast with another color.
    * @param referenceColor The color with which contrast will be measured and improved.
    * @param desiredContrast The absolute value of the contrast to reach.
    * @param options
@@ -1276,8 +1276,8 @@ export default class Couleur {
 
     while (OKLmax - OKLmin > τ) {
       // Let's try to raise contrast by increasing or reducing CIE lightness.
-      const ciel = (OKLmin + OKLmax) / 2;
-      const newValues = movingLab; newValues[0] = ciel;
+      const okl = (OKLmin + OKLmax) / 2;
+      const newValues = movingLab; newValues[0] = okl;
       const newContrast = Math.abs(
         as === 'text' ? Couleur.contrast(Couleur.convert('oklab', 'srgb', newValues), background, { method })
                       : Couleur.contrast(text, Couleur.convert('oklab', 'srgb', newValues), { method })
@@ -1286,16 +1286,16 @@ export default class Couleur {
       // If the new contrast hasn't gone over its desired value
       const condition = (directionContrast > 0) ? (newContrast < desiredContrast) : (newContrast > desiredContrast);
       if (condition) {
-        if (directionOKL > 0) OKLmin = ciel;
-        else                  OKLmax = ciel;
+        if (directionOKL > 0) OKLmin = okl;
+        else                  OKLmax = okl;
       }
       // If we overshot and the contrast moved further than we want it to
       else {
-        if (directionOKL > 0) OKLmax = ciel;
-        else                  OKLmin = ciel;
+        if (directionOKL > 0) OKLmax = okl;
+        else                  OKLmin = okl;
       }
 
-      movingLab[0] = ciel;
+      movingLab[0] = okl;
     }
 
     let result = new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
