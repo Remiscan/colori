@@ -2224,61 +2224,131 @@
     /* Other functions */
 
 
-    /** Calculates the intermediate colors a gradient should use to go from one color to another without passing through the "desaturated zone". */
-    public static function gradient(self|array|string $startColor, self|array|string $endColor, int $steps = 5, array|string $spaceID = 'oklch'): array {
-      $start = self::makeInstance($startColor);
-      $end = self::makeInstance($endColor);
-      $steps = max(1, $steps);
-      $props = self::propertiesOf($spaceID); $props[] = 'a';
-      $space = self::getSpace($spaceID);
-      $startValues = $start->valuesTo($space); $startValues[] = $start->a;
-      $endValues = $end->valuesTo($space); $endValues[] = $end->a;
+    /** Linearly interpolates between two colors. */
+    public static function interpolate(self|array|string $color1, self|array|string $color2, int $steps, array|string $spaceID, string|null $hueInterpolationMethod = 'shorter', bool $premultiplyAlpha = true) {
+      $start = self::makeInstance($color1);
+      $end = self::makeInstance($color2);
+      $steps = max(0, $steps);
 
-      // Calculate by how much each property will be changed at each steap
-      $stepList = array_map(function($prop) use ($start, $end, $steps) {
+      $space = self::getSpace($spaceID);
+      $props = self::propertiesOf($space['id']);
+
+      $startValues = $start->valuesTo($space);
+      $endValues = $end->valuesTo($space);
+
+      // Premultiply alpha values
+      $premultiply = function(array $values, float $a) use ($props): array {
+        $newValues = [];
+        foreach ($values as $k => $v) {
+          switch ($props[$k]) {
+            case 'h':
+            case 'cieh':
+            case 'okh':
+              $newValues[] = $v;
+              break;
+
+            default:
+              $newValues[] = $a * $v;
+          }
+        }
+        return $newValues;
+      };
+      if ($premultiplyAlpha) {
+        $startValues = $premultiply($startValues, $start->a);
+        $endValues = $premultiply($endValues, $end->a);
+      }
+
+      // Calculate by how much each property will be changed at each step
+      $stepList = [];
+      foreach ($props as $k => $prop) {
         switch ($prop) {
           case 'h':
           case 'cieh':
           case 'okh':
-            // Minimize the distance to travel through hues
-            $stepUp = (($end->{$prop}() - $start->{$prop}()) % 360 + 360) % 360;
-            $stepDown = (($start->{$prop}() - $end->{$prop}()) % 360 + 360) % 360;
-            $step = (($stepUp <= $stepDown) ? $stepUp : -$stepDown) / $steps;
-            break;
-          case 'r':
-          case 'g':
-          case 'b':
-          case 'a':
-            $step = ($end->{$prop} - $start->{$prop}) / $steps;
-            break;
-          default:
-            $step = ($end->{$prop}() - $start->{$prop}()) / $steps;
-        }
-        return $step;
-      }, $props);
+            $diff = $endValues[$k] - $startValues[$k];
 
-      // Calculate all colors of the gradient
-      $intermediateColors = [$startValues];
-      for ($i = 1; $i < $steps; $i++) {
-        $previous = $intermediateColors[$i - 1];
-        $next = [];
-        foreach($props as $k => $prop) {
-          $v = $previous[$k] + $stepList[$k];
-          if (in_array($prop, ['h', 'cieh', 'okh'])) $next[] = utils\angleToRange($v);
-          else $next[] = $v;
+            switch ($hueInterpolationMethod) {
+              case 'shorter':
+                if ($diff > 180) $startValues[$k] += 360;
+                else if ($diff < -180) $endValues[$k] += 360;
+                break;
+  
+              case 'longer':
+                if (0 < $diff && $diff < 180) $startValues[$k] += 360;
+                else if (-180 < $diff && $diff < 0) $endValues[$k] += 360;
+                break;
+  
+              case 'increasing':
+                if ($diff < 0) $endValues[$k] += 360;
+                break;
+  
+              case 'decreasing':
+                if (0 < $diff) $startValues[$k] += 360;
+                break;
+            }
+            // don't break: the step value is computed in the default case
+
+          default:
+            $stepList[] = ($endValues[$k] - $startValues[$k]) / ($steps + 1);
         }
-        $a = $next[3];
-        $next = self::toGamut($space, array_slice($next, 0, 3), $space);
-        $next[] = $a;
+      }
+      $stepAlpha = ($end->a - $start->a) / ($steps + 1);
+
+      // Calculate the intermediate colors
+      $intermediateColors = [$startValues];
+      for ($i = 1; $i <= $steps; $i++) {
+        $previous = $intermediateColors[$i - 1];
+
+        $next = [];
+        foreach ($props as $k => $prop) {
+          $v = $previous[$k] + $stepList[$k];
+          switch ($prop) {
+            case 'h':
+            case 'cieh':
+            case 'okh':
+              $next[] = utils\angleToRange($v);
+              break;
+
+            default:
+              $next[] = $v;
+          }
+        }
+
         $intermediateColors[] = $next;
       }
+      $intermediateColors[] = $endValues;
 
-      $gradient = [];
-      foreach($intermediateColors as $c) {
-        $gradient[] = new self(self::convert($space, 'srgb', $c));
+      // Undo alpha premultiplication
+      $undoPremultiply = function(array $values, int $stepIndex) use ($start, $stepAlpha, $props): array {
+        $a = $start->a + $stepIndex * $stepAlpha;
+        $newValues = [];
+        foreach ($values as $k => $v) {
+          switch ($props[$k]) {
+            case 'h':
+            case 'cieh':
+            case 'okh':
+              $newValues[] = $v;
+              break;
+
+            default:
+              $newValues[] = $v / $a;
+          }
+        }
+        return $newValues;
+      };
+      if ($premultiplyAlpha) {
+        foreach ($intermediateColors as $k => $values) {
+          $intermediateColors[$k] = $undoPremultiply($values, $k);
+        }
       }
-      $gradient[] = $end;
-      return $gradient;
+
+      $colors = [];
+      foreach ($intermediateColors as $k => $values) {
+        $c = self::convert($space, 'srgb', $values);
+        $c[] = $start->a + $k * $stepAlpha;
+        $colors[] = new self($c);
+      }
+      return $colors;
     }
 
 
@@ -2289,6 +2359,7 @@
     /** Gets the names of the properties of a color used in a certain format. */
     protected static function propertiesOf(string $format): array {
       switch(strtolower($format)) {
+        case 'srgb':
         case 'rgb':
         case 'rgba':  return ['r', 'g', 'b'];
         case 'hsl':

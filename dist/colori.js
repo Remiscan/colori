@@ -2843,71 +2843,105 @@ class Couleur {
     same(color, options = {}) {
         return Couleur.same(this, color, options);
     }
-    static gradient(startColor, endColor, steps = 5, spaceID = 'oklch') {
-        const start = Couleur.makeInstance(startColor);
-        const end = Couleur.makeInstance(endColor);
-        const _steps = Math.max(1, steps);
-        const props = [
-            ...Couleur.propertiesOf(spaceID),
-            'a'
-        ];
+    static interpolate(color1, color2, steps, spaceID, { hueInterpolationMethod ='shorter' , premultiplyAlpha =true  } = {}) {
+        const start = Couleur.makeInstance(color1);
+        const end = Couleur.makeInstance(color2);
+        const _steps = Math.max(0, steps);
         const space = Couleur.getSpace(spaceID);
-        const startValues = [
-            ...start.valuesTo(space),
-            start.a
-        ];
-        const endValues = [
-            ...end.valuesTo(space),
-            end.a
-        ];
+        const props = Couleur.propertiesOf(space.id);
+        let startValues = start.valuesTo(space);
+        let endValues = end.valuesTo(space);
+        const premultiply = (values, a)=>values.map((v, k)=>{
+                switch(props[k]){
+                    case 'h':
+                    case 'cieh':
+                    case 'okh':
+                        return v;
+                    default:
+                        return a * v;
+                }
+            })
+        ;
+        if (premultiplyAlpha) {
+            startValues = premultiply(startValues, start.a);
+            endValues = premultiply(endValues, end.a);
+        }
         const stepList = props.map((prop, k)=>{
-            let step;
             switch(prop){
                 case 'h':
                 case 'cieh':
                 case 'okh':
-                    const stepUp = ((endValues[k] - startValues[k]) % 360 + 360) % 360;
-                    const stepDown = ((startValues[k] - endValues[k]) % 360 + 360) % 360;
-                    step = (stepUp <= stepDown ? stepUp : -stepDown) / _steps;
-                    break;
+                    {
+                        const diff = endValues[k] - startValues[k];
+                        switch(hueInterpolationMethod){
+                            case 'shorter':
+                                if (diff > 180) startValues[k] += 360;
+                                else if (diff < -180) endValues[k] += 360;
+                                break;
+                            case 'longer':
+                                if (0 < diff && diff < 180) startValues[k] += 360;
+                                else if (-180 < diff && diff < 0) endValues[k] += 360;
+                                break;
+                            case 'increasing':
+                                if (diff < 0) endValues[k] += 360;
+                                break;
+                            case 'decreasing':
+                                if (0 < diff) startValues[k] += 360;
+                                break;
+                        }
+                    }
                 default:
-                    step = (endValues[k] - startValues[k]) / _steps;
+                    return (endValues[k] - startValues[k]) / (_steps + 1);
             }
-            return step;
         });
-        const intermediateColors = [
+        const stepAlpha = (end.a - start.a) / (_steps + 1);
+        let intermediateColors = [
             startValues
         ];
-        for(let i = 1; i < _steps; i++){
-            let previous = intermediateColors[i - 1];
+        for(let i = 1; i <= _steps; i++){
+            const previous = intermediateColors[i - 1];
             let next = props.map((prop, k)=>{
-                let v = previous[k] + stepList[k];
-                if ([
-                    'h',
-                    'cieh',
-                    'okh'
-                ].includes(prop)) return angleToRange(v);
-                else return v;
+                const v = previous[k] + stepList[k];
+                switch(prop){
+                    case 'h':
+                    case 'cieh':
+                    case 'okh':
+                        return angleToRange(v);
+                    default:
+                        return v;
+                }
             });
-            const a = next[3];
-            next = Couleur.toGamut(space, next.slice(0, 3), space);
-            next = [
-                ...next,
-                a
-            ];
             intermediateColors.push(next);
         }
-        return [
-            ...intermediateColors.map((c)=>new Couleur(Couleur.convert(space, 'srgb', c))
-            ),
-            end
-        ];
+        intermediateColors.push(endValues);
+        const undoPremultiply = (values, stepIndex)=>values.map((v, k)=>{
+                const a = start.a + stepIndex * stepAlpha;
+                switch(props[k]){
+                    case 'h':
+                    case 'cieh':
+                    case 'okh':
+                        return v;
+                    default:
+                        return v / a;
+                }
+            })
+        ;
+        if (premultiplyAlpha) {
+            intermediateColors = intermediateColors.map((values, k)=>undoPremultiply(values, k)
+            );
+        }
+        return intermediateColors.map((values, k)=>new Couleur([
+                ...Couleur.convert(space, 'srgb', values),
+                start.a + k * stepAlpha
+            ])
+        );
     }
-    gradient(color, steps, format) {
-        return Couleur.gradient(this, color, steps, format);
+    interpolate(color, steps, spaceID, options = {}) {
+        return Couleur.interpolate(this, color, steps, spaceID, options);
     }
     static propertiesOf(format) {
         switch(format.toLowerCase()){
+            case 'srgb':
             case 'rgb':
             case 'rgba':
                 return [
