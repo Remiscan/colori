@@ -427,7 +427,7 @@ function xyzd65_to_displayp3linear(xyz) {
     ];
 }
 function prophotorgb_to_prophotorgblinear(rgb) {
-    return rgb.map((v)=>Math.abs(v) <= 16 / 512 ? v / 16 : (Math.sign(v) || 1) * Math.pow(v, 1.8)
+    return rgb.map((v)=>Math.abs(v) <= 16 / 512 ? v / 16 : (Math.sign(v) || 1) * Math.pow(Math.abs(v), 1.8)
     );
 }
 function prophotorgblinear_to_prophotorgb(rgb) {

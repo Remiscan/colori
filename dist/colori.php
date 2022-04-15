@@ -192,7 +192,7 @@
   function prophotorgb_to_prophotorgblinear(array $rgb): array {
     foreach($rgb as $k => $v) {
       $sign = $v < 0 ? -1 : 1;
-      $rgb[$k] = abs($v) <= 16/512 ? $v / 16 : $sign * $v**1.8;
+      $rgb[$k] = abs($v) <= 16/512 ? $v / 16 : $sign * abs($v)**1.8;
     }
     return $rgb;
   }
