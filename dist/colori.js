@@ -131,16 +131,16 @@ const colorSpaces = [
         id: 'xyz-d50',
         gamut: [
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ]
         ],
         links: [
@@ -153,16 +153,16 @@ const colorSpaces = [
         id: 'xyz-d65',
         gamut: [
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ]
         ],
         links: [

@@ -31,11 +31,11 @@ const colorSpaces: ColorSpace[] = [
     links: ['lab']
   }, {
     id: 'xyz-d50',
-    gamut: [ [-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
+    gamut: [ [0, 1], [0, 1], [0, 1] ],
     links: ['lab', 'xyz-d65', 'prophoto-rgb-linear']
   }, {
     id: 'xyz-d65',
-    gamut: [ [-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
+    gamut: [ [0, 1], [0, 1], [0, 1] ],
     links: ['xyz-d50', 'srgb-linear', 'display-p3-linear', 'a98-rgb-linear', 'rec2020-linear', 'oklab']
   }, {
     id: 'display-p3',

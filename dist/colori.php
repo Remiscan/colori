@@ -5,11 +5,11 @@
   const COLOR_SPACES = array(
     array(
       'id' =>'srgb',
-      'gamut' =>[ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' =>['srgb-linear', 'hsl']
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['srgb-linear', 'hsl']
     ), array(
       'id' => 'srgb-linear',
-      'gamut' =>[ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
       'links' => ['srgb', 'xyz-d65']
     ), array(
       'id' => 'hsl',
@@ -29,11 +29,11 @@
       'links' => ['lab']
     ), array(
       'id' => 'xyz-d50',
-      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
       'links' => ['lab', 'xyz-d65', 'prophoto-rgb-linear']
     ), array(
       'id' => 'xyz-d65',
-      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
       'links' => ['xyz-d50', 'srgb-linear', 'display-p3-linear', 'a98-rgb-linear', 'rec2020-linear', 'oklab']
     ), array(
       'id' => 'display-p3',
@@ -49,7 +49,7 @@
       'links' => ['a98-rgb-linear']
     ), array(
       'id' => 'a98-rgb-linear',
-      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
       'links' => ['a98-rgb', 'xyz-d65']
     ), array(
       'id' => 'prophoto-rgb',
@@ -57,7 +57,7 @@
       'links' => ['prophoto-rgb-linear']
     ), array(
       'id' => 'prophoto-rgb-linear',
-      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
       'links' => ['prophoto-rgb', 'xyz-d50']
     ), array(
       'id' => 'rec2020',
@@ -65,7 +65,7 @@
       'links' => ['rec2020-linear']
     ), array(
       'id' => 'rec2020-linear',
-      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
       'links' => ['rec2020', 'xyz-d65']
     ), array(
       'id' => 'oklab',
