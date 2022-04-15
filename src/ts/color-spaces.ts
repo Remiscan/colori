@@ -43,7 +43,7 @@ const colorSpaces: ColorSpace[] = [
     links: ['display-p3-linear']
   }, {
     id: 'display-p3-linear',
-    gamut: [ [-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
+    gamut: [ [0, 1], [0, 1], [0, 1] ],
     links: ['display-p3', 'xyz-d65']
   }, {
     id: 'a98-rgb',
@@ -51,7 +51,7 @@ const colorSpaces: ColorSpace[] = [
     links: ['a98-rgb-linear']
   }, {
     id: 'a98-rgb-linear',
-    gamut: [ [-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
+    gamut: [ [0, 1], [0, 1], [0, 1] ],
     links: ['a98-rgb', 'xyz-d65']
   }, {
     id: 'prophoto-rgb',
@@ -59,7 +59,7 @@ const colorSpaces: ColorSpace[] = [
     links: ['prophoto-rgb-linear']
   }, {
     id: 'prophoto-rgb-linear',
-    gamut: [ [-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
+    gamut: [ [0, 1], [0, 1], [0, 1] ],
     links: ['prophoto-rgb', 'xyz-d50']
   }, {
     id: 'rec2020',
@@ -67,7 +67,7 @@ const colorSpaces: ColorSpace[] = [
     links: ['rec2020-linear']
   }, {
     id: 'rec2020-linear',
-    gamut: [ [-Infinity, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
+    gamut: [ [0, 1], [0, 1], [0, 1] ],
     links: ['rec2020', 'xyz-d65']
   }, {
     id: 'oklab',

@@ -198,16 +198,16 @@ const colorSpaces = [
         id: 'display-p3-linear',
         gamut: [
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ]
         ],
         links: [
@@ -239,16 +239,16 @@ const colorSpaces = [
         id: 'a98-rgb-linear',
         gamut: [
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ]
         ],
         links: [
@@ -280,16 +280,16 @@ const colorSpaces = [
         id: 'prophoto-rgb-linear',
         gamut: [
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ]
         ],
         links: [
@@ -321,16 +321,16 @@ const colorSpaces = [
         id: 'rec2020-linear',
         gamut: [
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ],
             [
-                -Infinity,
-                +Infinity
+                0,
+                1
             ]
         ],
         links: [
