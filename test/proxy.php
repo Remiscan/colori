@@ -1,5 +1,23 @@
 <!doctype html>
+
+<!-- ▼ Fichiers cache-busted grâce à PHP -->
+<!--<?php ob_start();?>-->
+
+<!-- Import map -->
+<script defer src="/_common/polyfills/es-module-shims.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "colori": "/colori/dist/colori.min.js"
+  }
+}
+</script>
+
 <link rel="stylesheet" href="./styles.css">
+
+<!--<?php $imports = ob_get_clean();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
+echo versionizeFiles($imports, __DIR__); ?>-->
 
 <h1>Testing proxy performance</h1>
 
@@ -18,14 +36,7 @@
 <p>Caching values in a Proxy works. There doesn't seem to be any time saved by doing that though...</p>
 
 <script type="module">
-  // ▼ ES modules cache-busted grâce à PHP
-  /*<?php ob_start();?>*/
-
-  import Couleur from '../dist/colori.js';
-
-  /*<?php $imports = ob_get_clean();
-  require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
-  echo versionizeFiles($imports, __DIR__); ?>*/
+  import Couleur from 'colori';
 
 
 

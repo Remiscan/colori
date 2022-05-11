@@ -3,7 +3,25 @@ require_once '../src/php/utils.php';
 ?>
 
 <!doctype html>
+
+<!-- ▼ Fichiers cache-busted grâce à PHP -->
+<!--<?php ob_start();?>-->
+
+<!-- Import map -->
+<script defer src="/_common/polyfills/es-module-shims.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "colori": "/colori/dist/colori.min.js"
+  }
+}
+</script>
+
 <link rel="stylesheet" href="./styles.css">
+
+<!--<?php $imports = ob_get_clean();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
+echo versionizeFiles($imports, __DIR__); ?>-->
 
 <h1>Compare Math.cbrt() in JS and my invRoot function in PHP</h1>
 

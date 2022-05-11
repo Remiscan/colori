@@ -17,7 +17,26 @@ $ordreMin = 4;
     <meta charset="utf-8">
     <title>colori tests</title>
 
+    <!-- ▼ Fichiers cache-busted grâce à PHP -->
+    <!--<?php ob_start();?>-->
+
+    <!-- Import map -->
+    <script defer src="/_common/polyfills/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "colori": "/colori/dist/colori.min.js",
+        "tests-javascript": "/colori/test/tests-javascript.js"
+      }
+    }
+    </script>
+
     <link rel="stylesheet" href="./styles.css">
+
+    <!--<?php $imports = ob_get_clean();
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
+    echo versionizeFiles($imports, __DIR__); ?>-->
+
     <style>
       body {
         width: 100%;
@@ -158,8 +177,8 @@ $ordreMin = 4;
       // ▼ ES modules cache-busted grâce à PHP
       /*<?php ob_start();?>*/
 
-      import Colour from '../dist/colori.js';
-      import Test from './tests-javascript.js.php';
+      import Colour from 'colori';
+      import Test from 'tests-javascript';
 
       /*<?php $imports = ob_get_clean();
       require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
