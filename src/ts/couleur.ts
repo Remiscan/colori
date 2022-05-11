@@ -612,10 +612,8 @@ export default class Couleur {
   public set CIElightness(val: number | string) { this.ciel = val; }
 
   public set ciea(val: number | string) { this.recompute(val, 'ciea', 'lab'); }
-  public set CIEa(val: number | string) { this.ciea = val; }
 
   public set cieb(val: number | string) { this.recompute(val, 'cieb', 'lab'); }
-  public set CIEb(val: number | string) { this.cieb = val; }
 
   public set ciec(val: number | string) { this.recompute(val, 'ciec', 'lch'); }
   public set CIEchroma(val: number | string) { this.ciec = val; }
@@ -627,10 +625,8 @@ export default class Couleur {
   public set OKlightness(val: number | string) { this.okl = val; }
 
   public set oka(val: number | string) { this.recompute(val, 'oka', 'oklab'); }
-  public set OKa(val: number | string) { this.oka = val; }
 
   public set okb(val: number | string) { this.recompute(val, 'okb', 'oklab'); }
-  public set OKb(val: number | string) { this.okb = val; }
 
   public set okc(val: number | string) { this.recompute(val, 'okc', 'oklch'); }
   public set OKchroma(val: number | string) { this.okc = val; }
@@ -657,9 +653,7 @@ export default class Couleur {
   public get ciel(): number { return this.valuesTo('lab')[0]; }
   public get CIElightness(): number { return this.ciel; }
   public get ciea(): number { return this.valuesTo('lab')[1]; }
-  public get CIEa(): number { return this.valuesTo('lab')[1]; }
   public get cieb(): number { return this.valuesTo('lab')[2]; }
-  public get CIEb(): number { return this.valuesTo('lab')[2]; }
   public get ciec(): number { return this.valuesTo('lch')[1]; }
   public get CIEchroma(): number { return this.ciec; }
   public get cieh(): number { return this.valuesTo('lch')[2]; }
@@ -667,9 +661,7 @@ export default class Couleur {
   public get okl(): number { return this.valuesTo('oklab')[0]; }
   public get OKlightness(): number { return this.okl; }
   public get oka(): number { return this.valuesTo('oklab')[1]; }
-  public get OKa(): number { return this.valuesTo('oklab')[1]; }
   public get okb(): number { return this.valuesTo('oklab')[2]; }
-  public get OKb(): number { return this.valuesTo('oklab')[2]; }
   public get okc(): number { return this.valuesTo('oklch')[1]; }
   public get OKchroma(): number { return this.okc; }
   public get okh(): number { return this.valuesTo('oklch')[2]; }

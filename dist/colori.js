@@ -415,7 +415,7 @@ function displayp3linear_to_xyzd65(rgb) {
     return [
         0.4865709486482162 * r + 0.26566769316909306 * g + 0.1982172852343625 * b,
         0.2289745640697488 * r + 0.6917385218365064 * g + 0.079286914093745 * b,
-        0 * r + 0.04511338185890264 * g + 1.043944368900976 * b
+        0.0000000000000000 * r + 0.04511338185890264 * g + 1.043944368900976 * b
     ];
 }
 function xyzd65_to_displayp3linear(xyz) {
@@ -439,7 +439,7 @@ function prophotorgblinear_to_xyzd50(rgb) {
     return [
         0.7977604896723027 * r + 0.13518583717574031 * g + 0.0313493495815248 * b,
         0.2880711282292934 * r + 0.7118432178101014 * g + 0.00008565396060525902 * b,
-        0 * r + 0 * g + 0.8251046025104601 * b
+        0.0 * r + 0.0 * g + 0.8251046025104601 * b
     ];
 }
 function xyzd50_to_prophotorgblinear(xyz) {
@@ -447,7 +447,7 @@ function xyzd50_to_prophotorgblinear(xyz) {
     return [
         1.3457989731028281 * x + -0.25558010007997534 * y + -0.05110628506753401 * z,
         -0.5446224939028347 * x + 1.5082327413132781 * y + 0.02053603239147973 * z,
-        0 * x + 0 * y + 1.2119675456389454 * z
+        0.0 * x + 0.0 * y + 1.2119675456389454 * z
     ];
 }
 function a98rgb_to_a98rgblinear(rgb) {
@@ -487,7 +487,7 @@ function rec2020linear_to_xyzd65(rgb) {
     return [
         0.6369580483012914 * r + 0.14461690358620832 * g + 0.1688809751641721 * b,
         0.2627002120112671 * r + 0.6779980715188708 * g + 0.05930171646986196 * b,
-        0 * r + 0.028072693049087428 * g + 1.060985057710791 * b
+        0.000000000000000 * r + 0.028072693049087428 * g + 1.060985057710791 * b
     ];
 }
 function xyzd65_to_rec2020linear(xyz) {
@@ -577,17 +577,17 @@ function xyzd65_to_oklab(xyz) {
     const [l, m, s] = lms.map((v)=>Math.cbrt(v)
     );
     return [
-        0.2104542553 * l + 0.793617785 * m + -0.0040720468 * s,
-        1.9779984951 * l + -2.428592205 * m + 0.4505937099 * s,
-        0.0259040371 * l + 0.7827717662 * m + -0.808675766 * s
+        0.2104542553 * l + 0.7936177850 * m + -0.0040720468 * s,
+        1.9779984951 * l + -2.4285922050 * m + 0.4505937099 * s,
+        0.0259040371 * l + 0.7827717662 * m + -0.8086757660 * s
     ];
 }
 function oklab_to_xyzd65(oklab) {
     const [okl, oka, okb] = oklab;
     const lms = [
-        0.9999999984505198 * okl + 0.39633779217376786 * oka + 0.2158037580607588 * okb,
-        1.0000000088817609 * okl + -0.10556134232365635 * oka + -0.06385417477170591 * okb,
-        1.0000000546724108 * okl + -0.08948418209496575 * oka + -1.2914855378640917 * okb
+        0.99999999845051981432 * okl + 0.39633779217376785678 * oka + 0.21580375806075880339 * okb,
+        1.0000000088817607767 * okl + -0.1055613423236563494 * oka + -0.063854174771705903402 * okb,
+        1.0000000546724109177 * okl + -0.089484182094965759684 * oka + -1.2914855378640917399 * okb
     ];
     const [l, m, s] = lms.map((v)=>v ** 3
     );
@@ -741,7 +741,7 @@ function luminance(rgb) {
     const coeffs = [
         0.2126729,
         0.7151522,
-        0.072175
+        0.0721750
     ];
     return rgb.reduce((sum, v, i)=>sum + Math.pow(v, 2.4) * coeffs[i]
     , 0);
@@ -774,7 +774,7 @@ function APCAcontrast(rgbText, rgbBack) {
 }
 function luminance1(rgb) {
     const linrgb = srgb_to_srgblinear(rgb);
-    return 0.2126729 * linrgb[0] + 0.7151522 * linrgb[1] + 0.072175 * linrgb[2];
+    return 0.2126729 * linrgb[0] + 0.7151522 * linrgb[1] + 0.0721750 * linrgb[2];
 }
 function WCAG2(rgbText, rgbBack) {
     const L1 = luminance1(rgbText);
@@ -897,7 +897,7 @@ function CIEDE2000([l1, a1, b1], [l2, a2, b2]) {
     const dH = 2 * Math.sqrt(CC1 * CC2) * Math.sin(Math.PI / 180 * (dhh / 2));
     const mL = (L1 + L2) / 2, mCC = (CC1 + CC2) / 2;
     const mhh = CC1 * CC2 === 0 ? hh1 + hh2 : Math.abs(hh2 - hh1) <= 180 ? (hh1 + hh2) / 2 : hh1 + hh2 >= 360 ? (hh1 + hh2 - 360) / 2 : (hh1 + hh2 + 360) / 2;
-    const T = 1 - 0.17 * Math.cos(Math.PI / 180 * (mhh - 30)) + 0.24 * Math.cos(Math.PI / 180 * (2 * mhh)) + 0.32 * Math.cos(Math.PI / 180 * (3 * mhh + 6)) - 0.2 * Math.cos(Math.PI / 180 * (4 * mhh - 63)), dTH = 30 * Math.exp(-1 * ((mhh - 275) / 25) ** 2), RC = 2 * Math.sqrt(mCC ** 7 / (mCC ** 7 + 25 ** 7)), SL = 1 + 0.015 * (mL - 50) ** 2 / Math.sqrt(20 + (mL - 50) ** 2), SC = 1 + 0.045 * mCC, SH = 1 + 0.015 * mCC * T, RT = -1 * Math.sin(Math.PI / 180 * (2 * dTH)) * RC;
+    const T = 1 - 0.17 * Math.cos(Math.PI / 180 * (mhh - 30)) + 0.24 * Math.cos(Math.PI / 180 * (2 * mhh)) + 0.32 * Math.cos(Math.PI / 180 * (3 * mhh + 6)) - 0.20 * Math.cos(Math.PI / 180 * (4 * mhh - 63)), dTH = 30 * Math.exp(-1 * ((mhh - 275) / 25) ** 2), RC = 2 * Math.sqrt(mCC ** 7 / (mCC ** 7 + 25 ** 7)), SL = 1 + 0.015 * (mL - 50) ** 2 / Math.sqrt(20 + (mL - 50) ** 2), SC = 1 + 0.045 * mCC, SH = 1 + 0.015 * mCC * T, RT = -1 * Math.sin(Math.PI / 180 * (2 * dTH)) * RC;
     return Math.sqrt((dL / SL) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2 + RT * (dC / SC) * (dH / SH));
 }
 const mod3 = {
@@ -2011,7 +2011,7 @@ class Couleur {
                     `${hex[2]}${hex[3]}`,
                     `${hex[4]}${hex[5]}`
                 ]);
-                if (Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) < 0.02) return name;
+                if (Math.abs(r2 - r) + Math.abs(g2 - g) + Math.abs(b2 - b) < .02) return name;
             }
             return null;
         } else if (this.a === 0) return 'transparent';
@@ -2029,7 +2029,7 @@ class Couleur {
         else return null;
     }
     get closestName() {
-        if (this.a < 0.5) return 'transparent';
+        if (this.a < .5) return 'transparent';
         const allNames = Couleur.namedColors;
         const [r, g, b] = this.values;
         let closest = '';
@@ -2171,14 +2171,8 @@ class Couleur {
     set ciea(val) {
         this.recompute(val, 'ciea', 'lab');
     }
-    set CIEa(val) {
-        this.ciea = val;
-    }
     set cieb(val) {
         this.recompute(val, 'cieb', 'lab');
-    }
-    set CIEb(val) {
-        this.cieb = val;
     }
     set ciec(val) {
         this.recompute(val, 'ciec', 'lch');
@@ -2201,14 +2195,8 @@ class Couleur {
     set oka(val) {
         this.recompute(val, 'oka', 'oklab');
     }
-    set OKa(val) {
-        this.oka = val;
-    }
     set okb(val) {
         this.recompute(val, 'okb', 'oklab');
-    }
-    set OKb(val) {
-        this.okb = val;
     }
     set okc(val) {
         this.recompute(val, 'okc', 'oklch');
@@ -2276,13 +2264,7 @@ class Couleur {
     get ciea() {
         return this.valuesTo('lab')[1];
     }
-    get CIEa() {
-        return this.valuesTo('lab')[1];
-    }
     get cieb() {
-        return this.valuesTo('lab')[2];
-    }
-    get CIEb() {
         return this.valuesTo('lab')[2];
     }
     get ciec() {
@@ -2306,13 +2288,7 @@ class Couleur {
     get oka() {
         return this.valuesTo('oklab')[1];
     }
-    get OKa() {
-        return this.valuesTo('oklab')[1];
-    }
     get okb() {
-        return this.valuesTo('oklab')[2];
-    }
-    get OKb() {
         return this.valuesTo('oklab')[2];
     }
     get okc() {
@@ -2386,7 +2362,7 @@ class Couleur {
         if (clamp) values = Couleur.toGamut(space, values);
         return values;
     }
-    static inGamut(spaceID, values, valueSpaceID = 'srgb', { tolerance =0.0001  } = {}) {
+    static inGamut(spaceID, values, valueSpaceID = 'srgb', { tolerance =.0001  } = {}) {
         const space = Couleur.getSpace(spaceID);
         const convertedValues = Couleur.convert(valueSpaceID, space, values);
         return convertedValues.every((v, k)=>v >= space.gamut[k][0] - tolerance && v <= space.gamut[k][1] + tolerance
@@ -2414,7 +2390,7 @@ class Couleur {
                     let Cmin = 0;
                     let Cmax = oklch[1];
                     oklch[1] = oklch[1] / 2;
-                    while(Cmax - Cmin > 0.000001){
+                    while(Cmax - Cmin > .000001){
                         if (Couleur.inGamut(space, oklch, clampSpace, {
                             tolerance: 0
                         })) {
@@ -2425,7 +2401,7 @@ class Couleur {
                             });
                             const naiveOklab = Couleur.convert(clampSpace, 'oklab', naiveOklch);
                             const oklab = Couleur.convert(clampSpace, 'oklab', oklch);
-                            if (euclidean(naiveOklab, oklab) < 0.02) {
+                            if (euclidean(naiveOklab, oklab) < .02) {
                                 oklch = naiveOklch;
                                 break;
                             }
@@ -2764,7 +2740,7 @@ class Couleur {
         }
         let OKLmin = directionOKL > 0 ? movingLab[0] : 0;
         let OKLmax = directionOKL > 0 ? 1 : movingLab[0];
-        while(OKLmax - OKLmin > 0.0001){
+        while(OKLmax - OKLmin > .0001){
             const okl = (OKLmin + OKLmax) / 2;
             const newValues = movingLab;
             newValues[0] = okl;
