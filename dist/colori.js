@@ -2431,7 +2431,7 @@ class Couleur {
             this.a
         ]);
     }
-    change(prop, value, { action =null  } = {}) {
+    change(prop, value, { action  } = {}) {
         const replace = action?.toLowerCase() === 'replace';
         const scale = action?.toLowerCase() === 'scale';
         const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, {
@@ -2645,14 +2645,12 @@ class Couleur {
     whatToBlend(mixColor, alphas) {
         return Couleur.whatToBlend(this, mixColor, alphas);
     }
-    static contrast(textColor, backgroundColor, { method ='APCA'  } = {}) {
+    static contrast(textColor, backgroundColor, { method ='apca'  } = {}) {
         const background = Couleur.makeInstance(backgroundColor);
         if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
         let text = Couleur.makeInstance(textColor);
         if (text.a < 1) text = Couleur.blend(background, text);
         switch(method.toLowerCase()){
-            case 'wcag3':
-            case 'sapc':
             case 'apca':
                 return APCAcontrast(text.values, background.values);
             case 'wcag2':
@@ -2691,7 +2689,7 @@ class Couleur {
                 }
         }
     }
-    improveContrast(referenceColor, desiredContrast, { as ='text' , lower =false , colorScheme =null , method ='APCA'  } = {}) {
+    improveContrast(referenceColor, desiredContrast, { as ='text' , lower =false , colorScheme , method ='apca'  } = {}) {
         const background = as === 'text' ? Couleur.makeInstance(referenceColor) : this;
         const text = as === 'text' ? this : Couleur.makeInstance(referenceColor);
         const backgroundLab = background.valuesTo('oklab');
@@ -2776,7 +2774,7 @@ class Couleur {
         }
         return new Couleur(Couleur.convert('oklab', 'srgb', movingLab));
     }
-    static distance(color1, color2, { method ='deltaE2000' , alpha =true  } = {}) {
+    static distance(color1, color2, { method ='deltae2000' , alpha =true  } = {}) {
         const colore1 = Couleur.makeInstance(color1);
         const colore2 = Couleur.makeInstance(color2);
         let opaqueDist = +Infinity;
@@ -2825,7 +2823,7 @@ class Couleur {
     distance(color, options = {}) {
         return Couleur.distance(this, color, options);
     }
-    static same(color1, color2, { tolerance =1 , method ='deltaE2000'  } = {}) {
+    static same(color1, color2, { tolerance =1 , method ='deltae2000'  } = {}) {
         if (Couleur.distance(color1, color2, {
             method
         }) > tolerance) return false;

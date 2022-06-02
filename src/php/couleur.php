@@ -962,10 +962,9 @@
       if ($text->a < 1) $text = self::blend($background, $text);
 
       switch (strtolower($method)) {
-        case 'wcag3':
-        case 'sapc':
         case 'apca':
           return contrasts\APCA($text->values(), $background->values());
+        case 'wcag2':
         default:
           return contrasts\WCAG2($text->values(), $background->values());
       }

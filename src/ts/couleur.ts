@@ -13,12 +13,55 @@ type colorString = string;
 type colorArray = number[];
 type colorObject = { r: number, g: number, b: number, a?: number };
 type color = Couleur | colorObject | colorArray | colorString;
+
 type colorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
+
 type colorSpaceOrID = ColorSpace | string;
-type interpolationOptions = {
-  hueInterpolationMethod?: 'shorter'|'longer'|'increasing'|'decreasing'|null,
-  premultiplyAlpha?: boolean
+
+type alphaValue = number | `${number}%`;
+
+interface exprOptions {
+  precision?: number;
+  clamp?: boolean;
 }
+
+type toGamutMethod = 'okchroma' | 'naive';
+
+interface toGamutOptions {
+  method?: toGamutMethod;
+}
+
+type contrastMethod = 'apca' | 'wcag2';
+
+interface contrastOptions {
+  method?: contrastMethod;
+}
+
+interface improveContrastOptions {
+  as?: 'text' | 'background';
+  lower?: boolean;
+  colorScheme?: 'light' | 'dark';
+  method?: contrastMethod;
+}
+
+type distanceMethod = 'ciede2000' | 'deltae2000' | 'deltaeok' | 'euclidean';
+
+interface distanceOptions {
+  method?: distanceMethod;
+  alpha?: boolean;
+}
+
+interface sameOptions {
+  tolerance?: number;
+  method?: distanceMethod;
+}
+
+interface interpolateOptions {
+  hueInterpolationMethod?: 'shorter' | 'longer' | 'increasing' | 'decreasing';
+  premultiplyAlpha?: boolean;
+}
+
+
 
 /**
  * Colori module
@@ -151,7 +194,7 @@ export default class Couleur {
    * @returns The properly parsed number.
    * @throws When the value isn't in a supported format for the corresponding property.
    */
-  private static parse(value: number | string, prop: colorProperty | null = null, { clamp = true }: { clamp?: boolean } = {}): number {
+  private static parse(value: number | string, prop: colorProperty | null = null, { clamp = true } = {}): number {
     const val = String(value);
     const nval = parseFloat(val);
 
@@ -300,7 +343,7 @@ export default class Couleur {
    * @param options.precision How many decimals to display.
    * @returns The unparsed value, ready to insert in a CSS expression.
    */
-  private static unparse(value: number, prop: colorProperty | null, { precision = 0 }: { precision?: number } = {}): string {
+  private static unparse(value: number, prop: colorProperty | null, { precision = 0 } = {}): string {
     switch (prop) {
       case 'r':
       case 'g':
@@ -333,7 +376,7 @@ export default class Couleur {
    * @param options
    * @param options.parsed Whether the provided values are already parsed.
    */
-  private set(data: Array<string|number>, props: Array<colorProperty|null>, spaceID: colorSpaceOrID, { parsed = false }: { parsed?: boolean } = {}) {
+  private set(data: Array<string|number>, props: Array<colorProperty|null>, spaceID: colorSpaceOrID, { parsed = false } = {}) {
     const space = Couleur.getSpace(spaceID);
     const values = parsed ? data.map(v => Number(v)) : props.map((p, i) => Couleur.parse(data[i], p));
     [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
@@ -407,7 +450,7 @@ export default class Couleur {
    * @param options.clamp Which color space the values should be clamped to.
    * @returns The expression of the color in the requested format.
    */
-  public expr(format: string, { precision = 0, clamp = true }: { precision?: number, clamp?: boolean } = {}): string {
+  public expr(format: string, { precision = 0, clamp = true }: exprOptions = {}): string {
     const _format = format.toLowerCase();
     const spaceID = _format.replace('color-', '');
     const space = Couleur.getSpace(spaceID);
@@ -461,7 +504,7 @@ export default class Couleur {
    * @param options @see Couleur.expr
    * @returns The expression of the color in the requested format.
    */
-  public static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options = {}): string {
+  public static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options: exprOptions = {}): string {
     const _format = format.toLowerCase();
     const spaceID = _format.replace('color-', '');
     const rgba = [...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)), values[3]];
@@ -749,7 +792,7 @@ export default class Couleur {
    * @param options.clamp Whether to clamp the values to their new color space.
    * @returns The array of converted values.
    */
-  public valuesTo(spaceID: colorSpaceOrID, {clamp = false }: { clamp?: boolean } = {}): number[] {
+  public valuesTo(spaceID: colorSpaceOrID, { clamp = false } = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     let values = Couleur.convert('srgb', space, this.values);
     if (clamp) values = Couleur.toGamut(space, values);
@@ -783,7 +826,7 @@ export default class Couleur {
    * @param valueSpaceID Color space of the given values, or its identifier.
    * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
-  public static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'okchroma' }: { method?: 'okchroma'|'naive' } = {}): number[] {
+  public static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'okchroma' }: toGamutOptions = {}): number[] {
     const space = Couleur.getSpace(spaceID);
     const valueSpace = Couleur.getSpace(valueSpaceID);
     const _method = method.toLowerCase();
@@ -865,7 +908,7 @@ export default class Couleur {
    *                                   null if the value should be added to the previous value of the property.
    * @returns The modified color.
    */
-  public change(prop: colorProperty, value: string | number, { action = null }: { action?: 'replace' | 'scale' | null } = {}): Couleur {
+  public change(prop: colorProperty, value: string | number, { action }: { action?: 'replace' | 'scale' } = {}): Couleur {
     const replace = action?.toLowerCase() === 'replace';
     const scale = action?.toLowerCase() === 'scale';
     const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, { clamp: false });
@@ -937,7 +980,7 @@ export default class Couleur {
    * @param alpha Alpha value that will replace overlay's.
    * @returns The resulting color.
    */
-  public static blend(backgroundColor: color, overlayColor: color, alpha?: number | string): Couleur {
+  public static blend(backgroundColor: color, overlayColor: color, alpha?: alphaValue): Couleur {
     const background = Couleur.makeInstance(backgroundColor);
     const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
@@ -973,7 +1016,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.blend - Non-static version. */
-  public blend(overlayColor: color, alpha?: number | string): Couleur { return Couleur.blend(this, overlayColor, alpha); }
+  public blend(overlayColor: color, alpha?: alphaValue): Couleur { return Couleur.blend(this, overlayColor, alpha); }
 
   /** @see Couleur.blendAll - Non-static version. */
   public blendAll(...colors: color[]): Couleur { return Couleur.blendAll(this, ...colors); }
@@ -986,7 +1029,7 @@ export default class Couleur {
    * @returns The background that is solution to the equation, if it has one.
    * @throws If the equation has an infinite amount of solutions.
    */
-  public static unblend(mixColor: color, overlayColor: color, alpha?: number | string): Couleur | null {
+  public static unblend(mixColor: color, overlayColor: color, alpha?: alphaValue): Couleur | null {
     const mix = Couleur.makeInstance(mixColor);
     const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
@@ -1034,7 +1077,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.unblend - Non-static version. */
-  public unblend(overlayColor: color, alpha?: number | string): Couleur | null { return Couleur.unblend(this, overlayColor, alpha); }
+  public unblend(overlayColor: color, alpha?: alphaValue): Couleur | null { return Couleur.unblend(this, overlayColor, alpha); }
   
   /** @see Couleur.unblendAll - Non-static version. */
   public unblendAll(...colors: color[]): Couleur | null { return Couleur.unblendAll(this, ...colors); }
@@ -1044,7 +1087,7 @@ export default class Couleur {
    * Solves the equation mix = blend(background, overlay) with overlay unknown.
    * @param backgroundColor The background color.
    * @param mixColor The result of the blend.
-   * @param alpha The alpha value(s) you want the solution(s) to have.
+   * @param alphas The alpha value(s) you want the solution(s) to have.
    * @param options
    * @param options.ignoreTransparent Whether to return the color 'transparent' when it's a solution.
    * @returns The solution(s) to the equation.
@@ -1132,7 +1175,7 @@ export default class Couleur {
    * @returns Contrast between the two colors.
    * @throws When the background color is transparent, as contrast can't be measured with it.
    */
-  public static contrast(textColor: color, backgroundColor: color, { method = 'APCA' }: { method?: string } = {}): number {
+  public static contrast(textColor: color, backgroundColor: color, { method = 'apca' }: contrastOptions = {}): number {
     const background = Couleur.makeInstance(backgroundColor);
     if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
     let text = Couleur.makeInstance(textColor);
@@ -1141,8 +1184,6 @@ export default class Couleur {
     if (text.a < 1) text = Couleur.blend(background, text);
 
     switch (method.toLowerCase()) {
-      case 'wcag3':
-      case 'sapc':
       case 'apca':
         return Contrasts.APCA(text.values, background.values);
       case 'wcag2':
@@ -1197,7 +1238,7 @@ export default class Couleur {
    * @param options.method The method to use to compute the contrast.
    * @returns The modified color which verifies Couleur.contrast(color, referenceColor) >= desiredContrast.
    */
-  public improveContrast(referenceColor: color, desiredContrast: number, { as = 'text', lower = false, colorScheme = null, method = 'APCA' }: { as?: 'text' | 'background', lower?: boolean, colorScheme?: 'light' | 'dark' | null, method?: string } = {}): Couleur {
+  public improveContrast(referenceColor: color, desiredContrast: number, { as = 'text', lower = false, colorScheme, method = 'apca' }: improveContrastOptions = {}): Couleur {
     const background = as === 'text' ? Couleur.makeInstance(referenceColor) : this;
     const text =       as === 'text' ? this : Couleur.makeInstance(referenceColor);
     const backgroundLab = background.valuesTo('oklab');
@@ -1320,7 +1361,7 @@ export default class Couleur {
    * @param options.alpha Whether to add the distance between alpha values.
    * @returns The distance between the two colors in sRGB space.
    */
-  public static distance(color1: color, color2: color, { method = 'deltaE2000', alpha = true }: { method?: string, alpha?: boolean } = {}): number { 
+  public static distance(color1: color, color2: color, { method = 'deltae2000', alpha = true }: distanceOptions = {}): number { 
     const colore1 = Couleur.makeInstance(color1);
     const colore2 = Couleur.makeInstance(color2);
     let opaqueDist: number = +Infinity;
@@ -1359,13 +1400,13 @@ export default class Couleur {
    * @param tolerance The minimum distance between the two colors to consider them different.
    * @returns Whether the two colors are considered the same.
    */
-  public static same(color1: color, color2: color, { tolerance = 1, method = 'deltaE2000' }: { tolerance?: number, method?: string } = {}): boolean {
+  public static same(color1: color, color2: color, { tolerance = 1, method = 'deltae2000' }: sameOptions = {}): boolean {
     if (Couleur.distance(color1, color2, { method }) > tolerance) return false;
     else return true;
   }
 
   /** @see Couleur.same - Non-static version. */
-  public same(color: color, options: object = {}): boolean { return Couleur.same(this, color, options); }
+  public same(color: color, options: sameOptions = {}): boolean { return Couleur.same(this, color, options); }
 
 
   /* Other functions */
@@ -1379,7 +1420,7 @@ export default class Couleur {
    * @param spaceID The color space in which to interpolate.
    * @param hueInterpolationMethod The method used to interpolate hues.
    */
-  public static interpolate(color1: color, color2: color, steps: number, spaceID: colorSpaceOrID, { hueInterpolationMethod = 'shorter', premultiplyAlpha = true }: interpolationOptions = {}) {
+  public static interpolate(color1: color, color2: color, steps: number, spaceID: colorSpaceOrID, { hueInterpolationMethod = 'shorter', premultiplyAlpha = true }: interpolateOptions = {}) {
     const start = Couleur.makeInstance(color1);
     const end = Couleur.makeInstance(color2);
     const _steps = Math.max(0, steps);
@@ -1488,7 +1529,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.interpolate - Non-static version. */
-  public interpolate(color: color, steps: number, spaceID: colorSpaceOrID, options: interpolationOptions = {}) { return Couleur.interpolate(this, color, steps, spaceID, options); }
+  public interpolate(color: color, steps: number, spaceID: colorSpaceOrID, options: interpolateOptions = {}) { return Couleur.interpolate(this, color, steps, spaceID, options); }
 
 
 
