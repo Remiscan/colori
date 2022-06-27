@@ -6,6 +6,3 @@ wiki/
 # Docs
 build/docs
 docs/
-
-# VS Code files
-.vscode/settings.json
