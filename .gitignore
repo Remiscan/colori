@@ -1,7 +1,13 @@
+# Sub repositories
 demo/
 palette/
 wiki/
-tsconfig.json
-.vscode/settings.json
+
+# Docs
 build/docs
 docs/
+
+# VS Code files
+.vscode/settings.json
+.vscode/colori.code-workspace
+tsconfig.json
