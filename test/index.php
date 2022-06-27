@@ -25,8 +25,8 @@ $ordreMin = 4;
     <script type="importmap">
     {
       "imports": {
-        "colori": "/colori/dist/colori.min.js",
-        "tests-javascript": "/colori/test/tests-javascript.js"
+        "colori": "/colori/lib/dist/colori.min.js",
+        "tests-javascript": "/colori/lib/test/tests-javascript.js"
       }
     }
     </script>

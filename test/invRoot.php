@@ -12,7 +12,7 @@ require_once '../src/php/utils.php';
 <script type="importmap">
 {
   "imports": {
-    "colori": "/colori/dist/colori.min.js"
+    "colori": "/colori/lib/dist/colori.min.js"
   }
 }
 </script>
