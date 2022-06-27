@@ -9,5 +9,3 @@ docs/
 
 # VS Code files
 .vscode/settings.json
-.vscode/colori.code-workspace
-tsconfig.json
