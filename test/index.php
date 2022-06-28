@@ -17,8 +17,8 @@ $ordreMin = 4;
     <meta charset="utf-8">
     <title>colori tests</title>
 
-    <!-- ▼ Fichiers cache-busted grâce à PHP -->
-    <!--<?php ob_start();?>-->
+    <!-- ▼ Cache-busted files -->
+    <!--<?php versionizeStart(); ?>-->
 
     <!-- Import map -->
     <script defer src="/_common/polyfills/es-module-shims.js"></script>
@@ -33,9 +33,7 @@ $ordreMin = 4;
 
     <link rel="stylesheet" href="./styles.css">
 
-    <!--<?php $imports = ob_get_clean();
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
-    echo versionizeFiles($imports, __DIR__); ?>-->
+    <!--<?php versionizeEnd(__DIR__); ?>-->
 
     <style>
       body {
@@ -122,7 +120,7 @@ $ordreMin = 4;
           <li><a href="CIEDE2000.php">CIEDE2000 distance</a>
           <li><a href="graph-conversion.php">Path-finding conversion</a>
           <li><a href="oklab.php">oklab color space</a>
-          <li><a href="../palette/test/">Palette generation</a>
+          <li><a href="/colori/palette/test/">Palette generation</a>
         </ul>
       </div>
     </div>
@@ -174,15 +172,9 @@ $ordreMin = 4;
     <h2 class="js">colori.js tests</h2>
 
     <script type="module">
-      // ▼ ES modules cache-busted grâce à PHP
-      /*<?php ob_start();?>*/
-
       import Colour from 'colori';
       import Test from 'tests-javascript';
 
-      /*<?php $imports = ob_get_clean();
-      require_once $_SERVER['DOCUMENT_ROOT'] . '/_common/php/versionize-files.php';
-      echo versionizeFiles($imports, __DIR__); ?>*/
 
 
 
