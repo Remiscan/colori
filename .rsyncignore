@@ -1,0 +1,13 @@
+.git
+.gitattributes
+.gitignore
+.rsyncignore
+.deploy.sh
+.vscode
+build
+docs
+src
+HOWTOBUILD.md
+LICENSE.md
+README.md
+tsconfig.json
