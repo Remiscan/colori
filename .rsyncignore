@@ -2,7 +2,7 @@
 .gitattributes
 .gitignore
 .rsyncignore
-.deploy.sh
+.deploy
 .vscode
 build
 docs

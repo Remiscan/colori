@@ -1,0 +1,2 @@
+source ~/web/deploy-to-prod.sh
+deploy-to-prod "remiscanfr" "." "www/colori/lib"
