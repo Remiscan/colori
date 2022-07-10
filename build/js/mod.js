@@ -7,7 +7,7 @@ export async function bundle() {
     entryPoints: ['src/ts/main.ts'],
     bundle: true,
     format: 'esm',
-    target: 'es2016'
+    target: 'es2015'
   };
 
   // Bundle colori.js
