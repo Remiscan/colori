@@ -6,8 +6,7 @@ export async function bundle() {
   const commonOptions = {
     entryPoints: ['src/ts/main.ts'],
     bundle: true,
-    format: 'esm',
-    target: 'es2015'
+    format: 'esm'
   };
 
   // Bundle colori.js
