@@ -1,3 +1,8 @@
 import { bundle } from './mod.js';
 
-await bundle();
+try {
+  await bundle();
+  Deno.exit();
+} catch (error) {
+  console.error(error);
+}
