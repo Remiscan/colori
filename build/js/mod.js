@@ -1,7 +1,7 @@
 import { build } from 'https://deno.land/x/esbuild@v0.14.48/mod.js';
 
 
-// Bundle the module files
+// Bundles all modules together
 export async function bundle() {
   const commonOptions = {
     entryPoints: ['src/ts/main.ts'],
@@ -9,22 +9,22 @@ export async function bundle() {
     format: 'esm'
   };
 
-  // Bundle colori.js
-  {
+  { // Bundle colori.js
     const options = {...commonOptions, ...{
       outfile: 'dist/colori.js'
     }};
 
     await build(options);
+    console.log('colori.js built');
   }
 
-  // Bundle colori.min.js
-  {
+  { // Bundle colori.min.js
     const options = {...commonOptions, ...{
       minify: true,
       outfile: 'dist/colori.min.js'
     }};
 
     await build(options);
+    console.log('colori.min.js built');
   }
 }
