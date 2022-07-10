@@ -9,22 +9,16 @@ export async function bundle() {
     format: 'esm'
   };
 
-  { // Bundle colori.js
-    const options = {...commonOptions, ...{
-      outfile: 'dist/colori.js'
-    }};
+  // Bundle colori.js
+  await build({...commonOptions, ...{
+    outfile: 'dist/colori.js'
+  }});
+  console.log('colori.js built');
 
-    await build(options);
-    console.log('colori.js built');
-  }
-
-  { // Bundle colori.min.js
-    const options = {...commonOptions, ...{
-      minify: true,
-      outfile: 'dist/colori.min.js'
-    }};
-
-    await build(options);
-    console.log('colori.min.js built');
-  }
+  // Bundle colori.min.js
+  await build({...commonOptions, ...{
+    minify: true,
+    outfile: 'dist/colori.min.js'
+  }});
+  console.log('colori.min.js built');
 }
