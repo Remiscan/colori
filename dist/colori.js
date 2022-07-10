@@ -1,5 +1,4 @@
 var __defProp = Object.defineProperty;
-var __pow = Math.pow;
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -282,14 +281,14 @@ function lab_to_xyzd50(lab) {
   const f1 = (ciel + 16) / 116;
   const f0 = ciea / 500 + f1;
   const f2 = f1 - cieb / 200;
-  const x = __pow(f0, 3) > \u03B5 ? __pow(f0, 3) : (116 * f0 - 16) / \u03BA;
-  const y = ciel > \u03BA * \u03B5 ? __pow((ciel + 16) / 116, 3) : ciel / \u03BA;
-  const z = __pow(f2, 3) > \u03B5 ? __pow(f2, 3) : (116 * f2 - 16) / \u03BA;
+  const x = f0 ** 3 > \u03B5 ? f0 ** 3 : (116 * f0 - 16) / \u03BA;
+  const y = ciel > \u03BA * \u03B5 ? ((ciel + 16) / 116) ** 3 : ciel / \u03BA;
+  const z = f2 ** 3 > \u03B5 ? f2 ** 3 : (116 * f2 - 16) / \u03BA;
   return [x, y, z].map((v, k) => v * w[k]);
 }
 function lab_to_lch(lab) {
   const [ciel, ciea, cieb] = lab;
-  const ciec = Math.sqrt(__pow(ciea, 2) + __pow(cieb, 2));
+  const ciec = Math.sqrt(ciea ** 2 + cieb ** 2);
   let cieh = Math.atan2(cieb, ciea) * 180 / Math.PI;
   while (cieh < 0)
     cieh += 360;
@@ -324,7 +323,7 @@ function oklab_to_xyzd65(oklab) {
     1.0000000088817609 * okl + -0.10556134232365635 * oka + -0.06385417477170591 * okb,
     1.0000000546724108 * okl + -0.08948418209496575 * oka + -1.2914855378640917 * okb
   ];
-  const [l, m, s] = lms.map((v) => __pow(v, 3));
+  const [l, m, s] = lms.map((v) => v ** 3);
   return [
     1.2268798733741557 * l + -0.5578149965554813 * m + 0.28139105017721583 * s,
     -0.04057576262431372 * l + 1.1122868293970594 * m + -0.07171106666151701 * s,
@@ -573,13 +572,13 @@ __export(distances_exports, {
   euclidean: () => euclidean
 });
 function euclidean(vals1, vals2) {
-  return vals1.reduce((sum, v, k) => sum + __pow(v - vals2[k], 2), 0);
+  return vals1.reduce((sum, v, k) => sum + (v - vals2[k]) ** 2, 0);
 }
 function CIEDE2000([l1, a1, b1], [l2, a2, b2]) {
   const L1 = 100 * l1, L2 = 100 * l2;
-  const C1 = Math.sqrt(__pow(a1, 2) + __pow(b1, 2));
-  const C2 = Math.sqrt(__pow(a2, 2) + __pow(b2, 2));
-  const mC = (C1 + C2) / 2, G = 0.5 * (1 - Math.sqrt(__pow(mC, 7) / (__pow(mC, 7) + __pow(25, 7)))), aa1 = (1 + G) * a1, aa2 = (1 + G) * a2, CC1 = Math.sqrt(__pow(aa1, 2) + __pow(b1, 2)), CC2 = Math.sqrt(__pow(aa2, 2) + __pow(b2, 2));
+  const C1 = Math.sqrt(a1 ** 2 + b1 ** 2);
+  const C2 = Math.sqrt(a2 ** 2 + b2 ** 2);
+  const mC = (C1 + C2) / 2, G = 0.5 * (1 - Math.sqrt(mC ** 7 / (mC ** 7 + 25 ** 7))), aa1 = (1 + G) * a1, aa2 = (1 + G) * a2, CC1 = Math.sqrt(aa1 ** 2 + b1 ** 2), CC2 = Math.sqrt(aa2 ** 2 + b2 ** 2);
   let hh1 = CC1 === 0 ? 0 : Math.atan2(b1, aa1) * 180 / Math.PI, hh2 = CC2 === 0 ? 0 : Math.atan2(b2, aa2) * 180 / Math.PI;
   while (hh1 < 0)
     hh1 += 360;
@@ -594,8 +593,8 @@ function CIEDE2000([l1, a1, b1], [l2, a2, b2]) {
   const dH = 2 * Math.sqrt(CC1 * CC2) * Math.sin(Math.PI / 180 * (dhh / 2));
   const mL = (L1 + L2) / 2, mCC = (CC1 + CC2) / 2;
   const mhh = CC1 * CC2 === 0 ? hh1 + hh2 : Math.abs(hh2 - hh1) <= 180 ? (hh1 + hh2) / 2 : hh1 + hh2 >= 360 ? (hh1 + hh2 - 360) / 2 : (hh1 + hh2 + 360) / 2;
-  const T = 1 - 0.17 * Math.cos(Math.PI / 180 * (mhh - 30)) + 0.24 * Math.cos(Math.PI / 180 * (2 * mhh)) + 0.32 * Math.cos(Math.PI / 180 * (3 * mhh + 6)) - 0.2 * Math.cos(Math.PI / 180 * (4 * mhh - 63)), dTH = 30 * Math.exp(-1 * __pow((mhh - 275) / 25, 2)), RC = 2 * Math.sqrt(__pow(mCC, 7) / (__pow(mCC, 7) + __pow(25, 7))), SL = 1 + 0.015 * __pow(mL - 50, 2) / Math.sqrt(20 + __pow(mL - 50, 2)), SC = 1 + 0.045 * mCC, SH = 1 + 0.015 * mCC * T, RT = -1 * Math.sin(Math.PI / 180 * (2 * dTH)) * RC;
-  return Math.sqrt(__pow(dL / SL, 2) + __pow(dC / SC, 2) + __pow(dH / SH, 2) + RT * (dC / SC) * (dH / SH));
+  const T = 1 - 0.17 * Math.cos(Math.PI / 180 * (mhh - 30)) + 0.24 * Math.cos(Math.PI / 180 * (2 * mhh)) + 0.32 * Math.cos(Math.PI / 180 * (3 * mhh + 6)) - 0.2 * Math.cos(Math.PI / 180 * (4 * mhh - 63)), dTH = 30 * Math.exp(-1 * ((mhh - 275) / 25) ** 2), RC = 2 * Math.sqrt(mCC ** 7 / (mCC ** 7 + 25 ** 7)), SL = 1 + 0.015 * (mL - 50) ** 2 / Math.sqrt(20 + (mL - 50) ** 2), SC = 1 + 0.045 * mCC, SH = 1 + 0.015 * mCC * T, RT = -1 * Math.sin(Math.PI / 180 * (2 * dTH)) * RC;
+  return Math.sqrt((dL / SL) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2 + RT * (dC / SC) * (dH / SH));
 }
 
 // src/ts/graph.ts
@@ -1113,22 +1112,22 @@ var Couleur = class {
       case "r":
       case "g":
       case "b":
-        return precision === null ? `${255 * value}` : `${Math.round(__pow(10, precision) * 255 * value) / __pow(10, precision)}`;
+        return precision === null ? `${255 * value}` : `${Math.round(10 ** precision * 255 * value) / 10 ** precision}`;
       case "s":
       case "l":
       case "w":
       case "bk":
       case "ciel":
       case "okl":
-        return precision === null ? `${100 * value}%` : `${Math.round(__pow(10, precision) * 100 * value) / __pow(10, precision)}%`;
+        return precision === null ? `${100 * value}%` : `${Math.round(10 ** precision * 100 * value) / 10 ** precision}%`;
       case "oka":
       case "okb":
       case "okc":
-        return precision === null ? `${value}` : `${Math.round(__pow(10, Math.max(precision, 4)) * value) / __pow(10, Math.max(precision, 4))}`;
+        return precision === null ? `${value}` : `${Math.round(10 ** Math.max(precision, 4) * value) / 10 ** Math.max(precision, 4)}`;
       case "a":
-        return precision === null ? `${value}` : `${Math.round(__pow(10, Math.max(precision, 2)) * value) / __pow(10, Math.max(precision, 2))}`;
+        return precision === null ? `${value}` : `${Math.round(10 ** Math.max(precision, 2) * value) / 10 ** Math.max(precision, 2)}`;
       default:
-        return precision === null ? `${value}` : `${Math.round(__pow(10, precision) * value) / __pow(10, precision)}`;
+        return precision === null ? `${value}` : `${Math.round(10 ** precision * value) / 10 ** precision}`;
     }
   }
   set(data, props, spaceID, { parsed = false } = {}) {
@@ -1184,7 +1183,7 @@ var Couleur = class {
             break;
           string += ` / ${a}`;
         } else {
-          string += ` ${precision === null ? v : Math.round(__pow(10, precision) * v) / __pow(10, precision)}`;
+          string += ` ${precision === null ? v : Math.round(10 ** precision * v) / 10 ** precision}`;
         }
       }
       string += `)`;
