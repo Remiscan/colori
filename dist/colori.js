@@ -1,99 +1,122 @@
 var __defProp = Object.defineProperty;
 var __pow = Math.pow;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
 };
 
 // src/ts/color-spaces.ts
 var colorSpaces = [
   {
     id: "srgb",
+    aliases: ["rgb", "rgba"],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["srgb-linear", "hsl"]
   },
   {
     id: "srgb-linear",
+    aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["srgb", "xyz-d65"]
   },
   {
     id: "hsl",
+    aliases: ["hsla"],
     gamut: [[0, 360], [0, 1], [0, 1]],
     links: ["srgb", "hwb"]
   },
   {
     id: "hwb",
+    aliases: [],
     gamut: [[0, 360], [0, 1], [0, 1]],
     links: ["hsl"]
   },
   {
     id: "lab",
+    aliases: [],
     gamut: [[0, 4], [-Infinity, Infinity], [-Infinity, Infinity]],
     links: ["xyz-d50", "lch"]
   },
   {
     id: "lch",
+    aliases: [],
     gamut: [[0, 4], [0, Infinity], [0, 360]],
     links: ["lab"]
   },
   {
     id: "xyz-d50",
+    aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["lab", "xyz-d65", "prophoto-rgb-linear"]
   },
   {
     id: "xyz-d65",
+    aliases: ["xyz"],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["xyz-d50", "srgb-linear", "display-p3-linear", "a98-rgb-linear", "rec2020-linear", "oklab"]
   },
   {
     id: "display-p3",
+    aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["display-p3-linear"]
   },
   {
     id: "display-p3-linear",
+    aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["display-p3", "xyz-d65"]
   },
   {
     id: "a98-rgb",
+    aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["a98-rgb-linear"]
   },
   {
     id: "a98-rgb-linear",
+    aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["a98-rgb", "xyz-d65"]
   },
   {
     id: "prophoto-rgb",
+    aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["prophoto-rgb-linear"]
   },
   {
     id: "prophoto-rgb-linear",
+    aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["prophoto-rgb", "xyz-d50"]
   },
   {
     id: "rec2020",
+    aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["rec2020-linear"]
   },
   {
     id: "rec2020-linear",
+    aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["rec2020", "xyz-d65"]
   },
   {
     id: "oklab",
+    aliases: [],
     gamut: [[0, 4], [-Infinity, Infinity], [-Infinity, Infinity]],
     links: ["xyz-d65", "oklch"]
   },
   {
     id: "oklch",
+    aliases: [],
     gamut: [[0, 4], [0, Infinity], [0, 360]],
     links: ["oklab"]
   }
@@ -601,9 +624,11 @@ function CIEDE2000([l1, a1, b1], [l2, a2, b2]) {
 // src/ts/graph.ts
 var GraphNode = class {
   constructor(object) {
-    this.visited = false;
-    this.predecessor = null;
-    this.data = null;
+    __publicField(this, "id");
+    __publicField(this, "links");
+    __publicField(this, "visited", false);
+    __publicField(this, "predecessor", null);
+    __publicField(this, "data", null);
     var _a;
     this.id = object.id;
     this.links = object.links;
@@ -624,6 +649,7 @@ var GraphNode = class {
 };
 var Graph = class {
   constructor(array) {
+    __publicField(this, "nodes");
     this.nodes = array.map((e) => new GraphNode(e));
   }
   getNode(id) {
@@ -899,10 +925,10 @@ function fromHex(hexa) {
 // src/ts/couleur.ts
 var Couleur = class {
   constructor(color) {
-    this.r = 0;
-    this.g = 0;
-    this.b = 0;
-    this.a = 0;
+    __publicField(this, "r", 0);
+    __publicField(this, "g", 0);
+    __publicField(this, "b", 0);
+    __publicField(this, "a", 0);
     if (color instanceof Couleur || typeof color === "object" && "r" in color && "g" in color && "b" in color) {
       this.r = color.r;
       this.g = color.g;
@@ -1146,24 +1172,7 @@ var Couleur = class {
   setColor(spaceID, values) {
     let vals = values.slice(0, 3).map((v) => Couleur.parse(v));
     const a = Couleur.parse(values[3]);
-    switch (spaceID.toLowerCase()) {
-      case "srgb":
-      case "srgb-linear":
-      case "display-p3":
-      case "a98-rgb":
-      case "prophoto-rgb":
-      case "rec2020":
-      case "xyz-d50":
-      case "xyz-d65":
-        vals = Couleur.convert(spaceID, "srgb", vals);
-        break;
-      default:
-        if (spaceID.startsWith("--")) {
-          const id = spaceID.substring(2);
-          vals = Couleur.convert(id, "srgb", vals);
-        } else
-          throw `The ${JSON.stringify(spaceID)} color space is not supported`;
-    }
+    vals = Couleur.convert(spaceID, "srgb", vals);
     const rgba = [...vals, a];
     return this.set(rgba, [null, null, null], "srgb");
   }
@@ -2089,19 +2098,7 @@ var Couleur = class {
       result = spaceID;
     else {
       let id = spaceID.toLowerCase();
-      switch (id) {
-        case "rgb":
-        case "rgba":
-          id = "srgb";
-          break;
-        case "hsla":
-          id = "hsl";
-          break;
-        case "xyz":
-          id = "xyz-d65";
-          break;
-      }
-      result = Couleur.colorSpaces.find((sp) => sp.id == id);
+      result = Couleur.colorSpaces.find((sp) => sp.id === id || sp.aliases.includes(id));
     }
     if (result == null)
       throw `${spaceID} is not a supported color space`;

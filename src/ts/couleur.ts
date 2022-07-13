@@ -410,26 +410,9 @@ export default class Couleur {
     let vals = values.slice(0, 3).map(v => Couleur.parse(v));
     const a = Couleur.parse(values[3]);
 
-    switch (spaceID.toLowerCase()) {
-      case 'srgb':
-      case 'srgb-linear':
-      case 'display-p3':
-      case 'a98-rgb':
-      case 'prophoto-rgb':
-      case 'rec2020':
-      case 'xyz-d50':
-      case 'xyz-d65':
-        vals = Couleur.convert(spaceID, 'srgb', vals);
-        break;
-      default:
-        if (spaceID.startsWith('--')) {
-          const id = spaceID.substring(2);
-          vals = Couleur.convert(id, 'srgb', vals);
-        }
-        else throw `The ${JSON.stringify(spaceID)} color space is not supported`;
-    }
-
+    vals = Couleur.convert(spaceID, 'srgb', vals);
     const rgba = [...vals, a];
+    
     return this.set(rgba, [null, null, null], 'srgb');
   }
 
@@ -1574,13 +1557,7 @@ export default class Couleur {
     if (typeof spaceID !== 'string') result = spaceID;
     else {
       let id = spaceID.toLowerCase();
-      switch (id) {
-        case 'rgb':
-        case 'rgba': id = 'srgb'; break;
-        case 'hsla': id = 'hsl'; break;
-        case 'xyz': id = 'xyz-d65'; break;
-      }
-      result = Couleur.colorSpaces.find(sp => sp.id == id);
+      result = Couleur.colorSpaces.find(sp => sp.id === id || sp.aliases.includes(id));
     }
 
     if (result == null) throw `${spaceID} is not a supported color space`;
