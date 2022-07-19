@@ -46,8 +46,8 @@ echo "Starting to build $destination ...\n";
 
 foreach($orderedModules as $k => $module) {
   // Get file contents
-  $file = $module->data()->getFilename();
-  $content = file_get_contents($module->data()->getPathname());
+  $file = $module->data->getFilename();
+  $content = file_get_contents($module->data->getPathname());
   echo "File $file opened\n";
 
   // Remove php tags

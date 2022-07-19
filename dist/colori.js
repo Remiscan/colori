@@ -626,13 +626,19 @@ var GraphNode = class {
   constructor(object) {
     __publicField(this, "id");
     __publicField(this, "links");
+    __publicField(this, "data");
     __publicField(this, "visited", false);
     __publicField(this, "predecessor", null);
-    __publicField(this, "data", null);
     var _a;
     this.id = object.id;
     this.links = object.links;
     this.data = (_a = object.data) != null ? _a : null;
+  }
+  getVisitedState() {
+    return this.visited;
+  }
+  getPredecessor() {
+    return this.predecessor;
   }
   visit(mark = true) {
     this.visited = mark;
@@ -682,7 +688,7 @@ var Graph = class {
           }
           for (const neighbourID of current2.links) {
             const neighbour = this.getNode(neighbourID);
-            if (neighbour.visited === false) {
+            if (neighbour.getVisitedState() === false) {
               neighbour.visit();
               neighbour.follow(current2);
               queue.push(neighbour);
@@ -693,9 +699,11 @@ var Graph = class {
         throw `No path found from ${JSON.stringify(start.id)} to ${JSON.stringify(end.id)}`;
       const path = [end];
       let current = end;
-      while (current.predecessor != null) {
-        path.push(current.predecessor);
-        current = current.predecessor;
+      let predecessor = current.getPredecessor();
+      while (predecessor != null) {
+        path.push(predecessor);
+        current = predecessor;
+        predecessor = current.getPredecessor();
       }
       this.cleanUp();
       return path.reverse();
@@ -708,9 +716,9 @@ var Graph = class {
     const orderedList = [];
     const unvisitedNodes = [...this.nodes];
     const visit = (node) => {
-      if (node.visited === true)
+      if (node.getVisitedState() === true)
         return;
-      if (node.visited === "temp")
+      if (node.getVisitedState() === "temp")
         throw "The graph is not a directed acyclic graph";
       node.visit("temp");
       for (const link of node.links) {

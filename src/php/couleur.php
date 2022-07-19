@@ -635,7 +635,7 @@
       $graph = new Graph(self::COLOR_SPACES);
       try {
         $path = $graph->shortestPath($startSpace['id'], $endSpace['id']);
-        $path = array_map(function ($node) { return $node->id(); }, $path);
+        $path = array_map(function ($node) { return $node->id; }, $path);
       }
       catch (\Exception $error) {
         switch ($error) {

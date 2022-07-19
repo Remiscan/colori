@@ -599,27 +599,22 @@
 
 
   class GraphNode {
-    private string $id;
-    private bool $visited;
-    private ?string $predecessorID;
-    private array $links;
-    private mixed $data;
+    public readonly string|int $id;
+    public readonly array $links;
+    public readonly mixed $data;
+    private bool|string $visited = false;
+    private ?GraphNode $predecessor = null;
 
     public function __construct(array $array) {
       $this->id = $array['id'];
-      $this->visited = false;
-      $this->predecessor = null;
       $this->links = $array['links'];
-      $this->data = isset($array['data']) ? $array['data'] : null;
+      $this->data = $array['data'] ?? null;
     }
 
-    public function id(): string { return $this->id; }
-    public function visited(): bool { return $this->visited; }
-    public function links(): array { return $this->links; }
-    public function predecessor(): ?GraphNode { return $this->predecessor; }
-    public function data(): mixed { return $this->data; }
+    public function getVisitedState() { return $this->visited; }
+    public function getPredecessor() { return $this->predecessor; }
 
-    public function visit(mixed $mark = true): void {
+    public function visit(bool|string $mark = true): void {
       $this->visited = $mark;
     }
     public function unvisit(): void {
@@ -652,8 +647,8 @@
       return null;
     }
 
-    protected function getNode(string $id): GraphNode {
-      $node = self::array_find(fn($node) => $node->id() === $id, $this->nodes);
+    protected function getNode(string|int $id): GraphNode {
+      $node = self::array_find(fn($node) => $node->id === $id, $this->nodes);
       if ($node === null) throw new \Exception("Node ". json_encode($id) ." does not exist");
       return $node;
     }
@@ -665,7 +660,7 @@
       }
     }
 
-    public function shortestPath(string $startID, string $endID): array {
+    public function shortestPath(string|int $startID, string|int $endID): array {
       if ($startID === $endID) return $this->shortestPath = [];
 
       try {
@@ -679,14 +674,14 @@
         $found = false;
         while (count($queue) > 0) {
           $current = array_shift($queue);
-          if ($current->id() === $end->id()) {
+          if ($current->id === $end->id) {
             $found = true;
             break;
           }
 
-          foreach ($current->links() as $neighbourID) {
+          foreach ($current->links as $neighbourID) {
             $neighbour = $this->getNode($neighbourID);
-            if ($neighbour->visited() === false) {
+            if ($neighbour->getVisitedState() === false) {
               $neighbour->visit();
               $neighbour->follow($current);
               $queue[] = $neighbour;
@@ -699,9 +694,11 @@
         // Let's backtrack through the tree to find the path.
         $path = [$end];
         $current = $end;
-        while ($current->predecessor() != null) {
-          $path[] = $current->predecessor();
-          $current = $current->predecessor();
+        $predecessor = $current->getPredecessor();
+        while ($predecessor != null) {
+          $path[] = $predecessor;
+          $current = $predecessor;
+          $predecessor = $current->getPredecessor();
         }
 
         $this->cleanUp();
@@ -718,11 +715,11 @@
       $unvisitedNodes = $this->nodes;
 
       $visit = function(GraphNode $node) use (&$visit, &$orderedList, &$unvisitedNodes): void {
-        if ($node->visited() === true) return;
-        if ($node->visited() === 'temp') throw new \Exception("The graph is not a directed acyclic graph");
+        if ($node->getVisitedState() === true) return;
+        if ($node->getVisitedState() === 'temp') throw new \Exception("The graph is not a directed acyclic graph");
 
         $node->visit('temp'); // Mark visit as temporary to detect if we loop back to this node
-        foreach ($node->links() as $link) { $visit($this->getNode($link)); }
+        foreach ($node->links as $link) { $visit($this->getNode($link)); }
         $node->visit(true);
 
         $orderedList[] = $node;
@@ -1713,7 +1710,7 @@
       $graph = new Graph(self::COLOR_SPACES);
       try {
         $path = $graph->shortestPath($startSpace['id'], $endSpace['id']);
-        $path = array_map(function ($node) { return $node->id(); }, $path);
+        $path = array_map(function ($node) { return $node->id; }, $path);
       }
       catch (\Exception $error) {
         switch ($error) {

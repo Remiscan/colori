@@ -2,11 +2,11 @@ type id = string | number;
 
 /** Graph node in a graph that will be traversed by a path finding algorithm. */
 class GraphNode {
-  id: id;
-  links: id[];
-  visited: boolean | id = false;
-  predecessor: GraphNode | null = null;
-  data: any = null;
+  public readonly id: id;
+  public readonly links: id[];
+  public readonly data: any;
+  private visited: boolean | string = false;
+  private predecessor: GraphNode | null = null;
 
   /**
    * Builds a graph node from an object.
@@ -18,7 +18,10 @@ class GraphNode {
     this.data = object.data ?? null;
   }
 
-  visit(mark: boolean | id = true) { this.visited = mark; }
+  getVisitedState() { return this.visited; }
+  getPredecessor() { return this.predecessor; }
+
+  visit(mark: boolean | string = true) { this.visited = mark; }
   unvisit() { this.visited = false; }
   follow(node: GraphNode) { this.predecessor = node; }
   unfollow() { this.predecessor = null; }
@@ -28,7 +31,7 @@ class GraphNode {
 
 /** Graph that will be traversed by a path finding algorithm. */
 export default class Graph {
-  nodes: GraphNode[];
+  private nodes: GraphNode[];
 
   /**
    * Builds a graph from an array.
@@ -85,7 +88,7 @@ export default class Graph {
     
         for (const neighbourID of current.links) {
           const neighbour = this.getNode(neighbourID);
-          if (neighbour.visited === false) {
+          if (neighbour.getVisitedState() === false) {
             neighbour.visit();
             neighbour.follow(current);
             queue.push(neighbour);
@@ -98,9 +101,11 @@ export default class Graph {
       // Let's backtrack through the tree to find the path.
       const path = [end];
       let current = end;
-      while (current.predecessor != null) {
-        path.push(current.predecessor);
-        current = current.predecessor;
+      let predecessor = current.getPredecessor();
+      while (predecessor != null) {
+        path.push(predecessor);
+        current = predecessor;
+        predecessor = current.getPredecessor();
       }
 
       this.cleanUp();
@@ -121,8 +126,8 @@ export default class Graph {
     const unvisitedNodes: GraphNode[] = [...this.nodes];
 
     const visit = (node: GraphNode) => {
-      if (node.visited === true) return;
-      if (node.visited === 'temp') throw 'The graph is not a directed acyclic graph';
+      if (node.getVisitedState() === true) return;
+      if (node.getVisitedState() === 'temp') throw 'The graph is not a directed acyclic graph';
 
       node.visit('temp'); // Mark visit as temporary to detect if we loop back to this node
       for (const link of node.links) {
