@@ -31,7 +31,7 @@ class GraphNode {
 
 /** Graph that will be traversed by a path finding algorithm. */
 export default class Graph {
-  private nodes: GraphNode[];
+  public readonly nodes: GraphNode[];
 
   /**
    * Builds a graph from an array.

@@ -631,13 +631,10 @@
 
 
   class Graph {
-    private array $nodes;
+    public readonly array $nodes;
 
     public function __construct(array $array) {
-      $this->nodes = [];
-      foreach ($array as $e) {
-        $this->nodes[] = new GraphNode($e);
-      }
+      $this->nodes = array_map(fn($e) => new GraphNode($e), $array);
     }
 
     public static function array_find(callable $callback, array $array): mixed {
