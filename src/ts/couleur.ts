@@ -3,11 +3,13 @@ import * as Contrasts from './contrasts.js';
 import * as Conversions from './conversion.js';
 import { Format as CSSFormat, Formats, RegExps as ValueRegExps } from './css-formats.js';
 import * as Distances from './distances.js';
-import Graph from './graph.js';
+import Graph, { PathNotFoundError, UndefinedNodeError } from './graph.js';
 import namedColors from './named-colors.js';
 import * as Utils from './utils.js';
 
 
+
+/* Type definitions */
 
 type colorString = string;
 type colorArray = number[];
@@ -15,10 +17,13 @@ type colorObject = { r: number, g: number, b: number, a?: number };
 type color = Couleur | colorObject | colorArray | colorString;
 
 type colorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
+type cssColorFormatWithNamedProperties = 'srgb'|'rgb'|'rgba'|'hsl'|'hsla'|'hwb'|'lab'|'lch'|'oklab'|'oklch';
 
 type colorSpaceOrID = ColorSpace | string;
 
-type alphaValue = number | `${number}%`;
+type unparsedValue = number | string;
+type unparsedAlphaValue = number | `${number}%`;
+type parsedValue = number;
 
 interface exprOptions {
   precision?: number;
@@ -59,6 +64,58 @@ interface sameOptions {
 interface interpolateOptions {
   hueInterpolationMethod?: 'shorter' | 'longer' | 'increasing' | 'decreasing';
   premultiplyAlpha?: boolean;
+}
+
+
+
+/* Error definitions */
+
+export class InvalidColorStringError extends Error {
+  constructor(color: color) {
+    super(`${JSON.stringify(color)} is not a valid color format`);
+  }
+}
+
+export class InvalidColorPropValueError extends Error {
+  constructor (prop: colorProperty, value: unparsedValue) {
+    super(`Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`);
+  }
+}
+
+export class InvalidColorAngleValueError extends Error {
+  constructor(value: unparsedValue) {
+    super(`Invalid angle value: ${JSON.stringify(value)}`);
+  }
+}
+
+export class InvalidColorArbitraryValueError extends Error {
+  constructor(value: unparsedValue) {
+    super(`Invalid arbitrary value: ${JSON.stringify(value)}`);
+  }
+}
+
+export class ColorFormatHasNoSuchPropertyError extends Error {
+  constructor(format: string, prop: colorProperty) {
+    super(`Format ${format} does not have a property called ${prop}`);
+  }
+}
+
+export class ImpossibleColorConversionError extends Error {
+  constructor(startSpace: ColorSpace, endSpace: ColorSpace) {
+    super(`Conversion from ${JSON.stringify(startSpace.id)} space to ${JSON.stringify(endSpace.id)} space is impossible`);
+  }
+}
+
+export class UnsupportedColorSpaceError extends Error {
+  constructor(id: string) {
+    super(`${JSON.stringify(id)} is not a supported color space`);
+  }
+}
+
+export class UndefinedConversionError extends Error {
+  constructor(functionName: string) {
+    super(`Conversion function ${functionName} does not exist`);
+  }
 }
 
 
@@ -119,11 +176,11 @@ export default class Couleur {
           this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], Utils.toUnparsedAlpha(format.data[5])]);
           break;
         default:
-          throw `${JSON.stringify(color)} is not a valid color format`;
+          throw new InvalidColorStringError(color);
       }
     }
 
-    else throw `Couleur objects can only be created from a string, an array of parsed values, or another Couleur object ; this is not one: ${JSON.stringify(color)}`;
+    else throw new Error(`Couleur objects can only be created from a string, an array of parsed values, or another Couleur object ; this is not one: ${JSON.stringify(color)}`);
   }
 
 
@@ -164,7 +221,7 @@ export default class Couleur {
       default:    format = Couleur.formats[9];
     }
 
-    if (format == null) throw 'No matching format';
+    if (format == null) throw new Error('No matching format');
 
     // Check if the given string matches any color syntax
     for (const syntaxe of format.syntaxes) {
@@ -181,7 +238,7 @@ export default class Couleur {
       }
     }
 
-    throw `${JSON.stringify(colorString)} is not a valid color format`;
+    throw new InvalidColorStringError(colorString);
   }
 
 
@@ -194,143 +251,137 @@ export default class Couleur {
    * @returns The properly parsed number.
    * @throws When the value isn't in a supported format for the corresponding property.
    */
-  private static parse(value: number | string, prop: colorProperty | null = null, { clamp = true } = {}): number {
+  private static parse(value: unparsedValue, prop: colorProperty | null = null, { clamp = true } = {}): number {
     const val = String(value);
     const nval = parseFloat(val);
 
-    try {
-      switch (prop) {
-        // Alpha values:
-        // from any % or any number
-        // clamped to [0, 100]% or [0, 1]
-        // to [0, 1]
-        case 'a': {
-          // If n is a percentage
-          if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-            if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
-            else        return nval / 100;
-          }
-          // If n is a number
-          else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-            if (clamp)  return Math.max(0, Math.min(nval, 1));
-            else        return nval;
-          }
-          else throw 'invalid';
+    switch (prop) {
+      // Alpha values:
+      // from any % or any number
+      // clamped to [0, 100]% or [0, 1]
+      // to [0, 1]
+      case 'a': {
+        // If n is a percentage
+        if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+          if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
+          else        return nval / 100;
         }
-
-        // Red, green, blue values:
-        // from any % or any number
-        // clamped to [0, 100]% or [0, 255]
-        // to [0, 1]
-        case 'r':
-        case 'g':
-        case 'b': {
-          // If n is a percentage
-          if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-            if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
-            else        return nval / 100;
-          }
-          // If n is a number
-          else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-            if (clamp)  return Math.max(0, Math.min(nval / 255, 1));
-            else        return nval / 255;
-          }
-          else throw 'invalid';
+        // If n is a number
+        else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+          if (clamp)  return Math.max(0, Math.min(nval, 1));
+          else        return nval;
         }
-
-
-        // Hue and CIE hue values:
-        // from any angle or any number
-        // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
-        // to [0, 360]
-        case 'h':
-        case 'cieh':
-        case 'okh': {
-          let h = nval;
-          // If n is a number
-          if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-            return Utils.angleToRange(h);
-          }
-          // If n is an angle
-          else if ((new RegExp('^' + ValueRegExps.angle + '$').test(val))) {
-            if (val.slice(-3) === 'deg') {} // necessary to accept deg values
-            else if (val.slice(-4) === 'grad')
-              h = h * 360 / 400;
-            else if (val.slice(-3) === 'rad')
-              h = h * 180 / Math.PI;
-            else if (val.slice(-4) === 'turn')
-              h = h * 360;
-            else throw 'angle';
-            return Utils.angleToRange(h);
-          }
-          else throw 'invalid';
-        }
-
-        // Percentage values:
-        // from any %
-        // clamped to [0, 100]%
-        // to [0, 1]
-        case 's':
-        case 'l':
-        case 'w':
-        case 'bk':
-        case 'ciel':
-        case 'okl': {
-          // If n is a percentage
-          if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-            if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
-            else        return nval / 100;
-          }
-          else throw 'invalid';
-        }
-
-        // CIE axes values
-        // and OKLAB axes values
-        // and OKLCH chroma value:
-        // any number
-        case 'ciea':
-        case 'cieb':
-        case 'oka':
-        case 'okb':
-        case 'okc': {
-          // If n is a number
-          if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-            return nval;
-          }
-          else throw 'invalid';
-        }
-
-        // CIE chroma values:
-        // from any number
-        // clamped to [0, +Inf[
-        case 'ciec': {
-          // If n is a number
-          if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-            if (clamp)  return Math.max(0, nval);
-            else        return nval;
-          }
-          else throw 'invalid';
-        }
-
-        // Arbitrary values
-        // from any % or any number
-        // to any number (so that 0% becomes 0 and 100% becomes 1)
-        default: {
-          // If n is a percentage
-          if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
-            return nval / 100;
-          }
-          // If n is a number
-          else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
-            return nval;
-          }
-          else throw 'invalidest'; // doesn't match any property value at all
-        }
+        else throw new InvalidColorPropValueError(prop, value);
       }
-    } catch (error) {
-      if (error === 'invalid')    throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-      else if (error === 'angle') throw `Invalid angle value: ${JSON.stringify(value)}`;
-      else                        throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
+
+      // Red, green, blue values:
+      // from any % or any number
+      // clamped to [0, 100]% or [0, 255]
+      // to [0, 1]
+      case 'r':
+      case 'g':
+      case 'b': {
+        // If n is a percentage
+        if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+          if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
+          else        return nval / 100;
+        }
+        // If n is a number
+        else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+          if (clamp)  return Math.max(0, Math.min(nval / 255, 1));
+          else        return nval / 255;
+        }
+        else throw new InvalidColorPropValueError(prop, value);
+      }
+
+
+      // Hue and CIE hue values:
+      // from any angle or any number
+      // clamped to [0, 360]deg or [0, 400]grad or [0, 2π]rad or [0, 1]turn
+      // to [0, 360]
+      case 'h':
+      case 'cieh':
+      case 'okh': {
+        let h = nval;
+        // If n is a number
+        if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+          return Utils.angleToRange(h);
+        }
+        // If n is an angle
+        else if ((new RegExp('^' + ValueRegExps.angle + '$').test(val))) {
+          if (val.slice(-3) === 'deg') {} // necessary to accept deg values
+          else if (val.slice(-4) === 'grad')
+            h = h * 360 / 400;
+          else if (val.slice(-3) === 'rad')
+            h = h * 180 / Math.PI;
+          else if (val.slice(-4) === 'turn')
+            h = h * 360;
+          else throw new InvalidColorAngleValueError(value);
+          return Utils.angleToRange(h);
+        }
+        else throw new InvalidColorPropValueError(prop, value);
+      }
+
+      // Percentage values:
+      // from any %
+      // clamped to [0, 100]%
+      // to [0, 1]
+      case 's':
+      case 'l':
+      case 'w':
+      case 'bk':
+      case 'ciel':
+      case 'okl': {
+        // If n is a percentage
+        if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+          if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
+          else        return nval / 100;
+        }
+        else throw new InvalidColorPropValueError(prop, value);
+      }
+
+      // CIE axes values
+      // and OKLAB axes values
+      // and OKLCH chroma value:
+      // any number
+      case 'ciea':
+      case 'cieb':
+      case 'oka':
+      case 'okb':
+      case 'okc': {
+        // If n is a number
+        if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+          return nval;
+        }
+        else throw new InvalidColorPropValueError(prop, value);
+      }
+
+      // CIE chroma values:
+      // from any number
+      // clamped to [0, +Inf[
+      case 'ciec': {
+        // If n is a number
+        if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+          if (clamp)  return Math.max(0, nval);
+          else        return nval;
+        }
+        else throw new InvalidColorPropValueError(prop, value);
+      }
+
+      // Arbitrary values
+      // from any % or any number
+      // to any number (so that 0% becomes 0 and 100% becomes 1)
+      default: {
+        // If n is a percentage
+        if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+          return nval / 100;
+        }
+        // If n is a number
+        else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+          return nval;
+        }
+        else throw new InvalidColorArbitraryValueError(value); // doesn't match any property value at all
+      }
     }
   }
 
@@ -602,7 +653,7 @@ export default class Couleur {
   private recompute(val: number | string, prop: colorProperty, format: string) {
     const props: colorProperty[] = [...Couleur.propertiesOf(format), 'a'];
     if (!props.includes(prop))
-      throw `Format ${format} does not have a property called ${prop}`;
+      throw new ColorFormatHasNoSuchPropertyError(format, prop);
     
     const parsedVal = (typeof val === 'string') ? Couleur.parse(val, prop) : val;
     const oldValues = [...this.valuesTo(format), this.a];
@@ -712,7 +763,7 @@ export default class Couleur {
   }
 
   public get luminance(): number {
-    if (this.a < 1) throw `The luminance of a transparent color would be meaningless`;
+    if (this.a < 1) throw new Error(`The luminance of a transparent color would be meaningless`);
     return Contrasts.luminance(this.values);
   }
 
@@ -745,12 +796,13 @@ export default class Couleur {
     const graph = new Graph(Couleur.colorSpaces);
     try { path = graph.shortestPath(startSpace.id, endSpace.id).map(node => node.id); }
     catch (error) {
-      switch (error) {
-        case `Node ${startSpace.id} does not exist`: throw `${JSON.stringify(startSpace.id)} is not a supported color space`;
-        case `Node ${endSpace.id} does not exist`: throw `${JSON.stringify(endSpace.id)} is not a supported color space`;
-        case `No path found from ${startSpace.id} to ${endSpace.id}`: throw `Conversion from ${JSON.stringify(startSpace.id)} space to ${JSON.stringify(endSpace.id)} space is impossible`;
-        default: throw error;
-      }
+      if (error instanceof PathNotFoundError) {
+        throw new ImpossibleColorConversionError(startSpace, endSpace);
+      } else if (error instanceof UndefinedNodeError) {
+        if (error.id === startSpace.id)    throw new UnsupportedColorSpaceError(startSpace.id);
+        else if (error.id === endSpace.id) throw new UnsupportedColorSpaceError(endSpace.id);
+        else throw error;
+      } else throw error;
     }
 
     // Apply these functions to the color values.
@@ -760,7 +812,7 @@ export default class Couleur {
       const end = path[0];
       const functionName = `${start}_to_${end}`.replace(/-/g, '');
       const func = Conversions[functionName as keyof typeof Conversions];
-      if (typeof func !== 'function') throw `Conversion function ${functionName} does not exist`;
+      if (typeof func !== 'function') throw new UndefinedConversionError(functionName);
       result = func(result);
     }
 
@@ -963,7 +1015,7 @@ export default class Couleur {
    * @param alpha Alpha value that will replace overlay's.
    * @returns The resulting color.
    */
-  public static blend(backgroundColor: color, overlayColor: color, alpha?: alphaValue): Couleur {
+  public static blend(backgroundColor: color, overlayColor: color, alpha?: unparsedAlphaValue): Couleur {
     const background = Couleur.makeInstance(backgroundColor);
     const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
@@ -986,11 +1038,11 @@ export default class Couleur {
    * @throws When there are less than two colors.
    */
   public static blendAll(...colors: color[]): Couleur {
-    if (colors.length < 2) throw `You need at least 2 colors to blend`;
+    if (colors.length < 2) throw new Error(`You need at least 2 colors to blend`);
     const background = colors.shift();
     const overlay = colors.shift();
     
-    if (background == null || overlay == null) throw 'Cannot blend undefined color';
+    if (background == null || overlay == null) throw new Error('Cannot blend undefined color');
     
     const mix = Couleur.blend(background, overlay);
 
@@ -999,7 +1051,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.blend - Non-static version. */
-  public blend(overlayColor: color, alpha?: alphaValue): Couleur { return Couleur.blend(this, overlayColor, alpha); }
+  public blend(overlayColor: color, alpha?: unparsedAlphaValue): Couleur { return Couleur.blend(this, overlayColor, alpha); }
 
   /** @see Couleur.blendAll - Non-static version. */
   public blendAll(...colors: color[]): Couleur { return Couleur.blendAll(this, ...colors); }
@@ -1012,14 +1064,14 @@ export default class Couleur {
    * @returns The background that is solution to the equation, if it has one.
    * @throws If the equation has an infinite amount of solutions.
    */
-  public static unblend(mixColor: color, overlayColor: color, alpha?: alphaValue): Couleur | null {
+  public static unblend(mixColor: color, overlayColor: color, alpha?: unparsedAlphaValue): Couleur | null {
     const mix = Couleur.makeInstance(mixColor);
     const overlay = Couleur.makeInstance(overlayColor);
     if (alpha != null) // if alpha isn't null or undefined
       overlay.a = Couleur.parse(alpha, 'a');
 
     if (overlay.a === 1) {
-      throw `Overlay color ${JSON.stringify(overlay.rgb)} isn't transparent, so the background it was blended onto could have been any color`;
+      throw new Error(`Overlay color ${JSON.stringify(overlay.rgb)} isn't transparent, so the background it was blended onto could have been any color`);
     }
     else if (overlay.a === 0)           return mix;
     else {
@@ -1046,11 +1098,11 @@ export default class Couleur {
    * @throws If the equation has an infinite amount of solutions.
    */
   public static unblendAll(...colors: color[]): Couleur | null {
-    if (colors.length < 2) throw `You need at least 2 colors to unblend`;
+    if (colors.length < 2) throw new Error(`You need at least 2 colors to unblend`);
     const mix = colors.shift();
     const overlay = colors.shift();
 
-    if (mix == null || overlay == null) throw 'Cannot unblend undefined color';
+    if (mix == null || overlay == null) throw new Error('Cannot unblend undefined color');
     
     const background = Couleur.unblend(mix, overlay);
 
@@ -1060,7 +1112,7 @@ export default class Couleur {
   }
 
   /** @see Couleur.unblend - Non-static version. */
-  public unblend(overlayColor: color, alpha?: alphaValue): Couleur | null { return Couleur.unblend(this, overlayColor, alpha); }
+  public unblend(overlayColor: color, alpha?: unparsedAlphaValue): Couleur | null { return Couleur.unblend(this, overlayColor, alpha); }
   
   /** @see Couleur.unblendAll - Non-static version. */
   public unblendAll(...colors: color[]): Couleur | null { return Couleur.unblendAll(this, ...colors); }
@@ -1084,7 +1136,7 @@ export default class Couleur {
       const r = (mix.r * mix.a - background.r * background.a * (1 - a)) / a;
       const g = (mix.g * mix.a - background.g * background.a * (1 - a)) / a;
       const b = (mix.b * mix.a - background.b * background.a * (1 - a)) / a;
-      if (!Couleur.inGamut('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) throw `This color doesn't exist`;
+      if (!Couleur.inGamut('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) throw new Error(`This color doesn't exist`);
       const clampedValues = Couleur.toGamut('srgb', [r, g, b], 'srgb', { method: 'naive' });
       return new Couleur([...clampedValues, a]);
     };
@@ -1160,7 +1212,7 @@ export default class Couleur {
    */
   public static contrast(textColor: color, backgroundColor: color, { method = 'apca' }: contrastOptions = {}): number {
     const background = Couleur.makeInstance(backgroundColor);
-    if (background.a < 1) throw `The contrast with a transparent background color would be meaningless`;
+    if (background.a < 1) throw new Error(`The contrast with a transparent background color would be meaningless`);
     let text = Couleur.makeInstance(textColor);
 
     // If the text is transparent, blend it to the background to get its actual visible color
@@ -1554,14 +1606,19 @@ export default class Couleur {
    */
   protected static getSpace(spaceID: colorSpaceOrID): ColorSpace {
     let result: ColorSpace | undefined;
-    if (typeof spaceID !== 'string') result = spaceID;
-    else {
+    if (typeof spaceID !== 'string') {
+      if (spaceID == null) {
+        throw new UnsupportedColorSpaceError('null');
+      } else { 
+        return spaceID;
+      }
+    } else {
       let id = spaceID.toLowerCase();
       result = Couleur.colorSpaces.find(sp => sp.id === id || sp.aliases.includes(id));
-    }
 
-    if (result == null) throw `${spaceID} is not a supported color space`;
-    return result;
+      if (result == null) throw new UnsupportedColorSpaceError(spaceID);
+      return result;
+    }
   }
 
   /** @returns Array of supported color spaces. */

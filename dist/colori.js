@@ -653,6 +653,27 @@ var GraphNode = class {
     this.predecessor = null;
   }
 };
+var UndefinedNodeError = class extends Error {
+  constructor(id) {
+    super(`Node ${JSON.stringify(id)} does not exist`);
+    __publicField(this, "id");
+    this.id = id;
+  }
+};
+var PathNotFoundError = class extends Error {
+  constructor(startID, endID) {
+    super(`No path found from ${JSON.stringify(startID)} to ${JSON.stringify(endID)}`);
+    __publicField(this, "startID");
+    __publicField(this, "endID");
+    this.startID = startID;
+    this.endID = endID;
+  }
+};
+var CyclicGraphError = class extends Error {
+  constructor() {
+    super(`The graph is not a directed acyclic graph`);
+  }
+};
 var Graph = class {
   constructor(array) {
     __publicField(this, "nodes");
@@ -661,7 +682,7 @@ var Graph = class {
   getNode(id) {
     const node = this.nodes.find((node2) => node2.id === id);
     if (node == null)
-      throw `Node ${JSON.stringify(id)} does not exist`;
+      throw new UndefinedNodeError(id);
     return node;
   }
   cleanUp() {
@@ -696,7 +717,7 @@ var Graph = class {
           }
         }
       if (!found)
-        throw `No path found from ${JSON.stringify(start.id)} to ${JSON.stringify(end.id)}`;
+        throw new PathNotFoundError(start.id, end.id);
       const path = [end];
       let current = end;
       let predecessor = current.getPredecessor();
@@ -719,7 +740,7 @@ var Graph = class {
       if (node.getVisitedState() === true)
         return;
       if (node.getVisitedState() === "temp")
-        throw "The graph is not a directed acyclic graph";
+        throw new CyclicGraphError();
       node.visit("temp");
       for (const link of node.links) {
         const destination = this.getNode(link);
@@ -931,6 +952,46 @@ function fromHex(hexa) {
 }
 
 // src/ts/couleur.ts
+var InvalidColorStringError = class extends Error {
+  constructor(color) {
+    super(`${JSON.stringify(color)} is not a valid color format`);
+  }
+};
+var InvalidColorPropValueError = class extends Error {
+  constructor(prop, value) {
+    super(`Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`);
+  }
+};
+var InvalidColorAngleValueError = class extends Error {
+  constructor(value) {
+    super(`Invalid angle value: ${JSON.stringify(value)}`);
+  }
+};
+var InvalidColorArbitraryValueError = class extends Error {
+  constructor(value) {
+    super(`Invalid arbitrary value: ${JSON.stringify(value)}`);
+  }
+};
+var ColorFormatHasNoSuchPropertyError = class extends Error {
+  constructor(format, prop) {
+    super(`Format ${format} does not have a property called ${prop}`);
+  }
+};
+var ImpossibleColorConversionError = class extends Error {
+  constructor(startSpace, endSpace) {
+    super(`Conversion from ${JSON.stringify(startSpace.id)} space to ${JSON.stringify(endSpace.id)} space is impossible`);
+  }
+};
+var UnsupportedColorSpaceError = class extends Error {
+  constructor(id) {
+    super(`${JSON.stringify(id)} is not a supported color space`);
+  }
+};
+var UndefinedConversionError = class extends Error {
+  constructor(functionName) {
+    super(`Conversion function ${functionName} does not exist`);
+  }
+};
 var Couleur = class {
   constructor(color) {
     __publicField(this, "r", 0);
@@ -969,10 +1030,10 @@ var Couleur = class {
           this.setColor(format.data[1], [format.data[2], format.data[3], format.data[4], toUnparsedAlpha(format.data[5])]);
           break;
         default:
-          throw `${JSON.stringify(color)} is not a valid color format`;
+          throw new InvalidColorStringError(color);
       }
     } else
-      throw `Couleur objects can only be created from a string, an array of parsed values, or another Couleur object ; this is not one: ${JSON.stringify(color)}`;
+      throw new Error(`Couleur objects can only be created from a string, an array of parsed values, or another Couleur object ; this is not one: ${JSON.stringify(color)}`);
   }
   static makeInstance(color) {
     if (color instanceof Couleur)
@@ -1018,7 +1079,7 @@ var Couleur = class {
           format = Couleur.formats[9];
       }
     if (format == null)
-      throw "No matching format";
+      throw new Error("No matching format");
     for (const syntaxe of format.syntaxes) {
       const result = colorString.match(syntaxe);
       if (result != null && result[0] === colorString) {
@@ -1034,112 +1095,103 @@ var Couleur = class {
         }
       }
     }
-    throw `${JSON.stringify(colorString)} is not a valid color format`;
+    throw new InvalidColorStringError(colorString);
   }
   static parse(value, prop = null, { clamp = true } = {}) {
     const val = String(value);
     const nval = parseFloat(val);
-    try {
-      switch (prop) {
-        case "a": {
-          if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
-            if (clamp)
-              return Math.max(0, Math.min(nval / 100, 1));
-            else
-              return nval / 100;
-          } else if (new RegExp("^" + RegExps.number + "$").test(val)) {
-            if (clamp)
-              return Math.max(0, Math.min(nval, 1));
-            else
-              return nval;
-          } else
-            throw "invalid";
-        }
-        case "r":
-        case "g":
-        case "b": {
-          if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
-            if (clamp)
-              return Math.max(0, Math.min(nval / 100, 1));
-            else
-              return nval / 100;
-          } else if (new RegExp("^" + RegExps.number + "$").test(val)) {
-            if (clamp)
-              return Math.max(0, Math.min(nval / 255, 1));
-            else
-              return nval / 255;
-          } else
-            throw "invalid";
-        }
-        case "h":
-        case "cieh":
-        case "okh": {
-          let h = nval;
-          if (new RegExp("^" + RegExps.number + "$").test(val)) {
-            return angleToRange(h);
-          } else if (new RegExp("^" + RegExps.angle + "$").test(val)) {
-            if (val.slice(-3) === "deg") {
-            } else if (val.slice(-4) === "grad")
-              h = h * 360 / 400;
-            else if (val.slice(-3) === "rad")
-              h = h * 180 / Math.PI;
-            else if (val.slice(-4) === "turn")
-              h = h * 360;
-            else
-              throw "angle";
-            return angleToRange(h);
-          } else
-            throw "invalid";
-        }
-        case "s":
-        case "l":
-        case "w":
-        case "bk":
-        case "ciel":
-        case "okl": {
-          if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
-            if (clamp)
-              return Math.max(0, Math.min(nval / 100, 1));
-            else
-              return nval / 100;
-          } else
-            throw "invalid";
-        }
-        case "ciea":
-        case "cieb":
-        case "oka":
-        case "okb":
-        case "okc": {
-          if (new RegExp("^" + RegExps.number + "$").test(val)) {
-            return nval;
-          } else
-            throw "invalid";
-        }
-        case "ciec": {
-          if (new RegExp("^" + RegExps.number + "$").test(val)) {
-            if (clamp)
-              return Math.max(0, nval);
-            else
-              return nval;
-          } else
-            throw "invalid";
-        }
-        default: {
-          if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
+    switch (prop) {
+      case "a": {
+        if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, Math.min(nval / 100, 1));
+          else
             return nval / 100;
-          } else if (new RegExp("^" + RegExps.number + "$").test(val)) {
+        } else if (new RegExp("^" + RegExps.number + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, Math.min(nval, 1));
+          else
             return nval;
-          } else
-            throw "invalidest";
-        }
+        } else
+          throw new InvalidColorPropValueError(prop, value);
       }
-    } catch (error) {
-      if (error === "invalid")
-        throw `Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`;
-      else if (error === "angle")
-        throw `Invalid angle value: ${JSON.stringify(value)}`;
-      else
-        throw `Invalid arbitrary value: ${JSON.stringify(value)}`;
+      case "r":
+      case "g":
+      case "b": {
+        if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, Math.min(nval / 100, 1));
+          else
+            return nval / 100;
+        } else if (new RegExp("^" + RegExps.number + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, Math.min(nval / 255, 1));
+          else
+            return nval / 255;
+        } else
+          throw new InvalidColorPropValueError(prop, value);
+      }
+      case "h":
+      case "cieh":
+      case "okh": {
+        let h = nval;
+        if (new RegExp("^" + RegExps.number + "$").test(val)) {
+          return angleToRange(h);
+        } else if (new RegExp("^" + RegExps.angle + "$").test(val)) {
+          if (val.slice(-3) === "deg") {
+          } else if (val.slice(-4) === "grad")
+            h = h * 360 / 400;
+          else if (val.slice(-3) === "rad")
+            h = h * 180 / Math.PI;
+          else if (val.slice(-4) === "turn")
+            h = h * 360;
+          else
+            throw new InvalidColorAngleValueError(value);
+          return angleToRange(h);
+        } else
+          throw new InvalidColorPropValueError(prop, value);
+      }
+      case "s":
+      case "l":
+      case "w":
+      case "bk":
+      case "ciel":
+      case "okl": {
+        if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, Math.min(nval / 100, 1));
+          else
+            return nval / 100;
+        } else
+          throw new InvalidColorPropValueError(prop, value);
+      }
+      case "ciea":
+      case "cieb":
+      case "oka":
+      case "okb":
+      case "okc": {
+        if (new RegExp("^" + RegExps.number + "$").test(val)) {
+          return nval;
+        } else
+          throw new InvalidColorPropValueError(prop, value);
+      }
+      case "ciec": {
+        if (new RegExp("^" + RegExps.number + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, nval);
+          else
+            return nval;
+        } else
+          throw new InvalidColorPropValueError(prop, value);
+      }
+      default: {
+        if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
+          return nval / 100;
+        } else if (new RegExp("^" + RegExps.number + "$").test(val)) {
+          return nval;
+        } else
+          throw new InvalidColorArbitraryValueError(value);
+      }
     }
   }
   static unparse(value, prop, { precision = 0 } = {}) {
@@ -1321,7 +1373,7 @@ var Couleur = class {
   recompute(val, prop, format) {
     const props = [...Couleur.propertiesOf(format), "a"];
     if (!props.includes(prop))
-      throw `Format ${format} does not have a property called ${prop}`;
+      throw new ColorFormatHasNoSuchPropertyError(format, prop);
     const parsedVal = typeof val === "string" ? Couleur.parse(val, prop) : val;
     const oldValues = [...this.valuesTo(format), this.a];
     const newValues = props.map((p, k) => {
@@ -1535,7 +1587,7 @@ var Couleur = class {
   }
   get luminance() {
     if (this.a < 1)
-      throw `The luminance of a transparent color would be meaningless`;
+      throw new Error(`The luminance of a transparent color would be meaningless`);
     return luminance2(this.values);
   }
   static convert(startSpaceID, endSpaceID, values) {
@@ -1548,16 +1600,17 @@ var Couleur = class {
     try {
       path = graph.shortestPath(startSpace.id, endSpace.id).map((node) => node.id);
     } catch (error) {
-      switch (error) {
-        case `Node ${startSpace.id} does not exist`:
-          throw `${JSON.stringify(startSpace.id)} is not a supported color space`;
-        case `Node ${endSpace.id} does not exist`:
-          throw `${JSON.stringify(endSpace.id)} is not a supported color space`;
-        case `No path found from ${startSpace.id} to ${endSpace.id}`:
-          throw `Conversion from ${JSON.stringify(startSpace.id)} space to ${JSON.stringify(endSpace.id)} space is impossible`;
-        default:
+      if (error instanceof PathNotFoundError) {
+        throw new ImpossibleColorConversionError(startSpace, endSpace);
+      } else if (error instanceof UndefinedNodeError) {
+        if (error.id === startSpace.id)
+          throw new UnsupportedColorSpaceError(startSpace.id);
+        else if (error.id === endSpace.id)
+          throw new UnsupportedColorSpaceError(endSpace.id);
+        else
           throw error;
-      }
+      } else
+        throw error;
     }
     let result = values;
     while (path.length > 1) {
@@ -1566,7 +1619,7 @@ var Couleur = class {
       const functionName = `${start}_to_${end}`.replace(/-/g, "");
       const func = conversion_exports[functionName];
       if (typeof func !== "function")
-        throw `Conversion function ${functionName} does not exist`;
+        throw new UndefinedConversionError(functionName);
       result = func(result);
     }
     return result;
@@ -1690,11 +1743,11 @@ var Couleur = class {
   }
   static blendAll(...colors) {
     if (colors.length < 2)
-      throw `You need at least 2 colors to blend`;
+      throw new Error(`You need at least 2 colors to blend`);
     const background = colors.shift();
     const overlay = colors.shift();
     if (background == null || overlay == null)
-      throw "Cannot blend undefined color";
+      throw new Error("Cannot blend undefined color");
     const mix = Couleur.blend(background, overlay);
     if (colors.length === 0)
       return mix;
@@ -1713,7 +1766,7 @@ var Couleur = class {
     if (alpha != null)
       overlay.a = Couleur.parse(alpha, "a");
     if (overlay.a === 1) {
-      throw `Overlay color ${JSON.stringify(overlay.rgb)} isn't transparent, so the background it was blended onto could have been any color`;
+      throw new Error(`Overlay color ${JSON.stringify(overlay.rgb)} isn't transparent, so the background it was blended onto could have been any color`);
     } else if (overlay.a === 0)
       return mix;
     else {
@@ -1736,11 +1789,11 @@ var Couleur = class {
   }
   static unblendAll(...colors) {
     if (colors.length < 2)
-      throw `You need at least 2 colors to unblend`;
+      throw new Error(`You need at least 2 colors to unblend`);
     const mix = colors.shift();
     const overlay = colors.shift();
     if (mix == null || overlay == null)
-      throw "Cannot unblend undefined color";
+      throw new Error("Cannot unblend undefined color");
     const background = Couleur.unblend(mix, overlay);
     if (background == null)
       return null;
@@ -1764,7 +1817,7 @@ var Couleur = class {
       const g = (mix.g * mix.a - background.g * background.a * (1 - a)) / a;
       const b = (mix.b * mix.a - background.b * background.a * (1 - a)) / a;
       if (!Couleur.inGamut("srgb", [r, g, b], "srgb", { tolerance: 1 / 255 }))
-        throw `This color doesn't exist`;
+        throw new Error(`This color doesn't exist`);
       const clampedValues = Couleur.toGamut("srgb", [r, g, b], "srgb", { method: "naive" });
       return new Couleur([...clampedValues, a]);
     };
@@ -1817,7 +1870,7 @@ var Couleur = class {
   static contrast(textColor, backgroundColor, { method = "apca" } = {}) {
     const background = Couleur.makeInstance(backgroundColor);
     if (background.a < 1)
-      throw `The contrast with a transparent background color would be meaningless`;
+      throw new Error(`The contrast with a transparent background color would be meaningless`);
     let text = Couleur.makeInstance(textColor);
     if (text.a < 1)
       text = Couleur.blend(background, text);
@@ -2102,15 +2155,19 @@ var Couleur = class {
   }
   static getSpace(spaceID) {
     let result;
-    if (typeof spaceID !== "string")
-      result = spaceID;
-    else {
+    if (typeof spaceID !== "string") {
+      if (spaceID == null) {
+        throw new UnsupportedColorSpaceError("null");
+      } else {
+        return spaceID;
+      }
+    } else {
       let id = spaceID.toLowerCase();
       result = Couleur.colorSpaces.find((sp) => sp.id === id || sp.aliases.includes(id));
+      if (result == null)
+        throw new UnsupportedColorSpaceError(spaceID);
+      return result;
     }
-    if (result == null)
-      throw `${spaceID} is not a supported color space`;
-    return result;
   }
   static get colorSpaces() {
     return color_spaces_default;

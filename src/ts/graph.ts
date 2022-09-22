@@ -29,6 +29,35 @@ class GraphNode {
 
 
 
+/** Custom errors */
+export class UndefinedNodeError extends Error {
+  id: id;
+
+  constructor(id: id) {
+    super(`Node ${JSON.stringify(id)} does not exist`);
+    this.id = id;
+  }
+}
+
+export class PathNotFoundError extends Error {
+  startID: id;
+  endID: id;
+
+  constructor(startID: id, endID: id) {
+    super(`No path found from ${JSON.stringify(startID)} to ${JSON.stringify(endID)}`);
+    this.startID = startID;
+    this.endID = endID;
+  }
+}
+
+export class CyclicGraphError extends Error {
+  constructor() {
+    super(`The graph is not a directed acyclic graph`);
+  }
+}
+
+
+
 /** Graph that will be traversed by a path finding algorithm. */
 export default class Graph {
   public readonly nodes: GraphNode[];
@@ -48,7 +77,7 @@ export default class Graph {
    */
   protected getNode(id: id): GraphNode {
     const node = this.nodes.find(node => node.id === id);
-    if (node == null) throw `Node ${JSON.stringify(id)} does not exist`;
+    if (node == null) throw new UndefinedNodeError(id);
     return node;
   }
 
@@ -96,7 +125,7 @@ export default class Graph {
         }
       }
     
-      if (!found) throw `No path found from ${JSON.stringify(start.id)} to ${JSON.stringify(end.id)}`;
+      if (!found) throw new PathNotFoundError(start.id, end.id);
     
       // Let's backtrack through the tree to find the path.
       const path = [end];
@@ -127,7 +156,7 @@ export default class Graph {
 
     const visit = (node: GraphNode) => {
       if (node.getVisitedState() === true) return;
-      if (node.getVisitedState() === 'temp') throw 'The graph is not a directed acyclic graph';
+      if (node.getVisitedState() === 'temp') throw new CyclicGraphError();
 
       node.visit('temp'); // Mark visit as temporary to detect if we loop back to this node
       for (const link of node.links) {
