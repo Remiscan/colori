@@ -1,6 +1,6 @@
 # colori
 
-**colori** is a module to manipulate colors. It started as a way for me to use color formats that aren't supported in CSS yet (like LCH and OKLAB), but grew as I added more features.
+**colori** is a module to manipulate colors. It started as a way for me to use color formats that were not supported in CSS yet (like LCH and OKLAB), but grew as I added more features.
 
 I mostly wrote it with my own needs in mind, but if you think there's something for you here, have fun with it!
 
