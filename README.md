@@ -4,6 +4,16 @@
 
 I mostly wrote it with my own needs in mind, but if you think there's something for you here, have fun with it!
 
+## Features
+
+- **color conversion**: supported CSS formats are RGB (hexadecimal or functional), HSL, HWB, LAB, LCH, OKLAB, OKLCH and the color() function. Convert any color from any of these formats to any other with ease.
+- **color blending**: overlay multiple colors over each other and compute the resulting visible color with alpha blending. Colors can also be *un*blended.
+- **contrast computing**: calculate the contrast between two colors. Automatically modify a color to improve its contrast with another.
+- **gradients**: create beautiful gradients in any supported color space, avoiding the *desaturated zone* of native CSS gradients.
+- **and more**: clamp a color to a color space, compute the distance between two colors...
+
+[Check out the wiki](https://github.com/Remiscan/colori/wiki) to discover all of **colori**'s capabilities!
+
 ## How to use
 
 ### JavaScript
@@ -30,12 +40,27 @@ $color = new Couleur('blue');
 echo $color->rgb(); // prints 'rgb(0, 0, 255)'
 ```
 
-## Features
+## How to build
 
-- **color conversion**: supported CSS formats are RGB (hexadecimal or functional), HSL, HWB, LAB, LCH, OKLAB, OKLCH and the color() function. Convert any color from any of these formats to any other with ease.
-- **color blending**: overlay multiple colors over each other and compute the resulting visible color with alpha blending. Colors can also be *un*blended.
-- **contrast computing**: calculate the contrast between two colors. Automatically modify a color to improve its contrast with another.
-- **gradients**: create beautiful gradients in any supported color space, avoiding the *desaturated zone* of native CSS gradients.
-- **and more**: clamp a color to a color space, compute the distance between two colors...
+### JavaScript
 
-[Check out the wiki](https://github.com/Remiscan/colori/wiki) to discover all of **colori**'s capabilities!
+To build **colori.js** and **colori.min.js**, you need to have installed:
+- [deno](https://deno.land/#installation)
+
+You can build them by either:
+- running `deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env build/js/build.js` in a terminal,
+- or by running the `bundle colori.js` task in VS Code.
+
+If the `[auto] bundle colori.js on file change` task is running in VS Code, any change to any file in `src/ts` will automatically trigger a build.
+
+### PHP
+
+To build **colori.php**, you need to have installed:
+- [deno](https://deno.land/#installation)
+- [PHP 8+](https://www.php.net/downloads)
+
+You can build it by either:
+- running `php build/php/build.php` in a terminal,
+- or by running the `bundle colori.php` task in VS Code.
+
+If the `[auto] bundle colori.php on file change` task is running in VS Code, any change to any file in `src/php` will automatically trigger a build.

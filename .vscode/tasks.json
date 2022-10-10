@@ -3,7 +3,7 @@
   "tasks": [
     {
       "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build/js/build.js",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env build/js/build.js",
       "label": "bundle colori.js",
       "group": {
         "kind": "build",
@@ -11,7 +11,7 @@
       }
     }, {
       "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env --unstable build/js/auto.build.js",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env build/js/auto.build.js",
       "label": "[auto] bundle colori.js on file change",
       "runOptions": {
         "runOn": "folderOpen"
