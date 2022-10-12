@@ -2,16 +2,22 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env build/js/build.js",
+      "type": "deno",
+      "command": "run",
+      "args": [
+        "--allow-run", "--allow-read", "--allow-write=./dist", "--allow-net=deno.land", "--allow-env", "build/js/build.js"
+      ],
       "label": "bundle colori.js",
       "group": {
         "kind": "build",
         "isDefault": true
       }
     }, {
-      "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env build/js/auto.build.js",
+      "type": "deno",
+      "command": "run",
+      "args": [
+        "--allow-run", "--allow-read", "--allow-write=./dist", "--allow-net=deno.land", "--allow-env", "build/js/auto.build.js"
+      ],
       "label": "[auto] bundle colori.js on file change",
       "runOptions": {
         "runOn": "folderOpen"
@@ -24,8 +30,11 @@
       "command": "php build/php/build.php",
       "label": "bundle colori.php"
     }, {
-      "type": "shell",
-      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-env build/php/auto.build.js",
+      "type": "deno",
+      "command": "run",
+      "args": [
+        "--allow-run", "--allow-read", "--allow-write=./dist", "--allow-env", "build/php/auto.build.js"
+      ],
       "label": "[auto] bundle colori.php on file change",
       "runOptions": {
         "runOn": "folderOpen"
