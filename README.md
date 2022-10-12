@@ -1,3 +1,5 @@
+> This repository is for the **colori** module. There's a [separate one for the colori-demo website](https://github.com/Remiscan/colori-demo).
+
 # colori
 
 **colori** is a module to manipulate colors. It started as a way for me to use color formats that were not supported in CSS yet (like LCH and OKLAB), but grew as I added more features.
