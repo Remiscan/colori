@@ -44,23 +44,20 @@ echo $color->rgb(); // prints 'rgb(0, 0, 255)'
 
 ### JavaScript
 
-To build **colori.js** and **colori.min.js**, you need to have installed:
-- [deno](https://deno.land/#installation)
+To build **colori.js** and **colori.min.js**, install [deno](https://deno.land/#installation) and run this in a terminal:
 
-You can build them by either:
-- running `deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env build/js/build.js` in a terminal,
-- or by running the `bundle colori.js` task in VS Code.
+```shell
+deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env build/js/build.js
+```
 
 If the `[auto] bundle colori.js on file change` task is running in VS Code, any change to any file in `src/ts` will automatically trigger a build.
 
 ### PHP
 
-To build **colori.php**, you need to have installed:
-- [deno](https://deno.land/#installation)
-- [PHP 8+](https://www.php.net/downloads)
+To build **colori.php**, install [PHP 8.1+](https://www.php.net/downloads) and run this in a terminal:
 
-You can build it by either:
-- running `php build/php/build.php` in a terminal,
-- or by running the `bundle colori.php` task in VS Code.
+```shell
+php build/php/build.php
+```
 
-If the `[auto] bundle colori.php on file change` task is running in VS Code, any change to any file in `src/php` will automatically trigger a build.
+If the `[auto] bundle colori.php on file change` task is running in VS Code and [deno](https://deno.land/#installation) is installed, any change to any file in `src/php` will automatically trigger a build.
