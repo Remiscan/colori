@@ -16,109 +16,135 @@ var colorSpaces = [
     id: "srgb",
     aliases: ["rgb", "rgba"],
     gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["srgb-linear", "hsl"]
+    links: ["srgb-linear", "hsl"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
   },
   {
     id: "srgb-linear",
     aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["srgb", "xyz-d65"]
+    links: ["srgb", "xyz-d65"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
   },
   {
     id: "hsl",
     aliases: ["hsla"],
-    gamut: [[0, 360], [0, 1], [0, 1]],
+    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
+    gamutSpace: "srgb",
     links: ["srgb", "hwb"]
   },
   {
     id: "hwb",
     aliases: [],
-    gamut: [[0, 360], [0, 1], [0, 1]],
+    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
+    gamutSpace: "srgb",
     links: ["hsl"]
   },
   {
     id: "lab",
     aliases: [],
-    gamut: [[0, 4], [-Infinity, Infinity], [-Infinity, Infinity]],
-    links: ["xyz-d50", "lch"]
+    gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
+    links: ["xyz-d50", "lch"],
+    black: [0, 0, 0]
   },
   {
     id: "lch",
     aliases: [],
-    gamut: [[0, 4], [0, Infinity], [0, 360]],
-    links: ["lab"]
+    gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
+    links: ["lab"],
+    black: [0, 0, 0]
   },
   {
     id: "xyz-d50",
     aliases: [],
-    gamut: [[0, 1], [0, 1], [0, 1]],
+    gamut: [[-Infinity, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
     links: ["lab", "xyz-d65", "prophoto-rgb-linear"]
   },
   {
     id: "xyz-d65",
     aliases: ["xyz"],
-    gamut: [[0, 1], [0, 1], [0, 1]],
+    gamut: [[-Infinity, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
     links: ["xyz-d50", "srgb-linear", "display-p3-linear", "a98-rgb-linear", "rec2020-linear", "oklab"]
   },
   {
     id: "display-p3",
     aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["display-p3-linear"]
+    links: ["display-p3-linear"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
   },
   {
     id: "display-p3-linear",
     aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["display-p3", "xyz-d65"]
+    links: ["display-p3", "xyz-d65"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
   },
   {
     id: "a98-rgb",
     aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["a98-rgb-linear"]
+    links: ["a98-rgb-linear"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
   },
   {
     id: "a98-rgb-linear",
     aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["a98-rgb", "xyz-d65"]
+    links: ["a98-rgb", "xyz-d65"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
   },
   {
     id: "prophoto-rgb",
     aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["prophoto-rgb-linear"]
+    links: ["prophoto-rgb-linear"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
   },
   {
     id: "prophoto-rgb-linear",
     aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["prophoto-rgb", "xyz-d50"]
+    links: ["prophoto-rgb", "xyz-d50"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
   },
   {
     id: "rec2020",
     aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["rec2020-linear"]
+    links: ["rec2020-linear"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
   },
   {
     id: "rec2020-linear",
     aliases: [],
     gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["rec2020", "xyz-d65"]
+    links: ["rec2020", "xyz-d65"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
   },
   {
     id: "oklab",
     aliases: [],
-    gamut: [[0, 4], [-Infinity, Infinity], [-Infinity, Infinity]],
-    links: ["xyz-d65", "oklch"]
+    gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
+    links: ["xyz-d65", "oklch"],
+    black: [0, 0, 0]
   },
   {
     id: "oklch",
     aliases: [],
-    gamut: [[0, 4], [0, Infinity], [0, 360]],
-    links: ["oklab"]
+    gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
+    links: ["oklab"],
+    black: [0, 0, 0]
   }
 ];
 var color_spaces_default = colorSpaces;
@@ -1633,14 +1659,16 @@ var Couleur = class {
   }
   static inGamut(spaceID, values, valueSpaceID = "srgb", { tolerance = 1e-4 } = {}) {
     const space = Couleur.getSpace(spaceID);
-    const convertedValues = Couleur.convert(valueSpaceID, space, values);
-    return convertedValues.every((v, k) => v >= space.gamut[k][0] - tolerance && v <= space.gamut[k][1] + tolerance);
+    const gamutSpace = space.gamutSpace ? Couleur.getSpace(space.gamutSpace) : space;
+    const convertedValues = Couleur.convert(valueSpaceID, gamutSpace, values);
+    return convertedValues.every((v, k) => v >= gamutSpace.gamut[k][0] - tolerance && v <= gamutSpace.gamut[k][1] + tolerance);
   }
   inGamut(spaceID, options = {}) {
     return Couleur.inGamut(spaceID, this.values, "srgb", options);
   }
   static toGamut(spaceID, values, valueSpaceID = "srgb", { method = "okchroma" } = {}) {
     const space = Couleur.getSpace(spaceID);
+    const gamutSpace = space.gamutSpace ? Couleur.getSpace(space.gamutSpace) : space;
     const valueSpace = Couleur.getSpace(valueSpaceID);
     const _method = method.toLowerCase();
     if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 }))
@@ -1651,7 +1679,11 @@ var Couleur = class {
         {
           clampSpace = Couleur.getSpace("oklch");
           let oklch = Couleur.convert(valueSpace, clampSpace, values);
-          oklch = Couleur.toGamut(clampSpace, oklch, clampSpace, { method: "naive" });
+          if (oklch[0] >= 1) {
+            return Couleur.convert(gamutSpace, valueSpace, gamutSpace.white || [1, 1, 1]);
+          } else if (oklch[0] <= 0) {
+            return Couleur.convert(gamutSpace, valueSpace, gamutSpace.black || [0, 0, 0]);
+          }
           const \u03C4 = 1e-6;
           const \u03B4 = 0.02;
           let Cmin = 0;

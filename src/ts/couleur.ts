@@ -847,8 +847,9 @@ export default class Couleur {
    */
   public static inGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { tolerance = .0001 } = {}): boolean {
     const space = Couleur.getSpace(spaceID);
-    const convertedValues = Couleur.convert(valueSpaceID, space, values);
-    return convertedValues.every((v, k) => v >= (space.gamut[k][0] - tolerance) && v <= (space.gamut[k][1] + tolerance));
+    const gamutSpace = space.gamutSpace ? Couleur.getSpace(space.gamutSpace) : space;
+    const convertedValues = Couleur.convert(valueSpaceID, gamutSpace, values);
+    return convertedValues.every((v, k) => v >= (gamutSpace.gamut[k][0] - tolerance) && v <= (gamutSpace.gamut[k][1] + tolerance));
   }
 
   /** @see Couleur.inGamut - Non-static version. */
@@ -863,6 +864,7 @@ export default class Couleur {
    */
   public static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'okchroma' }: toGamutOptions = {}): number[] {
     const space = Couleur.getSpace(spaceID);
+    const gamutSpace = space.gamutSpace ? Couleur.getSpace(space.gamutSpace) : space;
     const valueSpace = Couleur.getSpace(valueSpaceID);
     const _method = method.toLowerCase();
 
@@ -876,7 +878,12 @@ export default class Couleur {
       case 'okchroma': {
         clampSpace = Couleur.getSpace('oklch');
         let oklch = Couleur.convert(valueSpace, clampSpace, values);
-        oklch = Couleur.toGamut(clampSpace, oklch, clampSpace, { method: 'naive' });
+
+        if (oklch[0] >= 1) {
+          return Couleur.convert(gamutSpace, valueSpace, gamutSpace.white || [1, 1, 1]);
+        } else if (oklch[0] <= 0) {
+          return Couleur.convert(gamutSpace, valueSpace, gamutSpace.black || [0, 0, 0]);
+        }
 
         const τ = .000001;
         const δ = .02;
