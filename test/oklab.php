@@ -94,6 +94,36 @@
   </tbody>
 </table>
 
+<h2>Testing hsl to okhsl conversion</h2>
+
+<table class="hsl_to_okhsl">
+  <thead>
+    <tr>
+      <td>hsl</td>
+      <td>okhsl (result)</td>
+      <td>okhsl (expected)</td>
+      <td>Passed?</td>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+<h2>Testing hsl to okhsv conversion</h2>
+
+<table class="hsl_to_okhsv">
+  <thead>
+    <tr>
+      <td>hsl</td>
+      <td>okhsv (result)</td>
+      <td>okhsv (expected)</td>
+      <td>Passed?</td>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
 <script type="module">
   import Couleur from 'colori';
 
@@ -124,6 +154,19 @@
     [ 0.627954, 0.257627, 29.2271 ],
     [ 0.452013, 0.313319, 264.058541 ],
     [ 0.866439, 0.294803, 142.5112 ]
+  ];
+
+  const testsHSL = [
+    [ 105, 0.74, 0.50 ],
+    [ 221, 0.26, 0.37 ]
+  ];
+  const expectedResultsHSL = [
+    [ 360*0.3877897247252915, 0.9808510031256361, 0.7595493713481022 ],
+    [ 360*0.7360975077937659, 0.33290950877014003, 0.3666675288905386 ]
+  ];
+  const expectedResultsHSV = [
+    [ 360*0.38856190481150643, 0.94823314352296, 0.8816987316762207 ],
+    [ 360*0.7360975077937659, 0.3747927076999706, 0.48657150431112534 ]
   ];
 
 
@@ -237,6 +280,26 @@
         <tr class="${verif ? 'yes' : verif2 ? 'close' : 'no'}">
           <td>${oklch}</td>
           <td>${oklab.join(' ')}</td>
+          <td>${expected.join(' ')}</td>
+          <td>${verif ? 'yes' : verif2 ? 'close' : 'no'}</td>
+        </tr>
+      `;
+    }
+
+    //hex to okhsl tests
+    for (const [k, test] of Object.entries(testsHSL)) {
+      const hsl = test;
+      const okhsl = Couleur.convert('hsl', 'okhsl', hsl);
+      
+      const expected = expectedResultsHSL[Number(k)];
+      const distanceCoeffs = [360, 1, 1];
+      const verif = okhsl.every((e, k) => Math.abs(e - expected[k]) < distanceCoeffs[k] * successDistance);
+      const verif2 = okhsl.every((e, k) => Math.abs(e - expected[k]) < distanceCoeffs[k] * closeDistance);
+
+      document.querySelector('table.hsl_to_okhsl').innerHTML += `
+        <tr class="${verif ? 'yes' : verif2 ? 'close' : 'no'}">
+          <td>${hsl}</td>
+          <td>${okhsl.join(' ')}</td>
           <td>${expected.join(' ')}</td>
           <td>${verif ? 'yes' : verif2 ? 'close' : 'no'}</td>
         </tr>

@@ -16,7 +16,7 @@ type colorArray = number[];
 type colorObject = { r: number, g: number, b: number, a?: number };
 type color = Couleur | colorObject | colorArray | colorString;
 
-type colorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
+type colorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh'|'oksl'|'oklr'|'oksv'|'okv';
 type cssColorFormatWithNamedProperties = 'srgb'|'rgb'|'rgba'|'hsl'|'hsla'|'hwb'|'lab'|'lch'|'oklab'|'oklch';
 
 type colorSpaceOrID = ColorSpace | string;
@@ -125,6 +125,8 @@ export class UndefinedConversionError extends Error {
  * @author Remiscan <https://remiscan.fr>
  * @module colori.js
  */
+
+const colorSpacesGraph = new Graph(colorSpaces);
 
 /** @class Couleur */
 export default class Couleur {
@@ -331,7 +333,11 @@ export default class Couleur {
       case 'w':
       case 'bk':
       case 'ciel':
-      case 'okl': {
+      case 'okl':
+      case 'oksl':
+      case 'oklr':
+      case 'oksv':
+      case 'okv': {
         // If n is a percentage
         if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
@@ -406,6 +412,10 @@ export default class Couleur {
       case 'bk':
       case 'ciel':
       case 'okl':
+      case 'oksl':
+      case 'oklr':
+      case 'oksv':
+      case 'okv':
         return precision === null ? `${100 * value}%` : `${Math.round(10**precision * 100 * value) / (10**precision)}%`;
       case 'oka':
       case 'okb':
@@ -711,6 +721,11 @@ export default class Couleur {
   public set okh(val: number | string) { this.recompute(val, 'okh', 'oklch'); }
   public set OKhue(val: number | string) { this.okh = val; }
 
+  public set oksl(val: number | string) { this.recompute(val, 'oksl', 'okhsl'); }
+  public set oklr(val: number | string) { this.recompute(val, 'oklr', 'okhsl'); }
+  public set oksv(val: number | string) { this.recompute(val, 'oksv', 'okhsv'); }
+  public set okv(val: number | string) { this.recompute(val, 'okv', 'okhsv'); }
+
   /** @returns Gets the parsed value of one of the color properties. */
   public get red(): number { return this.r; }
   public get green(): number { return this.g; }
@@ -743,6 +758,10 @@ export default class Couleur {
   public get OKchroma(): number { return this.okc; }
   public get okh(): number { return this.valuesTo('oklch')[2]; }
   public get OKhue(): number { return this.okh; }
+  public get oksl(): number { return this.valuesTo('okhsl')[1]; }
+  public get oklr(): number { return this.valuesTo('okhsl')[2]; }
+  public get oksv(): number { return this.valuesTo('okhsv')[1]; }
+  public get okv(): number { return this.valuesTo('okhsv')[2]; }
 
   public set luminance(val: number | string) {
     // Scale r, g, b to reach the desired luminance value
@@ -793,7 +812,7 @@ export default class Couleur {
 
     // Find the shortest sequence of functions to convert between color spaces
     let path;
-    const graph = new Graph(Couleur.colorSpaces);
+    const graph = colorSpacesGraph;
     try { path = graph.shortestPath(startSpace.id, endSpace.id).map(node => node.id); }
     catch (error) {
       if (error instanceof PathNotFoundError) {
@@ -1596,13 +1615,15 @@ export default class Couleur {
       case 'lch':   return ['ciel', 'ciec', 'cieh'];
       case 'oklab': return ['okl', 'oka', 'okb'];
       case 'oklch': return ['okl', 'okc', 'okh'];
+      case 'okhsl': return ['okh', 'oksl', 'oklr'];
+      case 'okhsv': return ['okh', 'oksv', 'okv'];
       default:      return [];
     }
   }
 
   /** @returns Array of all color property short names. */
   protected static get properties(): colorProperty[] {
-    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh', 'okl', 'oka', 'okb', 'okc', 'okh'];
+    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh', 'okl', 'oka', 'okb', 'okc', 'okh', 'oksl', 'oklr', 'oksv', 'okv'];
   }
 
   /**

@@ -1,3 +1,4 @@
+import * as OKHSLV from './ext/okhsl-okhsv-conversion.js';
 export * from './ext/w3-conversion.js';
 
 
@@ -96,4 +97,32 @@ export function hwb_to_hsl(hwb: number[]): number[] {
   else                    s = (v - l) / Math.min(l, 1 - l);
 
   return [h, s, l]; // h in [0, 360], s & l in [0, 1]
+}
+
+
+
+/* okhsl */
+
+export function oklab_to_okhsl(lab: number[]): number[] {
+  const [h, s, l] = OKHSLV.oklab_to_okhsl(lab);
+  return [360 * h, s, l];
+}
+
+export function okhsl_to_oklab(hsl: number[]): number[] {
+  const [h, s, l] = hsl;
+  return OKHSLV.okhsl_to_oklab([h / 360, s, l]);
+}
+
+
+
+/* okhsv */
+
+export function oklab_to_okhsv(lab: number[]): number[] {
+  const [h, s, v] = OKHSLV.oklab_to_okhsv(lab);
+  return [360 * h, s, v];
+}
+
+export function okhsv_to_oklab(hsv: number[]): number[] {
+  const [h, s, v] = hsv;
+  return OKHSLV.okhsv_to_oklab([h / 360, s, v]);
 }

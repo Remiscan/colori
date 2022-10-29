@@ -117,7 +117,7 @@ const colorSpaces: ColorSpace[] = [
     id: 'oklab',
     aliases: [],
     gamut: [ [0, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
-    links: ['xyz-d65', 'oklch'],
+    links: ['xyz-d65', 'oklch', 'okhsl', 'okhsv'],
     black: [ 0, 0, 0 ]
   }, {
     id: 'oklch',
@@ -125,6 +125,20 @@ const colorSpaces: ColorSpace[] = [
     gamut: [ [0, +Infinity], [0, +Infinity], [-Infinity, +Infinity] ],
     links: ['oklab'],
     black: [ 0, 0, 0 ]
+  }, {
+    id: 'okhsl',
+    aliases: [],
+    gamut: [ [-Infinity, +Infinity], [0, 1], [0, 1] ],
+    links: ['oklab'],
+    black: [ 0, 0, 0 ],
+    white: [ 0, 0, 1 ]
+  }, {
+    id: 'okhsv',
+    aliases: [],
+    gamut: [ [-Infinity, +Infinity], [0, 1], [0, 1] ],
+    links: ['oklab'],
+    black: [ 0, 0, 0 ],
+    white: [ 0, 0, 1 ]
   }
 ];
 
