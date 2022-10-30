@@ -25,8 +25,11 @@ type unparsedValue = number | string;
 type unparsedAlphaValue = number | `${number}%`;
 type parsedValue = number;
 
-interface exprOptions {
-  precision?: number;
+interface makeExprOptions {
+  precision?: number
+}
+
+interface exprOptions extends makeExprOptions {
   clamp?: boolean;
 }
 
@@ -433,14 +436,14 @@ export default class Couleur {
    * Calculates all properties of a color from given unparsed values in a given color space.
    * @param data Array of unparsed values.
    * @param props Array of color property names the values correspond to.
-   * @param spaceID Color space of the values, or its identifier.
+   * @param sourceSpaceID Color space of the values, or its identifier.
    * @param options
    * @param options.parsed Whether the provided values are already parsed.
    */
-  private set(data: Array<string|number>, props: Array<colorProperty|null>, spaceID: colorSpaceOrID, { parsed = false } = {}) {
-    const space = Couleur.getSpace(spaceID);
+  private set(data: Array<string|number>, props: Array<colorProperty|null>, sourceSpaceID: colorSpaceOrID, { parsed = false } = {}) {
+    const sourceSpace = Couleur.getSpace(sourceSpaceID);
     const values = parsed ? data.map(v => Number(v)) : props.map((p, i) => Couleur.parse(data[i], p));
-    [this.r, this.g, this.b] = Couleur.convert(space, 'srgb', values);
+    [this.r, this.g, this.b] = Couleur.convert(sourceSpace, 'srgb', values);
 
     this.a = Couleur.parse(Utils.toUnparsedAlpha(data[3]), 'a');
   }
@@ -463,15 +466,15 @@ export default class Couleur {
 
   /**
    * Calculates all properties of the color from its functional color() expression.
-   * @param spaceID Identifier of the color space.
+   * @param sourceSpaceID Identifier of the color space.
    * @param values The parsed values of the color's properties.
    * @throws When the color space is not supported.
    */
-  private setColor(spaceID: string, values: Array<string|number>): void {
+  private setColor(sourceSpaceID: string, values: Array<string|number>): void {
     let vals = values.slice(0, 3).map(v => Couleur.parse(v));
     const a = Couleur.parse(values[3]);
 
-    vals = Couleur.convert(spaceID, 'srgb', vals);
+    vals = Couleur.convert(sourceSpaceID, 'srgb', vals);
     const rgba = [...vals, a];
     
     return this.set(rgba, [null, null, null], 'srgb');
@@ -489,70 +492,63 @@ export default class Couleur {
   /**
    * Creates a string containing the CSS expression of a color.
    * @param format Identifier of the color space of the requested CSS expression.
-   * @param options
-   * @param options.precision How many decimals to display.
-   * @param options.clamp Which color space the values should be clamped to.
-   * @returns The expression of the color in the requested format.
+   * @param options @see Couleur.makeExpr
    */
   public expr(format: string, { precision = 0, clamp = true }: exprOptions = {}): string {
     const _format = format.toLowerCase();
-    const spaceID = _format.replace('color-', '');
-    const space = Couleur.getSpace(spaceID);
-
-    let values = this.valuesTo(space);
-    if (clamp) values = Couleur.toGamut(space, values, space);
-    const a = Number(Couleur.unparse(this.a, 'a', { precision }));
-    values = [...values, a];
-
-    // If the requested expression is of the color(space, ...) type
-    if (_format.toLowerCase().slice(0, 5) === 'color') {
-      let string = `color(${space.id}`;
-      for (const [k, v] of Object.entries(values)) {
-        if (Number(k) === values.length - 1) {
-          if (a >= 1) break;
-          string += ` / ${a}`;
-        } else {
-          string += ` ${precision === null ? v : Math.round(10**precision * v) / (10**precision)}`;
-        }
-      } 
-      string += `)`;
-      return string;
-    }
-
-    // If the requested expression is of the ${format}(...) type
-    const props = Couleur.propertiesOf(_format);
-    const [x, y, z] = props.map((p, k) => Couleur.unparse(values[k], p, { precision }));
-
-    switch (_format.toLowerCase()) {
-      case 'rgb':
-      case 'rgba':
-      case 'hsl':
-      case 'hsla': {
-        if ((_format.length > 3 && _format.slice(-1) === 'a') || a < 1)
-          return `${_format}(${x}, ${y}, ${z}, ${a})`;
-        else
-          return `${_format}(${x}, ${y}, ${z})`;
-      }
-      default: {
-        if (a < 1) return `${_format}(${x} ${y} ${z} / ${a})`;
-        else       return `${_format}(${x} ${y} ${z})`;
-      }
-    }
+    const destinationSpaceID = _format.replace('color-', '');
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    let values = this.valuesTo(destinationSpace, { clamp });
+    return Couleur.makeExpr(format, [...values, this.a], { precision });
   }
 
   /**
    * Creates a string containing the CSS expression of a color from a list of values.
    * @param format Identifier of the color space of the requested CSS expression.
-   * @param values The values of the r, g, b, a properties.
-   * @param valueSpaceID Color space of the given values, or its identifier.
-   * @param options @see Couleur.expr
+   * @param values The values of the properties in the given format.
+   * @param options
+   * @param options.precision How many decimals to display.
+   * @param options.clamp Which color space the values should be clamped to.
    * @returns The expression of the color in the requested format.
    */
-  public static makeExpr(format: string, values: number[], valueSpaceID: colorSpaceOrID, options: exprOptions = {}): string {
+  public static makeExpr(format: string, values: number[], { precision = 0 }: makeExprOptions = {}): string {
     const _format = format.toLowerCase();
-    const spaceID = _format.replace('color-', '');
-    const rgba = [...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)), values[3]];
-    return (new Couleur(rgba)).expr(_format, options);
+    const destinationSpaceID = _format.replace('color-', '');
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+
+    const a = Number(Couleur.unparse(values[3] ?? 1, 'a', { precision }));
+    values = [...values, a];
+
+    // If the requested expression is of the color(space, ...) type
+    if (_format.toLowerCase().slice(0, 5) === 'color') {
+      const [x, y, z] = values.map(v => precision === null ? v : Math.round(10**precision * v) / (10**precision));
+      if (a < 1)
+        return `color(${destinationSpace.id} ${x} ${y} ${z} / ${a})`;
+      else
+        return `color(${destinationSpace.id} ${x} ${y} ${z})`;
+    }
+    
+    // If the requested expression is of the ${format}(...) type
+    else {
+      const props = Couleur.propertiesOf(_format);
+      const [x, y, z] = props.map((p, k) => Couleur.unparse(values[k], p, { precision }));
+  
+      switch (_format.toLowerCase()) {
+        case 'rgb':
+        case 'rgba':
+        case 'hsl':
+        case 'hsla': {
+          if ((_format.length > 3 && _format.slice(-1) === 'a') || a < 1)
+            return `${_format}(${x}, ${y}, ${z}, ${a})`;
+          else
+            return `${_format}(${x}, ${y}, ${z})`;
+        }
+        default: {
+          if (a < 1) return `${_format}(${x} ${y} ${z} / ${a})`;
+          else       return `${_format}(${x} ${y} ${z})`;
+        }
+      }
+    }
   }
 
 
@@ -624,27 +620,27 @@ export default class Couleur {
   }
 
   /** @returns RGB expression of the color. */
-  public get rgb(): string { return this.expr('rgb', { precision: 2 }); }
+  public get rgb(): string { return this.expr('rgb', { precision: 2, clamp: true }); }
   public get rgba(): string { return this.rgb; }
 
   /** @returns HSL expression of the color. */
-  public get hsl(): string { return this.expr('hsl', { precision: 2 }); }
+  public get hsl(): string { return this.expr('hsl', { precision: 2, clamp: true }); }
   public get hsla(): string { return this.hsl; }
 
   /** @returns HWB expression of the color. */
-  public get hwb(): string { return this.expr('hwb', { precision: 2 }); }
+  public get hwb(): string { return this.expr('hwb', { precision: 2, clamp: true }); }
 
   /** @returns LAB expression of the color. */
-  public get lab(): string { return this.expr('lab', { precision: 2 }); }
+  public get lab(): string { return this.expr('lab', { precision: 2, clamp: true }); }
 
   /** @returns LCH expression of the color. */
-  public get lch(): string { return this.expr('lch', { precision: 2 }); }
+  public get lch(): string { return this.expr('lch', { precision: 2, clamp: true }); }
 
   /** @returns OKLAB expression of the color. */
-  public get oklab(): string { return this.expr('oklab', { precision: 2 }); }
+  public get oklab(): string { return this.expr('oklab', { precision: 2, clamp: true }); }
 
   /** @returns OKLCH expression of the color. */
-  public get oklch(): string { return this.expr('oklch', { precision: 2 }); }
+  public get oklch(): string { return this.expr('oklch', { precision: 2, clamp: true }); }
 
 
 
@@ -841,15 +837,15 @@ export default class Couleur {
 
   /**
    * Converts the r, g, b values of the color to another color space.
-   * @param spaceID Desired color space, or its identifier.
+   * @param destinationSpaceID Desired color space, or its identifier.
    * @param options
    * @param options.clamp Whether to clamp the values to their new color space.
    * @returns The array of converted values.
    */
-  public valuesTo(spaceID: colorSpaceOrID, { clamp = false } = {}): number[] {
-    const space = Couleur.getSpace(spaceID);
-    let values = Couleur.convert('srgb', space, this.values);
-    if (clamp) values = Couleur.toGamut(space, values);
+  public valuesTo(destinationSpaceID: colorSpaceOrID, { clamp = false } = {}): number[] {
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    let values = Couleur.convert('srgb', destinationSpace, this.values);
+    if (clamp) values = Couleur.toGamut(destinationSpace, values, destinationSpace);
     return values;
   }
 
@@ -859,35 +855,35 @@ export default class Couleur {
 
   /**
    * Checks whether parsed values in valueSpaceID color space correspond to a color in the spaceID color space.
-   * @param spaceID Color space whose gamut will be checked, or its identifier.
+   * @param destinationSpaceID Color space whose gamut will be checked, or its identifier.
    * @param values Array of parsed values.
-   * @param valueSpaceID Color space of the given values, or its identifier.
+   * @param sourceSpaceID Color space of the given values, or its identifier.
    * @returns Whether the corresponding color is in gamut.
    */
-  public static inGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { tolerance = .0001 } = {}): boolean {
-    const space = Couleur.getSpace(spaceID);
-    const gamutSpace = space.gamutSpace ? Couleur.getSpace(space.gamutSpace) : space;
-    const convertedValues = Couleur.convert(valueSpaceID, gamutSpace, values);
+  public static inGamut(destinationSpaceID: colorSpaceOrID, values: number[], sourceSpaceID: colorSpaceOrID = 'srgb', { tolerance = .0001 } = {}): boolean {
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    const gamutSpace = destinationSpace.gamutSpace ? Couleur.getSpace(destinationSpace.gamutSpace) : destinationSpace;
+    const convertedValues = Couleur.convert(sourceSpaceID, gamutSpace, values);
     return convertedValues.every((v, k) => v >= (gamutSpace.gamut[k][0] - tolerance) && v <= (gamutSpace.gamut[k][1] + tolerance));
   }
 
   /** @see Couleur.inGamut - Non-static version. */
-  public inGamut(spaceID: colorSpaceOrID, options = {}) { return Couleur.inGamut(spaceID, this.values, 'srgb', options); }
+  public inGamut(destinationSpaceID: colorSpaceOrID, options = {}) { return Couleur.inGamut(destinationSpaceID, this.values, 'srgb', options); }
 
   /**
    * Clamps parsed values in valueSpaceID color space to the spaceID color space.
-   * @param spaceID Color space whose gamut will be used, or its identifier.
+   * @param destinationSpaceID Color space whose gamut will be used, or its identifier.
    * @param values Array of parsed values.
-   * @param valueSpaceID Color space of the given values, or its identifier.
+   * @param sourceSpaceID Color space of the given values, or its identifier.
    * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
-  public static toGamut(spaceID: colorSpaceOrID, values: number[], valueSpaceID: colorSpaceOrID = 'srgb', { method = 'okchroma' }: toGamutOptions = {}): number[] {
-    const space = Couleur.getSpace(spaceID);
-    const gamutSpace = space.gamutSpace ? Couleur.getSpace(space.gamutSpace) : space;
-    const valueSpace = Couleur.getSpace(valueSpaceID);
+  public static toGamut(destinationSpaceID: colorSpaceOrID, values: number[], sourceSpaceID: colorSpaceOrID = 'srgb', { method = 'okchroma' }: toGamutOptions = {}): number[] {
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    const gamutSpace = destinationSpace.gamutSpace ? Couleur.getSpace(destinationSpace.gamutSpace) : destinationSpace;
+    const sourceSpace = Couleur.getSpace(sourceSpaceID);
     const _method = method.toLowerCase();
 
-    if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 })) return values;
+    if (Couleur.inGamut(destinationSpace, values, sourceSpace, { tolerance: 0 })) return values;
     let clampedValues: number[], clampSpace: ColorSpace;
 
     switch (_method) {
@@ -896,12 +892,12 @@ export default class Couleur {
       // Source of the math: https://www.w3.org/TR/css-color-4/#gamut-mapping
       case 'okchroma': {
         clampSpace = Couleur.getSpace('oklch');
-        let oklch = Couleur.convert(valueSpace, clampSpace, values);
+        let oklch = Couleur.convert(sourceSpace, clampSpace, values);
 
         if (oklch[0] >= 1) {
-          return Couleur.convert(gamutSpace, valueSpace, gamutSpace.white || [1, 1, 1]);
+          return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.white || [1, 1, 1]);
         } else if (oklch[0] <= 0) {
-          return Couleur.convert(gamutSpace, valueSpace, gamutSpace.black || [0, 0, 0]);
+          return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.black || [0, 0, 0]);
         }
 
         const τ = .000001;
@@ -911,10 +907,10 @@ export default class Couleur {
         oklch[1] = oklch[1] / 2;
 
         while (Cmax - Cmin > τ) {
-          if (Couleur.inGamut(space, oklch, clampSpace, { tolerance: 0 })) {
+          if (Couleur.inGamut(destinationSpace, oklch, clampSpace, { tolerance: 0 })) {
             Cmin = oklch[1];
           } else {
-            const naiveOklch = Couleur.toGamut(space, oklch, clampSpace, { method: 'naive' });
+            const naiveOklch = Couleur.toGamut(destinationSpace, oklch, clampSpace, { method: 'naive' });
             const naiveOklab = Couleur.convert(clampSpace, 'oklab', naiveOklch);
             const oklab = Couleur.convert(clampSpace, 'oklab', oklch);
 
@@ -932,22 +928,22 @@ export default class Couleur {
 
       // Naively clamp the values
       default: {
-        clampSpace = space;
-        const convertedValues = Couleur.convert(valueSpace, clampSpace, values);
-        clampedValues = convertedValues.map((v, k) => Math.max(space.gamut[k][0], Math.min(v, space.gamut[k][1])));
+        clampSpace = destinationSpace;
+        const convertedValues = Couleur.convert(sourceSpace, clampSpace, values);
+        clampedValues = convertedValues.map((v, k) => Math.max(destinationSpace.gamut[k][0], Math.min(v, destinationSpace.gamut[k][1])));
       }
 
     }
 
     // Final naive clamp to get in the color space if the color is still just outside the border
-    if (_method !== 'naive') clampedValues = Couleur.toGamut(space, clampedValues, clampSpace, { method: 'naive' });
+    if (_method !== 'naive') clampedValues = Couleur.toGamut(destinationSpace, clampedValues, clampSpace, { method: 'naive' });
 
     // Send the values back in the same color space we found them in
-    return Couleur.convert(clampSpace, valueSpace, clampedValues);
+    return Couleur.convert(clampSpace, sourceSpace, clampedValues);
   }
 
   /** @see Couleur.toGamut - Non-static version. */
-  public toGamut(spaceID: colorSpaceOrID): Couleur { return new Couleur([...Couleur.toGamut(spaceID, this.values, 'srgb'), this.a]); }
+  public toGamut(destinationSpaceID: colorSpaceOrID): Couleur { return new Couleur([...Couleur.toGamut(destinationSpaceID, this.values, 'srgb'), this.a]); }
 
 
 
@@ -1478,19 +1474,19 @@ export default class Couleur {
    * @param color1 The first color.
    * @param color2 The second color.
    * @param steps The number of intermediate colors to calculate.
-   * @param spaceID The color space in which to interpolate.
+   * @param destinationSpaceID The color space in which to interpolate.
    * @param hueInterpolationMethod The method used to interpolate hues.
    */
-  public static interpolate(color1: color, color2: color, steps: number, spaceID: colorSpaceOrID, { hueInterpolationMethod = 'shorter', premultiplyAlpha = true }: interpolateOptions = {}) {
+  public static interpolate(color1: color, color2: color, steps: number, destinationSpaceID: colorSpaceOrID, { hueInterpolationMethod = 'shorter', premultiplyAlpha = true }: interpolateOptions = {}) {
     const start = Couleur.makeInstance(color1);
     const end = Couleur.makeInstance(color2);
     const _steps = Math.max(0, steps);
 
-    const space = Couleur.getSpace(spaceID);
-    const props = Couleur.propertiesOf(space.id);
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    const props = Couleur.propertiesOf(destinationSpace.id);
 
-    let startValues = start.valuesTo(space);
-    let endValues = end.valuesTo(space);
+    let startValues = start.valuesTo(destinationSpace);
+    let endValues = end.valuesTo(destinationSpace);
 
     // Premultiply alpha values
     const premultiply = (values: number[], a: number) => values.map((v, k) => {
@@ -1584,13 +1580,13 @@ export default class Couleur {
     }
 
     return intermediateColors.map((values, k) => new Couleur([
-      ...Couleur.convert(space, 'srgb', values),
+      ...Couleur.convert(destinationSpace, 'srgb', values),
       start.a + k * stepAlpha
     ]));
   }
 
   /** @see Couleur.interpolate - Non-static version. */
-  public interpolate(color: color, steps: number, spaceID: colorSpaceOrID, options: interpolateOptions = {}) { return Couleur.interpolate(this, color, steps, spaceID, options); }
+  public interpolate(color: color, steps: number, destinationSpaceID: colorSpaceOrID, options: interpolateOptions = {}) { return Couleur.interpolate(this, color, steps, destinationSpaceID, options); }
 
 
 

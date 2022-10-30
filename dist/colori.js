@@ -1569,10 +1569,10 @@ var Couleur = class {
         return precision === null ? `${value}` : `${Math.round(__pow(10, precision) * value) / __pow(10, precision)}`;
     }
   }
-  set(data, props, spaceID, { parsed = false } = {}) {
-    const space = Couleur.getSpace(spaceID);
+  set(data, props, sourceSpaceID, { parsed = false } = {}) {
+    const sourceSpace = Couleur.getSpace(sourceSpaceID);
     const values = parsed ? data.map((v) => Number(v)) : props.map((p, i) => Couleur.parse(data[i], p));
-    [this.r, this.g, this.b] = Couleur.convert(space, "srgb", values);
+    [this.r, this.g, this.b] = Couleur.convert(sourceSpace, "srgb", values);
     this.a = Couleur.parse(toUnparsedAlpha(data[3]), "a");
   }
   setHex(hexa) {
@@ -1581,61 +1581,54 @@ var Couleur = class {
     const vals = fromHex([r, g, b, a]).map((v, k) => k === 3 ? v : v * 255);
     this.set(vals, ["r", "g", "b"], "srgb");
   }
-  setColor(spaceID, values) {
+  setColor(sourceSpaceID, values) {
     let vals = values.slice(0, 3).map((v) => Couleur.parse(v));
     const a = Couleur.parse(values[3]);
-    vals = Couleur.convert(spaceID, "srgb", vals);
+    vals = Couleur.convert(sourceSpaceID, "srgb", vals);
     const rgba = [...vals, a];
     return this.set(rgba, [null, null, null], "srgb");
   }
   expr(format, { precision = 0, clamp = true } = {}) {
     const _format = format.toLowerCase();
-    const spaceID = _format.replace("color-", "");
-    const space = Couleur.getSpace(spaceID);
-    let values = this.valuesTo(space);
-    if (clamp)
-      values = Couleur.toGamut(space, values, space);
-    const a = Number(Couleur.unparse(this.a, "a", { precision }));
+    const destinationSpaceID = _format.replace("color-", "");
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    let values = this.valuesTo(destinationSpace, { clamp });
+    return Couleur.makeExpr(format, [...values, this.a], { precision });
+  }
+  static makeExpr(format, values, { precision = 0 } = {}) {
+    var _a;
+    const _format = format.toLowerCase();
+    const destinationSpaceID = _format.replace("color-", "");
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    const a = Number(Couleur.unparse((_a = values[3]) != null ? _a : 1, "a", { precision }));
     values = [...values, a];
     if (_format.toLowerCase().slice(0, 5) === "color") {
-      let string = `color(${space.id}`;
-      for (const [k, v] of Object.entries(values)) {
-        if (Number(k) === values.length - 1) {
-          if (a >= 1)
-            break;
-          string += ` / ${a}`;
-        } else {
-          string += ` ${precision === null ? v : Math.round(__pow(10, precision) * v) / __pow(10, precision)}`;
+      const [x, y, z] = values.map((v) => precision === null ? v : Math.round(__pow(10, precision) * v) / __pow(10, precision));
+      if (a < 1)
+        return `color(${destinationSpace.id} ${x} ${y} ${z} / ${a})`;
+      else
+        return `color(${destinationSpace.id} ${x} ${y} ${z})`;
+    } else {
+      const props = Couleur.propertiesOf(_format);
+      const [x, y, z] = props.map((p, k) => Couleur.unparse(values[k], p, { precision }));
+      switch (_format.toLowerCase()) {
+        case "rgb":
+        case "rgba":
+        case "hsl":
+        case "hsla": {
+          if (_format.length > 3 && _format.slice(-1) === "a" || a < 1)
+            return `${_format}(${x}, ${y}, ${z}, ${a})`;
+          else
+            return `${_format}(${x}, ${y}, ${z})`;
+        }
+        default: {
+          if (a < 1)
+            return `${_format}(${x} ${y} ${z} / ${a})`;
+          else
+            return `${_format}(${x} ${y} ${z})`;
         }
       }
-      string += `)`;
-      return string;
     }
-    const props = Couleur.propertiesOf(_format);
-    const [x, y, z] = props.map((p, k) => Couleur.unparse(values[k], p, { precision }));
-    switch (_format.toLowerCase()) {
-      case "rgb":
-      case "rgba":
-      case "hsl":
-      case "hsla": {
-        if (_format.length > 3 && _format.slice(-1) === "a" || a < 1)
-          return `${_format}(${x}, ${y}, ${z}, ${a})`;
-        else
-          return `${_format}(${x}, ${y}, ${z})`;
-      }
-      default: {
-        if (a < 1)
-          return `${_format}(${x} ${y} ${z} / ${a})`;
-        else
-          return `${_format}(${x} ${y} ${z})`;
-      }
-    }
-  }
-  static makeExpr(format, values, valueSpaceID, options = {}) {
-    const _format = format.toLowerCase();
-    const spaceID = _format.replace("color-", "");
-    const rgba = [...Couleur.convert(valueSpaceID, spaceID, values.slice(0, 3)), values[3]];
-    return new Couleur(rgba).expr(_format, options);
   }
   get values() {
     return [this.r, this.g, this.b];
@@ -1696,31 +1689,31 @@ var Couleur = class {
       return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
   }
   get rgb() {
-    return this.expr("rgb", { precision: 2 });
+    return this.expr("rgb", { precision: 2, clamp: true });
   }
   get rgba() {
     return this.rgb;
   }
   get hsl() {
-    return this.expr("hsl", { precision: 2 });
+    return this.expr("hsl", { precision: 2, clamp: true });
   }
   get hsla() {
     return this.hsl;
   }
   get hwb() {
-    return this.expr("hwb", { precision: 2 });
+    return this.expr("hwb", { precision: 2, clamp: true });
   }
   get lab() {
-    return this.expr("lab", { precision: 2 });
+    return this.expr("lab", { precision: 2, clamp: true });
   }
   get lch() {
-    return this.expr("lch", { precision: 2 });
+    return this.expr("lch", { precision: 2, clamp: true });
   }
   get oklab() {
-    return this.expr("oklab", { precision: 2 });
+    return this.expr("oklab", { precision: 2, clamp: true });
   }
   get oklch() {
-    return this.expr("oklch", { precision: 2 });
+    return this.expr("oklch", { precision: 2, clamp: true });
   }
   recompute(val, prop, format) {
     const props = [...Couleur.propertiesOf(format), "a"];
@@ -2000,39 +1993,39 @@ var Couleur = class {
     }
     return result;
   }
-  valuesTo(spaceID, { clamp = false } = {}) {
-    const space = Couleur.getSpace(spaceID);
-    let values = Couleur.convert("srgb", space, this.values);
+  valuesTo(destinationSpaceID, { clamp = false } = {}) {
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    let values = Couleur.convert("srgb", destinationSpace, this.values);
     if (clamp)
-      values = Couleur.toGamut(space, values);
+      values = Couleur.toGamut(destinationSpace, values, destinationSpace);
     return values;
   }
-  static inGamut(spaceID, values, valueSpaceID = "srgb", { tolerance = 1e-4 } = {}) {
-    const space = Couleur.getSpace(spaceID);
-    const gamutSpace = space.gamutSpace ? Couleur.getSpace(space.gamutSpace) : space;
-    const convertedValues = Couleur.convert(valueSpaceID, gamutSpace, values);
+  static inGamut(destinationSpaceID, values, sourceSpaceID = "srgb", { tolerance = 1e-4 } = {}) {
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    const gamutSpace = destinationSpace.gamutSpace ? Couleur.getSpace(destinationSpace.gamutSpace) : destinationSpace;
+    const convertedValues = Couleur.convert(sourceSpaceID, gamutSpace, values);
     return convertedValues.every((v, k) => v >= gamutSpace.gamut[k][0] - tolerance && v <= gamutSpace.gamut[k][1] + tolerance);
   }
-  inGamut(spaceID, options = {}) {
-    return Couleur.inGamut(spaceID, this.values, "srgb", options);
+  inGamut(destinationSpaceID, options = {}) {
+    return Couleur.inGamut(destinationSpaceID, this.values, "srgb", options);
   }
-  static toGamut(spaceID, values, valueSpaceID = "srgb", { method = "okchroma" } = {}) {
-    const space = Couleur.getSpace(spaceID);
-    const gamutSpace = space.gamutSpace ? Couleur.getSpace(space.gamutSpace) : space;
-    const valueSpace = Couleur.getSpace(valueSpaceID);
+  static toGamut(destinationSpaceID, values, sourceSpaceID = "srgb", { method = "okchroma" } = {}) {
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    const gamutSpace = destinationSpace.gamutSpace ? Couleur.getSpace(destinationSpace.gamutSpace) : destinationSpace;
+    const sourceSpace = Couleur.getSpace(sourceSpaceID);
     const _method = method.toLowerCase();
-    if (Couleur.inGamut(space, values, valueSpace, { tolerance: 0 }))
+    if (Couleur.inGamut(destinationSpace, values, sourceSpace, { tolerance: 0 }))
       return values;
     let clampedValues, clampSpace;
     switch (_method) {
       case "okchroma":
         {
           clampSpace = Couleur.getSpace("oklch");
-          let oklch = Couleur.convert(valueSpace, clampSpace, values);
+          let oklch = Couleur.convert(sourceSpace, clampSpace, values);
           if (oklch[0] >= 1) {
-            return Couleur.convert(gamutSpace, valueSpace, gamutSpace.white || [1, 1, 1]);
+            return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.white || [1, 1, 1]);
           } else if (oklch[0] <= 0) {
-            return Couleur.convert(gamutSpace, valueSpace, gamutSpace.black || [0, 0, 0]);
+            return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.black || [0, 0, 0]);
           }
           const \u03C4 = 1e-6;
           const \u03B4 = 0.02;
@@ -2040,10 +2033,10 @@ var Couleur = class {
           let Cmax = oklch[1];
           oklch[1] = oklch[1] / 2;
           while (Cmax - Cmin > \u03C4) {
-            if (Couleur.inGamut(space, oklch, clampSpace, { tolerance: 0 })) {
+            if (Couleur.inGamut(destinationSpace, oklch, clampSpace, { tolerance: 0 })) {
               Cmin = oklch[1];
             } else {
-              const naiveOklch = Couleur.toGamut(space, oklch, clampSpace, { method: "naive" });
+              const naiveOklch = Couleur.toGamut(destinationSpace, oklch, clampSpace, { method: "naive" });
               const naiveOklab = Couleur.convert(clampSpace, "oklab", naiveOklch);
               const oklab = Couleur.convert(clampSpace, "oklab", oklch);
               if (euclidean(naiveOklab, oklab) < \u03B4) {
@@ -2058,17 +2051,17 @@ var Couleur = class {
         }
         break;
       default: {
-        clampSpace = space;
-        const convertedValues = Couleur.convert(valueSpace, clampSpace, values);
-        clampedValues = convertedValues.map((v, k) => Math.max(space.gamut[k][0], Math.min(v, space.gamut[k][1])));
+        clampSpace = destinationSpace;
+        const convertedValues = Couleur.convert(sourceSpace, clampSpace, values);
+        clampedValues = convertedValues.map((v, k) => Math.max(destinationSpace.gamut[k][0], Math.min(v, destinationSpace.gamut[k][1])));
       }
     }
     if (_method !== "naive")
-      clampedValues = Couleur.toGamut(space, clampedValues, clampSpace, { method: "naive" });
-    return Couleur.convert(clampSpace, valueSpace, clampedValues);
+      clampedValues = Couleur.toGamut(destinationSpace, clampedValues, clampSpace, { method: "naive" });
+    return Couleur.convert(clampSpace, sourceSpace, clampedValues);
   }
-  toGamut(spaceID) {
-    return new Couleur([...Couleur.toGamut(spaceID, this.values, "srgb"), this.a]);
+  toGamut(destinationSpaceID) {
+    return new Couleur([...Couleur.toGamut(destinationSpaceID, this.values, "srgb"), this.a]);
   }
   change(prop, value, { action } = {}) {
     const replace = (action == null ? void 0 : action.toLowerCase()) === "replace";
@@ -2414,14 +2407,14 @@ var Couleur = class {
   same(color, options = {}) {
     return Couleur.same(this, color, options);
   }
-  static interpolate(color1, color2, steps, spaceID, { hueInterpolationMethod = "shorter", premultiplyAlpha = true } = {}) {
+  static interpolate(color1, color2, steps, destinationSpaceID, { hueInterpolationMethod = "shorter", premultiplyAlpha = true } = {}) {
     const start = Couleur.makeInstance(color1);
     const end = Couleur.makeInstance(color2);
     const _steps = Math.max(0, steps);
-    const space = Couleur.getSpace(spaceID);
-    const props = Couleur.propertiesOf(space.id);
-    let startValues = start.valuesTo(space);
-    let endValues = end.valuesTo(space);
+    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    const props = Couleur.propertiesOf(destinationSpace.id);
+    let startValues = start.valuesTo(destinationSpace);
+    let endValues = end.valuesTo(destinationSpace);
     const premultiply = (values, a) => values.map((v, k) => {
       switch (props[k]) {
         case "h":
@@ -2502,12 +2495,12 @@ var Couleur = class {
       intermediateColors = intermediateColors.map((values, k) => undoPremultiply(values, k));
     }
     return intermediateColors.map((values, k) => new Couleur([
-      ...Couleur.convert(space, "srgb", values),
+      ...Couleur.convert(destinationSpace, "srgb", values),
       start.a + k * stepAlpha
     ]));
   }
-  interpolate(color, steps, spaceID, options = {}) {
-    return Couleur.interpolate(this, color, steps, spaceID, options);
+  interpolate(color, steps, destinationSpaceID, options = {}) {
+    return Couleur.interpolate(this, color, steps, destinationSpaceID, options);
   }
   static propertiesOf(format) {
     switch (format.toLowerCase()) {
