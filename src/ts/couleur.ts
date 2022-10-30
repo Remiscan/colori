@@ -16,7 +16,8 @@ type colorArray = number[];
 type colorObject = { r: number, g: number, b: number, a?: number };
 type color = Couleur | colorObject | colorArray | colorString;
 
-type colorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh'|'oksl'|'oklr'|'oksv'|'okv';
+type cssColorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
+type colorProperty = cssColorProperty|'oksl'|'oklr'|'oksv'|'okv';
 type cssColorFormatWithNamedProperties = 'srgb'|'rgb'|'rgba'|'hsl'|'hsla'|'hwb'|'lab'|'lch'|'oklab'|'oklch';
 
 type colorSpaceOrID = ColorSpace | string;
@@ -336,11 +337,7 @@ export default class Couleur {
       case 'w':
       case 'bk':
       case 'ciel':
-      case 'okl':
-      case 'oksl':
-      case 'oklr':
-      case 'oksv':
-      case 'okv': {
+      case 'okl': {
         // If n is a percentage
         if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
@@ -415,10 +412,6 @@ export default class Couleur {
       case 'bk':
       case 'ciel':
       case 'okl':
-      case 'oksl':
-      case 'oklr':
-      case 'oksv':
-      case 'okv':
         return precision === null ? `${100 * value}%` : `${Math.round(10**precision * 100 * value) / (10**precision)}%`;
       case 'oka':
       case 'okb':
@@ -717,11 +710,6 @@ export default class Couleur {
   public set okh(val: number | string) { this.recompute(val, 'okh', 'oklch'); }
   public set OKhue(val: number | string) { this.okh = val; }
 
-  public set oksl(val: number | string) { this.recompute(val, 'oksl', 'okhsl'); }
-  public set oklr(val: number | string) { this.recompute(val, 'oklr', 'okhsl'); }
-  public set oksv(val: number | string) { this.recompute(val, 'oksv', 'okhsv'); }
-  public set okv(val: number | string) { this.recompute(val, 'okv', 'okhsv'); }
-
   /** @returns Gets the parsed value of one of the color properties. */
   public get red(): number { return this.r; }
   public get green(): number { return this.g; }
@@ -754,10 +742,6 @@ export default class Couleur {
   public get OKchroma(): number { return this.okc; }
   public get okh(): number { return this.valuesTo('oklch')[2]; }
   public get OKhue(): number { return this.okh; }
-  public get oksl(): number { return this.valuesTo('okhsl')[1]; }
-  public get oklr(): number { return this.valuesTo('okhsl')[2]; }
-  public get oksv(): number { return this.valuesTo('okhsv')[1]; }
-  public get okv(): number { return this.valuesTo('okhsv')[2]; }
 
   public set luminance(val: number | string) {
     // Scale r, g, b to reach the desired luminance value
@@ -894,14 +878,15 @@ export default class Couleur {
         clampSpace = Couleur.getSpace('oklch');
         let oklch = Couleur.convert(sourceSpace, clampSpace, values);
 
-        if (oklch[0] >= 1) {
-          return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.white || [1, 1, 1]);
-        } else if (oklch[0] <= 0) {
-          return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.black || [0, 0, 0]);
-        }
-
         const τ = .000001;
         const δ = .02;
+
+        if (oklch[0] >= 1 - τ) {
+          return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.white || [1, 1, 1]);
+        } else if (oklch[0] <= 0 + τ) {
+          return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.black || [0, 0, 0]);
+        }
+        
         let Cmin = 0;
         let Cmax = oklch[1];
         oklch[1] = oklch[1] / 2;
@@ -1611,6 +1596,8 @@ export default class Couleur {
       case 'lch':   return ['ciel', 'ciec', 'cieh'];
       case 'oklab': return ['okl', 'oka', 'okb'];
       case 'oklch': return ['okl', 'okc', 'okh'];
+      case 'oklrab': return ['oklr', 'oka', 'okb'];
+      case 'oklrch': return ['oklr', 'okc', 'okh'];
       case 'okhsl': return ['okh', 'oksl', 'oklr'];
       case 'okhsv': return ['okh', 'oksv', 'okv'];
       default:      return [];

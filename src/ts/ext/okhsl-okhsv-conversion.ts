@@ -21,7 +21,7 @@ function oklab_to_linear_srgb(L: number,a: number,b: number)
     ];
 }
 
-function toe(x: number)
+export function toe(x: number)
 {
     const k_1 = 0.206
     const k_2 = 0.03
@@ -30,7 +30,7 @@ function toe(x: number)
     return 0.5*(k_3*x - k_1 + Math.sqrt((k_3*x - k_1)*(k_3*x - k_1) + 4*k_2*k_3*x))
 }
 
-function toe_inv(x: number)
+export function toe_inv(x: number)
 {
     const k_1 = 0.206
     const k_2 = 0.03

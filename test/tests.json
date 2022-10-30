@@ -131,6 +131,9 @@
     }, {
       "fonction": "(new Colour('oklch(91% 0.216 169)')).rgb",
       "resultatAttendu": "rgb(79.59, 255, 206.69)"
+    }, {
+      "fonction":"(new Colour('oklch(100% 0.062 206)')).toGamut('srgb').rgb",
+      "resultatAttendu": "rgb(255, 255, 255)"
     }
   ],
   "change, replace, scale": [

@@ -9,7 +9,7 @@ export * from './ext/w3-conversion.js';
 
 
 
-/* hsl */
+/* HSL */
 
 export function srgb_to_hsl(rgb: number[]): number[] {
   // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#General_approach
@@ -57,7 +57,7 @@ export function hsl_to_srgb(hsl: number[]): number[] {
 
 
 
-/* hwb */
+/* HWB */
 
 export function hsl_to_hwb(hsl: number[]): number[] {
   // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
@@ -101,7 +101,33 @@ export function hwb_to_hsl(hwb: number[]): number[] {
 
 
 
-/* okhsl */
+/* OKLrAB */
+
+export function oklab_to_oklrab(lab: number[]): number[] {
+  const [l, a, b] = lab;
+  return [OKHSLV.toe(l), a, b];
+}
+
+export function oklrab_to_oklab(lab: number[]): number[] {
+  const [l, a, b] = lab;
+  return [OKHSLV.toe_inv(l), a, b];
+}
+
+
+
+/* OKLrCH */
+
+export function oklch_to_oklrch(lch: number[]): number[] {
+  return oklab_to_oklrab(lch);
+}
+
+export function oklrch_to_oklch(lch: number[]): number[] {
+  return oklrab_to_oklab(lch);
+}
+
+
+
+/* OKHSL */
 
 export function oklab_to_okhsl(lab: number[]): number[] {
   const [h, s, l] = OKHSLV.oklab_to_okhsl(lab);
@@ -115,7 +141,7 @@ export function okhsl_to_oklab(hsl: number[]): number[] {
 
 
 
-/* okhsv */
+/* OKHSV */
 
 export function oklab_to_okhsv(lab: number[]): number[] {
   const [h, s, v] = OKHSLV.oklab_to_okhsv(lab);

@@ -136,14 +136,28 @@ var colorSpaces = [
     id: "oklab",
     aliases: [],
     gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
-    links: ["xyz-d65", "oklch", "okhsl", "okhsv"],
+    links: ["xyz-d65", "oklch", "okhsl", "okhsv", "oklrab"],
     black: [0, 0, 0]
   },
   {
     id: "oklch",
     aliases: [],
     gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
+    links: ["oklab", "oklrch"],
+    black: [0, 0, 0]
+  },
+  {
+    id: "oklrab",
+    aliases: [],
+    gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
     links: ["oklab"],
+    black: [0, 0, 0]
+  },
+  {
+    id: "oklrch",
+    aliases: [],
+    gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
+    links: ["oklch"],
     black: [0, 0, 0]
   },
   {
@@ -193,8 +207,12 @@ __export(conversion_exports, {
   oklab_to_okhsl: () => oklab_to_okhsl2,
   oklab_to_okhsv: () => oklab_to_okhsv2,
   oklab_to_oklch: () => oklab_to_oklch,
+  oklab_to_oklrab: () => oklab_to_oklrab,
   oklab_to_xyzd65: () => oklab_to_xyzd65,
   oklch_to_oklab: () => oklch_to_oklab,
+  oklch_to_oklrch: () => oklch_to_oklrch,
+  oklrab_to_oklab: () => oklrab_to_oklab,
+  oklrch_to_oklch: () => oklrch_to_oklch,
   prophotorgb_to_prophotorgblinear: () => prophotorgb_to_prophotorgblinear,
   prophotorgblinear_to_prophotorgb: () => prophotorgblinear_to_prophotorgb,
   prophotorgblinear_to_xyzd50: () => prophotorgblinear_to_xyzd50,
@@ -781,6 +799,20 @@ function hwb_to_hsl(hwb) {
   else
     s = (v - l) / Math.min(l, 1 - l);
   return [h, s, l];
+}
+function oklab_to_oklrab(lab) {
+  const [l, a, b] = lab;
+  return [toe(l), a, b];
+}
+function oklrab_to_oklab(lab) {
+  const [l, a, b] = lab;
+  return [toe_inv(l), a, b];
+}
+function oklch_to_oklrch(lch) {
+  return oklab_to_oklrab(lch);
+}
+function oklrch_to_oklch(lch) {
+  return oklrab_to_oklab(lch);
 }
 function oklab_to_okhsl2(lab) {
   const [h, s, l] = oklab_to_okhsl(lab);
@@ -1500,11 +1532,7 @@ var Couleur = class {
       case "w":
       case "bk":
       case "ciel":
-      case "okl":
-      case "oksl":
-      case "oklr":
-      case "oksv":
-      case "okv": {
+      case "okl": {
         if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval / 100, 1));
@@ -1554,10 +1582,6 @@ var Couleur = class {
       case "bk":
       case "ciel":
       case "okl":
-      case "oksl":
-      case "oklr":
-      case "oksv":
-      case "okv":
         return precision === null ? `${100 * value}%` : `${Math.round(__pow(10, precision) * 100 * value) / __pow(10, precision)}%`;
       case "oka":
       case "okb":
@@ -1822,18 +1846,6 @@ var Couleur = class {
   set OKhue(val) {
     this.okh = val;
   }
-  set oksl(val) {
-    this.recompute(val, "oksl", "okhsl");
-  }
-  set oklr(val) {
-    this.recompute(val, "oklr", "okhsl");
-  }
-  set oksv(val) {
-    this.recompute(val, "oksv", "okhsv");
-  }
-  set okv(val) {
-    this.recompute(val, "okv", "okhsv");
-  }
   get red() {
     return this.r;
   }
@@ -1927,18 +1939,6 @@ var Couleur = class {
   get OKhue() {
     return this.okh;
   }
-  get oksl() {
-    return this.valuesTo("okhsl")[1];
-  }
-  get oklr() {
-    return this.valuesTo("okhsl")[2];
-  }
-  get oksv() {
-    return this.valuesTo("okhsv")[1];
-  }
-  get okv() {
-    return this.valuesTo("okhsv")[2];
-  }
   set luminance(val) {
     const [r, g, b] = this.values;
     const oldLum = this.luminance;
@@ -2022,13 +2022,13 @@ var Couleur = class {
         {
           clampSpace = Couleur.getSpace("oklch");
           let oklch = Couleur.convert(sourceSpace, clampSpace, values);
-          if (oklch[0] >= 1) {
-            return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.white || [1, 1, 1]);
-          } else if (oklch[0] <= 0) {
-            return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.black || [0, 0, 0]);
-          }
           const \u03C4 = 1e-6;
           const \u03B4 = 0.02;
+          if (oklch[0] >= 1 - \u03C4) {
+            return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.white || [1, 1, 1]);
+          } else if (oklch[0] <= 0 + \u03C4) {
+            return Couleur.convert(gamutSpace, sourceSpace, gamutSpace.black || [0, 0, 0]);
+          }
           let Cmin = 0;
           let Cmax = oklch[1];
           oklch[1] = oklch[1] / 2;
@@ -2521,6 +2521,10 @@ var Couleur = class {
         return ["okl", "oka", "okb"];
       case "oklch":
         return ["okl", "okc", "okh"];
+      case "oklrab":
+        return ["oklr", "oka", "okb"];
+      case "oklrch":
+        return ["oklr", "okc", "okh"];
       case "okhsl":
         return ["okh", "oksl", "oklr"];
       case "okhsv":
