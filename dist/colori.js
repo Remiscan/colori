@@ -2076,7 +2076,7 @@ var _Couleur = class {
     if (values instanceof _Couleur) {
       if (values.inGamut(destinationSpace, { tolerance: 0 }))
         return values.valuesTo(destinationSpace);
-      values = values.valuesTo(sourceSpace);
+      values = values.values;
     } else {
       if (_Couleur.inGamut(destinationSpace, values, sourceSpace, { tolerance: 0 }))
         return values;
@@ -2126,7 +2126,10 @@ var _Couleur = class {
     return _Couleur.convert(clampSpace, sourceSpace, clampedValues);
   }
   toGamut(destinationSpaceID) {
-    return new _Couleur([..._Couleur.toGamut(destinationSpaceID, this, void 0), this.a]);
+    const destinationSpace = _Couleur.getSpace(destinationSpaceID);
+    const destinationClampedValues = _Couleur.toGamut(destinationSpace, this, void 0);
+    const rgbClampedValues = _Couleur.convert(destinationSpace, "srgb", destinationClampedValues);
+    return new _Couleur([...rgbClampedValues, this.a]);
   }
   change(prop, value, { action } = {}) {
     const replace = (action == null ? void 0 : action.toLowerCase()) === "replace";

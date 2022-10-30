@@ -24,6 +24,7 @@
 
   const spaces = Couleur.colorSpaces;
   const counts = new Map();
+  const cache = new Map();
   for (const space of spaces) {
     counts.set(space.id, 0);
   }
@@ -38,16 +39,20 @@
     const start = performance.now();
     const values = aquamarine.valuesTo(randomSpace);
     const time = performance.now() - start;
+    let logFunction = console.log;
 
     if (count === 0) {
+      cache.set(randomSpace.id, values);
       totalTime0 += time;
       instances0++;
     } else {
       totalTimeN += time;
       instancesN++;
+      const cachedValues = cache.get(randomSpace.id);
+      if (!(values.every((v, k) => v === cachedValues[k]))) logFunction = console.error;
     }
 
-    console.log(`to ${randomSpace.id} for the ${count}th time`, values, `${time}ms`);
+    logFunction(`to ${randomSpace.id} for the ${count}th time`, values, `${time}ms`);
     counts.set(randomSpace.id, count + 1);
   }
 
@@ -63,7 +68,4 @@
 
     console.log('Time for new conversion', time);
   }
-
-  /*console.log(new Couleur('oklch(100% 0.062 206)').toGamut('srgb').rgb);
-  console.log(new Couleur('oklab(100% 0.131 0)').toGamut('srgb').rgb);*/
 </script>
