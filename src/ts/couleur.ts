@@ -887,8 +887,8 @@ export default class Couleur {
     const _method = method.toLowerCase();
 
     if (values instanceof Couleur) {
-      if (values.inGamut(destinationSpace, { tolerance: 0 })) return values.valuesTo(destinationSpace);
-      values = values.values;
+      if (values.inGamut(destinationSpace, { tolerance: 0 })) return values.valuesTo(sourceSpace);
+      values = values.valuesTo(sourceSpace);
     } else {
       if (Couleur.inGamut(destinationSpace, values, sourceSpace, { tolerance: 0 })) return values;
     }
@@ -955,8 +955,8 @@ export default class Couleur {
   /** @see Couleur.toGamut - Non-static version. */
   public toGamut(destinationSpaceID: colorSpaceOrID): Couleur {
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
-    const destinationClampedValues = Couleur.toGamut(destinationSpace, this, undefined);
-    const rgbClampedValues = Couleur.convert(destinationSpace, 'srgb', destinationClampedValues);
+    const rgbClampedValues = Couleur.toGamut(destinationSpace, this, undefined);
+    //const rgbClampedValues = Couleur.convert(destinationSpace, 'srgb', destinationClampedValues);
     return new Couleur([...rgbClampedValues, this.a]);
   }
 

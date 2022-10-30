@@ -2075,8 +2075,8 @@ var _Couleur = class {
     const _method = method.toLowerCase();
     if (values instanceof _Couleur) {
       if (values.inGamut(destinationSpace, { tolerance: 0 }))
-        return values.valuesTo(destinationSpace);
-      values = values.values;
+        return values.valuesTo(sourceSpace);
+      values = values.valuesTo(sourceSpace);
     } else {
       if (_Couleur.inGamut(destinationSpace, values, sourceSpace, { tolerance: 0 }))
         return values;
@@ -2127,8 +2127,7 @@ var _Couleur = class {
   }
   toGamut(destinationSpaceID) {
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
-    const destinationClampedValues = _Couleur.toGamut(destinationSpace, this, void 0);
-    const rgbClampedValues = _Couleur.convert(destinationSpace, "srgb", destinationClampedValues);
+    const rgbClampedValues = _Couleur.toGamut(destinationSpace, this, void 0);
     return new _Couleur([...rgbClampedValues, this.a]);
   }
   change(prop, value, { action } = {}) {
