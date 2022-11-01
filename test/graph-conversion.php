@@ -47,6 +47,7 @@
       <td></td>
       <td></td>
       <td>Duration</td>
+      <td>Reversable</td>
     </tr>
   </thead>
   <tbody class="auto">
@@ -54,7 +55,7 @@
 </table>
 
 <script type="module">
-  import Couleur, { Graph } from 'colori';
+  import Couleur, { colorSpacesGraph } from 'colori';
 
 
 
@@ -77,13 +78,14 @@
       allTests.push({ ids: [space1.id, space2.id] });
     }
   }
+  console.log(allTests);
   performTest(allTests, document.querySelector('tbody.auto'));
 
 
   function performTest(tests, table) {
+    const graph = colorSpacesGraph;
     for (const test of tests) {
       let start = performance.now();
-      const graph = new Graph(Couleur.colorSpaces);
       let duration = performance.now() - start;
       document.querySelector('.init').innerHTML = `${duration} ms`;
 
@@ -102,6 +104,15 @@
       if (duration > max) { max = duration; document.querySelector('.max').innerHTML = `${max} ms`; }
       if (test.expected) tr.classList.add(`${verif ? 'yes' : 'no'}`);
 
+      // Opposite path
+      let opposite;
+      try {
+        opposite = graph.shortestPath(...[...test.ids].reverse()).map(node => node.id);
+      } catch (error) {
+        console.log(error);
+      }
+      const reversable = result.every((n, k) => n === opposite[(result.length - 1) - k]);
+
       tr.innerHTML = `
         <td>${test.ids[0]}</td>
         <td>${test.ids[1]}</td>
@@ -109,6 +120,7 @@
         <td>${(test.expected) ? JSON.stringify(test.expected) : ''}</td>
         <td>${(test.expected) ? JSON.stringify(verif) : ''}</td>
         <td>${duration} ms</td>
+        <td>${reversable ? '✅' : '❌'}</td>
       `;
       table.appendChild(tr);
     }

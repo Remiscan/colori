@@ -1395,15 +1395,36 @@ var UndefinedConversionError = class extends Error {
     super(`Conversion function ${functionName} does not exist`);
   }
 };
-var colorSpacesGraph = new Graph(color_spaces_default);
-var _r, _g, _b, _a, _cache;
+var _cache;
+var GraphWithCachedPaths = class extends Graph {
+  constructor() {
+    super(...arguments);
+    __privateAdd(this, _cache, /* @__PURE__ */ new Map());
+  }
+  shortestPath(startID, endID) {
+    const id = `${startID}_to_${endID}`;
+    let cachedPath = __privateGet(this, _cache).get(id);
+    if (!cachedPath) {
+      const reversedPath = __privateGet(this, _cache).get(`${endID}_to_${startID}`);
+      cachedPath = reversedPath ? [...reversedPath].reverse() : null;
+    }
+    if (cachedPath)
+      return cachedPath;
+    const path = super.shortestPath(startID, endID);
+    __privateGet(this, _cache).set(id, path);
+    return path;
+  }
+};
+_cache = new WeakMap();
+var colorSpacesGraph = new GraphWithCachedPaths(color_spaces_default);
+var _r, _g, _b, _a, _cache2;
 var _Couleur = class {
   constructor(color) {
     __privateAdd(this, _r, 0);
     __privateAdd(this, _g, 0);
     __privateAdd(this, _b, 0);
     __privateAdd(this, _a, 0);
-    __privateAdd(this, _cache, /* @__PURE__ */ new Map());
+    __privateAdd(this, _cache2, /* @__PURE__ */ new Map());
     if (color instanceof _Couleur || typeof color === "object" && "r" in color && "g" in color && "b" in color) {
       __privateSet(this, _r, color.r);
       __privateSet(this, _g, color.g);
@@ -1782,7 +1803,7 @@ var _Couleur = class {
         return oldValues[k];
     });
     this.set(newValues, props, format, { parsed: true });
-    __privateSet(this, _cache, /* @__PURE__ */ new Map());
+    __privateSet(this, _cache2, /* @__PURE__ */ new Map());
   }
   set r(val) {
     this.recompute(val, "r", "rgb");
@@ -2050,10 +2071,10 @@ var _Couleur = class {
   }
   valuesTo(destinationSpaceID, { clamp = false } = {}) {
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
-    let values = __privateGet(this, _cache).get(destinationSpace.id);
+    let values = __privateGet(this, _cache2).get(destinationSpace.id);
     if (!values) {
       values = _Couleur.convert("srgb", destinationSpace, this.values);
-      __privateGet(this, _cache).set(destinationSpace.id, values);
+      __privateGet(this, _cache2).set(destinationSpace.id, values);
     }
     if (clamp)
       values = _Couleur.toGamut(destinationSpace, values, destinationSpace);
@@ -2634,15 +2655,15 @@ _r = new WeakMap();
 _g = new WeakMap();
 _b = new WeakMap();
 _a = new WeakMap();
-_cache = new WeakMap();
+_cache2 = new WeakMap();
 export {
   css_formats_exports as CSSFormats,
   color_spaces_default as ColorSpaces,
   contrasts_exports as Contrasts,
   conversion_exports as Conversions,
   distances_exports as Distances,
-  Graph,
   utils_exports as Utils,
+  colorSpacesGraph,
   Couleur as default,
   named_colors_default as namedColors
 };

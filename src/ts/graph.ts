@@ -1,7 +1,7 @@
 type id = string | number;
 
 /** Graph node in a graph that will be traversed by a path finding algorithm. */
-class GraphNode {
+export class GraphNode {
   public readonly id: id;
   public readonly links: id[];
   public readonly data: any;

@@ -3,7 +3,7 @@ import * as Contrasts from './contrasts.js';
 import * as Conversions from './conversion.js';
 import { Format as CSSFormat, Formats, RegExps as ValueRegExps } from './css-formats.js';
 import * as Distances from './distances.js';
-import Graph, { PathNotFoundError, UndefinedNodeError } from './graph.js';
+import Graph, { GraphNode, PathNotFoundError, UndefinedNodeError } from './graph.js';
 import namedColors from './named-colors.js';
 import * as Utils from './utils.js';
 
@@ -125,13 +125,34 @@ export class UndefinedConversionError extends Error {
 
 
 
+class GraphWithCachedPaths extends Graph {
+  #cache = new Map();
+
+  shortestPath(startID: string | number, endID: string | number): GraphNode[] {
+    const id = `${startID}_to_${endID}`;
+    // Since every conversion path is reversible, only cache half of them
+    let cachedPath = this.#cache.get(id);
+    if (!cachedPath) {
+      const reversedPath = this.#cache.get(`${endID}_to_${startID}`);
+      cachedPath = reversedPath ? [...reversedPath].reverse() : null;
+    }
+    if (cachedPath) return cachedPath;
+
+    const path = super.shortestPath(startID, endID);
+    this.#cache.set(id, path);
+    return path;
+  }
+}
+
+
+
 /**
  * Colori module
  * @author Remiscan <https://remiscan.fr>
  * @module colori.js
  */
 
-const colorSpacesGraph = new Graph(colorSpaces);
+export const colorSpacesGraph = new GraphWithCachedPaths(colorSpaces);
 
 /** @class Couleur */
 export default class Couleur {
