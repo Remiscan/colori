@@ -123,6 +123,7 @@ export class UndefinedConversionError extends Error {
 
 
 
+/** Graph with added cache for shortestPath() results. */
 class GraphWithCachedPaths extends Graph {
   #cache = new Map();
 
