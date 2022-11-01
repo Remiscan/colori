@@ -43,6 +43,7 @@ var colorSpaces = [
   {
     id: "srgb",
     aliases: ["rgb", "rgba"],
+    properties: ["r", "g", "b"],
     gamut: [[0, 1], [0, 1], [0, 1]],
     links: ["srgb-linear", "hsl"],
     black: [0, 0, 0],
@@ -59,6 +60,7 @@ var colorSpaces = [
   {
     id: "hsl",
     aliases: ["hsla"],
+    properties: ["h", "s", "l"],
     gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
     gamutSpace: "srgb",
     links: ["srgb", "hwb"]
@@ -66,6 +68,7 @@ var colorSpaces = [
   {
     id: "hwb",
     aliases: [],
+    properties: ["h", "w", "bk"],
     gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
     gamutSpace: "srgb",
     links: ["hsl"]
@@ -73,6 +76,7 @@ var colorSpaces = [
   {
     id: "lab",
     aliases: [],
+    properties: ["ciel", "ciea", "cieb"],
     gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
     links: ["xyz-d50", "lch"],
     black: [0, 0, 0]
@@ -80,6 +84,7 @@ var colorSpaces = [
   {
     id: "lch",
     aliases: [],
+    properties: ["ciel", "ciec", "cieh"],
     gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
     links: ["lab"],
     black: [0, 0, 0]
@@ -163,6 +168,7 @@ var colorSpaces = [
   {
     id: "oklab",
     aliases: [],
+    properties: ["okl", "oka", "okb"],
     gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
     links: ["xyz-d65", "oklch", "okhsl", "okhsv", "oklrab"],
     black: [0, 0, 0]
@@ -170,6 +176,7 @@ var colorSpaces = [
   {
     id: "oklch",
     aliases: [],
+    properties: ["okl", "okc", "okh"],
     gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
     links: ["oklab", "oklrch"],
     black: [0, 0, 0]
@@ -177,6 +184,7 @@ var colorSpaces = [
   {
     id: "oklrab",
     aliases: [],
+    properties: ["oklr", "oka", "okb"],
     gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
     links: ["oklab"],
     black: [0, 0, 0]
@@ -184,6 +192,7 @@ var colorSpaces = [
   {
     id: "oklrch",
     aliases: [],
+    properties: ["oklr", "okc", "okh"],
     gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
     links: ["oklch"],
     black: [0, 0, 0]
@@ -191,6 +200,7 @@ var colorSpaces = [
   {
     id: "okhsl",
     aliases: [],
+    properties: ["okh", "oksl", "oklr"],
     gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
     links: ["oklab"],
     black: [0, 0, 0],
@@ -199,6 +209,7 @@ var colorSpaces = [
   {
     id: "okhsv",
     aliases: [],
+    properties: ["okh", "oksv", "okv"],
     gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
     links: ["oklab"],
     black: [0, 0, 0],
@@ -2591,38 +2602,16 @@ var _Couleur = class {
     return _Couleur.interpolate(this, color, steps, destinationSpaceID, options);
   }
   static propertiesOf(format) {
-    switch (format.toLowerCase()) {
-      case "srgb":
-      case "rgb":
-      case "rgba":
-        return ["r", "g", "b"];
-      case "hsl":
-      case "hsla":
-        return ["h", "s", "l"];
-      case "hwb":
-        return ["h", "w", "bk"];
-      case "lab":
-        return ["ciel", "ciea", "cieb"];
-      case "lch":
-        return ["ciel", "ciec", "cieh"];
-      case "oklab":
-        return ["okl", "oka", "okb"];
-      case "oklch":
-        return ["okl", "okc", "okh"];
-      case "oklrab":
-        return ["oklr", "oka", "okb"];
-      case "oklrch":
-        return ["oklr", "okc", "okh"];
-      case "okhsl":
-        return ["okh", "oksl", "oklr"];
-      case "okhsv":
-        return ["okh", "oksv", "okv"];
-      default:
-        return [];
-    }
+    var _a2;
+    return (_a2 = _Couleur.getSpace(format.toLowerCase()).properties) != null ? _a2 : [];
   }
   static get properties() {
-    return ["a", "r", "g", "b", "h", "s", "l", "w", "bk", "ciel", "ciea", "cieb", "ciec", "cieh", "okl", "oka", "okb", "okc", "okh", "oksl", "oklr", "oksv", "okv"];
+    var _a2;
+    const props = /* @__PURE__ */ new Set();
+    for (const space of _Couleur.colorSpaces) {
+      (_a2 = space.properties) == null ? void 0 : _a2.map((p) => props.add(p));
+    }
+    return [...props];
   }
   static getSpace(spaceID) {
     let result;

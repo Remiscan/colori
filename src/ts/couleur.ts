@@ -1,4 +1,4 @@
-import colorSpaces, { ColorSpace } from './color-spaces.js';
+import colorSpaces, { colorProperty, ColorSpace } from './color-spaces.js';
 import * as Contrasts from './contrasts.js';
 import * as Conversions from './conversion.js';
 import { Format as CSSFormat, Formats, RegExps as ValueRegExps } from './css-formats.js';
@@ -16,8 +16,6 @@ type colorArray = number[];
 type colorObject = { r: number, g: number, b: number, a?: number };
 type color = Couleur | colorObject | colorArray | colorString;
 
-type cssColorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
-type colorProperty = cssColorProperty|'oksl'|'oklr'|'oksv'|'okv';
 type cssColorFormatWithNamedProperties = 'srgb'|'rgb'|'rgba'|'hsl'|'hsla'|'hwb'|'lab'|'lch'|'oklab'|'oklch';
 
 type colorSpaceID = string;
@@ -1636,28 +1634,16 @@ export default class Couleur {
    * @returns Array of color property names.
    */
   protected static propertiesOf(format: string): colorProperty[] {
-    switch(format.toLowerCase()) {
-      case 'srgb':
-      case 'rgb':
-      case 'rgba':  return ['r', 'g', 'b'];
-      case 'hsl':
-      case 'hsla':  return ['h', 's', 'l'];
-      case 'hwb':   return ['h', 'w', 'bk'];
-      case 'lab':   return ['ciel', 'ciea', 'cieb'];
-      case 'lch':   return ['ciel', 'ciec', 'cieh'];
-      case 'oklab': return ['okl', 'oka', 'okb'];
-      case 'oklch': return ['okl', 'okc', 'okh'];
-      case 'oklrab': return ['oklr', 'oka', 'okb'];
-      case 'oklrch': return ['oklr', 'okc', 'okh'];
-      case 'okhsl': return ['okh', 'oksl', 'oklr'];
-      case 'okhsv': return ['okh', 'oksv', 'okv'];
-      default:      return [];
-    }
+    return Couleur.getSpace(format.toLowerCase()).properties ?? [];
   }
 
   /** @returns Array of all color property short names. */
   protected static get properties(): colorProperty[] {
-    return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh', 'okl', 'oka', 'okb', 'okc', 'okh', 'oksl', 'oklr', 'oksv', 'okv'];
+    const props: Set<colorProperty> = new Set();
+    for (const space of Couleur.colorSpaces) {
+      space.properties?.map(p => props.add(p));
+    }
+    return [...props];
   }
 
   /**

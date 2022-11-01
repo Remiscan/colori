@@ -1,6 +1,10 @@
+export type cssColorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
+export type colorProperty = cssColorProperty|'oksl'|'oklr'|'oksv'|'okv';
+
 export interface ColorSpace {
   id: string,
   aliases: string[],
+  properties?: colorProperty[],
   gamut: Array<number[]>,
   gamutSpace?: string,
   links: string[],
@@ -12,6 +16,7 @@ const colorSpaces: ColorSpace[] = [
   {
     id: 'srgb',
     aliases: ['rgb', 'rgba'],
+    properties: ['r', 'g', 'b'],
     gamut: [ [0, 1], [0, 1], [0, 1] ],
     links: ['srgb-linear', 'hsl'],
     black: [ 0, 0, 0 ],
@@ -26,24 +31,28 @@ const colorSpaces: ColorSpace[] = [
   }, {
     id: 'hsl',
     aliases: ['hsla'],
+    properties: ['h', 's', 'l'],
     gamut: [ [-Infinity, +Infinity], [0, 1], [0, 1] ],
     gamutSpace: 'srgb',
     links: ['srgb', 'hwb']
   }, {
     id: 'hwb',
     aliases: [],
+    properties: ['h', 'w', 'bk'],
     gamut: [ [-Infinity, +Infinity], [0, 1], [0, 1] ],
     gamutSpace: 'srgb',
     links: ['hsl']
   }, {
     id: 'lab',
     aliases: [],
+    properties: ['ciel', 'ciea', 'cieb'],
     gamut: [ [0, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
     links: ['xyz-d50', 'lch'],
     black: [ 0, 0, 0 ]
   }, {
     id: 'lch',
     aliases: [],
+    properties: ['ciel', 'ciec', 'cieh'],
     gamut: [ [0, +Infinity], [0, +Infinity], [-Infinity, +Infinity] ],
     links: ['lab'],
     black: [ 0, 0, 0 ]
@@ -116,30 +125,35 @@ const colorSpaces: ColorSpace[] = [
   }, {
     id: 'oklab',
     aliases: [],
+    properties: ['okl', 'oka', 'okb'],
     gamut: [ [0, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
     links: ['xyz-d65', 'oklch', 'okhsl', 'okhsv', 'oklrab'],
     black: [ 0, 0, 0 ]
   }, {
     id: 'oklch',
     aliases: [],
+    properties: ['okl', 'okc', 'okh'],
     gamut: [ [0, +Infinity], [0, +Infinity], [-Infinity, +Infinity] ],
     links: ['oklab', 'oklrch'],
     black: [ 0, 0, 0 ]
   },{
     id: 'oklrab',
     aliases: [],
+    properties: ['oklr', 'oka', 'okb'],
     gamut: [ [0, +Infinity], [-Infinity, +Infinity], [-Infinity, +Infinity] ],
     links: ['oklab'],
     black: [ 0, 0, 0 ]
   }, {
     id: 'oklrch',
     aliases: [],
+    properties: ['oklr', 'okc', 'okh'],
     gamut: [ [0, +Infinity], [0, +Infinity], [-Infinity, +Infinity] ],
     links: ['oklch'],
     black: [ 0, 0, 0 ]
   }, {
     id: 'okhsl',
     aliases: [],
+    properties: ['okh', 'oksl', 'oklr'],
     gamut: [ [-Infinity, +Infinity], [0, 1], [0, 1] ],
     links: ['oklab'],
     black: [ 0, 0, 0 ],
@@ -147,6 +161,7 @@ const colorSpaces: ColorSpace[] = [
   }, {
     id: 'okhsv',
     aliases: [],
+    properties: ['okh', 'oksv', 'okv'],
     gamut: [ [-Infinity, +Infinity], [0, 1], [0, 1] ],
     links: ['oklab'],
     black: [ 0, 0, 0 ],
