@@ -305,5 +305,25 @@
         </tr>
       `;
     }
+
+    //hex to okhsv tests
+    for (const [k, test] of Object.entries(testsHSL)) {
+      const hsl = test;
+      const okhsl = Couleur.convert('hsl', 'okhsv', hsl);
+      
+      const expected = expectedResultsHSV[Number(k)];
+      const distanceCoeffs = [360, 1, 1];
+      const verif = okhsl.every((e, k) => Math.abs(e - expected[k]) < distanceCoeffs[k] * successDistance);
+      const verif2 = okhsl.every((e, k) => Math.abs(e - expected[k]) < distanceCoeffs[k] * closeDistance);
+
+      document.querySelector('table.hsl_to_okhsv').innerHTML += `
+        <tr class="${verif ? 'yes' : verif2 ? 'close' : 'no'}">
+          <td>${hsl}</td>
+          <td>${okhsl.join(' ')}</td>
+          <td>${expected.join(' ')}</td>
+          <td>${verif ? 'yes' : verif2 ? 'close' : 'no'}</td>
+        </tr>
+      `;
+    }
   }
 </script>
