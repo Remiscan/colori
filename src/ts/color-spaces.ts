@@ -8,13 +8,13 @@ interface ColorSpaceBase {
   links: string[],
 };
 
-interface ColorSpaceWithGamut extends ColorSpaceBase {
+export interface ColorSpaceWithGamut extends ColorSpaceBase {
   gamut: Array<number[]>,
   black?: number[],
   white?: number[]
 }
 
-interface ColorSpaceWithoutGamut extends ColorSpaceBase {
+export interface ColorSpaceWithoutGamut extends ColorSpaceBase {
   gamutSpace: string,
 }
 

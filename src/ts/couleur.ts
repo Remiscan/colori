@@ -1,4 +1,4 @@
-import colorSpaces, { colorProperty, ColorSpace } from './color-spaces.js';
+import colorSpaces, { colorProperty, ColorSpace, ColorSpaceWithGamut, ColorSpaceWithoutGamut } from './color-spaces.js';
 import * as Contrasts from './contrasts.js';
 import * as Conversions from './conversion.js';
 import { Format as CSSFormat, Formats, RegExps as ValueRegExps } from './css-formats.js';
@@ -884,7 +884,11 @@ export default class Couleur {
    */
   public static inGamut(destinationSpaceID: colorSpaceOrID, values: number[] | Couleur, sourceSpaceID: colorSpaceOrID = 'srgb', { tolerance = .0001 } = {}): boolean {
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
-    const gamutSpace = destinationSpace.gamutSpace ? Couleur.getSpace(destinationSpace.gamutSpace) : destinationSpace;
+    const gamutSpace = (
+      (destinationSpace as ColorSpaceWithoutGamut).gamutSpace
+        ? Couleur.getSpace((destinationSpace as ColorSpaceWithoutGamut).gamutSpace)
+        : destinationSpace
+    ) as ColorSpaceWithGamut;
     const convertedValues = values instanceof Couleur ? values.valuesTo(gamutSpace)
                                                       : Couleur.convert(sourceSpaceID, gamutSpace, values);
     return convertedValues.every((v, k) => v >= (gamutSpace.gamut[k][0] - tolerance) && v <= (gamutSpace.gamut[k][1] + tolerance));
@@ -902,7 +906,11 @@ export default class Couleur {
    */
   public static toGamut(destinationSpaceID: colorSpaceOrID, values: number[] | Couleur, sourceSpaceID: colorSpaceOrID = 'srgb', { method = 'okchroma' }: toGamutOptions = {}): number[] {
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
-    const gamutSpace = destinationSpace.gamutSpace ? Couleur.getSpace(destinationSpace.gamutSpace) : destinationSpace;
+    const gamutSpace = (
+      (destinationSpace as ColorSpaceWithoutGamut).gamutSpace
+        ? Couleur.getSpace((destinationSpace as ColorSpaceWithoutGamut).gamutSpace)
+        : destinationSpace
+    ) as ColorSpaceWithGamut;
     const sourceSpace = Couleur.getSpace(sourceSpaceID);
     const _method = method.toLowerCase();
 
@@ -976,7 +984,6 @@ export default class Couleur {
   public toGamut(destinationSpaceID: colorSpaceOrID): Couleur {
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
     const rgbClampedValues = Couleur.toGamut(destinationSpace, this, undefined);
-    //const rgbClampedValues = Couleur.convert(destinationSpace, 'srgb', destinationClampedValues);
     return new Couleur([...rgbClampedValues, this.a]);
   }
 
