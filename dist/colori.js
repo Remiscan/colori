@@ -1316,15 +1316,6 @@ var namedColors = /* @__PURE__ */ new Map([
 var named_colors_default = namedColors;
 
 // src/ts/utils.ts
-var utils_exports = {};
-__export(utils_exports, {
-  angleToRange: () => angleToRange,
-  fromHex: () => fromHex,
-  pRound: () => pRound,
-  pad: () => pad,
-  toHex: () => toHex,
-  toUnparsedAlpha: () => toUnparsedAlpha
-});
 function pad(s) {
   return s.length < 2 ? `0${s}` : s;
 }
@@ -1335,10 +1326,6 @@ function angleToRange(angle) {
   while (h > 360)
     h -= 360;
   return h;
-}
-function pRound(number, precision = 5) {
-  let x = typeof number === "number" ? number : Number(number);
-  return Number(parseFloat(x.toPrecision(precision)));
 }
 function toUnparsedAlpha(val, def = "1") {
   return !!val ? String(val) : val === 0 ? "0" : def;
@@ -2637,6 +2624,5 @@ export {
   contrasts_exports as Contrasts,
   conversion_exports as Conversions,
   distances_exports as Distances,
-  utils_exports as Utils,
   Couleur as default
 };

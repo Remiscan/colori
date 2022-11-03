@@ -151,7 +151,7 @@ class GraphWithCachedPaths extends Graph {
  * @module colori.js
  */
 
-export const colorSpacesGraph = new GraphWithCachedPaths(colorSpaces);
+const colorSpacesGraph = new GraphWithCachedPaths(colorSpaces);
 
 /** @class Couleur */
 export default class Couleur {
