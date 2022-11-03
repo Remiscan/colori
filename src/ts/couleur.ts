@@ -883,11 +883,10 @@ export default class Couleur {
    * @returns Whether the corresponding color is in gamut.
    */
   public static inGamut(destinationSpaceID: colorSpaceOrID, values: number[] | Couleur, sourceSpaceID: colorSpaceOrID = 'srgb', { tolerance = .0001 } = {}): boolean {
-    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    const destinationSpace = Couleur.getSpace(destinationSpaceID) as ColorSpaceWithoutGamut;
     const gamutSpace = (
-      (destinationSpace as ColorSpaceWithoutGamut).gamutSpace
-        ? Couleur.getSpace((destinationSpace as ColorSpaceWithoutGamut).gamutSpace)
-        : destinationSpace
+      destinationSpace.gamutSpace ? Couleur.getSpace(destinationSpace.gamutSpace)
+                                  : destinationSpace
     ) as ColorSpaceWithGamut;
     const convertedValues = values instanceof Couleur ? values.valuesTo(gamutSpace)
                                                       : Couleur.convert(sourceSpaceID, gamutSpace, values);
@@ -905,11 +904,10 @@ export default class Couleur {
    * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
   public static toGamut(destinationSpaceID: colorSpaceOrID, values: number[] | Couleur, sourceSpaceID: colorSpaceOrID = 'srgb', { method = 'okchroma' }: toGamutOptions = {}): number[] {
-    const destinationSpace = Couleur.getSpace(destinationSpaceID);
+    const destinationSpace = Couleur.getSpace(destinationSpaceID) as ColorSpaceWithoutGamut;
     const gamutSpace = (
-      (destinationSpace as ColorSpaceWithoutGamut).gamutSpace
-        ? Couleur.getSpace((destinationSpace as ColorSpaceWithoutGamut).gamutSpace)
-        : destinationSpace
+      destinationSpace.gamutSpace ? Couleur.getSpace(destinationSpace.gamutSpace)
+                                  : destinationSpace
     ) as ColorSpaceWithGamut;
     const sourceSpace = Couleur.getSpace(sourceSpaceID);
     const _method = method.toLowerCase();
