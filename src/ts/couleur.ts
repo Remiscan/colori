@@ -958,9 +958,9 @@ export default class Couleur {
 
       // Naively clamp the values
       default: {
-        clampSpace = destinationSpace;
+        clampSpace = gamutSpace;
         const convertedValues = Couleur.convert(sourceSpace, clampSpace, values);
-        clampedValues = convertedValues.map((v, k) => Math.max(destinationSpace.gamut[k][0], Math.min(v, destinationSpace.gamut[k][1])));
+        clampedValues = convertedValues.map((v, k) => Math.max(gamutSpace.gamut[k][0], Math.min(v, gamutSpace.gamut[k][1])));
       }
 
     }
