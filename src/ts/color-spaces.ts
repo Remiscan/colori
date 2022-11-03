@@ -1,16 +1,26 @@
 export type cssColorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
 export type colorProperty = cssColorProperty|'oksl'|'oklr'|'oksv'|'okv';
 
-export interface ColorSpace {
+interface ColorSpaceBase {
   id: string,
   aliases: string[],
   properties?: colorProperty[],
-  gamut: Array<number[]>,
-  gamutSpace?: string,
   links: string[],
+};
+
+interface ColorSpaceWithGamut extends ColorSpaceBase {
+  gamut: Array<number[]>,
   black?: number[],
   white?: number[]
-};
+}
+
+interface ColorSpaceWithoutGamut extends ColorSpaceBase {
+  gamutSpace: string,
+}
+
+export type ColorSpace = ColorSpaceWithGamut | ColorSpaceWithoutGamut;
+
+
 
 const colorSpaces: ColorSpace[] = [
   {
