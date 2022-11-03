@@ -1561,7 +1561,7 @@ export default class Couleur {
 
             case 'longer':
               if (0 < diff && diff < 180) startValues[k] += 360;
-              else if (-180 < diff && diff < 0) endValues[k] += 360;
+              else if (-180 < diff && diff <= 0) endValues[k] += 360;
               break;
 
             case 'increasing':
