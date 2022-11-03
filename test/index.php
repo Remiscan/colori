@@ -148,7 +148,7 @@ $ordreMin = 4;
           if (!$test->nophp) {
             $valid = $test->populate();
             if (!$valid) {
-              $failsList[] = '<li><a href="#php-'. ($test->ordre + 3) .'">'. $test->nom() .'</a></li>';
+              $failsList[] = '<li><a href="#php-'. ($test->ordre) .'">'. $test->nom() .'</a></li>';
             }
           }
           $ordre++;
