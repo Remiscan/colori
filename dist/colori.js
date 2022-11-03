@@ -2601,7 +2601,7 @@ var _Couleur = class {
     for (const space of _Couleur.colorSpaces) {
       (_a2 = space.properties) == null ? void 0 : _a2.map((p) => props.add(p));
     }
-    return [...props];
+    return [...props, "a"];
   }
   static getSpace(spaceID) {
     let result;

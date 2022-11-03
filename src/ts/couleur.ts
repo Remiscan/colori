@@ -1644,7 +1644,7 @@ export default class Couleur {
     for (const space of Couleur.colorSpaces) {
       space.properties?.map(p => props.add(p));
     }
-    return [...props];
+    return [...props, 'a'];
   }
 
   /**
