@@ -121,6 +121,7 @@ $ordreMin = 4;
           <li><a href="graph-conversion.php">Path-finding conversion</a>
           <li><a href="oklab.php">oklab color space</a>
           <li><a href="/colori/palette/test/">Palette generation</a>
+          <li><a href="/_common/components/color-picker/">Color picker</a>
         </ul>
       </div>
     </div>
