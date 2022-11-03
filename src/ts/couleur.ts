@@ -1,9 +1,9 @@
-import colorSpaces, { colorProperty, ColorSpace, ColorSpaceWithGamut, ColorSpaceWithoutGamut } from './color-spaces.js';
+import { ColorProperty, ColorSpace, ColorSpaceWithGamut, ColorSpaceWithoutGamut, default as colorSpaces } from './color-spaces.js';
 import * as Contrasts from './contrasts.js';
 import * as Conversions from './conversion.js';
-import { Format as CSSFormat, Formats, RegExps as ValueRegExps } from './css-formats.js';
+import { CSSFormat, cssFormats, cssUnitRegexps } from './css-formats.js';
 import * as Distances from './distances.js';
-import Graph, { GraphNode, PathNotFoundError, UndefinedNodeError } from './graph.js';
+import { default as Graph, GraphNode, PathNotFoundError, UndefinedNodeError } from './graph.js';
 import namedColors from './named-colors.js';
 import * as Utils from './utils.js';
 
@@ -80,7 +80,7 @@ export class InvalidColorStringError extends Error {
 }
 
 export class InvalidColorPropValueError extends Error {
-  constructor (prop: colorProperty, value: unparsedValue) {
+  constructor (prop: ColorProperty, value: unparsedValue) {
     super(`Invalid ${JSON.stringify(prop)} value: ${JSON.stringify(value)}`);
   }
 }
@@ -98,7 +98,7 @@ export class InvalidColorArbitraryValueError extends Error {
 }
 
 export class ColorFormatHasNoSuchPropertyError extends Error {
-  constructor(format: string, prop: colorProperty) {
+  constructor(format: string, prop: ColorProperty) {
     super(`Format ${format} does not have a property called ${prop}`);
   }
 }
@@ -196,7 +196,7 @@ export default class Couleur {
         case 'oklab':
         case 'oklch': {
           const values = [format.data[1], format.data[2], format.data[3], Utils.toUnparsedAlpha(format.data[4])];
-          const props: colorProperty[] = [...Couleur.propertiesOf(format.id), 'a'];
+          const props: ColorProperty[] = [...Couleur.propertiesOf(format.id), 'a'];
           const space = Couleur.getSpace(format.id);
           this.set(values, props, space);
         } break;
@@ -234,19 +234,19 @@ export default class Couleur {
     
     // Predetermine the format, to save regex-matching time
     let format: CSSFormat | undefined;
-    if (tri.slice(0, 1) === '#') format = Couleur.formats[0];
+    if (tri.slice(0, 1) === '#') format = Couleur.cssFormats[0];
     else switch (tri) {
-      case 'rgb': format = Couleur.formats[1]; break;
-      case 'hsl': format = Couleur.formats[2]; break;
-      case 'hwb': format = Couleur.formats[3]; break;
-      case 'lab': format = Couleur.formats[4]; break;
-      case 'lch': format = Couleur.formats[5]; break;
+      case 'rgb': format = Couleur.cssFormats[1]; break;
+      case 'hsl': format = Couleur.cssFormats[2]; break;
+      case 'hwb': format = Couleur.cssFormats[3]; break;
+      case 'lab': format = Couleur.cssFormats[4]; break;
+      case 'lch': format = Couleur.cssFormats[5]; break;
       case 'okl': {
-        if (colorString.startsWith('oklab')) { format = Couleur.formats[6]; }
-        else if (colorString.startsWith('oklch')) { format = Couleur.formats[7]; }
+        if (colorString.startsWith('oklab')) { format = Couleur.cssFormats[6]; }
+        else if (colorString.startsWith('oklch')) { format = Couleur.cssFormats[7]; }
       } break;
-      case 'col': format = Couleur.formats[8]; break;
-      default:    format = Couleur.formats[9];
+      case 'col': format = Couleur.cssFormats[8]; break;
+      default:    format = Couleur.cssFormats[9];
     }
 
     if (format == null) throw new Error('No matching format');
@@ -279,7 +279,7 @@ export default class Couleur {
    * @returns The properly parsed number.
    * @throws When the value isn't in a supported format for the corresponding property.
    */
-  private static parse(value: unparsedValue, prop: colorProperty | null = null, { clamp = true } = {}): number {
+  private static parse(value: unparsedValue, prop: ColorProperty | null = null, { clamp = true } = {}): number {
     const val = String(value);
     const nval = parseFloat(val);
 
@@ -290,12 +290,12 @@ export default class Couleur {
       // to [0, 1]
       case 'a': {
         // If n is a percentage
-        if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+        if (new RegExp('^' + cssUnitRegexps.percentage + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
           else        return nval / 100;
         }
         // If n is a number
-        else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        else if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval, 1));
           else        return nval;
         }
@@ -310,12 +310,12 @@ export default class Couleur {
       case 'g':
       case 'b': {
         // If n is a percentage
-        if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+        if (new RegExp('^' + cssUnitRegexps.percentage + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
           else        return nval / 100;
         }
         // If n is a number
-        else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        else if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval / 255, 1));
           else        return nval / 255;
         }
@@ -332,11 +332,11 @@ export default class Couleur {
       case 'okh': {
         let h = nval;
         // If n is a number
-        if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
           return Utils.angleToRange(h);
         }
         // If n is an angle
-        else if ((new RegExp('^' + ValueRegExps.angle + '$').test(val))) {
+        else if ((new RegExp('^' + cssUnitRegexps.angle + '$').test(val))) {
           if (val.slice(-3) === 'deg') {} // necessary to accept deg values
           else if (val.slice(-4) === 'grad')
             h = h * 360 / 400;
@@ -361,7 +361,7 @@ export default class Couleur {
       case 'ciel':
       case 'okl': {
         // If n is a percentage
-        if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+        if (new RegExp('^' + cssUnitRegexps.percentage + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
           else        return nval / 100;
         }
@@ -378,7 +378,7 @@ export default class Couleur {
       case 'okb':
       case 'okc': {
         // If n is a number
-        if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
           return nval;
         }
         else throw new InvalidColorPropValueError(prop, value);
@@ -389,7 +389,7 @@ export default class Couleur {
       // clamped to [0, +Inf[
       case 'ciec': {
         // If n is a number
-        if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
           if (clamp)  return Math.max(0, nval);
           else        return nval;
         }
@@ -401,11 +401,11 @@ export default class Couleur {
       // to any number (so that 0% becomes 0 and 100% becomes 1)
       default: {
         // If n is a percentage
-        if (new RegExp('^' + ValueRegExps.percentage + '$').test(val)) {
+        if (new RegExp('^' + cssUnitRegexps.percentage + '$').test(val)) {
           return nval / 100;
         }
         // If n is a number
-        else if (new RegExp('^' + ValueRegExps.number + '$').test(val)) {
+        else if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
           return nval;
         }
         else throw new InvalidColorArbitraryValueError(value); // doesn't match any property value at all
@@ -422,7 +422,7 @@ export default class Couleur {
    * @param options.precision How many decimals to display.
    * @returns The unparsed value, ready to insert in a CSS expression.
    */
-  private static unparse(value: number, prop: colorProperty | null, { precision = 0 } = {}): string {
+  private static unparse(value: number, prop: ColorProperty | null, { precision = 0 } = {}): string {
     switch (prop) {
       case 'r':
       case 'g':
@@ -455,7 +455,7 @@ export default class Couleur {
    * @param options
    * @param options.parsed Whether the provided values are already parsed.
    */
-  private set(data: Array<string|number>, props: Array<colorProperty|null>, sourceSpaceID: colorSpaceOrID, { parsed = false } = {}) {
+  private set(data: Array<string|number>, props: Array<ColorProperty|null>, sourceSpaceID: colorSpaceOrID, { parsed = false } = {}) {
     const sourceSpace = Couleur.getSpace(sourceSpaceID);
     const values = parsed ? data.map(v => Number(v)) : props.map((p, i) => Couleur.parse(data[i], p));
     [this.#r, this.#g, this.#b] = Couleur.convert(sourceSpace, 'srgb', values);
@@ -671,8 +671,8 @@ export default class Couleur {
    * @param format The id of the CSS format the property belongs to.
    * @throws When the CSS format doesn't have the requested property.
    */
-  private recompute(val: number | string, prop: colorProperty, format: string) {
-    const props: colorProperty[] = [...Couleur.propertiesOf(format), 'a'];
+  private recompute(val: number | string, prop: ColorProperty, format: string) {
+    const props: ColorProperty[] = [...Couleur.propertiesOf(format), 'a'];
     if (!props.includes(prop))
       throw new ColorFormatHasNoSuchPropertyError(format, prop);
     
@@ -1005,7 +1005,7 @@ export default class Couleur {
    *                                   null if the value should be added to the previous value of the property.
    * @returns The modified color.
    */
-  public change(prop: colorProperty, value: string | number, { action }: { action?: 'replace' | 'scale' } = {}): Couleur {
+  public change(prop: ColorProperty, value: string | number, { action }: { action?: 'replace' | 'scale' } = {}): Couleur {
     const replace = action?.toLowerCase() === 'replace';
     const scale = action?.toLowerCase() === 'scale';
     const val = scale ? Couleur.parse(value) : Couleur.parse(value, prop, { clamp: false });
@@ -1029,7 +1029,7 @@ export default class Couleur {
    * @param value The value that will replace the previous value of the property.
    * @returns The modified color.
    */
-  public replace(prop: colorProperty, value: string | number): Couleur {
+  public replace(prop: ColorProperty, value: string | number): Couleur {
     return this.change(prop, value, { action: 'replace' });
   }
 
@@ -1040,7 +1040,7 @@ export default class Couleur {
    * @param value The percentage that will be multiplied to the previous value of the property.
    * @returns The modified color.
    */
-  public scale(prop: colorProperty, value: string | number): Couleur {
+  public scale(prop: ColorProperty, value: string | number): Couleur {
     return this.change(prop, value, { action: 'scale' });
   }
 
@@ -1639,13 +1639,13 @@ export default class Couleur {
    * @param format Name of the color format.
    * @returns Array of color property names.
    */
-  protected static propertiesOf(format: string): colorProperty[] {
+  protected static propertiesOf(format: string): ColorProperty[] {
     return Couleur.getSpace(format.toLowerCase()).properties ?? [];
   }
 
   /** @returns Array of all color property short names. */
-  protected static get properties(): colorProperty[] {
-    const props: Set<colorProperty> = new Set();
+  protected static get properties(): ColorProperty[] {
+    const props: Set<ColorProperty> = new Set();
     for (const space of Couleur.colorSpaces) {
       space.properties?.map(p => props.add(p));
     }
@@ -1678,9 +1678,12 @@ export default class Couleur {
   /** @returns Array of supported color spaces. */
   public static get colorSpaces(): ColorSpace[] { return colorSpaces; }
 
+  /** @returns Graph of supported color spaces and the links (i.e. conversion functions) between them. */
+  public static get colorSpacesGraph(): GraphWithCachedPaths { return colorSpacesGraph; }
+
   /** @returns Array of supported syntaxes. */
-  private static get formats(): CSSFormat[] { return Formats; }
+  public static get cssFormats(): CSSFormat[] { return cssFormats; }
 
   /** @returns List of named colors in CSS. */
-  private static get namedColors(): Map<string, string> { return namedColors; }
+  public static get namedColors(): Map<string, string> { return namedColors; }
 }

@@ -38,186 +38,6 @@ var __privateWrapper = (obj, member, setter, getter) => {
   };
 };
 
-// src/ts/color-spaces.ts
-var colorSpaces = [
-  {
-    id: "srgb",
-    aliases: ["rgb", "rgba"],
-    properties: ["r", "g", "b"],
-    gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["srgb-linear", "hsl"],
-    black: [0, 0, 0],
-    white: [1, 1, 1]
-  },
-  {
-    id: "srgb-linear",
-    aliases: [],
-    gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["srgb", "xyz-d65"],
-    black: [0, 0, 0],
-    white: [1, 1, 1]
-  },
-  {
-    id: "hsl",
-    aliases: ["hsla"],
-    properties: ["h", "s", "l"],
-    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
-    gamutSpace: "srgb",
-    links: ["srgb", "hwb"]
-  },
-  {
-    id: "hwb",
-    aliases: [],
-    properties: ["h", "w", "bk"],
-    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
-    gamutSpace: "srgb",
-    links: ["hsl"]
-  },
-  {
-    id: "lab",
-    aliases: [],
-    properties: ["ciel", "ciea", "cieb"],
-    gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
-    links: ["xyz-d50", "lch"],
-    black: [0, 0, 0]
-  },
-  {
-    id: "lch",
-    aliases: [],
-    properties: ["ciel", "ciec", "cieh"],
-    gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
-    links: ["lab"],
-    black: [0, 0, 0]
-  },
-  {
-    id: "xyz-d50",
-    aliases: [],
-    gamut: [[-Infinity, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
-    links: ["lab", "xyz-d65", "prophoto-rgb-linear"]
-  },
-  {
-    id: "xyz-d65",
-    aliases: ["xyz"],
-    gamut: [[-Infinity, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
-    links: ["xyz-d50", "srgb-linear", "display-p3-linear", "a98-rgb-linear", "rec2020-linear", "oklab"]
-  },
-  {
-    id: "display-p3",
-    aliases: [],
-    gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["display-p3-linear"],
-    black: [0, 0, 0],
-    white: [1, 1, 1]
-  },
-  {
-    id: "display-p3-linear",
-    aliases: [],
-    gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["display-p3", "xyz-d65"],
-    black: [0, 0, 0],
-    white: [1, 1, 1]
-  },
-  {
-    id: "a98-rgb",
-    aliases: [],
-    gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["a98-rgb-linear"],
-    black: [0, 0, 0],
-    white: [1, 1, 1]
-  },
-  {
-    id: "a98-rgb-linear",
-    aliases: [],
-    gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["a98-rgb", "xyz-d65"],
-    black: [0, 0, 0],
-    white: [1, 1, 1]
-  },
-  {
-    id: "prophoto-rgb",
-    aliases: [],
-    gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["prophoto-rgb-linear"],
-    black: [0, 0, 0],
-    white: [1, 1, 1]
-  },
-  {
-    id: "prophoto-rgb-linear",
-    aliases: [],
-    gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["prophoto-rgb", "xyz-d50"],
-    black: [0, 0, 0],
-    white: [1, 1, 1]
-  },
-  {
-    id: "rec2020",
-    aliases: [],
-    gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["rec2020-linear"],
-    black: [0, 0, 0],
-    white: [1, 1, 1]
-  },
-  {
-    id: "rec2020-linear",
-    aliases: [],
-    gamut: [[0, 1], [0, 1], [0, 1]],
-    links: ["rec2020", "xyz-d65"],
-    black: [0, 0, 0],
-    white: [1, 1, 1]
-  },
-  {
-    id: "oklab",
-    aliases: [],
-    properties: ["okl", "oka", "okb"],
-    gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
-    links: ["xyz-d65", "oklch", "okhsl", "okhsv", "oklrab"],
-    black: [0, 0, 0]
-  },
-  {
-    id: "oklch",
-    aliases: [],
-    properties: ["okl", "okc", "okh"],
-    gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
-    links: ["oklab", "oklrch"],
-    black: [0, 0, 0]
-  },
-  {
-    id: "oklrab",
-    aliases: [],
-    properties: ["oklr", "oka", "okb"],
-    gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
-    links: ["oklab"],
-    black: [0, 0, 0]
-  },
-  {
-    id: "oklrch",
-    aliases: [],
-    properties: ["oklr", "okc", "okh"],
-    gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
-    links: ["oklch"],
-    black: [0, 0, 0]
-  },
-  {
-    id: "okhsl",
-    aliases: [],
-    properties: ["okh", "oksl", "oklr"],
-    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
-    links: ["oklab"],
-    black: [0, 0, 0],
-    white: [0, 0, 1]
-  },
-  {
-    id: "okhsv",
-    aliases: [],
-    properties: ["okh", "oksv", "okv"],
-    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
-    links: ["oklab"],
-    black: [0, 0, 0],
-    white: [0, 0, 1]
-  }
-];
-var color_spaces_default = colorSpaces;
-
 // src/ts/contrasts.ts
 var contrasts_exports = {};
 __export(contrasts_exports, {
@@ -898,20 +718,195 @@ function WCAG2(rgbText, rgbBack) {
   return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
 }
 
+// src/ts/color-spaces.ts
+var colorSpaces = [
+  {
+    id: "srgb",
+    aliases: ["rgb", "rgba"],
+    properties: ["r", "g", "b"],
+    gamut: [[0, 1], [0, 1], [0, 1]],
+    links: ["srgb-linear", "hsl"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
+  },
+  {
+    id: "srgb-linear",
+    aliases: [],
+    gamut: [[0, 1], [0, 1], [0, 1]],
+    links: ["srgb", "xyz-d65"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
+  },
+  {
+    id: "hsl",
+    aliases: ["hsla"],
+    properties: ["h", "s", "l"],
+    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
+    gamutSpace: "srgb",
+    links: ["srgb", "hwb"]
+  },
+  {
+    id: "hwb",
+    aliases: [],
+    properties: ["h", "w", "bk"],
+    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
+    gamutSpace: "srgb",
+    links: ["hsl"]
+  },
+  {
+    id: "lab",
+    aliases: [],
+    properties: ["ciel", "ciea", "cieb"],
+    gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
+    links: ["xyz-d50", "lch"],
+    black: [0, 0, 0]
+  },
+  {
+    id: "lch",
+    aliases: [],
+    properties: ["ciel", "ciec", "cieh"],
+    gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
+    links: ["lab"],
+    black: [0, 0, 0]
+  },
+  {
+    id: "xyz-d50",
+    aliases: [],
+    gamut: [[-Infinity, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
+    links: ["lab", "xyz-d65", "prophoto-rgb-linear"]
+  },
+  {
+    id: "xyz-d65",
+    aliases: ["xyz"],
+    gamut: [[-Infinity, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
+    links: ["xyz-d50", "srgb-linear", "display-p3-linear", "a98-rgb-linear", "rec2020-linear", "oklab"]
+  },
+  {
+    id: "display-p3",
+    aliases: [],
+    gamut: [[0, 1], [0, 1], [0, 1]],
+    links: ["display-p3-linear"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
+  },
+  {
+    id: "display-p3-linear",
+    aliases: [],
+    gamut: [[0, 1], [0, 1], [0, 1]],
+    links: ["display-p3", "xyz-d65"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
+  },
+  {
+    id: "a98-rgb",
+    aliases: [],
+    gamut: [[0, 1], [0, 1], [0, 1]],
+    links: ["a98-rgb-linear"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
+  },
+  {
+    id: "a98-rgb-linear",
+    aliases: [],
+    gamut: [[0, 1], [0, 1], [0, 1]],
+    links: ["a98-rgb", "xyz-d65"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
+  },
+  {
+    id: "prophoto-rgb",
+    aliases: [],
+    gamut: [[0, 1], [0, 1], [0, 1]],
+    links: ["prophoto-rgb-linear"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
+  },
+  {
+    id: "prophoto-rgb-linear",
+    aliases: [],
+    gamut: [[0, 1], [0, 1], [0, 1]],
+    links: ["prophoto-rgb", "xyz-d50"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
+  },
+  {
+    id: "rec2020",
+    aliases: [],
+    gamut: [[0, 1], [0, 1], [0, 1]],
+    links: ["rec2020-linear"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
+  },
+  {
+    id: "rec2020-linear",
+    aliases: [],
+    gamut: [[0, 1], [0, 1], [0, 1]],
+    links: ["rec2020", "xyz-d65"],
+    black: [0, 0, 0],
+    white: [1, 1, 1]
+  },
+  {
+    id: "oklab",
+    aliases: [],
+    properties: ["okl", "oka", "okb"],
+    gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
+    links: ["xyz-d65", "oklch", "okhsl", "okhsv", "oklrab"],
+    black: [0, 0, 0]
+  },
+  {
+    id: "oklch",
+    aliases: [],
+    properties: ["okl", "okc", "okh"],
+    gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
+    links: ["oklab", "oklrch"],
+    black: [0, 0, 0]
+  },
+  {
+    id: "oklrab",
+    aliases: [],
+    properties: ["oklr", "oka", "okb"],
+    gamut: [[0, Infinity], [-Infinity, Infinity], [-Infinity, Infinity]],
+    links: ["oklab"],
+    black: [0, 0, 0]
+  },
+  {
+    id: "oklrch",
+    aliases: [],
+    properties: ["oklr", "okc", "okh"],
+    gamut: [[0, Infinity], [0, Infinity], [-Infinity, Infinity]],
+    links: ["oklch"],
+    black: [0, 0, 0]
+  },
+  {
+    id: "okhsl",
+    aliases: [],
+    properties: ["okh", "oksl", "oklr"],
+    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
+    links: ["oklab"],
+    black: [0, 0, 0],
+    white: [0, 0, 1]
+  },
+  {
+    id: "okhsv",
+    aliases: [],
+    properties: ["okh", "oksv", "okv"],
+    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
+    links: ["oklab"],
+    black: [0, 0, 0],
+    white: [0, 0, 1]
+  }
+];
+var color_spaces_default = colorSpaces;
+
 // src/ts/css-formats.ts
-var css_formats_exports = {};
-__export(css_formats_exports, {
-  Formats: () => Formats,
-  RegExps: () => RegExps
-});
 var numberExp = "(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?";
-var RegExps = {
+var cssUnitRegexps = {
   number: numberExp,
   percentage: numberExp + "%",
   numberOrPercentage: numberExp + "%?",
   angle: numberExp + "(?:deg|grad|rad|turn)?"
 };
-var Formats = [
+var cssFormats = [
   {
     id: "hex",
     syntaxes: [
@@ -924,65 +919,65 @@ var Formats = [
   {
     id: "rgb",
     syntaxes: [
-      new RegExp(`^rgba?\\((${RegExps.number}), ?(${RegExps.number}), ?(${RegExps.number})\\)$`),
-      new RegExp(`^rgba?\\((${RegExps.number}), ?(${RegExps.number}), ?(${RegExps.number}), ?(${RegExps.numberOrPercentage})\\)$`),
-      new RegExp(`^rgba?\\((${RegExps.percentage}), ?(${RegExps.percentage}), ?(${RegExps.percentage})\\)$`),
-      new RegExp(`^rgba?\\((${RegExps.percentage}), ?(${RegExps.percentage}), ?(${RegExps.percentage}), ?(${RegExps.numberOrPercentage})\\)$`),
-      new RegExp(`^rgba?\\((${RegExps.number}) (${RegExps.number}) (${RegExps.number})\\)$`),
-      new RegExp(`^rgba?\\((${RegExps.number}) (${RegExps.number}) (${RegExps.number}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`),
-      new RegExp(`^rgba?\\((${RegExps.percentage}) (${RegExps.percentage}) (${RegExps.percentage})\\)$`),
-      new RegExp(`^rgba?\\((${RegExps.percentage}) (${RegExps.percentage}) (${RegExps.percentage}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^rgba?\\((${cssUnitRegexps.number}), ?(${cssUnitRegexps.number}), ?(${cssUnitRegexps.number})\\)$`),
+      new RegExp(`^rgba?\\((${cssUnitRegexps.number}), ?(${cssUnitRegexps.number}), ?(${cssUnitRegexps.number}), ?(${cssUnitRegexps.numberOrPercentage})\\)$`),
+      new RegExp(`^rgba?\\((${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage})\\)$`),
+      new RegExp(`^rgba?\\((${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.numberOrPercentage})\\)$`),
+      new RegExp(`^rgba?\\((${cssUnitRegexps.number}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number})\\)$`),
+      new RegExp(`^rgba?\\((${cssUnitRegexps.number}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`),
+      new RegExp(`^rgba?\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage})\\)$`),
+      new RegExp(`^rgba?\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "hsl",
     syntaxes: [
-      new RegExp(`^hsla?\\((${RegExps.angle}), ?(${RegExps.percentage}), ?(${RegExps.percentage})\\)$`),
-      new RegExp(`^hsla?\\((${RegExps.angle}), ?(${RegExps.percentage}), ?(${RegExps.percentage}), ?(${RegExps.numberOrPercentage})\\)$`),
-      new RegExp(`^hsla?\\((${RegExps.angle}) (${RegExps.percentage}) (${RegExps.percentage})\\)$`),
-      new RegExp(`^hsla?\\((${RegExps.angle}) (${RegExps.percentage}) (${RegExps.percentage}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^hsla?\\((${cssUnitRegexps.angle}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage})\\)$`),
+      new RegExp(`^hsla?\\((${cssUnitRegexps.angle}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.numberOrPercentage})\\)$`),
+      new RegExp(`^hsla?\\((${cssUnitRegexps.angle}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage})\\)$`),
+      new RegExp(`^hsla?\\((${cssUnitRegexps.angle}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "hwb",
     syntaxes: [
-      new RegExp(`^hwb\\((${RegExps.angle}) (${RegExps.percentage}) (${RegExps.percentage})\\)$`),
-      new RegExp(`^hwb\\((${RegExps.angle}) (${RegExps.percentage}) (${RegExps.percentage}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^hwb\\((${cssUnitRegexps.angle}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage})\\)$`),
+      new RegExp(`^hwb\\((${cssUnitRegexps.angle}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "lab",
     syntaxes: [
-      new RegExp(`^lab\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.number})\\)$`),
-      new RegExp(`^lab\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.number}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^lab\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number})\\)$`),
+      new RegExp(`^lab\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "lch",
     syntaxes: [
-      new RegExp(`^lch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle})\\)$`),
-      new RegExp(`^lch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^lch\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.angle})\\)$`),
+      new RegExp(`^lch\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.angle}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "oklab",
     syntaxes: [
-      new RegExp(`^oklab\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.number})\\)$`),
-      new RegExp(`^oklab\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.number}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^oklab\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number})\\)$`),
+      new RegExp(`^oklab\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "oklch",
     syntaxes: [
-      new RegExp(`^oklch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle})\\)$`),
-      new RegExp(`^oklch\\((${RegExps.percentage}) (${RegExps.number}) (${RegExps.angle}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^oklch\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.angle})\\)$`),
+      new RegExp(`^oklch\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.angle}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "color",
     syntaxes: [
-      new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${RegExps.number}) (${RegExps.number}) (${RegExps.number})\\)$`),
-      new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${RegExps.number}) (${RegExps.number}) (${RegExps.number}) ?\\/ ?(${RegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number})\\)$`),
+      new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
     ]
   },
   {
@@ -1473,38 +1468,38 @@ var _Couleur = class {
     const tri = colorString.slice(0, 3);
     let format;
     if (tri.slice(0, 1) === "#")
-      format = _Couleur.formats[0];
+      format = _Couleur.cssFormats[0];
     else
       switch (tri) {
         case "rgb":
-          format = _Couleur.formats[1];
+          format = _Couleur.cssFormats[1];
           break;
         case "hsl":
-          format = _Couleur.formats[2];
+          format = _Couleur.cssFormats[2];
           break;
         case "hwb":
-          format = _Couleur.formats[3];
+          format = _Couleur.cssFormats[3];
           break;
         case "lab":
-          format = _Couleur.formats[4];
+          format = _Couleur.cssFormats[4];
           break;
         case "lch":
-          format = _Couleur.formats[5];
+          format = _Couleur.cssFormats[5];
           break;
         case "okl":
           {
             if (colorString.startsWith("oklab")) {
-              format = _Couleur.formats[6];
+              format = _Couleur.cssFormats[6];
             } else if (colorString.startsWith("oklch")) {
-              format = _Couleur.formats[7];
+              format = _Couleur.cssFormats[7];
             }
           }
           break;
         case "col":
-          format = _Couleur.formats[8];
+          format = _Couleur.cssFormats[8];
           break;
         default:
-          format = _Couleur.formats[9];
+          format = _Couleur.cssFormats[9];
       }
     if (format == null)
       throw new Error("No matching format");
@@ -1530,12 +1525,12 @@ var _Couleur = class {
     const nval = parseFloat(val);
     switch (prop) {
       case "a": {
-        if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
+        if (new RegExp("^" + cssUnitRegexps.percentage + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval / 100, 1));
           else
             return nval / 100;
-        } else if (new RegExp("^" + RegExps.number + "$").test(val)) {
+        } else if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval, 1));
           else
@@ -1546,12 +1541,12 @@ var _Couleur = class {
       case "r":
       case "g":
       case "b": {
-        if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
+        if (new RegExp("^" + cssUnitRegexps.percentage + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval / 100, 1));
           else
             return nval / 100;
-        } else if (new RegExp("^" + RegExps.number + "$").test(val)) {
+        } else if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval / 255, 1));
           else
@@ -1563,9 +1558,9 @@ var _Couleur = class {
       case "cieh":
       case "okh": {
         let h = nval;
-        if (new RegExp("^" + RegExps.number + "$").test(val)) {
+        if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
           return angleToRange(h);
-        } else if (new RegExp("^" + RegExps.angle + "$").test(val)) {
+        } else if (new RegExp("^" + cssUnitRegexps.angle + "$").test(val)) {
           if (val.slice(-3) === "deg") {
           } else if (val.slice(-4) === "grad")
             h = h * 360 / 400;
@@ -1585,7 +1580,7 @@ var _Couleur = class {
       case "bk":
       case "ciel":
       case "okl": {
-        if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
+        if (new RegExp("^" + cssUnitRegexps.percentage + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval / 100, 1));
           else
@@ -1598,13 +1593,13 @@ var _Couleur = class {
       case "oka":
       case "okb":
       case "okc": {
-        if (new RegExp("^" + RegExps.number + "$").test(val)) {
+        if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
           return nval;
         } else
           throw new InvalidColorPropValueError(prop, value);
       }
       case "ciec": {
-        if (new RegExp("^" + RegExps.number + "$").test(val)) {
+        if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
           if (clamp)
             return Math.max(0, nval);
           else
@@ -1613,9 +1608,9 @@ var _Couleur = class {
           throw new InvalidColorPropValueError(prop, value);
       }
       default: {
-        if (new RegExp("^" + RegExps.percentage + "$").test(val)) {
+        if (new RegExp("^" + cssUnitRegexps.percentage + "$").test(val)) {
           return nval / 100;
-        } else if (new RegExp("^" + RegExps.number + "$").test(val)) {
+        } else if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
           return nval;
         } else
           throw new InvalidColorArbitraryValueError(value);
@@ -2622,8 +2617,11 @@ var _Couleur = class {
   static get colorSpaces() {
     return color_spaces_default;
   }
-  static get formats() {
-    return Formats;
+  static get colorSpacesGraph() {
+    return colorSpacesGraph;
+  }
+  static get cssFormats() {
+    return cssFormats;
   }
   static get namedColors() {
     return named_colors_default;
@@ -2636,13 +2634,9 @@ _b = new WeakMap();
 _a = new WeakMap();
 _cache2 = new WeakMap();
 export {
-  css_formats_exports as CSSFormats,
-  color_spaces_default as ColorSpaces,
   contrasts_exports as Contrasts,
   conversion_exports as Conversions,
   distances_exports as Distances,
   utils_exports as Utils,
-  colorSpacesGraph,
-  Couleur as default,
-  named_colors_default as namedColors
+  Couleur as default
 };

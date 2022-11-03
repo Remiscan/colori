@@ -55,7 +55,7 @@
 </table>
 
 <script type="module">
-  import Couleur, { colorSpacesGraph } from 'colori';
+  import Couleur from 'colori';
 
 
 
@@ -83,7 +83,7 @@
 
 
   function performTest(tests, table) {
-    const graph = colorSpacesGraph;
+    const graph = Couleur.colorSpacesGraph;
     for (const test of tests) {
       let start = performance.now();
       let duration = performance.now() - start;

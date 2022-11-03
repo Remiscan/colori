@@ -1,10 +1,10 @@
-export type cssColorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
-export type colorProperty = cssColorProperty|'oksl'|'oklr'|'oksv'|'okv';
+export type CssColorProperty = 'r'|'g'|'b'|'a'|'h'|'s'|'l'|'w'|'bk'|'ciel'|'ciea'|'cieb'|'ciec'|'cieh'|'okl'|'oka'|'okb'|'okc'|'okh';
+export type ColorProperty = CssColorProperty|'oksl'|'oklr'|'oksv'|'okv';
 
 interface ColorSpaceBase {
   id: string,
   aliases: string[],
-  properties?: colorProperty[],
+  properties?: ColorProperty[],
   links: string[],
 };
 
