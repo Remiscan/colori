@@ -32,10 +32,11 @@ console.log(color.rgb); // logs 'rgb(0, 0, 255)'
 
 ### PHP
 
-Include the [colori.php](https://github.com/Remiscan/colori/releases/latest/download/colori.php) file in your script, and... that's it!
+Include the [colori.php](https://github.com/Remiscan/colori/releases/latest/download/colori.php) file in your script, import the ```colori\Couleur``` class, and that's it!
 
 ```php
 require_once 'colori.php';
+use colori\Couleur as Couleur;
 
 // Let's find the RGB expression of blue:
 $color = new Couleur('blue');
