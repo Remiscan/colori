@@ -177,7 +177,7 @@ export default class Couleur {
     }
 
     else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {
-      [this.#r, this.#g, this.#b] = Couleur.toGamut('srgb', color.slice(0, 3), 'srgb', { method: 'naive' });
+      [this.#r, this.#g, this.#b] = Couleur.valuesToGamut('srgb', color.slice(0, 3), 'srgb', { method: 'naive' });
       this.#a = Math.max(0, Math.min(Number(Utils.toUnparsedAlpha(color[3])), 1));
     }
 
@@ -628,7 +628,7 @@ export default class Couleur {
   
   /** @returns Hexadecimal expression of the color. */
   public get hex(): string {
-    const values = Couleur.toGamut('srgb', this.values);
+    const values = Couleur.valuesToGamut('srgb', this.values);
     const rgb = Utils.toHex([...values, this.a]);
     if (this.a < 1) return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
     else            return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
@@ -867,7 +867,7 @@ export default class Couleur {
       values = Couleur.convert('srgb', destinationSpace, this.values);
       this.#cache.set(destinationSpace.id, values);
     }
-    if (clamp) values = Couleur.toGamut(destinationSpace, values, destinationSpace);
+    if (clamp) values = Couleur.valuesToGamut(destinationSpace, values, destinationSpace);
     return values;
   }
 
@@ -882,7 +882,7 @@ export default class Couleur {
    * @param sourceSpaceID Color space of the given values, or its identifier.
    * @returns Whether the corresponding color is in gamut.
    */
-  public static inGamut(destinationSpaceID: colorSpaceOrID, values: number[] | Couleur, sourceSpaceID: colorSpaceOrID = 'srgb', { tolerance = .0001 } = {}): boolean {
+  public static valuesInGamut(destinationSpaceID: colorSpaceOrID, values: number[] | Couleur, sourceSpaceID: colorSpaceOrID = 'srgb', { tolerance = .0001 } = {}): boolean {
     const destinationSpace = Couleur.getSpace(destinationSpaceID) as ColorSpaceWithoutGamut;
     const gamutSpace = (
       destinationSpace.gamutSpace ? Couleur.getSpace(destinationSpace.gamutSpace)
@@ -893,8 +893,8 @@ export default class Couleur {
     return convertedValues.every((v, k) => v >= (gamutSpace.gamut[k][0] - tolerance) && v <= (gamutSpace.gamut[k][1] + tolerance));
   }
 
-  /** @see Couleur.inGamut - Non-static version. */
-  public inGamut(destinationSpaceID: colorSpaceOrID, options = {}) { return Couleur.inGamut(destinationSpaceID, this, undefined, options); }
+  /** @see Couleur.valuesInGamut - Non-static version. */
+  public inGamut(destinationSpaceID: colorSpaceOrID, options = {}) { return Couleur.valuesInGamut(destinationSpaceID, this, undefined, options); }
 
   /**
    * Clamps parsed values in valueSpaceID color space to the spaceID color space.
@@ -903,7 +903,7 @@ export default class Couleur {
    * @param sourceSpaceID Color space of the given values, or its identifier.
    * @returns The array of values in valueSpaceID color space, after clamping the color to spaceID color space.
    */
-  public static toGamut(destinationSpaceID: colorSpaceOrID, values: number[] | Couleur, sourceSpaceID: colorSpaceOrID = 'srgb', { method = 'okchroma' }: toGamutOptions = {}): number[] {
+  public static valuesToGamut(destinationSpaceID: colorSpaceOrID, values: number[] | Couleur, sourceSpaceID: colorSpaceOrID = 'srgb', { method = 'okchroma' }: toGamutOptions = {}): number[] {
     const destinationSpace = Couleur.getSpace(destinationSpaceID) as ColorSpaceWithoutGamut;
     const gamutSpace = (
       destinationSpace.gamutSpace ? Couleur.getSpace(destinationSpace.gamutSpace)
@@ -916,7 +916,7 @@ export default class Couleur {
       if (values.inGamut(destinationSpace, { tolerance: 0 })) return values.valuesTo(sourceSpace);
       values = values.valuesTo(sourceSpace);
     } else {
-      if (Couleur.inGamut(destinationSpace, values, sourceSpace, { tolerance: 0 })) return values;
+      if (Couleur.valuesInGamut(destinationSpace, values, sourceSpace, { tolerance: 0 })) return values;
     }
     
     let clampedValues: number[], clampSpace: ColorSpace;
@@ -943,10 +943,10 @@ export default class Couleur {
         oklch[1] = oklch[1] / 2;
 
         while (Cmax - Cmin > τ) {
-          if (Couleur.inGamut(destinationSpace, oklch, clampSpace, { tolerance: 0 })) {
+          if (Couleur.valuesInGamut(destinationSpace, oklch, clampSpace, { tolerance: 0 })) {
             Cmin = oklch[1];
           } else {
-            const naiveOklch = Couleur.toGamut(destinationSpace, oklch, clampSpace, { method: 'naive' });
+            const naiveOklch = Couleur.valuesToGamut(destinationSpace, oklch, clampSpace, { method: 'naive' });
             const naiveOklab = Couleur.convert(clampSpace, 'oklab', naiveOklch);
             const oklab = Couleur.convert(clampSpace, 'oklab', oklch);
 
@@ -972,16 +972,16 @@ export default class Couleur {
     }
 
     // Final naive clamp to get in the color space if the color is still just outside the border
-    if (_method !== 'naive') clampedValues = Couleur.toGamut(destinationSpace, clampedValues, clampSpace, { method: 'naive' });
+    if (_method !== 'naive') clampedValues = Couleur.valuesToGamut(destinationSpace, clampedValues, clampSpace, { method: 'naive' });
 
     // Send the values back in the same color space we found them in
     return Couleur.convert(clampSpace, sourceSpace, clampedValues);
   }
 
-  /** @see Couleur.toGamut - Non-static version. */
+  /** @see Couleur.valuesToGamut - Non-static version. */
   public toGamut(destinationSpaceID: colorSpaceOrID): Couleur {
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
-    const rgbClampedValues = Couleur.toGamut(destinationSpace, this, undefined);
+    const rgbClampedValues = Couleur.valuesToGamut(destinationSpace, this, undefined);
     return new Couleur([...rgbClampedValues, this.a]);
   }
 
@@ -1147,7 +1147,7 @@ export default class Couleur {
         const r = (mix.r * mix.a - overlay.r * overlay.a) / (a * (1 - overlay.a));
         const g = (mix.g * mix.a - overlay.g * overlay.a) / (a * (1 - overlay.a));
         const b = (mix.b * mix.a - overlay.b * overlay.a) / (a * (1 - overlay.a));
-        const clampedValues = Couleur.toGamut('srgb', [r, g, b], 'srgb');
+        const clampedValues = Couleur.valuesToGamut('srgb', [r, g, b], 'srgb');
         return new Couleur([...clampedValues, a]);
       }
     }
@@ -1198,8 +1198,8 @@ export default class Couleur {
       const r = (mix.r * mix.a - background.r * background.a * (1 - a)) / a;
       const g = (mix.g * mix.a - background.g * background.a * (1 - a)) / a;
       const b = (mix.b * mix.a - background.b * background.a * (1 - a)) / a;
-      if (!Couleur.inGamut('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) throw new Error(`This color doesn't exist`);
-      const clampedValues = Couleur.toGamut('srgb', [r, g, b], 'srgb', { method: 'naive' });
+      if (!Couleur.valuesInGamut('srgb', [r, g, b], 'srgb', { tolerance: 1/255 })) throw new Error(`This color doesn't exist`);
+      const clampedValues = Couleur.valuesToGamut('srgb', [r, g, b], 'srgb', { method: 'naive' });
       return new Couleur([...clampedValues, a]);
     };
 

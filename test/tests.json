@@ -35,7 +35,6 @@
       "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 1 }
     }, {
       "fonction": "new Colour([0.2256, 0.7144, 0.29079, 0.4])",
-      "fonctionphp": "new Colour(['r' => 0.2256, 'g' => 0.7144, 'b' => 0.29079, 'a' => 0.4])",
       "resultatAttendu": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 0.4 }
     }, {
       "fonction": "new Colour({r: 0.2256, g: 0.7144, b: 0.29079, a: 0.4 })",
@@ -133,7 +132,6 @@
       "resultatAttendu": "rgb(79.59, 255, 206.69)"
     }, {
       "fonction": "(new Colour('oklch(100% 0.062 206)')).toGamut('srgb').rgb",
-      "fonctionphp": "(new Colour(Colour::toGamut('srgb', (new Colour('oklch(100% 0.062 206)'))->values())))->rgb()",
       "resultatAttendu": "rgb(255, 255, 255)"
     }
   ],

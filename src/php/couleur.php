@@ -60,14 +60,14 @@
       // If associative array with r, g, b keys
       else if (is_array($color) && array_keys($color) !== range(0, count($color) - 1) && isset($color['r']) && isset($color['g']) && isset($color['b'])) {
         $values = [$color['r'], $color['g'], $color['b']];
-        [$this->_r, $this->_g, $this->_b] = self::toGamut('srgb', $values, 'srgb', method: 'naive');
+        [$this->_r, $this->_g, $this->_b] = self::valuesToGamut('srgb', $values, 'srgb', method: 'naive');
         $this->_a = $color['a'] ?? 1;
       }
 
       // If sequential array with 3 or 4 values
       else if (is_array($color) && (count($color) === 3 || count($color) === 4)) {
         $values = array_slice($color, 0, 3);
-        [$this->_r, $this->_g, $this->_b] = self::toGamut('srgb', $values, 'srgb', method: 'naive');
+        [$this->_r, $this->_g, $this->_b] = self::valuesToGamut('srgb', $values, 'srgb', method: 'naive');
         $this->_a = $color[3] ?? 1;
       }
 
@@ -477,7 +477,7 @@
 
     /** Hexadecimal expression of the color. */
     public function hex(): string {
-      $values = self::toGamut('srgb', $this->values());
+      $values = self::valuesToGamut('srgb', $this->values());
       $values[] = $this->a();
       [$r, $g, $b, $a] = utils\toHex($values);
       if ($this->a() < 1) return '#'.$r.$g.$b.$a;
@@ -688,7 +688,7 @@
         $values = self::convert('srgb', $destinationSpace, $this->values());
         $this->cache[$destinationSpace['id']] = $values;
       }
-      if ($clamp) $values = self::toGamut($destinationSpace, $values, $destinationSpace);
+      if ($clamp) $values = self::valuesToGamut($destinationSpace, $values, $destinationSpace);
       return $values;
     }
 
@@ -697,7 +697,7 @@
 
 
     /** Checks whether parsed values in valueSpace color space correspond to a color in the spaceID color space. */
-    public static function inGamut(array|string $destinationSpaceID, array $values, array|string $sourceSpaceID = 'srgb', float $tolerance = .0001): bool {
+    public static function valuesInGamut(array|string $destinationSpaceID, array|self $values, array|string $sourceSpaceID = 'srgb', float $tolerance = .0001): bool {
       $destinationSpace = self::getSpace($destinationSpaceID);
       $gamutSpace = isset($destinationSpace['gamutSpace']) ? self::getSpace($destinationSpace['gamutSpace']) : $destinationSpace;
       $convertedValues = $values instanceof self ? $values->valuesTo($gamutSpace)
@@ -708,19 +708,23 @@
       return true;
     }
 
+    public function inGamut(array|string $destinationSpaceID, float $tolerance = .0001): bool {
+      return self::valuesInGamut($destinationSpaceID, $this, 'srgb', tolerance: $tolerance);
+    }
+
 
     /** Clamps parsed values in valueSpaceID color space to the spaceID color space. */
-    public static function toGamut(array|string $destinationSpaceID, array $values, array|string $sourceSpaceID = 'srgb', string $method = 'okchroma'): array {
+    public static function valuesToGamut(array|string $destinationSpaceID, array|self $values, array|string $sourceSpaceID = 'srgb', string $method = 'okchroma'): array {
       $destinationSpace = self::getSpace($destinationSpaceID);
       $gamutSpace = isset($destinationSpace['gamutSpace']) ? self::getSpace($destinationSpace['gamutSpace']) : $destinationSpace;
       $sourceSpace = self::getSpace($sourceSpaceID);
       $method = strtolower($method);
 
       if ($values instanceof self) {
-        if (self::inGamut($destinationSpace, $values->values(), $sourceSpace, tolerance: 0)) return $values->valuesTo($sourceSpace);
+        if (self::valuesInGamut($destinationSpace, $values->values(), $sourceSpace, tolerance: 0)) return $values->valuesTo($sourceSpace);
         $values = $values->valuesTo($sourceSpace);
       } else {
-        if (self::inGamut($destinationSpace, $values, $sourceSpace, tolerance: 0)) return $values;
+        if (self::valuesInGamut($destinationSpace, $values, $sourceSpace, tolerance: 0)) return $values;
       }
 
       // OKLCH chroma gamut clipping
@@ -742,10 +746,10 @@
         $oklch[1] = $oklch[1] / 2;
 
         while ($Cmax - $Cmin > $τ) {
-          if (self::inGamut($destinationSpace, $oklch, $clampSpace, tolerance: 0 )) {
+          if (self::valuesInGamut($destinationSpace, $oklch, $clampSpace, tolerance: 0 )) {
             $Cmin = $oklch[1];
           } else {
-            $naiveOklch = self::toGamut($destinationSpace, $oklch, $clampSpace, method: 'naive');
+            $naiveOklch = self::valuesToGamut($destinationSpace, $oklch, $clampSpace, method: 'naive');
             $naiveOklab = self::convert($clampSpace, 'oklab', $naiveOklch);
             $oklab = self::convert($clampSpace, 'oklab', $oklch);
 
@@ -772,10 +776,17 @@
       }
 
       // Final naive clamp to get in the color space if the color is still just outside the border
-      if ($method !== 'naive') $clampedValues = self::toGamut($destinationSpace, $clampedValues, $clampSpace, method: 'naive');
+      if ($method !== 'naive') $clampedValues = self::valuesToGamut($destinationSpace, $clampedValues, $clampSpace, method: 'naive');
 
       // Send the values back in the same color space we found them in
       return self::convert($clampSpace, $sourceSpace, $clampedValues);
+    }
+
+    public function toGamut(object|string $destinationSpaceID): self {
+      $destinationSpace = self::getSpace($destinationSpaceID);
+      $rgbClampedValues = self::valuesToGamut($destinationSpace, $this);
+      $rgbClampedValues[] = $this->a();
+      return new self($rgbClampedValues);
     }
 
 
@@ -894,7 +905,7 @@
           $r = ($mix->r() * $mix->a() - $overlay->r() * $overlay->a()) / ($a * (1 - $overlay->a()));
           $g = ($mix->g() * $mix->a() - $overlay->g() * $overlay->a()) / ($a * (1 - $overlay->a()));
           $b = ($mix->b() * $mix->a() - $overlay->b() * $overlay->a()) / ($a * (1 - $overlay->a()));
-          $clampedValues = self::toGamut('srgb', [$r, $g, $b], 'srgb');
+          $clampedValues = self::valuesToGamut('srgb', [$r, $g, $b], 'srgb');
           $clampedValues[] = $a;
           return new self($clampedValues);
         }
@@ -925,8 +936,8 @@
         $r = ($mix->r() * $mix->a() - $background->r() * $background->a() * (1 - $a)) / $a;
         $g = ($mix->g() * $mix->a() - $background->g() * $background->a() * (1 - $a)) / $a;
         $b = ($mix->b() * $mix->a() - $background->b() * $background->a() * (1 - $a)) / $a;
-        if (!self::inGamut('srgb', [$r, $g, $b], 'srgb', tolerance: 1/255)) throw new \Exception("This color doesn't exist");
-        $clampedValues = self::toGamut('srgb', [$r, $g, $b], 'srgb', method: 'naive');
+        if (!self::valuesInGamut('srgb', [$r, $g, $b], 'srgb', tolerance: 1/255)) throw new \Exception("This color doesn't exist");
+        $clampedValues = self::valuesToGamut('srgb', [$r, $g, $b], 'srgb', method: 'naive');
         $clampedValues[] = $a;
         return new self($clampedValues);
       };
@@ -1011,7 +1022,7 @@
 
     /** Determines which color scheme ('light' or 'dark') would lead to a better contrast with the color. */
     public function bestColorScheme(string $as = 'background'): string {
-      $rgba = self::toGamut('srgb', $this->values()); $rgba[] = $this->a();
+      $rgba = self::valuesToGamut('srgb', $this->values()); $rgba[] = $this->a();
       if ($as === 'text') {
         $Cblack = abs(self::contrast($rgba, 'black', method: 'apca'));
         $Cwhite = abs(self::contrast($rgba, 'white', method: 'apca'));

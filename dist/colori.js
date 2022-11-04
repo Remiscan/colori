@@ -1408,7 +1408,7 @@ var _Couleur = class {
       __privateSet(this, _b, color.b);
       __privateSet(this, _a, typeof color.a === "number" ? color.a : 1);
     } else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {
-      [__privateWrapper(this, _r)._, __privateWrapper(this, _g)._, __privateWrapper(this, _b)._] = _Couleur.toGamut("srgb", color.slice(0, 3), "srgb", { method: "naive" });
+      [__privateWrapper(this, _r)._, __privateWrapper(this, _g)._, __privateWrapper(this, _b)._] = _Couleur.valuesToGamut("srgb", color.slice(0, 3), "srgb", { method: "naive" });
       __privateSet(this, _a, Math.max(0, Math.min(Number(toUnparsedAlpha(color[3])), 1)));
     } else if (typeof color === "string") {
       const format = _Couleur.matchSyntax(color.trim());
@@ -1733,7 +1733,7 @@ var _Couleur = class {
     return closest;
   }
   get hex() {
-    const values = _Couleur.toGamut("srgb", this.values);
+    const values = _Couleur.valuesToGamut("srgb", this.values);
     const rgb = toHex([...values, this.a]);
     if (this.a < 1)
       return `#${rgb[0]}${rgb[1]}${rgb[2]}${rgb[3]}`;
@@ -2054,19 +2054,19 @@ var _Couleur = class {
       __privateGet(this, _cache2).set(destinationSpace.id, values);
     }
     if (clamp)
-      values = _Couleur.toGamut(destinationSpace, values, destinationSpace);
+      values = _Couleur.valuesToGamut(destinationSpace, values, destinationSpace);
     return values;
   }
-  static inGamut(destinationSpaceID, values, sourceSpaceID = "srgb", { tolerance = 1e-4 } = {}) {
+  static valuesInGamut(destinationSpaceID, values, sourceSpaceID = "srgb", { tolerance = 1e-4 } = {}) {
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
     const gamutSpace = destinationSpace.gamutSpace ? _Couleur.getSpace(destinationSpace.gamutSpace) : destinationSpace;
     const convertedValues = values instanceof _Couleur ? values.valuesTo(gamutSpace) : _Couleur.convert(sourceSpaceID, gamutSpace, values);
     return convertedValues.every((v, k) => v >= gamutSpace.gamut[k][0] - tolerance && v <= gamutSpace.gamut[k][1] + tolerance);
   }
   inGamut(destinationSpaceID, options = {}) {
-    return _Couleur.inGamut(destinationSpaceID, this, void 0, options);
+    return _Couleur.valuesInGamut(destinationSpaceID, this, void 0, options);
   }
-  static toGamut(destinationSpaceID, values, sourceSpaceID = "srgb", { method = "okchroma" } = {}) {
+  static valuesToGamut(destinationSpaceID, values, sourceSpaceID = "srgb", { method = "okchroma" } = {}) {
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
     const gamutSpace = destinationSpace.gamutSpace ? _Couleur.getSpace(destinationSpace.gamutSpace) : destinationSpace;
     const sourceSpace = _Couleur.getSpace(sourceSpaceID);
@@ -2076,7 +2076,7 @@ var _Couleur = class {
         return values.valuesTo(sourceSpace);
       values = values.valuesTo(sourceSpace);
     } else {
-      if (_Couleur.inGamut(destinationSpace, values, sourceSpace, { tolerance: 0 }))
+      if (_Couleur.valuesInGamut(destinationSpace, values, sourceSpace, { tolerance: 0 }))
         return values;
     }
     let clampedValues, clampSpace;
@@ -2096,10 +2096,10 @@ var _Couleur = class {
           let Cmax = oklch[1];
           oklch[1] = oklch[1] / 2;
           while (Cmax - Cmin > \u03C4) {
-            if (_Couleur.inGamut(destinationSpace, oklch, clampSpace, { tolerance: 0 })) {
+            if (_Couleur.valuesInGamut(destinationSpace, oklch, clampSpace, { tolerance: 0 })) {
               Cmin = oklch[1];
             } else {
-              const naiveOklch = _Couleur.toGamut(destinationSpace, oklch, clampSpace, { method: "naive" });
+              const naiveOklch = _Couleur.valuesToGamut(destinationSpace, oklch, clampSpace, { method: "naive" });
               const naiveOklab = _Couleur.convert(clampSpace, "oklab", naiveOklch);
               const oklab = _Couleur.convert(clampSpace, "oklab", oklch);
               if (euclidean(naiveOklab, oklab) < \u03B4) {
@@ -2120,12 +2120,12 @@ var _Couleur = class {
       }
     }
     if (_method !== "naive")
-      clampedValues = _Couleur.toGamut(destinationSpace, clampedValues, clampSpace, { method: "naive" });
+      clampedValues = _Couleur.valuesToGamut(destinationSpace, clampedValues, clampSpace, { method: "naive" });
     return _Couleur.convert(clampSpace, sourceSpace, clampedValues);
   }
   toGamut(destinationSpaceID) {
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
-    const rgbClampedValues = _Couleur.toGamut(destinationSpace, this, void 0);
+    const rgbClampedValues = _Couleur.valuesToGamut(destinationSpace, this, void 0);
     return new _Couleur([...rgbClampedValues, this.a]);
   }
   change(prop, value, { action } = {}) {
@@ -2222,7 +2222,7 @@ var _Couleur = class {
         const r = (mix.r * mix.a - overlay.r * overlay.a) / (a * (1 - overlay.a));
         const g = (mix.g * mix.a - overlay.g * overlay.a) / (a * (1 - overlay.a));
         const b = (mix.b * mix.a - overlay.b * overlay.a) / (a * (1 - overlay.a));
-        const clampedValues = _Couleur.toGamut("srgb", [r, g, b], "srgb");
+        const clampedValues = _Couleur.valuesToGamut("srgb", [r, g, b], "srgb");
         return new _Couleur([...clampedValues, a]);
       }
     }
@@ -2256,9 +2256,9 @@ var _Couleur = class {
       const r = (mix.r * mix.a - background.r * background.a * (1 - a)) / a;
       const g = (mix.g * mix.a - background.g * background.a * (1 - a)) / a;
       const b = (mix.b * mix.a - background.b * background.a * (1 - a)) / a;
-      if (!_Couleur.inGamut("srgb", [r, g, b], "srgb", { tolerance: 1 / 255 }))
+      if (!_Couleur.valuesInGamut("srgb", [r, g, b], "srgb", { tolerance: 1 / 255 }))
         throw new Error(`This color doesn't exist`);
-      const clampedValues = _Couleur.toGamut("srgb", [r, g, b], "srgb", { method: "naive" });
+      const clampedValues = _Couleur.valuesToGamut("srgb", [r, g, b], "srgb", { method: "naive" });
       return new _Couleur([...clampedValues, a]);
     };
     const requestedAlphas = [alphas].flat();
