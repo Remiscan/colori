@@ -893,14 +893,19 @@ var colorSpaces = [
 var color_spaces_default = colorSpaces;
 
 // src/ts/css-formats.ts
+var css_formats_exports = {};
+__export(css_formats_exports, {
+  allFormats: () => allFormats,
+  unitRegExps: () => unitRegExps
+});
 var numberExp = "(?:\\-|\\+)?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:(?:e|E)(?:\\-|\\+)?[0-9]+)?";
-var cssUnitRegexps = {
+var unitRegExps = {
   number: numberExp,
   percentage: numberExp + "%",
   numberOrPercentage: numberExp + "%?",
   angle: numberExp + "(?:deg|grad|rad|turn)?"
 };
-var cssFormats = [
+var allFormats = [
   {
     id: "hex",
     syntaxes: [
@@ -913,65 +918,65 @@ var cssFormats = [
   {
     id: "rgb",
     syntaxes: [
-      new RegExp(`^rgba?\\((${cssUnitRegexps.number}), ?(${cssUnitRegexps.number}), ?(${cssUnitRegexps.number})\\)$`),
-      new RegExp(`^rgba?\\((${cssUnitRegexps.number}), ?(${cssUnitRegexps.number}), ?(${cssUnitRegexps.number}), ?(${cssUnitRegexps.numberOrPercentage})\\)$`),
-      new RegExp(`^rgba?\\((${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage})\\)$`),
-      new RegExp(`^rgba?\\((${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.numberOrPercentage})\\)$`),
-      new RegExp(`^rgba?\\((${cssUnitRegexps.number}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number})\\)$`),
-      new RegExp(`^rgba?\\((${cssUnitRegexps.number}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`),
-      new RegExp(`^rgba?\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage})\\)$`),
-      new RegExp(`^rgba?\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
+      new RegExp(`^rgba?\\((${unitRegExps.number}), ?(${unitRegExps.number}), ?(${unitRegExps.number})\\)$`),
+      new RegExp(`^rgba?\\((${unitRegExps.number}), ?(${unitRegExps.number}), ?(${unitRegExps.number}), ?(${unitRegExps.numberOrPercentage})\\)$`),
+      new RegExp(`^rgba?\\((${unitRegExps.percentage}), ?(${unitRegExps.percentage}), ?(${unitRegExps.percentage})\\)$`),
+      new RegExp(`^rgba?\\((${unitRegExps.percentage}), ?(${unitRegExps.percentage}), ?(${unitRegExps.percentage}), ?(${unitRegExps.numberOrPercentage})\\)$`),
+      new RegExp(`^rgba?\\((${unitRegExps.number}) (${unitRegExps.number}) (${unitRegExps.number})\\)$`),
+      new RegExp(`^rgba?\\((${unitRegExps.number}) (${unitRegExps.number}) (${unitRegExps.number}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`),
+      new RegExp(`^rgba?\\((${unitRegExps.percentage}) (${unitRegExps.percentage}) (${unitRegExps.percentage})\\)$`),
+      new RegExp(`^rgba?\\((${unitRegExps.percentage}) (${unitRegExps.percentage}) (${unitRegExps.percentage}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "hsl",
     syntaxes: [
-      new RegExp(`^hsla?\\((${cssUnitRegexps.angle}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage})\\)$`),
-      new RegExp(`^hsla?\\((${cssUnitRegexps.angle}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.percentage}), ?(${cssUnitRegexps.numberOrPercentage})\\)$`),
-      new RegExp(`^hsla?\\((${cssUnitRegexps.angle}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage})\\)$`),
-      new RegExp(`^hsla?\\((${cssUnitRegexps.angle}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
+      new RegExp(`^hsla?\\((${unitRegExps.angle}), ?(${unitRegExps.percentage}), ?(${unitRegExps.percentage})\\)$`),
+      new RegExp(`^hsla?\\((${unitRegExps.angle}), ?(${unitRegExps.percentage}), ?(${unitRegExps.percentage}), ?(${unitRegExps.numberOrPercentage})\\)$`),
+      new RegExp(`^hsla?\\((${unitRegExps.angle}) (${unitRegExps.percentage}) (${unitRegExps.percentage})\\)$`),
+      new RegExp(`^hsla?\\((${unitRegExps.angle}) (${unitRegExps.percentage}) (${unitRegExps.percentage}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "hwb",
     syntaxes: [
-      new RegExp(`^hwb\\((${cssUnitRegexps.angle}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage})\\)$`),
-      new RegExp(`^hwb\\((${cssUnitRegexps.angle}) (${cssUnitRegexps.percentage}) (${cssUnitRegexps.percentage}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
+      new RegExp(`^hwb\\((${unitRegExps.angle}) (${unitRegExps.percentage}) (${unitRegExps.percentage})\\)$`),
+      new RegExp(`^hwb\\((${unitRegExps.angle}) (${unitRegExps.percentage}) (${unitRegExps.percentage}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "lab",
     syntaxes: [
-      new RegExp(`^lab\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number})\\)$`),
-      new RegExp(`^lab\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
+      new RegExp(`^lab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number})\\)$`),
+      new RegExp(`^lab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "lch",
     syntaxes: [
-      new RegExp(`^lch\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.angle})\\)$`),
-      new RegExp(`^lch\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.angle}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
+      new RegExp(`^lch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle})\\)$`),
+      new RegExp(`^lch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "oklab",
     syntaxes: [
-      new RegExp(`^oklab\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number})\\)$`),
-      new RegExp(`^oklab\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
+      new RegExp(`^oklab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number})\\)$`),
+      new RegExp(`^oklab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "oklch",
     syntaxes: [
-      new RegExp(`^oklch\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.angle})\\)$`),
-      new RegExp(`^oklch\\((${cssUnitRegexps.percentage}) (${cssUnitRegexps.number}) (${cssUnitRegexps.angle}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
+      new RegExp(`^oklch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle})\\)$`),
+      new RegExp(`^oklch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "color",
     syntaxes: [
-      new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number})\\)$`),
-      new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) (${cssUnitRegexps.number}) ?\\/ ?(${cssUnitRegexps.numberOrPercentage})\\)$`)
+      new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${unitRegExps.number}) (${unitRegExps.number}) (${unitRegExps.number})\\)$`),
+      new RegExp(`^color\\(([a-zA-Z0-9_-]+?) (${unitRegExps.number}) (${unitRegExps.number}) (${unitRegExps.number}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
@@ -1408,7 +1413,7 @@ var _Couleur = class {
       __privateSet(this, _b, color.b);
       __privateSet(this, _a, typeof color.a === "number" ? color.a : 1);
     } else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {
-      [__privateWrapper(this, _r)._, __privateWrapper(this, _g)._, __privateWrapper(this, _b)._] = _Couleur.valuesToGamut("srgb", color.slice(0, 3), "srgb", { method: "naive" });
+      [__privateWrapper(this, _r)._, __privateWrapper(this, _g)._, __privateWrapper(this, _b)._] = color.slice(0, 3);
       __privateSet(this, _a, Math.max(0, Math.min(Number(toUnparsedAlpha(color[3])), 1)));
     } else if (typeof color === "string") {
       const format = _Couleur.matchSyntax(color.trim());
@@ -1449,38 +1454,38 @@ var _Couleur = class {
     const tri = colorString.slice(0, 3);
     let format;
     if (tri.slice(0, 1) === "#")
-      format = _Couleur.cssFormats[0];
+      format = allFormats[0];
     else
       switch (tri) {
         case "rgb":
-          format = _Couleur.cssFormats[1];
+          format = allFormats[1];
           break;
         case "hsl":
-          format = _Couleur.cssFormats[2];
+          format = allFormats[2];
           break;
         case "hwb":
-          format = _Couleur.cssFormats[3];
+          format = allFormats[3];
           break;
         case "lab":
-          format = _Couleur.cssFormats[4];
+          format = allFormats[4];
           break;
         case "lch":
-          format = _Couleur.cssFormats[5];
+          format = allFormats[5];
           break;
         case "okl":
           {
             if (colorString.startsWith("oklab")) {
-              format = _Couleur.cssFormats[6];
+              format = allFormats[6];
             } else if (colorString.startsWith("oklch")) {
-              format = _Couleur.cssFormats[7];
+              format = allFormats[7];
             }
           }
           break;
         case "col":
-          format = _Couleur.cssFormats[8];
+          format = allFormats[8];
           break;
         default:
-          format = _Couleur.cssFormats[9];
+          format = allFormats[9];
       }
     if (format == null)
       throw new Error("No matching format");
@@ -1506,12 +1511,12 @@ var _Couleur = class {
     const nval = parseFloat(val);
     switch (prop) {
       case "a": {
-        if (new RegExp("^" + cssUnitRegexps.percentage + "$").test(val)) {
+        if (new RegExp("^" + unitRegExps.percentage + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval / 100, 1));
           else
             return nval / 100;
-        } else if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
+        } else if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval, 1));
           else
@@ -1522,12 +1527,12 @@ var _Couleur = class {
       case "r":
       case "g":
       case "b": {
-        if (new RegExp("^" + cssUnitRegexps.percentage + "$").test(val)) {
+        if (new RegExp("^" + unitRegExps.percentage + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval / 100, 1));
           else
             return nval / 100;
-        } else if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
+        } else if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval / 255, 1));
           else
@@ -1539,9 +1544,9 @@ var _Couleur = class {
       case "cieh":
       case "okh": {
         let h = nval;
-        if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
+        if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
           return angleToRange(h);
-        } else if (new RegExp("^" + cssUnitRegexps.angle + "$").test(val)) {
+        } else if (new RegExp("^" + unitRegExps.angle + "$").test(val)) {
           if (val.slice(-3) === "deg") {
           } else if (val.slice(-4) === "grad")
             h = h * 360 / 400;
@@ -1561,7 +1566,7 @@ var _Couleur = class {
       case "bk":
       case "ciel":
       case "okl": {
-        if (new RegExp("^" + cssUnitRegexps.percentage + "$").test(val)) {
+        if (new RegExp("^" + unitRegExps.percentage + "$").test(val)) {
           if (clamp)
             return Math.max(0, Math.min(nval / 100, 1));
           else
@@ -1574,13 +1579,13 @@ var _Couleur = class {
       case "oka":
       case "okb":
       case "okc": {
-        if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
+        if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
           return nval;
         } else
           throw new InvalidColorPropValueError(prop, value);
       }
       case "ciec": {
-        if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
+        if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
           if (clamp)
             return Math.max(0, nval);
           else
@@ -1589,9 +1594,9 @@ var _Couleur = class {
           throw new InvalidColorPropValueError(prop, value);
       }
       default: {
-        if (new RegExp("^" + cssUnitRegexps.percentage + "$").test(val)) {
+        if (new RegExp("^" + unitRegExps.percentage + "$").test(val)) {
           return nval / 100;
-        } else if (new RegExp("^" + cssUnitRegexps.number + "$").test(val)) {
+        } else if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
           return nval;
         } else
           throw new InvalidColorArbitraryValueError(value);
@@ -1640,7 +1645,7 @@ var _Couleur = class {
     const rgba = [...vals, a];
     return this.set(rgba, [null, null, null], "srgb");
   }
-  toString(format = "rgb", { precision = 0, clamp = true } = {}) {
+  toString(format = "rgb", { precision = 0, clamp = false } = {}) {
     const _format = format.toLowerCase();
     const destinationSpaceID = _format.replace("color-", "");
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
@@ -2601,9 +2606,6 @@ var _Couleur = class {
   static get colorSpacesGraph() {
     return colorSpacesGraph;
   }
-  static get cssFormats() {
-    return cssFormats;
-  }
   static get namedColors() {
     return named_colors_default;
   }
@@ -2618,5 +2620,6 @@ export {
   contrasts_exports as Contrasts,
   conversion_exports as Conversions,
   distances_exports as Distances,
+  css_formats_exports as cssFormats,
   Couleur as default
 };

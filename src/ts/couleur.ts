@@ -1,7 +1,7 @@
 import { ColorProperty, ColorSpace, ColorSpaceWithGamut, ColorSpaceWithoutGamut, default as colorSpaces } from './color-spaces.js';
 import * as Contrasts from './contrasts.js';
 import * as Conversions from './conversion.js';
-import { CSSFormat, cssFormats, cssUnitRegexps } from './css-formats.js';
+import { allFormats as allCssFormats, CSSFormat, unitRegExps } from './css-formats.js';
 import * as Distances from './distances.js';
 import { default as Graph, GraphNode, PathNotFoundError, UndefinedNodeError } from './graph.js';
 import namedColors from './named-colors.js';
@@ -234,19 +234,19 @@ export default class Couleur {
     
     // Predetermine the format, to save regex-matching time
     let format: CSSFormat | undefined;
-    if (tri.slice(0, 1) === '#') format = Couleur.cssFormats[0];
+    if (tri.slice(0, 1) === '#') format = allCssFormats[0];
     else switch (tri) {
-      case 'rgb': format = Couleur.cssFormats[1]; break;
-      case 'hsl': format = Couleur.cssFormats[2]; break;
-      case 'hwb': format = Couleur.cssFormats[3]; break;
-      case 'lab': format = Couleur.cssFormats[4]; break;
-      case 'lch': format = Couleur.cssFormats[5]; break;
+      case 'rgb': format = allCssFormats[1]; break;
+      case 'hsl': format = allCssFormats[2]; break;
+      case 'hwb': format = allCssFormats[3]; break;
+      case 'lab': format = allCssFormats[4]; break;
+      case 'lch': format = allCssFormats[5]; break;
       case 'okl': {
-        if (colorString.startsWith('oklab')) { format = Couleur.cssFormats[6]; }
-        else if (colorString.startsWith('oklch')) { format = Couleur.cssFormats[7]; }
+        if (colorString.startsWith('oklab')) { format = allCssFormats[6]; }
+        else if (colorString.startsWith('oklch')) { format = allCssFormats[7]; }
       } break;
-      case 'col': format = Couleur.cssFormats[8]; break;
-      default:    format = Couleur.cssFormats[9];
+      case 'col': format = allCssFormats[8]; break;
+      default:    format = allCssFormats[9];
     }
 
     if (format == null) throw new Error('No matching format');
@@ -290,12 +290,12 @@ export default class Couleur {
       // to [0, 1]
       case 'a': {
         // If n is a percentage
-        if (new RegExp('^' + cssUnitRegexps.percentage + '$').test(val)) {
+        if (new RegExp('^' + unitRegExps.percentage + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
           else        return nval / 100;
         }
         // If n is a number
-        else if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
+        else if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval, 1));
           else        return nval;
         }
@@ -310,12 +310,12 @@ export default class Couleur {
       case 'g':
       case 'b': {
         // If n is a percentage
-        if (new RegExp('^' + cssUnitRegexps.percentage + '$').test(val)) {
+        if (new RegExp('^' + unitRegExps.percentage + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
           else        return nval / 100;
         }
         // If n is a number
-        else if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
+        else if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval / 255, 1));
           else        return nval / 255;
         }
@@ -332,11 +332,11 @@ export default class Couleur {
       case 'okh': {
         let h = nval;
         // If n is a number
-        if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
+        if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
           return Utils.angleToRange(h);
         }
         // If n is an angle
-        else if ((new RegExp('^' + cssUnitRegexps.angle + '$').test(val))) {
+        else if ((new RegExp('^' + unitRegExps.angle + '$').test(val))) {
           if (val.slice(-3) === 'deg') {} // necessary to accept deg values
           else if (val.slice(-4) === 'grad')
             h = h * 360 / 400;
@@ -361,7 +361,7 @@ export default class Couleur {
       case 'ciel':
       case 'okl': {
         // If n is a percentage
-        if (new RegExp('^' + cssUnitRegexps.percentage + '$').test(val)) {
+        if (new RegExp('^' + unitRegExps.percentage + '$').test(val)) {
           if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
           else        return nval / 100;
         }
@@ -378,7 +378,7 @@ export default class Couleur {
       case 'okb':
       case 'okc': {
         // If n is a number
-        if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
+        if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
           return nval;
         }
         else throw new InvalidColorPropValueError(prop, value);
@@ -389,7 +389,7 @@ export default class Couleur {
       // clamped to [0, +Inf[
       case 'ciec': {
         // If n is a number
-        if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
+        if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
           if (clamp)  return Math.max(0, nval);
           else        return nval;
         }
@@ -401,11 +401,11 @@ export default class Couleur {
       // to any number (so that 0% becomes 0 and 100% becomes 1)
       default: {
         // If n is a percentage
-        if (new RegExp('^' + cssUnitRegexps.percentage + '$').test(val)) {
+        if (new RegExp('^' + unitRegExps.percentage + '$').test(val)) {
           return nval / 100;
         }
         // If n is a number
-        else if (new RegExp('^' + cssUnitRegexps.number + '$').test(val)) {
+        else if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
           return nval;
         }
         else throw new InvalidColorArbitraryValueError(value); // doesn't match any property value at all
@@ -1680,9 +1680,6 @@ export default class Couleur {
 
   /** @returns Graph of supported color spaces and the links (i.e. conversion functions) between them. */
   public static get colorSpacesGraph(): GraphWithCachedPaths { return colorSpacesGraph; }
-
-  /** @returns Array of supported syntaxes. */
-  public static get cssFormats(): CSSFormat[] { return cssFormats; }
 
   /** @returns List of named colors in CSS. */
   public static get namedColors(): Map<string, string> { return namedColors; }
