@@ -1317,7 +1317,7 @@ function angleToRange(angle) {
   let h = angle;
   while (h < 0)
     h += 360;
-  while (h > 360)
+  while (h >= 360)
     h -= 360;
   return h;
 }

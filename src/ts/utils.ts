@@ -5,7 +5,7 @@ export function pad(s: string): string { return (s.length < 2) ? `0${s}` : s; }
 export function angleToRange(angle: number): number {
   let h = angle;
   while (h < 0)   h += 360;
-  while (h > 360) h -= 360;
+  while (h >= 360) h -= 360;
   return h;
 }
 
