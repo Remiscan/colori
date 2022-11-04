@@ -741,7 +741,6 @@ var colorSpaces = [
     id: "hsl",
     aliases: ["hsla"],
     properties: ["h", "s", "l"],
-    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
     gamutSpace: "srgb",
     links: ["srgb", "hwb"]
   },
@@ -749,7 +748,6 @@ var colorSpaces = [
     id: "hwb",
     aliases: [],
     properties: ["h", "w", "bk"],
-    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
     gamutSpace: "srgb",
     links: ["hsl"]
   },
@@ -881,19 +879,15 @@ var colorSpaces = [
     id: "okhsl",
     aliases: [],
     properties: ["okh", "oksl", "oklr"],
-    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
-    links: ["oklab"],
-    black: [0, 0, 0],
-    white: [0, 0, 1]
+    gamutSpace: "srgb",
+    links: ["oklab"]
   },
   {
     id: "okhsv",
     aliases: [],
     properties: ["okh", "oksv", "okv"],
-    gamut: [[-Infinity, Infinity], [0, 1], [0, 1]],
-    links: ["oklab"],
-    black: [0, 0, 0],
-    white: [0, 0, 1]
+    gamutSpace: "srgb",
+    links: ["oklab"]
   }
 ];
 var color_spaces_default = colorSpaces;
@@ -1659,7 +1653,7 @@ var _Couleur = class {
     const destinationSpaceID = _format.replace("color-", "");
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
     const a = Number(_Couleur.unparse((_a2 = values[3]) != null ? _a2 : 1, "a", { precision }));
-    values = [...values, a];
+    values = [...values.slice(0, 3), a];
     if (_format.toLowerCase().slice(0, 5) === "color") {
       const [x, y, z] = values.map((v) => precision === null ? v : Math.round(__pow(10, precision) * v) / __pow(10, precision));
       if (a < 1)

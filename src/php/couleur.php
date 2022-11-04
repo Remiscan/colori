@@ -11,34 +11,64 @@
   require_once __DIR__ . '/css-formats.php';
 
 
-  class Couleur
-  {
-    public float $r;
-    public float $g;
-    public float $b;
-    public float $a;
+  /** Graph with added cache for shortestPath() results. */
+  class GraphWithCachedPaths extends Graph {
+    private $cache = array();
+
+    public function shortestPath(string|int $startID, string|int $endID): array {
+      $id = $startID."_to_".$endID;
+      // Since every conversion path is reversible, only cache half of them
+      $cachedPath = $this->cache[$id] ?? null;
+      if (!$cachedPath) {
+        $reversedPath = $this->cache[$endID."_to_".$startID] ?? null;
+        $cachedPath = $reversedPath ? array_reverse([...$reversedPath]) : null;
+      }
+      if ($cachedPath) return $cachedPath;
+
+      $path = parent::shortestPath($startID, $endID);
+      $this->cache[$id] = $path;
+      return $path;
+    }
+  }
+
+
+  const COLOR_SPACES_GRAPH = new GraphWithCachedPaths(COLOR_SPACES);
+
+  class Couleur {
+    private float $_r = 0.0;
+    private float $_g = 0.0;
+    private float $_b = 0.0;
+    private float $_a = 0.0;
+    private array $cache = [];
     
-    function __construct(self|\stdClass|array|string $color)
-    {
-      if ($color instanceof self || (is_object($color) && property_exists($color, 'r') && property_exists($color, 'g') && property_exists($color, 'b'))) {
-        $this->r = $color->r;
-        $this->g = $color->g;
-        $this->b = $color->b;
-        $this->a = $color->a ?? 1;
+    function __construct(self|\stdClass|array|string $color) {
+      if ($color instanceof self) {
+        $this->_r = $color->r();
+        $this->_g = $color->g();
+        $this->_b = $color->b();
+        $this->_a = $color->a() ?? 1;
+      }
+
+      // If object with r, g, b properties
+      else if (is_object($color) && property_exists($color, 'r') && property_exists($color, 'g') && property_exists($color, 'b')) {
+        $this->_r = $color->r;
+        $this->_g = $color->g;
+        $this->_b = $color->b;
+        $this->_a = $color->a ?? 1;
       }
 
       // If associative array with r, g, b keys
       else if (is_array($color) && array_keys($color) !== range(0, count($color) - 1) && isset($color['r']) && isset($color['g']) && isset($color['b'])) {
         $values = [$color['r'], $color['g'], $color['b']];
-        [$this->r, $this->g, $this->b] = self::toGamut('srgb', $values, 'srgb', method: 'naive');
-        $this->a = $color['a'] ?? 1;
+        [$this->_r, $this->_g, $this->_b] = self::toGamut('srgb', $values, 'srgb', method: 'naive');
+        $this->_a = $color['a'] ?? 1;
       }
 
       // If sequential array with 3 or 4 values
       else if (is_array($color) && (count($color) === 3 || count($color) === 4)) {
         $values = array_slice($color, 0, 3);
-        [$this->r, $this->g, $this->b] = self::toGamut('srgb', $values, 'srgb', method: 'naive');
-        $this->a = $color[3] ?? 1;
+        [$this->_r, $this->_g, $this->_b] = self::toGamut('srgb', $values, 'srgb', method: 'naive');
+        $this->_a = $color[3] ?? 1;
       }
 
       else if (is_string($color)) {
@@ -86,19 +116,19 @@
       $tri = substr($colorString, 0, 3);
 
       // Predetermine the format, to save regex-matching time
-      if (substr($tri, 0, 1) === '#') $format = self::formats()[0];
+      if (substr($tri, 0, 1) === '#') $format = self::cssFormats()[0];
       else switch ($tri) {
-        case 'rgb': $format = self::formats()[1]; break;
-        case 'hsl': $format = self::formats()[2]; break;
-        case 'hwb': $format = self::formats()[3]; break;
-        case 'lab': $format = self::formats()[4]; break;
-        case 'lch': $format = self::formats()[5]; break;
+        case 'rgb': $format = self::cssFormats()[1]; break;
+        case 'hsl': $format = self::cssFormats()[2]; break;
+        case 'hwb': $format = self::cssFormats()[3]; break;
+        case 'lab': $format = self::cssFormats()[4]; break;
+        case 'lch': $format = self::cssFormats()[5]; break;
         case 'okl':
-          if (str_starts_with($colorString, 'oklab')) { $format = self::formats()[6]; break; }
-          if (str_starts_with($colorString, 'oklch')) { $format = self::formats()[7]; break; }
+          if (str_starts_with($colorString, 'oklab')) { $format = self::cssFormats()[6]; break; }
+          if (str_starts_with($colorString, 'oklch')) { $format = self::cssFormats()[7]; break; }
           break;
-        case 'col': $format = self::formats()[8]; break;
-        default:    $format = self::formats()[9];
+        case 'col': $format = self::cssFormats()[8]; break;
+        default:    $format = self::cssFormats()[9];
       }
 
       // Check if the given string matches any color syntax
@@ -294,8 +324,8 @@
         $values[] = $parsed ? $data[$i] : self::parse($data[$i], $props[$i]);
       }
 
-      [$this->r, $this->g, $this->b] = self::convert($space, 'srgb', $values);
-      $this->a = self::parse($data[3] ?? 1, 'a');
+      [$this->_r, $this->_g, $this->_b] = self::convert($space, 'srgb', $values);
+      $this->_a = self::parse($data[3] ?? 1, 'a');
     }
 
 
@@ -316,26 +346,9 @@
       $vals = array_slice($values, 0, 3);
       $a = $values[3];
 
-      switch (strtolower($spaceID)) {
-        case 'srgb':
-        case 'srgb-linear':
-        case 'display-p3':
-        case 'a98-rgb':
-        case 'prophoto-rgb':
-        case 'rec2020':
-        case 'xyz-d50':
-        case 'xyz-d65':
-          $vals = self::convert($spaceID, 'srgb', $vals);
-          break;
-        default:
-          if (str_starts_with($spaceID, '--')) {
-            $id = substr($spaceID, 2);
-            $vals = self::convert($id, 'srgb', $vals);
-          }
-          else throw new \Exception("The ". json_encode($spaceID) ." color space is not supported");
-      }
-
+      $vals = self::convert($spaceID, 'srgb', $vals);
       $rgba = $vals; $rgba[] = $a;
+
       $this->set($rgba, [null, null, null], 'srgb');
     }
 
@@ -351,71 +364,74 @@
     /** Creates a string containing the CSS expression of a color. */
     public function expr(string $format, ?int $precision = 0, bool $clamp = true): string {
       $format = strtolower($format);
-      $spaceID = str_replace('color-', '', $format);
-      $space = self::getSpace($spaceID);
+      $destinationSpaceID = str_replace('color-', '', $format);
+      $destinationSpace = self::getSpace($destinationSpaceID);
+      $values = $this->valuesTo($destinationSpace, clamp: $clamp);
+      $values[] = $this->a();
+      return self::makeExpr($format, $values, precision: $precision);
+    }
 
-      $values = $this->valuesTo($space);
-      if ($clamp) $values = self::toGamut($space, $values, $space);
-      $a = self::unparse($this->a, 'a', precision: $precision);
+    /** Creates a string containing the CSS expression of a color from a list of values. */
+    public static function makeExpr(string $format, array $values, ?int $precision = 0, bool $clamp = true): string {
+      $format = strtolower($format);
+      $destinationSpaceID = str_replace('color-', '', $format);
+      $destinationSpace = self::getSpace($destinationSpaceID);
+
+      $a = (float) self::unparse($values[3] ?? 1, 'a', precision: $precision);
+      $values = array_slice($values, 0, 3);
       $values[] = $a;
 
       // If the requested expression is of the color(space, ...) type
       if (substr($format, 0, 5) === 'color') {
-        $string = "color(".$space['id'];
-        foreach($values as $k => $v) {
-          if ((int) $k === count($values) - 1) {
-            if ($a >= 1) break;
-            $string .= " / $a";
-          } else {
-            $string .= " ". ($precision === null ? $v : round(10**$precision * $v) / (10**$precision));
-          }
+        $id = $destinationSpace['id'];
+        $vals = [];
+        foreach($values as $v) {
+          $vals[] = $precision === null ? $v : round(10**$precision * $v) / (10**$precision);
         }
-        $string .= ")";
-        return $string;
+        [$x, $y, $z] = $vals;
+
+        if ($a < 1)
+          return "color($id $x $y $z / $a)";
+        else
+          return "color($id $x $y $z)";
       }
 
       // If the requested expression is of the ${format}(...) type
-      $props = self::propertiesOf($format);
-      $unparsed = [];
-      foreach($props as $k => $p) {
-        $unparsed[] = self::unparse($values[$k], $p, precision: $precision);
-      }
-      [$x, $y, $z] = $unparsed;
+      else {
+        $props = self::propertiesOf($format);
+        $unparsed = [];
+        foreach($props as $k => $p) {
+          $unparsed[] = self::unparse($values[$k], $p, precision: $precision);
+        }
+        [$x, $y, $z] = $unparsed;
 
-      switch ($format) {
-        case 'rgb':
-        case 'rgba':
-        case 'hsl':
-        case 'hsla':
-          if ((strlen($format) > 3 && substr($format, -1) === 'a') || $a < 1.0)
-            return "${format}(${x}, ${y}, ${z}, ${a})";
-          else
-            return "${format}(${x}, ${y}, ${z})";
-        default:
-          if ($a < 1.0) return "${format}(${x} ${y} ${z} / ${a})";
-          else          return "${format}(${x} ${y} ${z})";
+        switch ($format) {
+          case 'rgb':
+          case 'rgba':
+          case 'hsl':
+          case 'hsla':
+            if ((strlen($format) > 3 && substr($format, -1) === 'a') || $a < 1.0)
+              return "${format}(${x}, ${y}, ${z}, ${a})";
+            else
+              return "${format}(${x}, ${y}, ${z})";
+          default:
+            if ($a < 1.0) return "${format}(${x} ${y} ${z} / ${a})";
+            else          return "${format}(${x} ${y} ${z})";
+        }
       }
-    }
-
-    /** Creates a string containing the CSS expression of a color from a list of values. */
-    public static function makeExpr(string $format, array $values, array|string $valueSpaceID, ?int $precision = 0, bool $clamp = true): string {
-      $format = strtolower($format);
-      $spaceID = str_replace('color-', '', $format);
-      $rgba = self::convert($valueSpaceID, $spaceID, array_slice($values, 0, 3)); $rgba[] = $values[3];
-      return (new self($rgba))->expr($format, precision: $precision, clamp: $clamp);
     }
 
 
     /* ALL VALUES (r, g, b) */
 
-    public function values() { return [$this->r, $this->g, $this->b]; }
+    public function values() { return [$this->r(), $this->g(), $this->b()]; }
 
 
     /* NAME */
 
     /** The approximate name of the color. */
     public function name(): ?string {
-      if ($this->a === 1.0) {
+      if ($this->a() === 1.0) {
         [$r, $g, $b] = $this->values();
         $tolerance = .02;
         foreach (self::NAMED_COLORS as $name => $hex) {
@@ -424,24 +440,24 @@
         }
         return null;
       }
-      else if ($this->a === 0.0) return 'transparent';
+      else if ($this->a() === 0.0) return 'transparent';
       else                       return null;
     }
 
     /** The exact name of the color. */
     public function exactName(): ?string {
-      if ($this->a === 1.0) {
+      if ($this->a() === 1.0) {
         $hex6 = substr($this->hex(), 1);
         $name = array_search($hex6, self::NAMED_COLORS);
         return $name ?: null;
       }
-      else if ($this->a === 0.0) return 'transparent';
+      else if ($this->a() === 0.0) return 'transparent';
       else                       return null;
     }
 
     /** The name of the closest named color. */
     public function closestName(): string {
-      if ($this->a < 0.5) return 'transparent';
+      if ($this->a() < 0.5) return 'transparent';
       [$r, $g, $b] = $this->values();
       $closest = '';
       $lastDistance = INF;
@@ -462,9 +478,9 @@
     /** Hexadecimal expression of the color. */
     public function hex(): string {
       $values = self::toGamut('srgb', $this->values());
-      $values[] = $this->a;
+      $values[] = $this->a();
       [$r, $g, $b, $a] = utils\toHex($values);
-      if ($this->a < 1) return '#'.$r.$g.$b.$a;
+      if ($this->a() < 1) return '#'.$r.$g.$b.$a;
       else              return '#'.$r.$g.$b;
     }
 
@@ -498,26 +514,27 @@
         throw new \Exception("Format $format does not have a property called $prop");
 
       $parsedVal = is_string($val) ? self::parse($val, $prop) : $val;
-      $oldValues = $this->valuesTo($format); $oldValues[] = $this->a;
+      $oldValues = $this->valuesTo($format); $oldValues[] = $this->a();
       $newValues = [];
       foreach($props as $k => $p) {
         if ($p === $prop) $newValues[] = $parsedVal;
         else              $newValues[] = $oldValues[$k];
       }
       $this->set($newValues, $props, $format, parsed: true);
+      $this->cache = array();
     }
 
 
-    private function setR(float | string $val): void { $this->r = $val; }
+    private function setR(float | string $val): void { $this->recompute($val, 'r', 'rgb'); }
     private function setRed(float | string $val): void { $this->setR($val); }
 
-    private function setG(float | string $val): void { $this->g = $val; }
+    private function setG(float | string $val): void { $this->recompute($val, 'g', 'rgb'); }
     private function setGreen(float | string $val): void { $this->setG($val); }
 
-    private function setB(float | string $val): void { $this->b = $val; }
+    private function setB(float | string $val): void { $this->recompute($val, 'b', 'rgb'); }
     private function setBlue(float | string $val): void { $this->setB($val); }
 
-    private function setA(float | string $val): void { $this->a = $val; }
+    private function setA(float | string $val): void { $this->recompute($val, 'a', 'rgb'); }
     private function setAlpha(float | string $val): void { $this->setA($val); }
     private function setOpacity(float | string $val): void { $this->setA($val); }
 
@@ -563,11 +580,15 @@
     private function setOKHue(float | string $val): void { $this->setOkh($val); }
 
     /** Gets the parsed value of one of the color properties. */
-    public function red(): float { return $this->r; }
-    public function green(): float { return $this->g; }
-    public function blue(): float { return $this->b; }
-    public function alpha(): float { return $this->a; }
-    public function opacity(): float { return $this->a; }
+    public function r(): float { return $this->_r; }
+    public function red(): float { return $this->r(); }
+    public function g(): float { return $this->_g; }
+    public function green(): float { return $this->g(); }
+    public function b(): float { return $this->_b; }
+    public function blue(): float { return $this->b(); }
+    public function a(): float { return $this->_a; }
+    public function alpha(): float { return $this->a(); }
+    public function opacity(): float { return $this->a(); }
     public function h(): float { return $this->valuesTo('hsl')[0]; }
     public function hue(): float { return $this->h(); }
     public function s(): float { return $this->valuesTo('hsl')[1]; }
@@ -602,19 +623,19 @@
       $newLum = self::parse($val, 'a', clamp: true);
 
       if ($oldLum === 0) {
-        $this->r = $newLum;
-        $this->g = $newLum;
-        $this->b = $newLum;
+        $this->setR($newLum);
+        $this->setG($newLum);
+        $this->setB($newLum);
       } else {
         $ratio = $newLum / $oldLum;
-        $this->r = $ratio * $r;
-        $this->g = $ratio * $g;
-        $this->b = $ratio * $b;
+        $this->setR($ratio * $r);
+        $this->setG($ratio * $g);
+        $this->setB($ratio * $b);
       }
     }
 
     public function luminance(): float {
-      if ($this->a < 1) throw new \Exception('The luminance of a transparent color would be meaningless');
+      if ($this->a() < 1) throw new \Exception('The luminance of a transparent color would be meaningless');
       return contrasts\luminance($this->values());
     }
 
@@ -632,7 +653,7 @@
       $endSpace = self::getSpace($endSpaceID);
 
       // Find the shortest sequence of functions to convert between color spaces
-      $graph = new Graph(self::COLOR_SPACES);
+      $graph = self::COLOR_SPACES_GRAPH;
       try {
         $path = $graph->shortestPath($startSpace['id'], $endSpace['id']);
         $path = array_map(function ($node) { return $node->id; }, $path);
@@ -660,10 +681,14 @@
 
 
     /** Converts the r, g, b values of the color to another color space or CSS format. */
-    public function valuesTo(array|string $spaceID, bool $clamp = false): array {
-      $space = self::getSpace($spaceID);
-      $values = self::convert('srgb', $space, $this->values());
-      if ($clamp) $values = self::toGamut($space, $values);
+    public function valuesTo(array|string $destinationSpaceID, bool $clamp = false): array {
+      $destinationSpace = self::getSpace($destinationSpaceID);
+      $values = $this->cache[$destinationSpace['id']] ?? null;
+      if (!$values) {
+        $values = self::convert('srgb', $destinationSpace, $this->values());
+        $this->cache[$destinationSpace['id']] = $values;
+      }
+      if ($clamp) $values = self::toGamut($destinationSpace, $values, $destinationSpace);
       return $values;
     }
 
@@ -672,40 +697,55 @@
 
 
     /** Checks whether parsed values in valueSpace color space correspond to a color in the spaceID color space. */
-    public static function inGamut(array|string $spaceID, array $values, array|string $valueSpaceID = 'srgb', float $tolerance = .0001): bool {
-      $space = self::getSpace($spaceID);
-      $convertedValues = self::convert($valueSpaceID, $space, $values);
+    public static function inGamut(array|string $destinationSpaceID, array $values, array|string $sourceSpaceID = 'srgb', float $tolerance = .0001): bool {
+      $destinationSpace = self::getSpace($destinationSpaceID);
+      $gamutSpace = isset($destinationSpace['gamutSpace']) ? self::getSpace($destinationSpace['gamutSpace']) : $destinationSpace;
+      $convertedValues = $values instanceof self ? $values->valuesTo($gamutSpace)
+                                                 :self::convert($sourceSpaceID, $gamutSpace, $values);
       foreach($convertedValues as $k => $v) {
-        if ($v < ($space['gamut'][$k][0] - $tolerance) || $v > $space['gamut'][$k][1] + $tolerance) return false;
+        if ($v < ($gamutSpace['gamut'][$k][0] - $tolerance) || $v > $gamutSpace['gamut'][$k][1] + $tolerance) return false;
       }
       return true;
     }
 
 
     /** Clamps parsed values in valueSpaceID color space to the spaceID color space. */
-    public static function toGamut(array|string $spaceID, array $values, array|string $valueSpaceID = 'srgb', string $method = 'okchroma'): array {
-      $space = self::getSpace($spaceID);
-      $valueSpace = self::getSpace($valueSpaceID);
-      if (self::inGamut($space, $values, $valueSpace, tolerance: 0)) return $values;
+    public static function toGamut(array|string $destinationSpaceID, array $values, array|string $sourceSpaceID = 'srgb', string $method = 'okchroma'): array {
+      $destinationSpace = self::getSpace($destinationSpaceID);
+      $gamutSpace = isset($destinationSpace['gamutSpace']) ? self::getSpace($destinationSpace['gamutSpace']) : $destinationSpace;
+      $sourceSpace = self::getSpace($sourceSpaceID);
       $method = strtolower($method);
+
+      if ($values instanceof self) {
+        if (self::inGamut($destinationSpace, $values->values(), $sourceSpace, tolerance: 0)) return $values->valuesTo($sourceSpace);
+        $values = $values->valuesTo($sourceSpace);
+      } else {
+        if (self::inGamut($destinationSpace, $values, $sourceSpace, tolerance: 0)) return $values;
+      }
 
       // OKLCH chroma gamut clipping
       if ($method === 'okchroma') {
         $clampSpace = self::getSpace('oklch');
-        $oklch = self::convert($valueSpace, $clampSpace, $values);
-        $oklch = self::toGamut($clampSpace, $oklch, $clampSpace, method: 'naive');
+        $oklch = self::convert($sourceSpace, $clampSpace, $values);
 
         $τ = .000001;
         $δ = .02;
+
+        if ($oklch[0] >= 1 - $τ) {
+          return self::convert($gamutSpace, $sourceSpace, $gamutSpace['white'] ?? [1.0, 1.0, 1.0]);
+        } elseif ($oklch[0] <= 0 + $τ) {
+          return self::convert($gamutSpace, $sourceSpace, $gamutSpace['black'] ?? [0.0, 0.0, 0.0]);
+        }
+
         $Cmin = 0;
         $Cmax = $oklch[1];
         $oklch[1] = $oklch[1] / 2;
 
         while ($Cmax - $Cmin > $τ) {
-          if (self::inGamut($space, $oklch, $clampSpace, tolerance: 0 )) {
+          if (self::inGamut($destinationSpace, $oklch, $clampSpace, tolerance: 0 )) {
             $Cmin = $oklch[1];
           } else {
-            $naiveOklch = self::toGamut($space, $oklch, $clampSpace, method: 'naive');
+            $naiveOklch = self::toGamut($destinationSpace, $oklch, $clampSpace, method: 'naive');
             $naiveOklab = self::convert($clampSpace, 'oklab', $naiveOklch);
             $oklab = self::convert($clampSpace, 'oklab', $oklch);
 
@@ -723,19 +763,19 @@
 
       // Naively clamp the values
       else {
-        $clampSpace = $space;
-        $convertedValues = self::convert($valueSpace, $clampSpace, $values);
+        $clampSpace = $gamutSpace;
+        $convertedValues = self::convert($sourceSpace, $clampSpace, $values);
         $clampedValues = [];
         foreach($convertedValues as $k => $v) {
-          $clampedValues[] = max($space['gamut'][$k][0], min($v, $space['gamut'][$k][1]));
+          $clampedValues[] = max($gamutSpace['gamut'][$k][0], min($v, $gamutSpace['gamut'][$k][1]));
         }
       }
 
       // Final naive clamp to get in the color space if the color is still just outside the border
-      if ($method !== 'naive') $clampedValues = self::toGamut($space, $clampedValues, $clampSpace, method: 'naive');
+      if ($method !== 'naive') $clampedValues = self::toGamut($destinationSpace, $clampedValues, $clampSpace, method: 'naive');
 
       // Send the values back in the same color space we found them in
-      return self::convert($clampSpace, $valueSpace, $clampedValues);
+      return self::convert($clampSpace, $sourceSpace, $clampedValues);
     }
 
 
@@ -756,11 +796,9 @@
       $val = $scale ? self::parse($value) : self::parse($value, $prop, clamp: false);
       $changedColor = new self($this);
 
-      $oldVal = match ($prop) {
-        'r', 'g', 'b', 'a' => $this->{$prop},
-        default => $this->{$prop}()
-      };
+      $oldVal = $this->{$prop}();
       $newVal = $replace ? $val : ($scale ? $oldVal * $val : $oldVal + $val);
+
       $methodName = "set".ucfirst($prop);
       $changedColor->{$methodName}($newVal);
       return $changedColor;
@@ -781,23 +819,23 @@
 
     /** The inverse color. */
     public function negative(): self {
-      return new self([1 - $this->r, 1 - $this->g, 1 - $this->b, $this->a]);
+      return new self([1 - $this->r(), 1 - $this->g(), 1 - $this->b(), $this->a()]);
     }
     public function invert(): self { return $this->negative(); }
 
     /** The shade of grey of the color. */
     public function greyscale(): self {
       $L = $this->replace('a', 1)->luminance();
-      return new self([$L, $L, $L, $this->a]);
+      return new self([$L, $L, $L, $this->a()]);
     }
     public function grayscale(): self { return $this->greyscale(); }
 
     /** The sepia tone of the color. */
     public function sepia(): self {
-      $r = min(0.393 * $this->r + 0.769 * $this->g + 0.189 * $this->b, 1);
-      $g = min(0.349 * $this->r + 0.686 * $this->g + 0.168 * $this->b, 1);
-      $b = min(0.272 * $this->r + 0.534 * $this->g + 0.131 * $this->b, 1);
-      return new self([$r, $g, $b, $this->a]);
+      $r = min(0.393 * $this->r() + 0.769 * $this->g() + 0.189 * $this->b(), 1);
+      $g = min(0.349 * $this->r() + 0.686 * $this->g() + 0.168 * $this->b(), 1);
+      $b = min(0.272 * $this->r() + 0.534 * $this->g() + 0.131 * $this->b(), 1);
+      return new self([$r, $g, $b, $this->a()]);
     }
 
 
@@ -809,15 +847,15 @@
       $background = self::makeInstance($backgroundColor);
       $overlay = self::makeInstance($overlayColor);
       if ($alpha != null) // if alpha isn't null or undefined
-        $overlay->a = self::parse($alpha, 'a');
+        $overlay->setA(self::parse($alpha, 'a'));
 
-      if ($overlay->a === .0) return $background;
-      else if ($overlay->a === .1) return $overlay;
+      if ($overlay->a() === .0) return $background;
+      else if ($overlay->a() === .1) return $overlay;
 
-      $a = $overlay->a + $background->a * (1 - $overlay->a);
-      $r = ($overlay->r * $overlay->a + $background->r * $background->a * (1 - $overlay->a)) / $a;
-      $g = ($overlay->g * $overlay->a + $background->g * $background->a * (1 - $overlay->a)) / $a;
-      $b = ($overlay->b * $overlay->a + $background->b * $background->a * (1 - $overlay->a)) / $a;
+      $a = $overlay->a() + $background->a() * (1 - $overlay->a());
+      $r = ($overlay->r() * $overlay->a() + $background->r() * $background->a() * (1 - $overlay->a())) / $a;
+      $g = ($overlay->g() * $overlay->a() + $background->g() * $background->a() * (1 - $overlay->a())) / $a;
+      $b = ($overlay->b() * $overlay->a() + $background->b() * $background->a() * (1 - $overlay->a())) / $a;
       return new self([$r, $g, $b, $a]);
     }
 
@@ -839,23 +877,23 @@
       $mix = self::makeInstance($mixColor);
       $overlay = self::makeInstance($overlayColor);
       if ($alpha != null) // if alpha isn't null or undefined
-        $overlay->a = self::parse($alpha, 'a');
+        $overlay->setA(self::parse($alpha, 'a'));
 
-      if ($overlay->a === 1.0) {
+      if ($overlay->a() === 1.0) {
         throw new \Exception("Overlay color ". json_encode($overlay->rgb()) ." isn't transparent, so the background it was blended onto could have been any color");
       }
-      elseif ($overlay->a === .0)           return $mix;
+      elseif ($overlay->a() === .0)           return $mix;
       else {
-        if ($mix->a < $overlay->a)         return null;
-        elseif ($mix->a === $overlay->a) {
+        if ($mix->a() < $overlay->a())         return null;
+        elseif ($mix->a() === $overlay->a()) {
           if (self::same($mix, $overlay))  return new self('transparent');
           else                             return null;
         }
         else {
-          $a = ($mix->a - $overlay->a) / (1 - $overlay->a);
-          $r = ($mix->r * $mix->a - $overlay->r * $overlay->a) / ($a * (1 - $overlay->a));
-          $g = ($mix->g * $mix->a - $overlay->g * $overlay->a) / ($a * (1 - $overlay->a));
-          $b = ($mix->b * $mix->a - $overlay->b * $overlay->a) / ($a * (1 - $overlay->a));
+          $a = ($mix->a() - $overlay->a()) / (1 - $overlay->a());
+          $r = ($mix->r() * $mix->a() - $overlay->r() * $overlay->a()) / ($a * (1 - $overlay->a()));
+          $g = ($mix->g() * $mix->a() - $overlay->g() * $overlay->a()) / ($a * (1 - $overlay->a()));
+          $b = ($mix->b() * $mix->a() - $overlay->b() * $overlay->a()) / ($a * (1 - $overlay->a()));
           $clampedValues = self::toGamut('srgb', [$r, $g, $b], 'srgb');
           $clampedValues[] = $a;
           return new self($clampedValues);
@@ -884,9 +922,9 @@
       $overlays = [];
 
       $calculateSolution = function($a) use ($mix, $background) {
-        $r = ($mix->r * $mix->a - $background->r * $background->a * (1 - $a)) / $a;
-        $g = ($mix->g * $mix->a - $background->g * $background->a * (1 - $a)) / $a;
-        $b = ($mix->b * $mix->a - $background->b * $background->a * (1 - $a)) / $a;
+        $r = ($mix->r() * $mix->a() - $background->r() * $background->a() * (1 - $a)) / $a;
+        $g = ($mix->g() * $mix->a() - $background->g() * $background->a() * (1 - $a)) / $a;
+        $b = ($mix->b() * $mix->a() - $background->b() * $background->a() * (1 - $a)) / $a;
         if (!self::inGamut('srgb', [$r, $g, $b], 'srgb', tolerance: 1/255)) throw new \Exception("This color doesn't exist");
         $clampedValues = self::toGamut('srgb', [$r, $g, $b], 'srgb', method: 'naive');
         $clampedValues[] = $a;
@@ -900,30 +938,30 @@
                                                     : $defaultAlphas;
 
       // The mix can't have lower opacity than the background
-      if ($mix->a < $background->a)    return [];
+      if ($mix->a() < $background->a())    return [];
       // If the mix is more opaque than the background...
-      elseif ($mix->a > $background->a) {
+      elseif ($mix->a() > $background->a()) {
         // If the background is partially transparent and the mix is opaque, the mix is the only solution
         // (any partially transparent overlay would have mixed with the background to make a partially transparent mix)
-        if ($mix->a === 1.0)           $overlays[] = $mix;
+        if ($mix->a() === 1.0)           $overlays[] = $mix;
         // If the background is totally transparent and the mix is partially transparent, the mix is the only solution
         // (any other color mixed with nothing would make itself)
-        elseif ($background->a === .0) $overlays[] = $mix;
+        elseif ($background->a() === .0) $overlays[] = $mix;
         // If the background is partially transparent and the mis is too, but more opaque, then there exists a unique solution
         else {
-          $a = ($mix->a - $background->a) / (1.0 - $background->a);
+          $a = ($mix->a() - $background->a()) / (1.0 - $background->a());
           try { $overlays[] = $calculateSolution($a); }
           catch (\Throwable $error) { return []; }
         }
       }
       // If the mix is as opaque as the background...
-      elseif ($mix->a === $background->a) {
+      elseif ($mix->a() === $background->a()) {
         // If both the mix and the background are totally transparent, 'transparent' is the only solution
         // (any other color would have raised the opacity)
-        if ($mix->a === .0) $overlays[] = new self('transparent');
+        if ($mix->a() === .0) $overlays[] = new self('transparent');
         // If both the mix and the background are partially transparent with the same opacity, then
         // if they're the same color, 'transparent' is solution. If not, there is no solution.
-        else if ($mix->a < 1.0) {
+        else if ($mix->a() < 1.0) {
           if (self::same($mix, $background)) $overlays[] = new self('transparent');
           else                               return [];
         }
@@ -941,7 +979,7 @@
         }
       }
 
-      $result = count($requestedAlphas) > 0 ? array_filter($overlays, fn($c) => in_array($c->a, $requestedAlphas))
+      $result = count($requestedAlphas) > 0 ? array_filter($overlays, fn($c) => in_array($c->a(), $requestedAlphas))
                                             : $overlays;
       if ($ignoreTransparent) $result = array_filter($result, fn($a) => $a > .0);
 
@@ -955,11 +993,11 @@
     /** Computes the contrast between two colors as defined by WCAG2 or 3. */
     public static function contrast(self|array|string $textColor, self|array|string $backgroundColor, string $method = 'APCA'): float {
       $background = self::makeInstance($backgroundColor);
-      if ($background->a < 1) throw new \Exception('The contrast with a transparent background color would be meaningless');
+      if ($background->a() < 1) throw new \Exception('The contrast with a transparent background color would be meaningless');
       $text = self::makeInstance($textColor);
 
       // If the text is transparent, blend it to the background to get its actual visible color
-      if ($text->a < 1) $text = self::blend($background, $text);
+      if ($text->a() < 1) $text = self::blend($background, $text);
 
       switch (strtolower($method)) {
         case 'apca':
@@ -973,7 +1011,7 @@
 
     /** Determines which color scheme ('light' or 'dark') would lead to a better contrast with the color. */
     public function bestColorScheme(string $as = 'background'): string {
-      $rgba = self::toGamut('srgb', $this->values()); $rgba[] = $this->a;
+      $rgba = self::toGamut('srgb', $this->values()); $rgba[] = $this->a();
       if ($as === 'text') {
         $Cblack = abs(self::contrast($rgba, 'black', method: 'apca'));
         $Cwhite = abs(self::contrast($rgba, 'white', method: 'apca'));
@@ -1130,7 +1168,7 @@
           $opaqueDist = distances\euclidean($rgb1, $rgb2);
       }
 
-      $alphaDist = $alpha ? distances\euclidean([$color1->a], [$color2->a]) : 0;
+      $alphaDist = $alpha ? distances\euclidean([$color1->a()], [$color2->a()]) : 0;
       return $opaqueDist + $alphaCoeff * $alphaDist;
     }
 
@@ -1175,8 +1213,8 @@
         return $newValues;
       };
       if ($premultiplyAlpha) {
-        $startValues = $premultiply($startValues, $start->a);
-        $endValues = $premultiply($endValues, $end->a);
+        $startValues = $premultiply($startValues, $start->a());
+        $endValues = $premultiply($endValues, $end->a());
       }
 
       // Calculate by how much each property will be changed at each step
@@ -1213,7 +1251,7 @@
             $stepList[] = ($endValues[$k] - $startValues[$k]) / ($steps + 1);
         }
       }
-      $stepAlpha = ($end->a - $start->a) / ($steps + 1);
+      $stepAlpha = ($end->a() - $start->a()) / ($steps + 1);
 
       // Calculate the intermediate colors
       $intermediateColors = [$startValues];
@@ -1241,7 +1279,7 @@
 
       // Undo alpha premultiplication
       $undoPremultiply = function(array $values, int $stepIndex) use ($start, $stepAlpha, $props): array {
-        $a = $start->a + $stepIndex * $stepAlpha;
+        $a = $start->a() + $stepIndex * $stepAlpha;
         $newValues = [];
         foreach ($values as $k => $v) {
           switch ($props[$k]) {
@@ -1266,7 +1304,7 @@
       $colors = [];
       foreach ($intermediateColors as $k => $values) {
         $c = self::convert($space, 'srgb', $values);
-        $c[] = $start->a + $k * $stepAlpha;
+        $c[] = $start->a() + $k * $stepAlpha;
         $colors[] = new self($c);
       }
       return $colors;
@@ -1279,45 +1317,41 @@
     /**************/
 
     /** Gets the names of the properties of a color used in a certain format. */
-    protected static function propertiesOf(string $format): array {
-      switch(strtolower($format)) {
-        case 'srgb':
-        case 'rgb':
-        case 'rgba':  return ['r', 'g', 'b'];
-        case 'hsl':
-        case 'hsla':  return ['h', 's', 'l'];
-        case 'hwb':   return ['h', 'w', 'bk'];
-        case 'lab':   return ['ciel', 'ciea', 'cieb'];
-        case 'lch':   return ['ciel', 'ciec', 'cieh'];
-        case 'oklab': return ['okl', 'oka', 'okb'];
-        case 'oklch': return ['okl', 'okc', 'okh'];
-        default: return [];
-      }
+    public static function propertiesOf(string $format): array {
+      return self::getSpace(strtolower($format))['properties'] ?? [];
     }
 
     /** Array of all property names. */
-    protected static function properties(): array {
-      return ['a', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'bk', 'ciel', 'ciea', 'cieb', 'ciec', 'cieh', 'oka', 'okb', 'okl', 'okc', 'okh'];
+    public static function properties(): array {
+      $props = [];
+      foreach (self::COLOR_SPACES as $space) {
+        foreach (($space['properties'] ?? []) as $p) {
+          if (!in_array($p, $props)) $props[] = $p;
+        }
+      }
+      $props[] = 'a';
+      return $props;
     }
 
     /** Gets a color space from its id. */
     protected static function getSpace(array|string $spaceID): array {
+      $result = null;
       if (is_array($spaceID)) return $spaceID;
-      $spaceID = strtolower($spaceID);
-      $id = match ($spaceID) {
-        'rgb', 'rgba' => 'srgb',
-        'hsla' => 'hsl',
-        'xyz' => 'xyz-d65',
-        default => $spaceID
-      };
-      return Graph::array_find(fn($e) => $e['id'] === $id, self::COLOR_SPACES);
+      $id = strtolower($spaceID);
+      $result = Graph::array_find(fn($sp) => $sp['id'] === $id || in_array($id, $sp['aliases']), self::COLOR_SPACES);
+
+      if ($result == null) throw new \Exception("");
+      return $result;
     }
 
     /** Array of supported color spaces. */
     public const COLOR_SPACES = COLOR_SPACES;
 
+    /** Graph of supported color spaces and the links (i.e. conversion functions) between them. */
+    public const COLOR_SPACES_GRAPH = COLOR_SPACES_GRAPH;
+
     /** Array of supported syntaxes. */
-    private static function formats() { return CSSFormats::formats(); }
+    public static function cssFormats() { return CSSFormats::formats(); }
 
     /** List of named colors in CSS. */
     public const NAMED_COLORS = NAMED_COLORS;

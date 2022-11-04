@@ -42,14 +42,12 @@ const colorSpaces: ColorSpace[] = [
     id: 'hsl',
     aliases: ['hsla'],
     properties: ['h', 's', 'l'],
-    gamut: [ [-Infinity, +Infinity], [0, 1], [0, 1] ],
     gamutSpace: 'srgb',
     links: ['srgb', 'hwb']
   }, {
     id: 'hwb',
     aliases: [],
     properties: ['h', 'w', 'bk'],
-    gamut: [ [-Infinity, +Infinity], [0, 1], [0, 1] ],
     gamutSpace: 'srgb',
     links: ['hsl']
   }, {
@@ -164,18 +162,14 @@ const colorSpaces: ColorSpace[] = [
     id: 'okhsl',
     aliases: [],
     properties: ['okh', 'oksl', 'oklr'],
-    gamut: [ [-Infinity, +Infinity], [0, 1], [0, 1] ],
-    links: ['oklab'],
-    black: [ 0, 0, 0 ],
-    white: [ 0, 0, 1 ]
+    gamutSpace: 'srgb',
+    links: ['oklab']
   }, {
     id: 'okhsv',
     aliases: [],
     properties: ['okh', 'oksv', 'okv'],
-    gamut: [ [-Infinity, +Infinity], [0, 1], [0, 1] ],
-    links: ['oklab'],
-    black: [ 0, 0, 0 ],
-    white: [ 0, 0, 1 ]
+    gamutSpace: 'srgb',
+    links: ['oklab']
   }
 ];
 

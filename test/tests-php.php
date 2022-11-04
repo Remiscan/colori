@@ -1,5 +1,6 @@
 <?php
 require_once '../dist/colori.php';
+use colori\Couleur as Couleur;
 
 
 
@@ -43,7 +44,7 @@ class Test {
     try {
       if ($this->tested !== true) {
         $time = microtime(true);
-        $this->resultatReel = eval("return " . $this->fonction . ";");
+        $this->resultatReel = eval("use colori\Couleur as Couleur; return " . $this->fonction . ";");
         $this->time = microtime(true) - $time;
         $this->tested = true;
       }
@@ -110,8 +111,12 @@ class Test {
 
   // Checks if two objects with a similar structure to a Colour are the same
   static public function sameColorObject($couleur1, $couleur2) {
-    $c1 = [$couleur1->r, $couleur1->g, $couleur1->b, $couleur1->a];
-    $c2 = [$couleur2->r, $couleur2->g, $couleur2->b, $couleur2->a];
+    $c1 = ($couleur1 instanceof Couleur) ? [$couleur1->r(), $couleur1->g(), $couleur1->b(), $couleur1->a()] : [$couleur1->r, $couleur1->g, $couleur1->b, $couleur1->a];
+    $c2 = ($couleur2 instanceof Couleur) ? [$couleur2->r(), $couleur2->g(), $couleur2->b(), $couleur2->a()] : [$couleur2->r, $couleur2->g, $couleur2->b, $couleur2->a];
+    if ($c1[0] === null) {
+      var_dump(get_class($couleur1));
+      throw new Exception('fuck');
+    }
     return Couleur::same($c1, $c2, self::DISTANCE_PROCHE);
   }
 
@@ -143,9 +148,8 @@ class Test {
         $backgroundColor = new Couleur($resultat);
       }
     }
-    catch (Exception $error) {}
-    catch (Error $error) {}
-
+    catch (Throwable $error) {}
+    
     $textColor = ($backgroundColor instanceof Couleur) ? (
                    Couleur::blend('white', $backgroundColor)->bestColorScheme() === 'light' ? 'black' : 'white'
                  ): 'initial';

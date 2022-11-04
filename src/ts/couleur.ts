@@ -532,7 +532,7 @@ export default class Couleur {
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
 
     const a = Number(Couleur.unparse(values[3] ?? 1, 'a', { precision }));
-    values = [...values, a];
+    values = [...values.slice(0, 3), a];
 
     // If the requested expression is of the color(space, ...) type
     if (_format.toLowerCase().slice(0, 5) === 'color') {
@@ -1639,12 +1639,12 @@ export default class Couleur {
    * @param format Name of the color format.
    * @returns Array of color property names.
    */
-  protected static propertiesOf(format: string): ColorProperty[] {
+  public static propertiesOf(format: string): ColorProperty[] {
     return Couleur.getSpace(format.toLowerCase()).properties ?? [];
   }
 
   /** @returns Array of all color property short names. */
-  protected static get properties(): ColorProperty[] {
+  public static get properties(): ColorProperty[] {
     const props: Set<ColorProperty> = new Set();
     for (const space of Couleur.colorSpaces) {
       space.properties?.map(p => props.add(p));

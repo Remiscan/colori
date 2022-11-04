@@ -3,6 +3,7 @@
 
   require_once __DIR__ . '/utils.php';
   require_once __DIR__ . '/ext/w3-conversion.php';
+  require_once __DIR__ . '/ext/okhsl-okhsv-conversion.php';
 
 
 
@@ -54,6 +55,7 @@
   }
 
 
+
   /* hwb */
 
   function hsl_to_hwb(array $hsl): array {
@@ -70,7 +72,6 @@
 
     return [$h, $w, $bk];
   }
-
 
   function hwb_to_hsl(array $hwb): array {
     // Source of the math: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_HSL
@@ -92,6 +93,60 @@
     else                         $s = ($v - $l) / min($l, 1.0 - $l);
 
     return [$h, $s, $l];
+  }
+
+
+
+  /* OKLrAB */
+
+  function oklab_to_oklrab(array $lab): array {
+    [$l, $a, $b] = $lab;
+    return [\colori\OKHSLV\toe($l), $a, $b];
+  }
+
+  function oklrab_to_oklab(array $lab): array {
+    [$l, $a, $b] = $lab;
+    return [\colori\OKHSLV\toe_inv($l), $a, $b];
+  }
+
+
+
+  /* OKLrCH */
+
+  function oklch_to_oklrch(array $lch): array {
+    return oklab_to_oklrab($lch);
+  }
+
+  function oklrch_to_oklch(array $lch): array {
+    return oklrab_to_oklab($lch);
+  }
+
+
+
+  /* OKHSL */
+
+  function oklab_to_okhsl(array $lab): array {
+    [$h, $s, $l] = \colori\OKHSLV\oklab_to_okhsl($lab);
+    return [360.0 * $h, $s, $l];
+  }
+
+  function okhsl_to_oklab(array $hsl): array {
+    [$h, $s, $l] = $hsl;
+    return \colori\OKHSLV\okhsl_to_oklab([$h / 360.0, $s, $l]);
+  }
+
+
+
+  /* OKHSV */
+
+  function oklab_to_okhsv(array $lab): array {
+    [$h, $s, $v] = \colori\OKHSLV\oklab_to_okhsv(lab);
+    return [360.0 * $h, $s, $v];
+  }
+
+  function okhsv_to_oklab(array $hsv): array {
+    [$h, $s, $v] = $hsv;
+    return \colori\OKHSLV\okhsv_to_oklab([$h / 360.0, $s, $v]);
   }
 
 
