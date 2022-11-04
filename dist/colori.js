@@ -1640,14 +1640,14 @@ var _Couleur = class {
     const rgba = [...vals, a];
     return this.set(rgba, [null, null, null], "srgb");
   }
-  expr(format, { precision = 0, clamp = true } = {}) {
+  toString(format = "rgb", { precision = 0, clamp = true } = {}) {
     const _format = format.toLowerCase();
     const destinationSpaceID = _format.replace("color-", "");
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
     let values = this.valuesTo(destinationSpace, { clamp });
-    return _Couleur.makeExpr(format, [...values, this.a], { precision });
+    return _Couleur.makeString(format, [...values, this.a], { precision });
   }
-  static makeExpr(format, values, { precision = 0 } = {}) {
+  static makeString(format, values, { precision = 0 } = {}) {
     var _a2;
     const _format = format.toLowerCase();
     const destinationSpaceID = _format.replace("color-", "");
@@ -1741,31 +1741,31 @@ var _Couleur = class {
       return `#${rgb[0]}${rgb[1]}${rgb[2]}`;
   }
   get rgb() {
-    return this.expr("rgb", { precision: 2, clamp: true });
+    return this.toString("rgb", { precision: 2, clamp: true });
   }
   get rgba() {
     return this.rgb;
   }
   get hsl() {
-    return this.expr("hsl", { precision: 2, clamp: true });
+    return this.toString("hsl", { precision: 2, clamp: true });
   }
   get hsla() {
     return this.hsl;
   }
   get hwb() {
-    return this.expr("hwb", { precision: 2, clamp: true });
+    return this.toString("hwb", { precision: 2, clamp: true });
   }
   get lab() {
-    return this.expr("lab", { precision: 2, clamp: true });
+    return this.toString("lab", { precision: 2, clamp: true });
   }
   get lch() {
-    return this.expr("lch", { precision: 2, clamp: true });
+    return this.toString("lch", { precision: 2, clamp: true });
   }
   get oklab() {
-    return this.expr("oklab", { precision: 2, clamp: true });
+    return this.toString("oklab", { precision: 2, clamp: true });
   }
   get oklch() {
-    return this.expr("oklch", { precision: 2, clamp: true });
+    return this.toString("oklch", { precision: 2, clamp: true });
   }
   recompute(val, prop, format) {
     const props = [..._Couleur.propertiesOf(format), "a"];

@@ -507,14 +507,14 @@ export default class Couleur {
   /**
    * Creates a string containing the CSS expression of a color.
    * @param format Identifier of the color space of the requested CSS expression.
-   * @param options @see Couleur.makeExpr
+   * @param options @see Couleur.makeString
    */
-  public expr(format: string, { precision = 0, clamp = true }: exprOptions = {}): string {
+  public toString(format: string = 'rgb', { precision = 0, clamp = true }: exprOptions = {}): string {
     const _format = format.toLowerCase();
     const destinationSpaceID = _format.replace('color-', '');
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
     let values = this.valuesTo(destinationSpace, { clamp });
-    return Couleur.makeExpr(format, [...values, this.a], { precision });
+    return Couleur.makeString(format, [...values, this.a], { precision });
   }
 
   /**
@@ -526,7 +526,7 @@ export default class Couleur {
    * @param options.clamp Which color space the values should be clamped to.
    * @returns The expression of the color in the requested format.
    */
-  public static makeExpr(format: string, values: number[], { precision = 0 }: makeExprOptions = {}): string {
+  public static makeString(format: string, values: number[], { precision = 0 }: makeExprOptions = {}): string {
     const _format = format.toLowerCase();
     const destinationSpaceID = _format.replace('color-', '');
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
@@ -635,27 +635,27 @@ export default class Couleur {
   }
 
   /** @returns RGB expression of the color. */
-  public get rgb(): string { return this.expr('rgb', { precision: 2, clamp: true }); }
+  public get rgb(): string { return this.toString('rgb', { precision: 2, clamp: true }); }
   public get rgba(): string { return this.rgb; }
 
   /** @returns HSL expression of the color. */
-  public get hsl(): string { return this.expr('hsl', { precision: 2, clamp: true }); }
+  public get hsl(): string { return this.toString('hsl', { precision: 2, clamp: true }); }
   public get hsla(): string { return this.hsl; }
 
   /** @returns HWB expression of the color. */
-  public get hwb(): string { return this.expr('hwb', { precision: 2, clamp: true }); }
+  public get hwb(): string { return this.toString('hwb', { precision: 2, clamp: true }); }
 
   /** @returns LAB expression of the color. */
-  public get lab(): string { return this.expr('lab', { precision: 2, clamp: true }); }
+  public get lab(): string { return this.toString('lab', { precision: 2, clamp: true }); }
 
   /** @returns LCH expression of the color. */
-  public get lch(): string { return this.expr('lch', { precision: 2, clamp: true }); }
+  public get lch(): string { return this.toString('lch', { precision: 2, clamp: true }); }
 
   /** @returns OKLAB expression of the color. */
-  public get oklab(): string { return this.expr('oklab', { precision: 2, clamp: true }); }
+  public get oklab(): string { return this.toString('oklab', { precision: 2, clamp: true }); }
 
   /** @returns OKLCH expression of the color. */
-  public get oklch(): string { return this.expr('oklch', { precision: 2, clamp: true }); }
+  public get oklch(): string { return this.toString('oklch', { precision: 2, clamp: true }); }
 
 
 

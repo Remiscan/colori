@@ -1992,17 +1992,17 @@ namespace colori\OKHSLV {
     /* GENERAL EXPRESSION GETTER */
 
     /** Creates a string containing the CSS expression of a color. */
-    public function expr(string $format, ?int $precision = 0, bool $clamp = true): string {
+    public function toString(string $format = 'rgb', ?int $precision = 0, bool $clamp = true): string {
       $format = strtolower($format);
       $destinationSpaceID = str_replace('color-', '', $format);
       $destinationSpace = self::getSpace($destinationSpaceID);
       $values = $this->valuesTo($destinationSpace, clamp: $clamp);
       $values[] = $this->a();
-      return self::makeExpr($format, $values, precision: $precision);
+      return self::makeString($format, $values, precision: $precision);
     }
 
     /** Creates a string containing the CSS expression of a color from a list of values. */
-    public static function makeExpr(string $format, array $values, ?int $precision = 0, bool $clamp = true): string {
+    public static function makeString(string $format, array $values, ?int $precision = 0, bool $clamp = true): string {
       $format = strtolower($format);
       $destinationSpaceID = str_replace('color-', '', $format);
       $destinationSpace = self::getSpace($destinationSpaceID);
@@ -2114,21 +2114,21 @@ namespace colori\OKHSLV {
       else              return '#'.$r.$g.$b;
     }
 
-    public function rgb(): string { return $this->expr('rgb', precision: 2); }
+    public function rgb(): string { return $this->toString('rgb', precision: 2); }
     public function rgba(): string { return $this->rgb(); }
 
-    public function hsl(): string { return $this->expr('hsl', precision: 2); }
+    public function hsl(): string { return $this->toString('hsl', precision: 2); }
     public function hsla(): string { return $this->hsl(); }
 
-    public function hwb(): string { return $this->expr('hwb', precision: 2); }
+    public function hwb(): string { return $this->toString('hwb', precision: 2); }
 
-    public function lab(): string { return $this->expr('lab', precision: 2); }
+    public function lab(): string { return $this->toString('lab', precision: 2); }
 
-    public function lch(): string { return $this->expr('lch', precision: 2); }
+    public function lch(): string { return $this->toString('lch', precision: 2); }
 
-    public function oklab(): string { return $this->expr('oklab', precision: 2); }
+    public function oklab(): string { return $this->toString('oklab', precision: 2); }
 
-    public function oklch(): string { return $this->expr('oklch', precision: 2); }
+    public function oklch(): string { return $this->toString('oklch', precision: 2); }
 
 
     /********************************************/
