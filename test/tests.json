@@ -389,33 +389,33 @@
         "color(srgb 0.9156 0.0387 0.7408 / 0.6)"
       ]
     }, {
-      "fonction": "Colour.interpolate('lightgreen', 'blue', 4, 'oklch').map(c => c.oklch)",
-      "fonctionphp": "array_map(fn($c) => $c->oklch(), Couleur::interpolate('lightgreen', 'blue', 4, 'oklch'))",
+      "fonction": "Colour.interpolate('lightgreen', 'blue', 4, 'oklch').map(c => c.toGamut('srgb').oklch)",
+      "fonctionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolate('lightgreen', 'blue', 4, 'oklch'))",
       "resultatAttendu": [
         "oklch(86.8% 0.1558 144.09)",
-        "oklch(79.62% 0.167 165.18)",
-        "oklch(74.42% 0.1275 192.78)",
-        "oklch(67.16% 0.1464 236.91)",
-        "oklch(57.49% 0.2281 259.47)",
-        "oklch(45.2% 0.3132 264.05)"
+        "oklch(78.69% 0.1602 167.53)",
+        "oklch(72.15% 0.1238 192.17)",
+        "oklch(62.52% 0.1129 218.74)",
+        "oklch(54.1% 0.1329 243.81)",
+        "oklch(45.22% 0.2739 264.14)"
       ]
     }, {
-      "fonction": "Colour.interpolate('lightgreen', 'blue', 0, 'oklch').map(c => c.oklch)",
-      "fonctionphp": "array_map(fn($c) => $c->oklch(), Couleur::interpolate('lightgreen', 'blue', 0, 'oklch'))",
+      "fonction": "Colour.interpolate('lightgreen', 'blue', 0, 'oklch').map(c => c.toGamut('srgb').oklch)",
+      "fonctionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolate('lightgreen', 'blue', 0, 'oklch'))",
       "resultatAttendu": [
         "oklch(86.8% 0.1558 144.09)",
-        "oklch(45.2% 0.3132 264.05)"
+        "oklch(45.22% 0.2739 264.14)"
       ]
     }, {
-      "fonction": "Colour.interpolate('lightgreen', 'blue', -5, 'oklch').map(c => c.oklch)",
-      "fonctionphp": "array_map(fn($c) => $c->oklch(), Couleur::interpolate('lightgreen', 'blue', -5, 'oklch'))",
+      "fonction": "Colour.interpolate('lightgreen', 'blue', -5, 'oklch').map(c => c.toGamut('srgb').oklch)",
+      "fonctionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolate('lightgreen', 'blue', -5, 'oklch'))",
       "resultatAttendu": [
         "oklch(86.8% 0.1558 144.09)",
-        "oklch(45.2% 0.3132 264.05)"
+        "oklch(45.22% 0.2739 264.14)"
       ]
     }, {
-      "fonction": "Colour.interpolate('#1f005c', '#ffb56b', 4, 'oklch').map(c => c.oklch)",
-      "fonctionphp": "array_map(fn($c) => $c->oklch(), Couleur::interpolate('#1f005c', '#ffb56b', 4, 'oklch'))",
+      "fonction": "Colour.interpolate('#1f005c', '#ffb56b', 4, 'oklch').map(c => c.toGamut('srgb').oklch)",
+      "fonctionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolate('#1f005c', '#ffb56b', 4, 'oklch'))",
       "resultatAttendu": [
         "oklch(23.84% 0.1395 284.79)",
         "oklch(35.64% 0.1366 312.75)",
@@ -425,8 +425,8 @@
         "oklch(82.83% 0.1251 64.58)"
       ]
     }, {
-      "fonction": "Colour.interpolate('lightgreen', 'blue', 4, 'hsl').map(c => c.hsl)",
-      "fonctionphp": "array_map(fn($c) => $c->hsl(), Couleur::interpolate('lightgreen', 'blue', 4, 'hsl'))",
+      "fonction": "Colour.interpolate('lightgreen', 'blue', 4, 'hsl').map(c => c.toGamut('srgb').hsl)",
+      "fonctionphp": "array_map(fn($c) => $c->toGamut('srgb')->hsl(), Couleur::interpolate('lightgreen', 'blue', 4, 'hsl'))",
       "resultatAttendu": [
         "hsl(120, 73%, 75%)",
         "hsl(144, 79%, 70%)",

@@ -60,14 +60,14 @@
       // If associative array with r, g, b keys
       else if (is_array($color) && array_keys($color) !== range(0, count($color) - 1) && isset($color['r']) && isset($color['g']) && isset($color['b'])) {
         $values = [$color['r'], $color['g'], $color['b']];
-        [$this->_r, $this->_g, $this->_b] = self::valuesToGamut('srgb', $values, 'srgb', method: 'naive');
+        [$this->_r, $this->_g, $this->_b] = $values;
         $this->_a = $color['a'] ?? 1;
       }
 
       // If sequential array with 3 or 4 values
       else if (is_array($color) && (count($color) === 3 || count($color) === 4)) {
         $values = array_slice($color, 0, 3);
-        [$this->_r, $this->_g, $this->_b] = self::valuesToGamut('srgb', $values, 'srgb', method: 'naive');
+        [$this->_r, $this->_g, $this->_b] = $values;
         $this->_a = $color[3] ?? 1;
       }
 
@@ -362,7 +362,7 @@
     /* GENERAL EXPRESSION GETTER */
 
     /** Creates a string containing the CSS expression of a color. */
-    public function toString(string $format = 'rgb', ?int $precision = 0, bool $clamp = true): string {
+    public function toString(string $format = 'rgb', ?int $precision = 0, bool $clamp = false): string {
       $format = strtolower($format);
       $destinationSpaceID = str_replace('color-', '', $format);
       $destinationSpace = self::getSpace($destinationSpaceID);
@@ -372,7 +372,7 @@
     }
 
     /** Creates a string containing the CSS expression of a color from a list of values. */
-    public static function makeString(string $format, array $values, ?int $precision = 0, bool $clamp = true): string {
+    public static function makeString(string $format, array $values, ?int $precision = 0): string {
       $format = strtolower($format);
       $destinationSpaceID = str_replace('color-', '', $format);
       $destinationSpace = self::getSpace($destinationSpaceID);
@@ -484,21 +484,21 @@
       else              return '#'.$r.$g.$b;
     }
 
-    public function rgb(): string { return $this->toString('rgb', precision: 2); }
+    public function rgb(): string { return $this->toString('rgb', precision: 2, clamp: true); }
     public function rgba(): string { return $this->rgb(); }
 
-    public function hsl(): string { return $this->toString('hsl', precision: 2); }
+    public function hsl(): string { return $this->toString('hsl', precision: 2, clamp: true); }
     public function hsla(): string { return $this->hsl(); }
 
-    public function hwb(): string { return $this->toString('hwb', precision: 2); }
+    public function hwb(): string { return $this->toString('hwb', precision: 2, clamp: true); }
 
-    public function lab(): string { return $this->toString('lab', precision: 2); }
+    public function lab(): string { return $this->toString('lab', precision: 2, clamp: true); }
 
-    public function lch(): string { return $this->toString('lch', precision: 2); }
+    public function lch(): string { return $this->toString('lch', precision: 2, clamp: true); }
 
-    public function oklab(): string { return $this->toString('oklab', precision: 2); }
+    public function oklab(): string { return $this->toString('oklab', precision: 2, clamp: true); }
 
-    public function oklch(): string { return $this->toString('oklch', precision: 2); }
+    public function oklch(): string { return $this->toString('oklch', precision: 2, clamp: true); }
 
 
 

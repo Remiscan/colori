@@ -177,7 +177,7 @@ export default class Couleur {
     }
 
     else if (Array.isArray(color) && (color.length == 3 || color.length == 4)) {
-      [this.#r, this.#g, this.#b] = Couleur.valuesToGamut('srgb', color.slice(0, 3), 'srgb', { method: 'naive' });
+      [this.#r, this.#g, this.#b] = color.slice(0, 3);
       this.#a = Math.max(0, Math.min(Number(Utils.toUnparsedAlpha(color[3])), 1));
     }
 
@@ -509,7 +509,7 @@ export default class Couleur {
    * @param format Identifier of the color space of the requested CSS expression.
    * @param options @see Couleur.makeString
    */
-  public toString(format: string = 'rgb', { precision = 0, clamp = true }: exprOptions = {}): string {
+  public toString(format: string = 'rgb', { precision = 0, clamp = false }: exprOptions = {}): string {
     const _format = format.toLowerCase();
     const destinationSpaceID = _format.replace('color-', '');
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
