@@ -29,7 +29,7 @@ export default class Test {
     }
     catch (error) {
       this.time = performance.now() - time;
-      return ['Error', error];
+      return ['Error', error.message];
     }
   }
 
