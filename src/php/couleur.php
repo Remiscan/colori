@@ -17,12 +17,16 @@
 
     public function shortestPath(string|int $startID, string|int $endID): array {
       $id = $startID."_to_".$endID;
-      // Since every conversion path is reversible, only cache half of them
       $cachedPath = $this->cache[$id] ?? null;
+
+      // If the path from startID to endID isn't cached, check if the reverse path
+      // from endID to startID is cached. Since every conversion path is reversible,
+      // we only need to store half of them in cache!
       if (!$cachedPath) {
         $reversedPath = $this->cache[$endID."_to_".$startID] ?? null;
         $cachedPath = $reversedPath ? array_reverse([...$reversedPath]) : null;
       }
+      
       if ($cachedPath) return $cachedPath;
 
       $path = parent::shortestPath($startID, $endID);

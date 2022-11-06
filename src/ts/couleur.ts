@@ -129,12 +129,16 @@ class GraphWithCachedPaths extends Graph {
 
   shortestPath(startID: string | number, endID: string | number): GraphNode[] {
     const id = `${startID}_to_${endID}`;
-    // Since every conversion path is reversible, only cache half of them
     let cachedPath = this.#cache.get(id);
+
+    // If the path from startID to endID isn't cached, check if the reverse path
+    // from endID to startID is cached. Since every conversion path is reversible,
+    // we only need to store half of them in cache!
     if (!cachedPath) {
       const reversedPath = this.#cache.get(`${endID}_to_${startID}`);
       cachedPath = reversedPath ? [...reversedPath].reverse() : null;
     }
+
     if (cachedPath) return cachedPath;
 
     const path = super.shortestPath(startID, endID);
