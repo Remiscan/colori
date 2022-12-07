@@ -1026,7 +1026,8 @@
 
     /** Determines which color scheme ('light' or 'dark') would lead to a better contrast with the color. */
     public function bestColorScheme(string $as = 'background'): string {
-      $rgba = self::valuesToGamut('srgb', $this->values()); $rgba[] = $this->a();
+      $rgba = self::valuesToGamut('srgb', $this->toGamut('srgb')->values(), 'srgb', method: 'naive');
+      $rgba[] = $this->a();
       if ($as === 'text') {
         $Cblack = abs(self::contrast($rgba, 'black', method: 'apca'));
         $Cwhite = abs(self::contrast($rgba, 'white', method: 'apca'));

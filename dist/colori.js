@@ -2128,9 +2128,9 @@ var _Couleur = class {
       clampedValues = _Couleur.valuesToGamut(destinationSpace, clampedValues, clampSpace, { method: "naive" });
     return _Couleur.convert(clampSpace, sourceSpace, clampedValues);
   }
-  toGamut(destinationSpaceID) {
+  toGamut(destinationSpaceID, options = {}) {
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
-    const rgbClampedValues = _Couleur.valuesToGamut(destinationSpace, this, void 0);
+    const rgbClampedValues = _Couleur.valuesToGamut(destinationSpace, this, void 0, options);
     return new _Couleur([...rgbClampedValues, this.a]);
   }
   change(prop, value, { action } = {}) {
@@ -2331,7 +2331,8 @@ var _Couleur = class {
     return _Couleur.contrast(this, backgroundColor, options);
   }
   bestColorScheme(as = "background") {
-    const rgba = [...this.toGamut("srgb").values, this.a];
+    const rgb = _Couleur.valuesToGamut("srgb", this.toGamut("srgb").values, "srgb", { method: "naive" });
+    const rgba = [...rgb, this.a];
     switch (as) {
       case "text": {
         const Cblack = Math.abs(_Couleur.contrast(rgba, "black", { method: "apca" }));

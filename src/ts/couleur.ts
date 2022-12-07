@@ -1307,7 +1307,8 @@ export default class Couleur {
    * @returns
    */
   public bestColorScheme(as: 'background'|'text' = 'background'): 'light'|'dark' {
-    const rgba = [...this.toGamut('srgb').values, this.a];
+    const rgb = Couleur.valuesToGamut('srgb', this.toGamut('srgb').values, 'srgb', { method: 'naive' });
+    const rgba = [...rgb, this.a];
     switch (as) {
       case 'text': {
         const Cblack = Math.abs(Couleur.contrast(rgba, 'black', { method: 'apca' }));
