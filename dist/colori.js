@@ -2059,52 +2059,52 @@ var _Couleur = class {
       __privateGet(this, _cache2).set(destinationSpace.id, values);
     }
     if (clamp)
-      values = _Couleur.valuesToGamut(destinationSpace, values, destinationSpace);
+      values = _Couleur.valuesToGamut(destinationSpace, values);
     return values;
   }
-  static valuesInGamut(destinationSpaceID, values, sourceSpaceID = "srgb", { tolerance = 1e-4 } = {}) {
+  static valuesInGamut(destinationSpaceID, values, { tolerance = 1e-4 } = {}) {
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
     const gamutSpace = destinationSpace.gamutSpace ? _Couleur.getSpace(destinationSpace.gamutSpace) : destinationSpace;
-    const convertedValues = values instanceof _Couleur ? values.valuesTo(gamutSpace) : _Couleur.convert(sourceSpaceID, gamutSpace, values);
+    const convertedValues = values instanceof _Couleur ? values.valuesTo(gamutSpace) : _Couleur.convert(destinationSpace, gamutSpace, values);
     return convertedValues.every((v, k) => v >= gamutSpace.gamut[k][0] - tolerance && v <= gamutSpace.gamut[k][1] + tolerance);
   }
   inGamut(destinationSpaceID, options = {}) {
-    return _Couleur.valuesInGamut(destinationSpaceID, this, void 0, options);
+    return _Couleur.valuesInGamut(destinationSpaceID, this, options);
   }
-  static valuesToGamut(destinationSpaceID, values, sourceSpaceID = "srgb", { method = "okchroma" } = {}) {
+  static valuesToGamut(destinationSpaceID, values, { method = "okchroma" } = {}) {
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
     const gamutSpace = destinationSpace.gamutSpace ? _Couleur.getSpace(destinationSpace.gamutSpace) : destinationSpace;
-    const sourceSpace = _Couleur.getSpace(sourceSpaceID);
     const _method = method.toLowerCase();
     if (values instanceof _Couleur) {
       if (values.inGamut(destinationSpace, { tolerance: 0 }))
-        return values.valuesTo(sourceSpace);
-      values = values.valuesTo(sourceSpace);
+        return values.valuesTo(destinationSpace);
+      values = values.valuesTo(destinationSpace);
     } else {
-      if (_Couleur.valuesInGamut(destinationSpace, values, sourceSpace, { tolerance: 0 }))
+      if (_Couleur.valuesInGamut(destinationSpace, values, { tolerance: 0 }))
         return values;
     }
-    let clampedValues, clampSpace;
+    let clampedValues;
     switch (_method) {
       case "okchroma":
         {
-          clampSpace = _Couleur.getSpace("oklch");
-          let oklch = _Couleur.convert(sourceSpace, clampSpace, values);
+          const clampSpace = _Couleur.getSpace("oklch");
+          let oklch = _Couleur.convert(destinationSpace, clampSpace, values);
           const \u03C4 = 1e-6;
           const \u03B4 = 0.02;
           if (oklch[0] >= 1 - \u03C4) {
-            return _Couleur.convert(gamutSpace, sourceSpace, gamutSpace.white || [1, 1, 1]);
+            return _Couleur.convert(gamutSpace, destinationSpace, gamutSpace.white || [1, 1, 1]);
           } else if (oklch[0] <= 0 + \u03C4) {
-            return _Couleur.convert(gamutSpace, sourceSpace, gamutSpace.black || [0, 0, 0]);
+            return _Couleur.convert(gamutSpace, destinationSpace, gamutSpace.black || [0, 0, 0]);
           }
           let Cmin = 0;
           let Cmax = oklch[1];
           oklch[1] = oklch[1] / 2;
           while (Cmax - Cmin > \u03C4) {
-            if (_Couleur.valuesInGamut(destinationSpace, oklch, clampSpace, { tolerance: 0 })) {
+            const gamutValues = _Couleur.convert(clampSpace, gamutSpace, oklch);
+            if (_Couleur.valuesInGamut(gamutSpace, gamutValues, { tolerance: 0 })) {
               Cmin = oklch[1];
             } else {
-              const naiveOklch = _Couleur.valuesToGamut(destinationSpace, oklch, clampSpace, { method: "naive" });
+              const naiveOklch = _Couleur.convert(gamutSpace, clampSpace, _Couleur.valuesToGamut(gamutSpace, gamutValues, { method: "naive" }));
               const naiveOklab = _Couleur.convert(clampSpace, "oklab", naiveOklch);
               const oklab = _Couleur.convert(clampSpace, "oklab", oklch);
               if (euclidean(naiveOklab, oklab) < \u03B4) {
@@ -2115,22 +2115,24 @@ var _Couleur = class {
             }
             oklch[1] = (Cmin + Cmax) / 2;
           }
-          clampedValues = oklch;
+          clampedValues = _Couleur.convert(clampSpace, gamutSpace, oklch);
         }
         break;
+      case "naive":
       default: {
-        clampSpace = gamutSpace;
-        const convertedValues = _Couleur.convert(sourceSpace, clampSpace, values);
-        clampedValues = convertedValues.map((v, k) => Math.max(gamutSpace.gamut[k][0], Math.min(v, gamutSpace.gamut[k][1])));
+        const gamutValues = _Couleur.convert(destinationSpace, gamutSpace, values);
+        clampedValues = gamutValues.map((v, k) => Math.max(gamutSpace.gamut[k][0], Math.min(v, gamutSpace.gamut[k][1])));
       }
     }
-    if (_method !== "naive")
-      clampedValues = _Couleur.valuesToGamut(destinationSpace, clampedValues, clampSpace, { method: "naive" });
-    return _Couleur.convert(clampSpace, sourceSpace, clampedValues);
+    if (_method !== "naive") {
+      clampedValues = _Couleur.valuesToGamut(gamutSpace, clampedValues, { method: "naive" });
+    }
+    return _Couleur.convert(gamutSpace, destinationSpace, clampedValues);
   }
   toGamut(destinationSpaceID, options = {}) {
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
-    const rgbClampedValues = _Couleur.valuesToGamut(destinationSpace, this, void 0, options);
+    const destClampedValues = _Couleur.valuesToGamut(destinationSpace, this, options);
+    const rgbClampedValues = _Couleur.convert(destinationSpace, "srgb", destClampedValues);
     return new _Couleur([...rgbClampedValues, this.a]);
   }
   change(prop, value, { action } = {}) {
@@ -2227,7 +2229,7 @@ var _Couleur = class {
         const r = (mix.r * mix.a - overlay.r * overlay.a) / (a * (1 - overlay.a));
         const g = (mix.g * mix.a - overlay.g * overlay.a) / (a * (1 - overlay.a));
         const b = (mix.b * mix.a - overlay.b * overlay.a) / (a * (1 - overlay.a));
-        const clampedValues = _Couleur.valuesToGamut("srgb", [r, g, b], "srgb");
+        const clampedValues = _Couleur.valuesToGamut("srgb", [r, g, b]);
         return new _Couleur([...clampedValues, a]);
       }
     }
@@ -2261,9 +2263,9 @@ var _Couleur = class {
       const r = (mix.r * mix.a - background.r * background.a * (1 - a)) / a;
       const g = (mix.g * mix.a - background.g * background.a * (1 - a)) / a;
       const b = (mix.b * mix.a - background.b * background.a * (1 - a)) / a;
-      if (!_Couleur.valuesInGamut("srgb", [r, g, b], "srgb", { tolerance: 1 / 255 }))
+      if (!_Couleur.valuesInGamut("srgb", [r, g, b], { tolerance: 1 / 255 }))
         throw new Error(`This color doesn't exist`);
-      const clampedValues = _Couleur.valuesToGamut("srgb", [r, g, b], "srgb", { method: "naive" });
+      const clampedValues = _Couleur.valuesToGamut("srgb", [r, g, b], { method: "naive" });
       return new _Couleur([...clampedValues, a]);
     };
     const requestedAlphas = [alphas].flat();
@@ -2331,8 +2333,7 @@ var _Couleur = class {
     return _Couleur.contrast(this, backgroundColor, options);
   }
   bestColorScheme(as = "background") {
-    const rgb = _Couleur.valuesToGamut("srgb", this.toGamut("srgb").values, "srgb", { method: "naive" });
-    const rgba = [...rgb, this.a];
+    const rgba = [...this.toGamut("srgb").values, this.a];
     switch (as) {
       case "text": {
         const Cblack = Math.abs(_Couleur.contrast(rgba, "black", { method: "apca" }));
