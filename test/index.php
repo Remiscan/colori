@@ -13,7 +13,7 @@ require_once 'tests-php.php';
 
 $tests_json = file_get_contents('tests.json');
 $testList = json_decode($tests_json);
-$ordreMin = 4;
+$orderMin = 4;
 ?>
 
 <!doctype html>
@@ -51,7 +51,7 @@ $ordreMin = 4;
         padding: 10px;
         font-size: 1rem;
         box-sizing: border-box;
-        --echiquier-transparence: linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
+        --checkered-background: linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
           linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%),
           linear-gradient(to right, #ddd 0% 100%);
       }
@@ -79,7 +79,7 @@ $ordreMin = 4;
 
       h4 {
         background-image: var(--gradient, linear-gradient(to right, var(--color, white) 0 100%)),
-                          var(--echiquier-transparence);
+                          var(--checkered-background);
         background-size: 100% 100%, 16px 16px, 16px 16px;
         background-position: 0 0, 0 0, 8px 8px;
         background-repeat: no-repeat, repeat, repeat;
@@ -100,7 +100,7 @@ $ordreMin = 4;
       @media (prefers-color-scheme: dark) {
         h4 {
           background-image: var(--gradient, linear-gradient(to right, var(--color, #333) 0 100%)),
-                            var(--echiquier-transparence);
+                            var(--checkered-background);
         }
 
         .no>pre:nth-of-type(1) { color: pink; }
@@ -136,27 +136,27 @@ $ordreMin = 4;
     <?php
     $failsList = [];
 
-    $ordre = $ordreMin;
+    $order = $orderMin;
 
     foreach($testList as $category => $tests) {
       ?>
-      <h3 class="php" style="grid-row: <?=$ordre?>;">
+      <h3 class="php" style="grid-row: <?=$order?>;">
         <a id="<?=$category?>"></a>
         <?=$category?>
       </h3>
       <?php
-      $ordre++;
+      $order++;
 
       foreach($tests as $t) {
         try {
-          $test = new Test($t->fonctionphp ?? $t->fonction, $t->resultatAttendu, property_exists($t, 'nophp'), $ordre);
+          $test = new Test($t->functionphp ?? $t->function, $t->expected, property_exists($t, 'nophp'), $order);
           if (!$test->nophp) {
             $valid = $test->populate();
             if (!$valid) {
-              $failsList[] = '<li><a href="#php-'. ($test->ordre) .'">'. $test->nom() .'</a></li>';
+              $failsList[] = '<li><a href="#php-'. ($test->order) .'">'. $test->nom() .'</a></li>';
             }
           }
-          $ordre++;
+          $order++;
         }
         catch (Throwable $error) { var_dump($error); }
       }
@@ -189,24 +189,24 @@ $ordreMin = 4;
 
       const tests_json = `<?=$tests_json?>`;
       const testList = JSON.parse(tests_json);
-      let ordre = <?=$ordreMin?>;
+      let order = <?=$orderMin?>;
 
       for (const [category, tests] of Object.entries(testList)) {
         const h3 = document.createElement('h3');
         h3.classList.add('js');
-        h3.style.setProperty('grid-row', ordre);
+        h3.style.setProperty('grid-row', order);
         h3.innerHTML = category;
         document.body.appendChild(h3);
-        ordre++;
+        order++;
 
         for (const t of tests) {
-          const test = new Test(t.fonction, t.resultatAttendu, ordre);
+          const test = new Test(t.function, t.expected, order);
           const valid = test.populate();
           if (!valid) {
-            failsList.innerHTML += `<li><a href="#js-${ordre}">${test.nom}</a></li>`;
+            failsList.innerHTML += `<li><a href="#js-${order}">${test.nom}</a></li>`;
             fails++;
           }
-          ordre++;
+          order++;
         }
       }
 
