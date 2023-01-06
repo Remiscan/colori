@@ -61,7 +61,7 @@ export default class Test {
       let res = false;
       try {
         // If the array contains colors / color strings, check if they're all the same
-        res = result.every((co, k) => Colour.same(co, this.expectedResult[k], distanceClose));
+        res = result.every((co, k) => Colour.same(co, this.expectedResult[k]));
       } catch (error) {
         // If not, just compare them
         res = result.every((e, k) => e === this.expectedResult[k]);
@@ -82,7 +82,7 @@ export default class Test {
     // Else, try to make colors from the result and expected result and check if they're the same
     else {
       let res = false;
-      try { res = Colour.same(result, this.expectedResult, distanceClose); }
+      try { res = Colour.same(result, this.expectedResult); }
       catch (error) { res = result === this.expectedResult; }
       return res;
     }
@@ -93,7 +93,7 @@ export default class Test {
   static sameColorObject(couleur1, couleur2) {
     const c1 = colorToObject(couleur1);
     const c2 = colorToObject(couleur2);
-    return Couleur.same(c1, c2, distanceClose);
+    return Couleur.same(c1, c2);
   }
 
 

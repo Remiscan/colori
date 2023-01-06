@@ -86,7 +86,7 @@ class Test {
         // If the array contains colors / color strings, check if they're all the same
         $res = true;
         foreach($result as $k => $c) {
-          $res = $res && (Couleur::same($c, $this->expectedResult[$k], self::DISTANCE_CLOSE));
+          $res = $res && (Couleur::same($c, $this->expectedResult[$k]));
         }
       } catch (Throwable $e) {
         // If not, just compare them
@@ -122,7 +122,7 @@ class Test {
   static public function sameColorObject($couleur1, $couleur2) {
     $c1 = ($couleur1 instanceof Couleur) ? colorToObject($couleur1) : [$couleur1->r, $couleur1->g, $couleur1->b, $couleur1->a];
     $c2 = ($couleur2 instanceof Couleur) ? colorToObject($couleur2) : [$couleur2->r, $couleur2->g, $couleur2->b, $couleur2->a];
-    return Couleur::same($c1, $c2, self::DISTANCE_CLOSE);
+    return Couleur::same($c1, $c2);
   }
 
 
