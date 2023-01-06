@@ -1377,6 +1377,11 @@ var UndefinedConversionError = class extends Error {
     super(`Conversion function ${functionName} does not exist`);
   }
 };
+var UnsupportedMethodError = class extends Error {
+  constructor(methodName, action) {
+    super(`${methodName} is not a supported method for ${action}`);
+  }
+};
 var _cache;
 var GraphWithCachedPaths = class extends Graph {
   constructor() {
@@ -2119,10 +2124,13 @@ var _Couleur = class {
         }
         break;
       case "naive":
-      default: {
-        const gamutValues = _Couleur.convert(destinationSpace, gamutSpace, values);
-        clampedValues = gamutValues.map((v, k) => Math.max(gamutSpace.gamut[k][0], Math.min(v, gamutSpace.gamut[k][1])));
-      }
+        {
+          const gamutValues = _Couleur.convert(destinationSpace, gamutSpace, values);
+          clampedValues = gamutValues.map((v, k) => Math.max(gamutSpace.gamut[k][0], Math.min(v, gamutSpace.gamut[k][1])));
+        }
+        break;
+      default:
+        throw new UnsupportedMethodError(_method, "gamut mapping");
     }
     if (_method !== "naive") {
       clampedValues = _Couleur.valuesToGamut(gamutSpace, clampedValues, { method: "naive" });
@@ -2325,8 +2333,9 @@ var _Couleur = class {
       case "apca":
         return APCAcontrast(text.values, background.values);
       case "wcag2":
-      default:
         return WCAG2(text.values, background.values);
+      default:
+        throw new UnsupportedMethodError(method, "contrast calculations");
     }
   }
   contrast(backgroundColor, options = {}) {
@@ -2345,6 +2354,8 @@ var _Couleur = class {
         const Cwhite = Math.abs(_Couleur.contrast("white", rgba, { method: "apca" }));
         return Cblack >= Cwhite ? "light" : "dark";
       }
+      default:
+        throw new Error('Argument must be "background" or "text"');
     }
   }
   improveContrast(referenceColor, desiredContrast, { as = "text", lower = false, colorScheme, method = "apca" } = {}) {
@@ -2459,10 +2470,13 @@ var _Couleur = class {
         }
         break;
       case "euclidean":
-      default: {
-        const [rgb1, rgb2] = [colore1, colore2].map((c) => c.values);
-        opaqueDist = euclidean(rgb1, rgb2);
-      }
+        {
+          const [rgb1, rgb2] = [colore1, colore2].map((c) => c.values);
+          opaqueDist = euclidean(rgb1, rgb2);
+        }
+        break;
+      default:
+        throw new UnsupportedMethodError(method, "distance calculations");
     }
     const alphaDist = alpha ? euclidean([colore1.a], [colore2.a]) : 0;
     return opaqueDist + alphaCoeff * alphaDist;
@@ -2528,6 +2542,8 @@ var _Couleur = class {
               if (0 < diff)
                 startValues[k] += 360;
               break;
+            default:
+              throw new UnsupportedMethodError(hueInterpolationMethod, "hue interpolation");
           }
         }
         default:

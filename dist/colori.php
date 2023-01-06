@@ -2358,54 +2358,59 @@ namespace colori\OKHSLV {
         if (self::valuesInGamut($destinationSpace, $values, tolerance: 0.0)) return $values;
       }
 
-      // OKLCH chroma gamut clipping
-      if ($method === 'okchroma') {
-        $clampSpace = self::getSpace('oklch');
-        $oklch = self::convert($destinationSpace, $clampSpace, $values);
-
-        $τ = .000001;
-        $δ = .02;
-
-        if ($oklch[0] >= 1 - $τ) {
-          return self::convert($gamutSpace, $destinationSpace, $gamutSpace['white'] ?? [1.0, 1.0, 1.0]);
-        } elseif ($oklch[0] <= 0 + $τ) {
-          return self::convert($gamutSpace, $destinationSpace, $gamutSpace['black'] ?? [0.0, 0.0, 0.0]);
-        }
-
-        $Cmin = 0;
-        $Cmax = $oklch[1];
-        $oklch[1] = $oklch[1] / 2;
-
-        while ($Cmax - $Cmin > $τ) {
-          $gamutValues = self::convert($clampSpace, $gamutSpace, $oklch);
-          if (self::valuesInGamut($gamutSpace, $gamutValues, tolerance: 0.0)) {
-            $Cmin = $oklch[1];
-          } else {
-            $naiveOklch = self::convert($gamutSpace, $clampSpace, self::valuesToGamut(
-              $gamutSpace, $gamutValues, method: 'naive'
-            ));
-            $naiveOklab = self::convert($clampSpace, 'oklab', $naiveOklch);
-            $oklab = self::convert($clampSpace, 'oklab', $oklch);
-
-            if (distances\euclidean($naiveOklab, $oklab) < $δ) {
-              $oklch = $naiveOklch;
-              break;
-            }
-            $Cmax = $oklch[1];
+      switch ($method) {
+        case 'okchroma':
+          // OKLCH chroma gamut clipping
+          $clampSpace = self::getSpace('oklch');
+          $oklch = self::convert($destinationSpace, $clampSpace, $values);
+  
+          $τ = .000001;
+          $δ = .02;
+  
+          if ($oklch[0] >= 1 - $τ) {
+            return self::convert($gamutSpace, $destinationSpace, $gamutSpace['white'] ?? [1.0, 1.0, 1.0]);
+          } elseif ($oklch[0] <= 0 + $τ) {
+            return self::convert($gamutSpace, $destinationSpace, $gamutSpace['black'] ?? [0.0, 0.0, 0.0]);
           }
-          $oklch[1] = ($Cmin + $Cmax) / 2;
-        }
+  
+          $Cmin = 0;
+          $Cmax = $oklch[1];
+          $oklch[1] = $oklch[1] / 2;
+  
+          while ($Cmax - $Cmin > $τ) {
+            $gamutValues = self::convert($clampSpace, $gamutSpace, $oklch);
+            if (self::valuesInGamut($gamutSpace, $gamutValues, tolerance: 0.0)) {
+              $Cmin = $oklch[1];
+            } else {
+              $naiveOklch = self::convert($gamutSpace, $clampSpace, self::valuesToGamut(
+                $gamutSpace, $gamutValues, method: 'naive'
+              ));
+              $naiveOklab = self::convert($clampSpace, 'oklab', $naiveOklch);
+              $oklab = self::convert($clampSpace, 'oklab', $oklch);
+  
+              if (distances\euclidean($naiveOklab, $oklab) < $δ) {
+                $oklch = $naiveOklch;
+                break;
+              }
+              $Cmax = $oklch[1];
+            }
+            $oklch[1] = ($Cmin + $Cmax) / 2;
+          }
+  
+          $clampedValues = self::convert($clampSpace, $gamutSpace, $oklch);
+          break;
 
-        $clampedValues = self::convert($clampSpace, $gamutSpace, $oklch);
-      }
+        case 'naive':
+          // Naively clamp the values
+          $gamutValues = self::convert($destinationSpace, $gamutSpace, $values);
+          $clampedValues = [];
+          foreach($gamutValues as $k => $v) {
+            $clampedValues[] = max($gamutSpace['gamut'][$k][0], min($v, $gamutSpace['gamut'][$k][1]));
+          }
+          break;
 
-      // Naively clamp the values
-      else {
-        $gamutValues = self::convert($destinationSpace, $gamutSpace, $values);
-        $clampedValues = [];
-        foreach($gamutValues as $k => $v) {
-          $clampedValues[] = max($gamutSpace['gamut'][$k][0], min($v, $gamutSpace['gamut'][$k][1]));
-        }
+        default:
+          throw new \Exception("$method is not a supported method for gamut mapping");
       }
 
       // Final naive clamp to get in the color space if the color is still just outside the border
@@ -2649,8 +2654,9 @@ namespace colori\OKHSLV {
         case 'apca':
           return contrasts\APCA($text->values(), $background->values());
         case 'wcag2':
-        default:
           return contrasts\WCAG2($text->values(), $background->values());
+        default:
+          throw new \Exception("$method is not a supported method for contrast calculations");
       }
     }
     
@@ -2659,14 +2665,17 @@ namespace colori\OKHSLV {
     public function bestColorScheme(string $as = 'background'): string {
       $rgba = $this->toGamut('srgb')->values();
       $rgba[] = $this->a();
-      if ($as === 'text') {
-        $Cblack = abs(self::contrast($rgba, 'black', method: 'apca'));
-        $Cwhite = abs(self::contrast($rgba, 'white', method: 'apca'));
-        return ($Cblack >= $Cwhite) ? 'dark' : 'light';
-      } else {
-        $Cblack = abs(self::contrast('black', $rgba, method: 'apca'));
-        $Cwhite = abs(self::contrast('white', $rgba, method: 'apca'));
-        return ($Cblack >= $Cwhite) ? 'light' : 'dark';
+      switch ($as) {
+        case 'text':
+          $Cblack = abs(self::contrast($rgba, 'black', method: 'apca'));
+          $Cwhite = abs(self::contrast($rgba, 'white', method: 'apca'));
+          return ($Cblack >= $Cwhite) ? 'dark' : 'light';
+        case 'background':
+          $Cblack = abs(self::contrast('black', $rgba, method: 'apca'));
+          $Cwhite = abs(self::contrast('white', $rgba, method: 'apca'));
+          return ($Cblack >= $Cwhite) ? 'light' : 'dark';
+        default:
+          throw new \Exception('Argument must be "background" or "text"');
       }
     }
 
@@ -2809,10 +2818,12 @@ namespace colori\OKHSLV {
           $opaqueDist = distances\euclidean($oklab1, $oklab2);
           break;
         case 'euclidean':
-        default:
           $rgb1 = $colors1->values();
           $rgb2 = $colors2->values();
           $opaqueDist = distances\euclidean($rgb1, $rgb2);
+          break;
+        default:
+          throw new \Exception("$method is not a supported method for distance calculations");
       }
 
       $alphaDist = $alpha ? distances\euclidean([$color1->a()], [$color2->a()]) : 0;
@@ -2891,6 +2902,9 @@ namespace colori\OKHSLV {
               case 'decreasing':
                 if (0 < $diff) $startValues[$k] += 360;
                 break;
+
+              default:
+                throw new \Exception("$method is not a supported method for hue interpolation");
             }
             // don't break: the step value is computed in the default case
 

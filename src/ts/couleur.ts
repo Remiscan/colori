@@ -1,7 +1,7 @@
 import { ColorProperty, ColorSpace, ColorSpaceWithGamut, ColorSpaceWithoutGamut, default as colorSpaces } from './color-spaces.js';
 import * as Contrasts from './contrasts.js';
 import * as Conversions from './conversion.js';
-import { allFormats as allCssFormats, CSSFormat, unitRegExps } from './css-formats.js';
+import { CSSFormat, allFormats as allCssFormats, unitRegExps } from './css-formats.js';
 import * as Distances from './distances.js';
 import { default as Graph, GraphNode, PathNotFoundError, UndefinedNodeError } from './graph.js';
 import namedColors from './named-colors.js';
@@ -118,6 +118,12 @@ export class UnsupportedColorSpaceError extends Error {
 export class UndefinedConversionError extends Error {
   constructor(functionName: string) {
     super(`Conversion function ${functionName} does not exist`);
+  }
+}
+
+export class UnsupportedMethodError extends Error {
+  constructor(methodName: string, action: string) {
+    super(`${methodName} is not a supported method for ${action}`);
   }
 }
 
@@ -967,11 +973,12 @@ export default class Couleur {
       } break;
 
       // Naively clamp the values
-      case 'naive':
-      default: {
+      case 'naive': {
         const gamutValues = Couleur.convert(destinationSpace, gamutSpace, values);
         clampedValues = gamutValues.map((v, k) => Math.max(gamutSpace.gamut[k][0], Math.min(v, gamutSpace.gamut[k][1])));
-      }
+      } break;
+
+      default: throw new UnsupportedMethodError(_method, 'gamut mapping');
 
     }
 
@@ -1291,8 +1298,9 @@ export default class Couleur {
       case 'apca':
         return Contrasts.APCA(text.values, background.values);
       case 'wcag2':
-      default:
         return Contrasts.WCAG2(text.values, background.values);
+      default:
+        throw new UnsupportedMethodError(method, 'contrast calculations');
     }
   }
 
@@ -1322,6 +1330,8 @@ export default class Couleur {
         const Cwhite = Math.abs(Couleur.contrast('white', rgba, { method: 'apca' }));
         return (Cblack >= Cwhite) ? 'light' : 'dark';
       }
+      default:
+        throw new Error('Argument must be "background" or "text"');
     }
   }
 
@@ -1482,11 +1492,12 @@ export default class Couleur {
         const [oklab1, oklab2] = [colore1, colore2].map(c => c.valuesTo('oklab'));
         opaqueDist = Distances.euclidean(oklab1, oklab2);
       } break;
-      case 'euclidean':
-      default: {
+      case 'euclidean': {
         const [rgb1, rgb2] = [colore1, colore2].map(c => c.values);
         opaqueDist = Distances.euclidean(rgb1, rgb2);
-      }
+      } break;
+      default: 
+        throw new UnsupportedMethodError(method, 'distance calculations');
     }
 
     const alphaDist = alpha ? Distances.euclidean([colore1.a], [colore2.a]) : 0;
@@ -1578,6 +1589,9 @@ export default class Couleur {
             case 'decreasing':
               if (0 < diff) startValues[k] += 360;
               break;
+
+            default:
+              throw new UnsupportedMethodError(hueInterpolationMethod, 'hue interpolation');
           }
         } // don't break: the step value is computed in the default case
 
