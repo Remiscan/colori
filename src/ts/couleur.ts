@@ -519,7 +519,7 @@ export default class Couleur {
    * @param format Identifier of the color space of the requested CSS expression.
    * @param options @see Couleur.makeString
    */
-  public toString(format: string = 'rgb', { precision = 0, clamp = false }: exprOptions = {}): string {
+  public toString(format: string = 'rgb', { precision = 2, clamp = false }: exprOptions = {}): string {
     const _format = format.toLowerCase();
     const destinationSpaceID = _format.replace('color-', '');
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
@@ -536,7 +536,7 @@ export default class Couleur {
    * @param options.clamp Which color space the values should be clamped to.
    * @returns The expression of the color in the requested format.
    */
-  public static makeString(format: string, values: number[], { precision = 0 }: makeExprOptions = {}): string {
+  public static makeString(format: string, values: number[], { precision = 2 }: makeExprOptions = {}): string {
     const _format = format.toLowerCase();
     const destinationSpaceID = _format.replace('color-', '');
     const destinationSpace = Couleur.getSpace(destinationSpaceID);

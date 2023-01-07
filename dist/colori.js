@@ -1650,14 +1650,14 @@ var _Couleur = class {
     const rgba = [...vals, a];
     return this.set(rgba, [null, null, null], "srgb");
   }
-  toString(format = "rgb", { precision = 0, clamp = false } = {}) {
+  toString(format = "rgb", { precision = 2, clamp = false } = {}) {
     const _format = format.toLowerCase();
     const destinationSpaceID = _format.replace("color-", "");
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
     let values = this.valuesTo(destinationSpace, { clamp });
     return _Couleur.makeString(format, [...values, this.a], { precision });
   }
-  static makeString(format, values, { precision = 0 } = {}) {
+  static makeString(format, values, { precision = 2 } = {}) {
     var _a2;
     const _format = format.toLowerCase();
     const destinationSpaceID = _format.replace("color-", "");

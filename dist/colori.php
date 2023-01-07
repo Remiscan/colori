@@ -1996,7 +1996,7 @@ namespace colori\OKHSLV {
     /* GENERAL EXPRESSION GETTER */
 
     /** Creates a string containing the CSS expression of a color. */
-    public function toString(string $format = 'rgb', ?int $precision = 0, bool $clamp = false): string {
+    public function toString(string $format = 'rgb', ?int $precision = 2, bool $clamp = false): string {
       $format = strtolower($format);
       $destinationSpaceID = str_replace('color-', '', $format);
       $destinationSpace = self::getSpace($destinationSpaceID);
@@ -2006,7 +2006,7 @@ namespace colori\OKHSLV {
     }
 
     /** Creates a string containing the CSS expression of a color from a list of values. */
-    public static function makeString(string $format, array $values, ?int $precision = 0): string {
+    public static function makeString(string $format, array $values, ?int $precision = 2): string {
       $format = strtolower($format);
       $destinationSpaceID = str_replace('color-', '', $format);
       $destinationSpace = self::getSpace($destinationSpaceID);
