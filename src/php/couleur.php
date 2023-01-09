@@ -370,7 +370,9 @@
       $format = strtolower($format);
       $destinationSpaceID = str_replace('color-', '', $format);
       $destinationSpace = self::getSpace($destinationSpaceID);
+      $props = self::propertiesOf($destinationSpace['id']);
       $values = $this->valuesTo($destinationSpace, clamp: $clamp);
+      foreach ($values as $k => $v) { $values[$k] = $this->isPowerless($props[$k]) ? 0 : $v; }
       $values[] = $this->a();
       return self::makeString($format, $values, precision: $precision);
     }
@@ -392,12 +394,12 @@
         foreach($values as $v) {
           $vals[] = $precision === null ? $v : round(10**$precision * $v) / (10**$precision);
         }
-        [$x, $y, $z] = $vals;
+        $string = join(' ', array_slice($vals, 0, 3));
 
         if ($a < 1)
-          return "color($id $x $y $z / $a)";
+          return "color($id $string / $a)";
         else
-          return "color($id $x $y $z)";
+          return "color($id $string)";
       }
 
       // If the requested expression is of the ${format}(...) type
@@ -645,6 +647,30 @@
       return contrasts\luminance($this->values());
     }
 
+    /** Returns whether a color property is powerless, i.e. has no effect on the color because of other properties. */
+    public function isPowerless(string $prop, float $tolerance = .0001): bool {
+      switch ($prop) {
+        case 'h':
+          return $this->s() <= 0 + $tolerance || $this->l() <= 0 + $tolerance || $this->l() >= 1 - $tolerance;
+        case 's':
+          return $this->l() <= 0 + $tolerance || $this->l() >= 1 - $tolerance;
+        case 'ciea':
+        case 'cieb':
+        case 'cieh':
+          return $this->ciel() <= 0 + $tolerance || $this->ciel() >= 1 - $tolerance;
+        case 'oka':
+        case 'okb':
+        case 'okh':
+          return $this->okl() <= 0 + $tolerance || $this->okl() >= 1 - $tolerance;
+        case 'oksl':
+          return $this->valuesTo('okhsl')[2] <= 0 + $tolerance;
+        case 'oksv':
+          return $this->valuesTo('okhsv')[2] <= 0 + $tolerance;
+        default:
+          return false;
+      }
+    }
+
 
 
     /***********************************/
@@ -862,6 +888,163 @@
       $g = min(0.349 * $this->r() + 0.686 * $this->g() + 0.168 * $this->b(), 1);
       $b = min(0.272 * $this->r() + 0.534 * $this->g() + 0.131 * $this->b(), 1);
       return new self([$r, $g, $b, $this->a()]);
+    }
+
+
+    /* Color interpolation */
+
+
+    /** Linearly interpolates between two colors. */
+    public static function interpolate(self|array|string $color1, self|array|string $color2, float $ratio = .5, array|string $interpolationSpace = 'oklab', string $hueInterpolationMethod = 'shorter'): self {
+      $start = self::makeInstance($color1);
+      $end = self::makeInstance($color2);
+      $ratio = self::parse($ratio, null);
+
+      $destinationSpace = self::getSpace($interpolationSpace);
+      $props = self::propertiesOf($destinationSpace['id']);
+
+      $startValues = $start->valuesTo($destinationSpace);
+      $endValues = $end->valuesTo($destinationSpace);
+
+      for ($k = 0; $k < count($startValues); $k++) {
+        $prop = $props[$k];
+        if ($start->isPowerless($prop) && $end->isPowerless($prop)) {
+          $startValues[$k] = .0;
+          $endValues[$k] = .0;
+        } else if ($start->isPowerless($prop)) {
+          $startValues[$k] = $endValues[$k];
+        } else if ($end->isPowerless($prop)) {
+          $endValues[$k] = $startValues[$k];
+        }
+      }
+
+      // Premultiply alpha values
+      $premultiply = function(array $values, float $a) use ($props): array {
+        $newValues = [];
+        foreach ($values as $k => $v) {
+          switch ($props[$k]) {
+            case 'h':
+            case 'cieh':
+            case 'okh':
+              $newValues[] = $v;
+              break;
+
+            default:
+              $newValues[] = $a * $v;
+          }
+        }
+        return $newValues;
+      };
+      $startValues = $premultiply($startValues, $start->a());
+      $endValues = $premultiply($endValues, $end->a());
+
+      // Calculate the interpolated color
+      $interpolatedValues = [];
+      foreach ($startValues as $k => $v) {
+        $prop = $props[$k];
+        switch ($prop) {
+          case 'h':
+          case 'cieh':
+          case 'okh':
+            $diff = $endValues[$k] - $startValues[$k];
+
+            switch ($hueInterpolationMethod) {
+              case 'shorter':
+                if ($diff > 180) $startValues[$k] += 360;
+                else if ($diff < -180) $endValues[$k] += 360;
+                break;
+  
+              case 'longer':
+                if (0 < $diff && $diff < 180) $startValues[$k] += 360;
+                else if (-180 < $diff && $diff < 0) $endValues[$k] += 360;
+                break;
+  
+              case 'increasing':
+                if ($diff < 0) $endValues[$k] += 360;
+                break;
+  
+              case 'decreasing':
+                if (0 < $diff) $startValues[$k] += 360;
+                break;
+
+              default:
+                throw new \Exception("$method is not a supported method for hue interpolation");
+            } // don't break: the value is computed in the default case
+
+          default:
+            $interpolatedValues[] = $startValues[$k] + $ratio * ($endValues[$k] - $startValues[$k]);
+        }
+      }
+      $interpolatedAlpha = $start->a() + $ratio * ($end->a() - $start->a());
+
+      // Undo alpha premultiplication
+      $undoPremultiply = function(array $values) use ($interpolatedAlpha, $props): array {
+        $newValues = [];
+        foreach ($values as $k => $v) {
+          switch ($props[$k]) {
+            case 'h':
+            case 'cieh':
+            case 'okh':
+              $newValues[] = $v;
+              break;
+
+            default:
+              $newValues[] = $v / $interpolatedAlpha;
+          }
+        }
+        return $newValues;
+      };
+      $interpolatedValues = $undoPremultiply($interpolatedValues);
+      return new self([
+        ...self::convert($destinationSpace, 'srgb', $interpolatedValues),
+        $interpolatedAlpha
+      ]);
+    }
+
+
+    /** Interpolates a given number of steps between two colors. */
+    public static function interpolateInSteps(self|array|string $color1, self|array|string $color2, int $steps, array|string $interpolationSpace = 'oklab', string $hueInterpolationMethod = 'shorter'): array {
+      $color1 = self::makeInstance($color1);
+      $color2 = self::makeInstance($color2);
+      $steps = max(0, round($steps));
+      $interpolatedColors = [];
+      for ($k = 1; $k <= $steps; $k++) {
+        $ratio = $k / ($steps + 1);
+        $interpolatedColors[] = self::interpolate($color1, $color2, ratio: $ratio, interpolationSpace: $interpolationSpace, hueInterpolationMethod: $hueInterpolationMethod);
+      }
+      return [$color1, ...$interpolatedColors, $color2];
+    }
+
+
+    /** Mixes two colors. */
+    public static function mix(self|array|string $color1, float|string|null $pct1 = null, self|array|string|null $color2 = null, float|string|null $pct2 = null, array|string $interpolationSpace = 'oklab', string $hueInterpolationMethod = 'shorter'): self {
+      $color1 = self::makeInstance($color1);
+      $color2 = self::makeInstance($color2);
+      $pct1 = $pct1 ? self::parse($pct1, null) : null;
+      $pct2 = $pct2 ? self::parse($pct2, null) : null;
+
+      // Normalize percentages (part 1/2)
+      if (!$pct1 && !$pct2) {
+        $pct1 = .5;
+        $pct2 = .5;
+      } else if ($pct1 && !$pct2) {
+        $pct2 = 1.0 - $pct1;
+      } else if (!$pct1 && $pct2) {
+        $pct1 = 1.0 - $pct2;
+      }
+
+      // Normalize percentages (part 2/2)
+      $alphaMultiplier = 1.0;
+      $sum = $pct1 + $pct2;
+      if ($sum === 0.0) throw new Error('The percentages passed as arguments add up to zero; that is invalid');
+      else if ($sum < 1.0) {
+        $alphaMultiplier = $sum;
+      }
+      $pct1 = $pct1 / $sum;
+      $pct2 = $pct2 / $sum;
+
+      $interpolatedColor = self::interpolate($color1, $color2, ratio: $pct2, interpolationSpace: $interpolationSpace, hueInterpolationMethod: $hueInterpolationMethod);
+      return $interpolatedColor->replace('a', $alphaMultiplier * $interpolatedColor->a());
     }
 
 
@@ -1210,140 +1393,6 @@
     public static function same(self|array|string $color1, self|array|string $color2, float $tolerance = 1, string $method = 'deltaE2000'): bool {
       if (self::distance($color1, $color2, method: $method) > $tolerance) return false;
       else return true;
-    }
-
-
-    /* Other functions */
-
-
-    /** Linearly interpolates between two colors. */
-    public static function interpolate(self|array|string $color1, self|array|string $color2, int $steps, array|string $spaceID, string|null $hueInterpolationMethod = 'shorter', bool $premultiplyAlpha = true) {
-      $start = self::makeInstance($color1);
-      $end = self::makeInstance($color2);
-      $steps = max(0, $steps);
-
-      $space = self::getSpace($spaceID);
-      $props = self::propertiesOf($space['id']);
-
-      $startValues = $start->valuesTo($space);
-      $endValues = $end->valuesTo($space);
-
-      // Premultiply alpha values
-      $premultiply = function(array $values, float $a) use ($props): array {
-        $newValues = [];
-        foreach ($values as $k => $v) {
-          switch ($props[$k]) {
-            case 'h':
-            case 'cieh':
-            case 'okh':
-              $newValues[] = $v;
-              break;
-
-            default:
-              $newValues[] = $a * $v;
-          }
-        }
-        return $newValues;
-      };
-      if ($premultiplyAlpha) {
-        $startValues = $premultiply($startValues, $start->a());
-        $endValues = $premultiply($endValues, $end->a());
-      }
-
-      // Calculate by how much each property will be changed at each step
-      $stepList = [];
-      foreach ($props as $k => $prop) {
-        switch ($prop) {
-          case 'h':
-          case 'cieh':
-          case 'okh':
-            $diff = $endValues[$k] - $startValues[$k];
-
-            switch ($hueInterpolationMethod) {
-              case 'shorter':
-                if ($diff > 180) $startValues[$k] += 360;
-                else if ($diff < -180) $endValues[$k] += 360;
-                break;
-  
-              case 'longer':
-                if (0 < $diff && $diff < 180) $startValues[$k] += 360;
-                else if (-180 < $diff && $diff < 0) $endValues[$k] += 360;
-                break;
-  
-              case 'increasing':
-                if ($diff < 0) $endValues[$k] += 360;
-                break;
-  
-              case 'decreasing':
-                if (0 < $diff) $startValues[$k] += 360;
-                break;
-
-              default:
-                throw new \Exception("$method is not a supported method for hue interpolation");
-            }
-            // don't break: the step value is computed in the default case
-
-          default:
-            $stepList[] = ($endValues[$k] - $startValues[$k]) / ($steps + 1);
-        }
-      }
-      $stepAlpha = ($end->a() - $start->a()) / ($steps + 1);
-
-      // Calculate the intermediate colors
-      $intermediateColors = [$startValues];
-      for ($i = 1; $i <= $steps; $i++) {
-        $previous = $intermediateColors[$i - 1];
-
-        $next = [];
-        foreach ($props as $k => $prop) {
-          $v = $previous[$k] + $stepList[$k];
-          switch ($prop) {
-            case 'h':
-            case 'cieh':
-            case 'okh':
-              $next[] = utils\angleToRange($v);
-              break;
-
-            default:
-              $next[] = $v;
-          }
-        }
-
-        $intermediateColors[] = $next;
-      }
-      $intermediateColors[] = $endValues;
-
-      // Undo alpha premultiplication
-      $undoPremultiply = function(array $values, int $stepIndex) use ($start, $stepAlpha, $props): array {
-        $a = $start->a() + $stepIndex * $stepAlpha;
-        $newValues = [];
-        foreach ($values as $k => $v) {
-          switch ($props[$k]) {
-            case 'h':
-            case 'cieh':
-            case 'okh':
-              $newValues[] = $v;
-              break;
-
-            default:
-              $newValues[] = $v / $a;
-          }
-        }
-        return $newValues;
-      };
-      if ($premultiplyAlpha) {
-        foreach ($intermediateColors as $k => $values) {
-          $intermediateColors[$k] = $undoPremultiply($values, $k);
-        }
-      }
-
-      $colors = [];
-      foreach ($intermediateColors as $k => $values) {
-        $c = self::convert($space, 'srgb', $values);
-        $c[] = $start->a() + $k * $stepAlpha;
-        $colors[] = new self($c);
-      }
-      return $colors;
     }
 
 

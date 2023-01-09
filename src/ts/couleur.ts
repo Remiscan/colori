@@ -23,6 +23,7 @@ type colorSpaceOrID = ColorSpace | colorSpaceID;
 
 type unparsedValue = number | string;
 type unparsedAlphaValue = number | `${number}%`;
+type unparsedPercentage = unparsedAlphaValue;
 type parsedValue = number;
 
 interface makeExprOptions {
@@ -65,9 +66,12 @@ interface sameOptions {
 }
 
 interface interpolateOptions {
+  ratio?: unparsedPercentage;
+  interpolationSpace?: colorSpaceOrID;
   hueInterpolationMethod?: 'shorter' | 'longer' | 'increasing' | 'decreasing';
-  premultiplyAlpha?: boolean;
 }
+
+type mixOptions = Omit<interpolateOptions, 'ratio'>;
 
 
 
@@ -520,10 +524,11 @@ export default class Couleur {
    * @param options @see Couleur.makeString
    */
   public toString(format: string = 'rgb', { precision = 2, clamp = false }: exprOptions = {}): string {
-    const _format = format.toLowerCase();
-    const destinationSpaceID = _format.replace('color-', '');
+    format = format.toLowerCase();
+    const destinationSpaceID = format.replace('color-', '');
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
-    let values = this.valuesTo(destinationSpace, { clamp });
+    const props = Couleur.propertiesOf(destinationSpace.id);
+    let values = this.valuesTo(destinationSpace, { clamp }).map((v, k) => this.isPowerless(props[k]) ? 0 : v);
     return Couleur.makeString(format, [...values, this.a], { precision });
   }
 
@@ -537,41 +542,41 @@ export default class Couleur {
    * @returns The expression of the color in the requested format.
    */
   public static makeString(format: string, values: number[], { precision = 2 }: makeExprOptions = {}): string {
-    const _format = format.toLowerCase();
-    const destinationSpaceID = _format.replace('color-', '');
+    format = format.toLowerCase();
+    const destinationSpaceID = format.replace('color-', '');
     const destinationSpace = Couleur.getSpace(destinationSpaceID);
 
     const a = Number(Couleur.unparse(values[3] ?? 1, 'a', { precision }));
     values = [...values.slice(0, 3), a];
 
     // If the requested expression is of the color(space, ...) type
-    if (_format.toLowerCase().slice(0, 5) === 'color') {
-      const [x, y, z] = values.map(v => precision === null ? v : Math.round(10**precision * v) / (10**precision));
+    if (format.toLowerCase().slice(0, 5) === 'color') {
+      values = values.map(v => precision === null ? v : Math.round(10**precision * v) / (10**precision));
       if (a < 1)
-        return `color(${destinationSpace.id} ${x} ${y} ${z} / ${a})`;
+        return `color(${destinationSpace.id} ${values.slice(0, -1).join(' ')} / ${a})`;
       else
-        return `color(${destinationSpace.id} ${x} ${y} ${z})`;
+        return `color(${destinationSpace.id} ${values.slice(0, -1).join(' ')})`;
     }
     
     // If the requested expression is of the ${format}(...) type
     else {
-      const props = Couleur.propertiesOf(_format);
+      const props = Couleur.propertiesOf(format);
       if (props.length === 0) return Couleur.makeString(`color-${format}`, values, { precision });
       const unparsedValues = props.map((p, k) => Couleur.unparse(values[k], p, { precision }));
   
-      switch (_format.toLowerCase()) {
+      switch (format.toLowerCase()) {
         case 'rgb':
         case 'rgba':
         case 'hsl':
         case 'hsla': {
-          if ((_format.length > 3 && _format.slice(-1) === 'a') || a < 1)
-            return `${_format}(${unparsedValues.join(', ')}, ${a})`;
+          if ((format.length > 3 && format.slice(-1) === 'a') || a < 1)
+            return `${format}(${unparsedValues.join(', ')}, ${a})`;
           else
-            return `${_format}(${unparsedValues.join(', ')})`;
+            return `${format}(${unparsedValues.join(', ')})`;
         }
         default: {
-          if (a < 1) return `${_format}(${unparsedValues.join(' ')} / ${a})`;
-          else       return `${_format}(${unparsedValues.join(' ')})`;
+          if (a < 1) return `${format}(${unparsedValues.join(' ')} / ${a})`;
+          else       return `${format}(${unparsedValues.join(' ')})`;
         }
       }
     }
@@ -809,6 +814,35 @@ export default class Couleur {
   public get luminance(): number {
     if (this.a < 1) throw new Error(`The luminance of a transparent color would be meaningless`);
     return Contrasts.luminance(this.values);
+  }
+
+  /**
+   * Returns whether a color property is powerless,
+   * i.e. has no effect on the color because of other properties.
+   * @param prop The color property to check.
+   * @param tolerance A safety margin.
+   */
+  public isPowerless(prop: ColorProperty, { tolerance = .0001 } = {}): boolean {
+    switch (prop) {
+      case 'h':
+        return this.s <= 0 + tolerance || this.l <= 0 + tolerance || this.l >= 1 - tolerance;
+      case 's':
+        return this.l <= 0 + tolerance || this.l >= 1 - tolerance;
+      case 'ciea':
+      case 'cieb':
+      case 'cieh':
+        return this.ciel <= 0 + tolerance || this.ciel >= 1 - tolerance;
+      case 'oka':
+      case 'okb':
+      case 'okh':
+        return this.okl <= 0 + tolerance || this.okl >= 1 - tolerance;
+      case 'oksl':
+        return this.valuesTo('okhsl')[2] <= 0 + tolerance;
+      case 'oksv':
+        return this.valuesTo('okhsv')[2] <= 0 + tolerance;
+      default:
+        return false;
+    }
   }
 
 
@@ -1082,6 +1116,233 @@ export default class Couleur {
   }
 
 
+  /* Color interpolation */
+
+
+  /**
+   * Linearly interpolates between two colors.
+   * @param color1 The first color.
+   * @param color2 The second color.
+   * @param ratio The distance of the result color on the [color1, color2] segment.
+   * @param interpolationSpace The color space in which to interpolate.
+   * @param hueInterpolationMethod The method used to interpolate hues.
+   * @returns The interpolated color.
+   */
+  public static interpolate(color1: color, color2: color, { ratio = .5, interpolationSpace = 'oklab', hueInterpolationMethod = 'shorter' }: interpolateOptions = {}): Couleur {
+    const start = Couleur.makeInstance(color1);
+    const end = Couleur.makeInstance(color2);
+    const _ratio = Couleur.parse(ratio, null);
+
+    const destinationSpace = Couleur.getSpace(interpolationSpace);
+    const props = Couleur.propertiesOf(destinationSpace.id);
+
+    let startValues = start.valuesTo(destinationSpace);
+    let endValues = end.valuesTo(destinationSpace);
+
+    for (let k = 0; k < startValues.length; k++) {
+      const prop = props[k];
+      if (start.isPowerless(prop) && end.isPowerless(prop)) {
+        startValues[k] = 0;
+        endValues[k] = 0;
+      } else if (start.isPowerless(prop)) {
+        startValues[k] = endValues[k];
+      } else if (end.isPowerless(prop)) {
+        endValues[k] = startValues[k];
+      }
+    }
+
+    // Premultiply alpha values
+    const premultiply = (values: number[], a: number) => values.map((v, k) => {
+      switch (props[k]) {
+        case 'h':
+        case 'cieh':
+        case 'okh':
+          return v;
+
+        default:
+          return a * v;
+      }
+    });
+    startValues = premultiply(startValues, start.a);
+    endValues = premultiply(endValues, end.a);
+
+    // Calculate the interpolated color
+    let interpolatedValues = startValues.map((v, k) => {
+      const prop = props[k];
+      switch (prop) {      
+        case 'h':
+        case 'cieh':
+        case 'okh': {
+          const diff = endValues[k] - startValues[k];
+
+          switch (hueInterpolationMethod) {
+            case 'shorter':
+              if (diff > 180) startValues[k] += 360;
+              else if (diff < -180) endValues[k] += 360;
+              break;
+
+            case 'longer':
+              if (0 < diff && diff < 180) startValues[k] += 360;
+              else if (-180 < diff && diff <= 0) endValues[k] += 360;
+              break;
+
+            case 'increasing':
+              if (diff < 0) endValues[k] += 360;
+              break;
+
+            case 'decreasing':
+              if (0 < diff) startValues[k] += 360;
+              break;
+
+            default:
+              throw new UnsupportedMethodError(hueInterpolationMethod, 'hue interpolation');
+          }
+        } // don't break: the value is computed in the default case
+
+        default:
+          return startValues[k] + _ratio * (endValues[k] - startValues[k]);
+      }
+    });
+    const interpolatedAlpha = start.a + _ratio * (end.a - start.a);
+
+    // Undo alpha premultiplication
+    const undoPremultiply = (values: number[]) => values.map((v, k) => {
+      switch (props[k]) {
+        case 'h':
+        case 'cieh':
+        case 'okh':
+          return v;
+
+        default:
+          return v / interpolatedAlpha;
+      }
+    });
+    interpolatedValues = undoPremultiply(interpolatedValues);
+
+    return new Couleur([
+      ...Couleur.convert(destinationSpace, 'srgb', interpolatedValues),
+      interpolatedAlpha
+    ]);
+  }
+
+  /** @see Couleur.interpolate - Non-static version. */
+  public interpolate(color: color, options: interpolateOptions = {}) {
+    return Couleur.interpolate(this, color, options);
+  }
+
+
+  /**
+   * Interpolates a given number of steps between two colors.
+   * @param color1 The first color.
+   * @param color2 The second color.
+   * @param steps The number of colors to interpolate between the two colors.
+   * @param options @see mixOptions
+   * @returns An array containing the first color, the interpolated colors, and the second color.
+   */
+  public static interpolateInSteps(color1: color, color2: color, steps: number, options: mixOptions) {
+    color1 = Couleur.makeInstance(color1);
+    color2 = Couleur.makeInstance(color2);
+    steps = Math.max(0, Math.round(steps));
+    const ratios = Array.from(Array(steps).keys()).map(v => (v + 1) / (steps + 1));
+    const interpolatedColors = ratios.map(ratio => Couleur.interpolate(color1, color2, { ...options, ratio }));
+    return [color1, ...interpolatedColors, color2];
+  }
+
+  /** @see Couleur.interpolateInSteps - Non-static version. */
+  public interpolateInSteps(color: color, steps: number, options: mixOptions = {}) {
+    return Couleur.interpolateInSteps(this, color, steps, options);
+  }
+
+
+  /**
+   * Mixes two colors.
+   * @param color1 The first color.
+   * @param pct1 The percentage of the first color to mix in.
+   * @param color2 The second color.
+   * @param pct2 The percentage of the second color to mix in.
+   * @param options The interpolation options. @see mixOptions
+   */
+  public static mix(color1: color, pct1: unparsedPercentage, color2: color, pct2: unparsedPercentage, options: mixOptions): Couleur;
+  public static mix(color1: color, pct1: unparsedPercentage, color2: color, options: mixOptions): Couleur;
+  public static mix(color1: color, color2: color, pct2: unparsedPercentage, options: mixOptions): Couleur;
+  public static mix(color1: color, color2: color, options: mixOptions): Couleur;
+  public static mix(...args: any[]): Couleur {
+    let _color1, _pct1, _color2, _pct2, _options;
+
+    // First argument is always a color
+    _color1 = Couleur.makeInstance(args[0]);
+
+    // Second argument can be a percentage or a color
+    try {
+      _color2 = Couleur.makeInstance(args[1]);
+    } catch (error) {
+      _pct1 = Couleur.parse(args[1], null);
+    }
+
+    // Third argument can be a color, a percentage, or the options object
+    try {
+      if (_color2) throw 'Second color already defined';
+      _color2 = Couleur.makeInstance(args[2]);
+    } catch (error) {
+      try {
+        _pct2 = Couleur.parse(args[2], null);
+      } catch (error) {
+        _options = args[2];
+      }
+    }
+
+    // Fourth argument can be a percentage or the options object
+    try {
+      if (_pct2) throw 'Second percentage already defined';
+      _pct2 = Couleur.parse(args[3], null);
+    } catch (error) {
+      if (!_options) _options = args[3];
+    }
+
+    // Fifth argument can be the options object
+    if (!_options) _options = args[4];
+
+    // Normalize percentages (part 1/2)
+    if (!_pct1 && !_pct2) {
+      _pct1 = .5;
+      _pct2 = .5;
+    } else if (_pct1 && !_pct2) {
+      _pct2 = 1 - _pct1;
+    } else if (!_pct1 && _pct2) {
+      _pct1 = 1 - _pct2;
+    }
+
+    if (!_pct1 || !_pct2 || !_color1 || !_color2 || !_options) {
+      throw new Error('Some arguments are invalid');
+    }
+
+    // Normalize percentages (part 2/2)
+    let alphaMultiplier = 1;
+    const sum = _pct1 + _pct2;
+    if (sum === 0) throw new Error('The percentages passed as arguments add up to zero; that is invalid');
+    else if (sum < 1) {
+      alphaMultiplier = sum;
+    }
+    _pct1 = _pct1 / sum;
+    _pct2 = _pct2 / sum;
+
+    const appliedOptions: interpolateOptions = {};
+    appliedOptions.interpolationSpace = _options.interpolationSpace ?? 'oklab';
+    appliedOptions.hueInterpolationMethod = _options.hueInterpolationMethod ?? 'shorter';
+    appliedOptions.ratio = _pct2;
+
+    const interpolatedColor = Couleur.interpolate(_color1, _color2, appliedOptions);
+    return interpolatedColor.replace('a', alphaMultiplier * interpolatedColor.a);
+  }
+
+  /** @see Couleur.mix - Non-static version */
+  public mix(color2: color, pct2: unparsedPercentage, options: mixOptions): Couleur;
+  public mix(color2: color, options: mixOptions): Couleur;
+  public mix(...args: any[]) {
+    return Couleur.mix(this, ...(args as [color, unparsedPercentage, mixOptions]));
+  }
+
+
   /* Color blending */
 
 
@@ -1128,10 +1389,14 @@ export default class Couleur {
   }
 
   /** @see Couleur.blend - Non-static version. */
-  public blend(overlayColor: color, alpha?: unparsedAlphaValue): Couleur { return Couleur.blend(this, overlayColor, alpha); }
+  public blend(overlayColor: color, alpha?: unparsedAlphaValue) {
+    return Couleur.blend(this, overlayColor, alpha);
+  }
 
   /** @see Couleur.blendAll - Non-static version. */
-  public blendAll(...colors: color[]): Couleur { return Couleur.blendAll(this, ...colors); }
+  public blendAll(...colors: color[]) {
+    return Couleur.blendAll(this, ...colors);
+  }
 
 
   /**
@@ -1189,10 +1454,14 @@ export default class Couleur {
   }
 
   /** @see Couleur.unblend - Non-static version. */
-  public unblend(overlayColor: color, alpha?: unparsedAlphaValue): Couleur | null { return Couleur.unblend(this, overlayColor, alpha); }
+  public unblend(overlayColor: color, alpha?: unparsedAlphaValue) {
+    return Couleur.unblend(this, overlayColor, alpha);
+  }
   
   /** @see Couleur.unblendAll - Non-static version. */
-  public unblendAll(...colors: color[]): Couleur | null { return Couleur.unblendAll(this, ...colors); }
+  public unblendAll(...colors: color[]) {
+    return Couleur.unblendAll(this, ...colors);
+  }
 
 
   /**
@@ -1272,7 +1541,9 @@ export default class Couleur {
   }
 
   /** @see Couleur.whatToBlend - Non-static version. */
-  public whatToBlend(mixColor: color, alphas: number | number[]): Couleur[] | null { return Couleur.whatToBlend(this, mixColor, alphas); }
+  public whatToBlend(mixColor: color, alphas: number | number[]) {
+    return Couleur.whatToBlend(this, mixColor, alphas);
+  }
 
 
   /* Color comparison */
@@ -1523,132 +1794,6 @@ export default class Couleur {
 
   /** @see Couleur.same - Non-static version. */
   public same(color: color, options: sameOptions = {}): boolean { return Couleur.same(this, color, options); }
-
-
-  /* Other functions */
-
-  
-  /**
-   * Linearly interpolates between two colors.
-   * @param color1 The first color.
-   * @param color2 The second color.
-   * @param steps The number of intermediate colors to calculate.
-   * @param destinationSpaceID The color space in which to interpolate.
-   * @param hueInterpolationMethod The method used to interpolate hues.
-   */
-  public static interpolate(color1: color, color2: color, steps: number, destinationSpaceID: colorSpaceOrID, { hueInterpolationMethod = 'shorter', premultiplyAlpha = true }: interpolateOptions = {}) {
-    const start = Couleur.makeInstance(color1);
-    const end = Couleur.makeInstance(color2);
-    const _steps = Math.max(0, steps);
-
-    const destinationSpace = Couleur.getSpace(destinationSpaceID);
-    const props = Couleur.propertiesOf(destinationSpace.id);
-
-    let startValues = start.valuesTo(destinationSpace);
-    let endValues = end.valuesTo(destinationSpace);
-
-    // Premultiply alpha values
-    const premultiply = (values: number[], a: number) => values.map((v, k) => {
-      switch (props[k]) {
-        case 'h':
-        case 'cieh':
-        case 'okh':
-          return v;
-
-        default:
-          return a * v;
-      }
-    });
-    if (premultiplyAlpha) {
-      startValues = premultiply(startValues, start.a);
-      endValues = premultiply(endValues, end.a);
-    }
-
-    // Calculate by how much each property will be changed at each step
-    const stepList = props.map((prop, k) => {
-      switch (prop) {      
-        case 'h':
-        case 'cieh':
-        case 'okh': {
-          const diff = endValues[k] - startValues[k];
-
-          switch (hueInterpolationMethod) {
-            case 'shorter':
-              if (diff > 180) startValues[k] += 360;
-              else if (diff < -180) endValues[k] += 360;
-              break;
-
-            case 'longer':
-              if (0 < diff && diff < 180) startValues[k] += 360;
-              else if (-180 < diff && diff <= 0) endValues[k] += 360;
-              break;
-
-            case 'increasing':
-              if (diff < 0) endValues[k] += 360;
-              break;
-
-            case 'decreasing':
-              if (0 < diff) startValues[k] += 360;
-              break;
-
-            default:
-              throw new UnsupportedMethodError(hueInterpolationMethod, 'hue interpolation');
-          }
-        } // don't break: the step value is computed in the default case
-
-        default:
-          return (endValues[k] - startValues[k]) / (_steps + 1);
-      }
-    });
-    const stepAlpha = (end.a - start.a) / (_steps + 1);
-
-    // Calculate the intermediate colors
-    let intermediateColors = [startValues];
-    for (let i = 1; i <= _steps; i++) {
-      const previous = intermediateColors[i - 1];
-
-      let next = props.map((prop, k) => {
-        const v = previous[k] + stepList[k];
-        switch (prop) {
-          case 'h':
-          case 'cieh':
-          case 'okh':
-            return Utils.angleToRange(v);
-          
-          default:
-            return v;
-        }
-      });
-
-      intermediateColors.push(next);
-    }
-    intermediateColors.push(endValues);
-
-    // Undo alpha premultiplication
-    const undoPremultiply = (values: number[], stepIndex: number) => values.map((v, k) => {
-      const a = start.a + stepIndex * stepAlpha;
-      switch (props[k]) {
-        case 'h':
-        case 'cieh':
-        case 'okh':
-          return v;
-
-        default:
-          return v / a;
-      }
-    });
-    if (premultiplyAlpha) {
-      intermediateColors = intermediateColors.map((values, k) => undoPremultiply(values, k));
-    }
-
-    return intermediateColors.map((values, k) => new Couleur([
-      ...Couleur.convert(destinationSpace, 'srgb', values),
-      start.a + k * stepAlpha
-    ]));
-  }
-
-  /** @see Couleur.interpolate - Non-static version. */
-  public interpolate(color: color, steps: number, destinationSpaceID: colorSpaceOrID, options: interpolateOptions = {}) { return Couleur.interpolate(this, color, steps, destinationSpaceID, options); }
 
 
 

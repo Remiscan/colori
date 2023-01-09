@@ -30,7 +30,7 @@ $orderMin = 4;
     <script type="importmap">
     {
       "imports": {
-        "colori": "/colori/lib/dist/colori.min.js",
+        "colori": "/colori/lib/dist/colori.js",
         "tests-javascript": "/colori/lib/test/tests-javascript.js"
       }
     }
@@ -153,7 +153,7 @@ $orderMin = 4;
           if (!$test->nophp) {
             $valid = $test->populate();
             if (!$valid) {
-              $failsList[] = '<li><a href="#php-'. ($test->order) .'">'. $test->nom() .'</a></li>';
+              $failsList[] = '<li><a href="#php-'. ($test->order) .'">'. $test->name() .'</a></li>';
             }
           }
           $order++;
@@ -203,7 +203,7 @@ $orderMin = 4;
           const test = new Test(t.function, t.expected, order);
           const valid = test.populate();
           if (!valid) {
-            failsList.innerHTML += `<li><a href="#js-${order}">${test.nom}</a></li>`;
+            failsList.innerHTML += `<li><a href="#js-${order}">${test.name}</a></li>`;
             fails++;
           }
           order++;

@@ -15,8 +15,7 @@ function colorToObject($color) {
 
 class Test {
   const TOLERANCE = .03;
-  const DISTANCE_PRECISE = 1;
-  const DISTANCE_CLOSE = 5;
+  const okJND = .02;
 
   function __construct($func = null, $expected = null, $nophp = false, $order = 0) {
     // Convert JavaScript test to PHP test
@@ -86,7 +85,7 @@ class Test {
         // If the array contains colors / color strings, check if they're all the same
         $res = true;
         foreach($result as $k => $c) {
-          $res = $res && (Couleur::same($c, $this->expectedResult[$k]));
+          $res = $res && (Couleur::same($c, $this->expectedResult[$k], method: 'deltaeok', tolerance: self::okJND));
         }
       } catch (Throwable $e) {
         // If not, just compare them
@@ -111,7 +110,7 @@ class Test {
     // Else, try to make colors from the result and function result and check if they're the same
     else {
       $res = false;
-      try { $res = Couleur::same($result, $this->expectedResult); }
+      try { $res = Couleur::same($result, $this->expectedResult, method: 'deltaeok', tolerance: self::okJND); }
       catch (Throwable $error) { $res = $result === $this->expectedResult; }
       return $res;
     }
@@ -122,7 +121,7 @@ class Test {
   static public function sameColorObject($couleur1, $couleur2) {
     $c1 = ($couleur1 instanceof Couleur) ? colorToObject($couleur1) : [$couleur1->r, $couleur1->g, $couleur1->b, $couleur1->a];
     $c2 = ($couleur2 instanceof Couleur) ? colorToObject($couleur2) : [$couleur2->r, $couleur2->g, $couleur2->b, $couleur2->a];
-    return Couleur::same($c1, $c2);
+    return Couleur::same($c1, $c2, method: 'deltaeok', tolerance: self::okJND);
   }
 
 

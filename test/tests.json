@@ -192,6 +192,100 @@
       "expected": "lch(92% 45 189)"
     }
   ],
+  "interpolate": [
+    {
+      "function": "Colour.interpolate('rgb(24% 12% 98% / 0.4)', 'rgb(62% 26% 64% / 0.6)', { interpolationSpace: 'srgb' })",
+      "expected": [0.468, 0.204, 0.776, 0.5]
+    }, {
+      "function": "Colour.interpolate('rgb(76% 62% 03% / 0.4)', 'color(display-p3 0.84 0.19 0.72 / 0.6)', { interpolationSpace: 'lab' })",
+      "expected": [0.876, 0.3897, 0.5176, 0.5]
+    }, {
+      "function": "Colour.interpolate('rgb(76% 62% 03% / 0.4)', 'color(display-p3 0.84 0.19 0.72 / 0.6)', { interpolationSpace: 'lch' })",
+      "expected": "color(srgb 0.9934 0.2804 0.2828 / 0.5)"
+    }, {
+      "function": "Colour.interpolateInSteps('lightgreen', 'blue', 4, { interpolationSpace: 'oklch' }).map(c => c.toGamut('srgb').oklch)",
+      "functionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolateInSteps('lightgreen', 'blue', 4, interpolationSpace: 'oklch'))",
+      "expected": [
+        "oklch(86.8% 0.1558 144.09)",
+        "oklch(78.69% 0.1602 167.53)",
+        "oklch(72.15% 0.1238 192.17)",
+        "oklch(62.52% 0.1129 218.74)",
+        "oklch(54.1% 0.1329 243.81)",
+        "oklch(45.2% 0.3132 264.05)"
+      ]
+    }, {
+      "function": "Colour.interpolateInSteps('lightgreen', 'blue', 0, { interpolationSpace: 'oklch' }).map(c => c.toGamut('srgb').oklch)",
+      "functionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolateInSteps('lightgreen', 'blue', 0, interpolationSpace: 'oklch'))",
+      "expected": [
+        "oklch(86.8% 0.1558 144.09)",
+        "oklch(45.2% 0.3132 264.05)"
+      ]
+    }, {
+      "function": "Colour.interpolateInSteps('lightgreen', 'blue', -5, { interpolationSpace: 'oklch' }).map(c => c.toGamut('srgb').oklch)",
+      "functionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolateInSteps('lightgreen', 'blue', -5, interpolationSpace: 'oklch'))",
+      "expected": [
+        "oklch(86.8% 0.1558 144.09)",
+        "oklch(45.2% 0.3132 264.05)"
+      ]
+    }, {
+      "function": "Colour.interpolateInSteps('#1f005c', '#ffb56b', 4, { interpolationSpace: 'oklch' }).map(c => c.toGamut('srgb').oklch)",
+      "functionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolateInSteps('#1f005c', '#ffb56b', 4, interpolationSpace: 'oklch'))",
+      "expected": [
+        "oklch(23.84% 0.1395 284.79)",
+        "oklch(35.64% 0.1366 312.75)",
+        "oklch(47.44% 0.1337 340.71)",
+        "oklch(59.24% 0.1309 8.67)",
+        "oklch(71.03% 0.128 36.63)",
+        "oklch(82.83% 0.1251 64.58)"
+      ]
+    }, {
+      "function": "Colour.interpolateInSteps('lightgreen', 'blue', 4, { interpolationSpace: 'hsl' }).map(c => c.toGamut('srgb').hsl)",
+      "functionphp": "array_map(fn($c) => $c->toGamut('srgb')->hsl(), Couleur::interpolateInSteps('lightgreen', 'blue', 4, interpolationSpace: 'hsl'))",
+      "expected": [
+        "hsl(120, 73%, 75%)",
+        "hsl(144, 79%, 70%)",
+        "hsl(168, 84%, 65%)",
+        "hsl(192, 89%, 60%)",
+        "hsl(216, 95%, 55%)",
+        "hsl(240, 100%, 50%)"
+      ]
+    }
+  ],
+  "mix": [
+    {
+      "function": "Colour.mix('purple', '50%', 'plum', '50%', { interpolationSpace: 'lch' })",
+      "functionphp": "Couleur::mix(color1: 'purple', pct1: '50%', color2: 'plum', pct2: '50%', interpolationSpace: 'lch')",
+      "expected": "rgb(68.51% 36.01% 68.29%)"
+    }, {
+      "function": "Colour.mix('purple', .3, 'plum', .3, { interpolationSpace: 'lch' })",
+      "functionphp": "Couleur::mix(color1: 'purple', pct1: .3, color2: 'plum', pct2: .3, interpolationSpace: 'lch')",
+      "expected": "rgb(68.51% 36.01% 68.29% / 0.6)"
+    }, {
+      "function": "Colour.mix('peru', .4, 'palegoldenrod', { interpolationSpace: 'lch' })",
+      "functionphp": "Couleur::mix(color1: 'peru', pct1: .4, color2: 'palegoldenrod', interpolationSpace: 'lch')",
+      "expected": "lch(79.7256% 40.448 84.771)"
+    }, {
+      "function": "Colour.mix('white', 'blue', { interpolationSpace: 'lch' }).lch",
+      "functionphp": "Couleur::mix(color1: 'white', color2: 'blue', interpolationSpace: 'lch')->lch()",
+      "expected": "lch(64.7841% 65.6008 301.364)"
+    }, {
+      "function": "Colour.mix('white', 'blue', { interpolationSpace: 'xyz' }).oklch",
+      "functionphp": "Couleur::mix(color1: 'white', color2: 'blue', interpolationSpace: 'oklch')->oklch()",
+      "expected": "oklch(72.601% 0.15661 264.052)"
+    }, {
+      "function": "Colour.mix('white', 'blue', { interpolationSpace: 'srgb' }).rgb",
+      "functionphp": "Couleur::mix(color1: 'white', color2: 'blue', interpolationSpace: 'srgb')->rgb()",
+      "expected": "rgb(50% 50% 100%)"
+    }, {
+      "function": "Colour.mix('rgb(100% 0% 0% / 0.7)', .25, 'rgb(0% 100% 0% / 0.2)', { interpolationSpace: 'srgb' })",
+      "functionphp": "Couleur::mix(color1: 'rgb(100% 0% 0% / 0.7)', pct1: .25, color2: 'rgb(0% 100% 0% / 0.2)', interpolationSpace: 'srgb')",
+      "expected": "color(srgb 0.53846 0.46154 0 / 0.325)"
+    }, {
+      "function": "Colour.mix('rgb(100% 0% 0% / 0.7)', .2, 'rgb(0% 100% 0% / 0.2)', .6, { interpolationSpace: 'srgb' })",
+      "functionphp": "Couleur::mix(color1: 'rgb(100% 0% 0% / 0.7)', pct1: .2, color2: 'rgb(0% 100% 0% / 0.2)', pct2: .6, interpolationSpace: 'srgb')",
+      "expected": "color(srgb 0.53846 0.46154 0 / 0.260)"
+    }
+  ],
   "blend, blendAll": [
     {
       "function": "Colour.blend('red', 'white').rgb",
@@ -364,77 +458,6 @@
     }, {
       "function": "Colour.same('rgb(255, 128, 0)', 'rgb(255, 128, 0)')",
       "expected": true
-    }
-  ],
-  "interpolate": [
-    {
-      "function": "Colour.interpolate('rgb(24% 12% 98% / 0.4)', 'rgb(62% 26% 64% / 0.6)', 1, 'srgb')",
-      "expected": [
-        [0.24, 0.12, 0.98, 0.4],
-        [0.468, 0.204, 0.776, 0.5],
-        [0.62, 0.26, 0.64, 0.6]
-      ]
-    }, {
-      "function": "Colour.interpolate('rgb(76% 62% 03% / 0.4)', 'color(display-p3 0.84 0.19 0.72 / 0.6)', 1, 'lab')",
-      "expected": [
-        [0.76, 0.62, 0.03, 0.4],
-        [0.876, 0.3897, 0.5176, 0.5],
-        [0.9156, 0.0387, 0.7408, 0.6]
-      ]
-    }, {
-      "function": "Colour.interpolate('rgb(76% 62% 03% / 0.4)', 'color(display-p3 0.84 0.19 0.72 / 0.6)', 1, 'lch')",
-      "expected": [
-        "color(srgb 0.76 0.62 0.03 / 0.4)",
-        "color(srgb 0.9934 0.2804 0.2828 / 0.5)",
-        "color(srgb 0.9156 0.0387 0.7408 / 0.6)"
-      ]
-    }, {
-      "function": "Colour.interpolate('lightgreen', 'blue', 4, 'oklch').map(c => c.toGamut('srgb').oklch)",
-      "functionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolate('lightgreen', 'blue', 4, 'oklch'))",
-      "expected": [
-        "oklch(86.8% 0.1558 144.09)",
-        "oklch(78.69% 0.1602 167.53)",
-        "oklch(72.15% 0.1238 192.17)",
-        "oklch(62.52% 0.1129 218.74)",
-        "oklch(54.1% 0.1329 243.81)",
-        "oklch(45.22% 0.2739 264.14)"
-      ]
-    }, {
-      "function": "Colour.interpolate('lightgreen', 'blue', 0, 'oklch').map(c => c.toGamut('srgb').oklch)",
-      "functionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolate('lightgreen', 'blue', 0, 'oklch'))",
-      "expected": [
-        "oklch(86.8% 0.1558 144.09)",
-        "oklch(45.22% 0.2739 264.14)"
-      ]
-    }, {
-      "function": "Colour.interpolate('lightgreen', 'blue', -5, 'oklch').map(c => c.toGamut('srgb').oklch)",
-      "functionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolate('lightgreen', 'blue', -5, 'oklch'))",
-      "expected": [
-        "oklch(86.8% 0.1558 144.09)",
-        "oklch(45.22% 0.2739 264.14)"
-      ]
-    }, {
-      "function": "Colour.interpolate('#1f005c', '#ffb56b', 4, 'oklch').map(c => c.toGamut('srgb').oklch)",
-      "functionphp": "array_map(fn($c) => $c->toGamut('srgb')->oklch(), Couleur::interpolate('#1f005c', '#ffb56b', 4, 'oklch'))",
-      "expected": [
-        "oklch(23.84% 0.1395 284.79)",
-        "oklch(35.64% 0.1366 312.75)",
-        "oklch(47.44% 0.1337 340.71)",
-        "oklch(59.24% 0.1309 8.67)",
-        "oklch(71.03% 0.128 36.63)",
-        "oklch(82.83% 0.1251 64.58)"
-      ]
-    }, {
-      "function": "Colour.interpolate('lightgreen', 'blue', 4, 'hsl').map(c => c.toGamut('srgb').hsl)",
-      "functionphp": "array_map(fn($c) => $c->toGamut('srgb')->hsl(), Couleur::interpolate('lightgreen', 'blue', 4, 'hsl'))",
-      "expected": [
-        "hsl(120, 73%, 75%)",
-        "hsl(144, 79%, 70%)",
-        "hsl(168, 84%, 65%)",
-        "hsl(192, 89%, 60%)",
-        "hsl(216, 95%, 55%)",
-        "hsl(240, 100%, 50%)"
-      ]
     }
   ]
 }

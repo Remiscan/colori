@@ -1,6 +1,23 @@
 var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
 var __pow = Math.pow;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -1651,45 +1668,46 @@ var _Couleur = class {
     return this.set(rgba, [null, null, null], "srgb");
   }
   toString(format = "rgb", { precision = 2, clamp = false } = {}) {
-    const _format = format.toLowerCase();
-    const destinationSpaceID = _format.replace("color-", "");
+    format = format.toLowerCase();
+    const destinationSpaceID = format.replace("color-", "");
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
-    let values = this.valuesTo(destinationSpace, { clamp });
+    const props = _Couleur.propertiesOf(destinationSpace.id);
+    let values = this.valuesTo(destinationSpace, { clamp }).map((v, k) => this.isPowerless(props[k]) ? 0 : v);
     return _Couleur.makeString(format, [...values, this.a], { precision });
   }
   static makeString(format, values, { precision = 2 } = {}) {
     var _a2;
-    const _format = format.toLowerCase();
-    const destinationSpaceID = _format.replace("color-", "");
+    format = format.toLowerCase();
+    const destinationSpaceID = format.replace("color-", "");
     const destinationSpace = _Couleur.getSpace(destinationSpaceID);
     const a = Number(_Couleur.unparse((_a2 = values[3]) != null ? _a2 : 1, "a", { precision }));
     values = [...values.slice(0, 3), a];
-    if (_format.toLowerCase().slice(0, 5) === "color") {
-      const [x, y, z] = values.map((v) => precision === null ? v : Math.round(__pow(10, precision) * v) / __pow(10, precision));
+    if (format.toLowerCase().slice(0, 5) === "color") {
+      values = values.map((v) => precision === null ? v : Math.round(__pow(10, precision) * v) / __pow(10, precision));
       if (a < 1)
-        return `color(${destinationSpace.id} ${x} ${y} ${z} / ${a})`;
+        return `color(${destinationSpace.id} ${values.slice(0, -1).join(" ")} / ${a})`;
       else
-        return `color(${destinationSpace.id} ${x} ${y} ${z})`;
+        return `color(${destinationSpace.id} ${values.slice(0, -1).join(" ")})`;
     } else {
-      const props = _Couleur.propertiesOf(_format);
+      const props = _Couleur.propertiesOf(format);
       if (props.length === 0)
         return _Couleur.makeString(`color-${format}`, values, { precision });
       const unparsedValues = props.map((p, k) => _Couleur.unparse(values[k], p, { precision }));
-      switch (_format.toLowerCase()) {
+      switch (format.toLowerCase()) {
         case "rgb":
         case "rgba":
         case "hsl":
         case "hsla": {
-          if (_format.length > 3 && _format.slice(-1) === "a" || a < 1)
-            return `${_format}(${unparsedValues.join(", ")}, ${a})`;
+          if (format.length > 3 && format.slice(-1) === "a" || a < 1)
+            return `${format}(${unparsedValues.join(", ")}, ${a})`;
           else
-            return `${_format}(${unparsedValues.join(", ")})`;
+            return `${format}(${unparsedValues.join(", ")})`;
         }
         default: {
           if (a < 1)
-            return `${_format}(${unparsedValues.join(" ")} / ${a})`;
+            return `${format}(${unparsedValues.join(" ")} / ${a})`;
           else
-            return `${_format}(${unparsedValues.join(" ")})`;
+            return `${format}(${unparsedValues.join(" ")})`;
         }
       }
     }
@@ -2024,6 +2042,28 @@ var _Couleur = class {
       throw new Error(`The luminance of a transparent color would be meaningless`);
     return luminance2(this.values);
   }
+  isPowerless(prop, { tolerance = 1e-4 } = {}) {
+    switch (prop) {
+      case "h":
+        return this.s <= 0 + tolerance || this.l <= 0 + tolerance || this.l >= 1 - tolerance;
+      case "s":
+        return this.l <= 0 + tolerance || this.l >= 1 - tolerance;
+      case "ciea":
+      case "cieb":
+      case "cieh":
+        return this.ciel <= 0 + tolerance || this.ciel >= 1 - tolerance;
+      case "oka":
+      case "okb":
+      case "okh":
+        return this.okl <= 0 + tolerance || this.okl >= 1 - tolerance;
+      case "oksl":
+        return this.valuesTo("okhsl")[2] <= 0 + tolerance;
+      case "oksv":
+        return this.valuesTo("okhsv")[2] <= 0 + tolerance;
+      default:
+        return false;
+    }
+  }
   static convert(startSpaceID, endSpaceID, values) {
     if (typeof startSpaceID === typeof endSpaceID && startSpaceID === endSpaceID || typeof startSpaceID === "string" && typeof endSpaceID !== "string" && startSpaceID === endSpaceID.id || typeof startSpaceID !== "string" && typeof endSpaceID === "string" && startSpaceID.id === endSpaceID)
       return values;
@@ -2182,6 +2222,164 @@ var _Couleur = class {
     const g = Math.min(0.349 * this.r + 0.686 * this.g + 0.168 * this.b, 1);
     const b = Math.min(0.272 * this.r + 0.534 * this.g + 0.131 * this.b, 1);
     return new _Couleur([r, g, b, this.a]);
+  }
+  static interpolate(color1, color2, { ratio = 0.5, interpolationSpace = "oklab", hueInterpolationMethod = "shorter" } = {}) {
+    const start = _Couleur.makeInstance(color1);
+    const end = _Couleur.makeInstance(color2);
+    const _ratio = _Couleur.parse(ratio, null);
+    const destinationSpace = _Couleur.getSpace(interpolationSpace);
+    const props = _Couleur.propertiesOf(destinationSpace.id);
+    let startValues = start.valuesTo(destinationSpace);
+    let endValues = end.valuesTo(destinationSpace);
+    for (let k = 0; k < startValues.length; k++) {
+      const prop = props[k];
+      if (start.isPowerless(prop) && end.isPowerless(prop)) {
+        startValues[k] = 0;
+        endValues[k] = 0;
+      } else if (start.isPowerless(prop)) {
+        startValues[k] = endValues[k];
+      } else if (end.isPowerless(prop)) {
+        endValues[k] = startValues[k];
+      }
+    }
+    const premultiply = (values, a) => values.map((v, k) => {
+      switch (props[k]) {
+        case "h":
+        case "cieh":
+        case "okh":
+          return v;
+        default:
+          return a * v;
+      }
+    });
+    startValues = premultiply(startValues, start.a);
+    endValues = premultiply(endValues, end.a);
+    let interpolatedValues = startValues.map((v, k) => {
+      const prop = props[k];
+      switch (prop) {
+        case "h":
+        case "cieh":
+        case "okh": {
+          const diff = endValues[k] - startValues[k];
+          switch (hueInterpolationMethod) {
+            case "shorter":
+              if (diff > 180)
+                startValues[k] += 360;
+              else if (diff < -180)
+                endValues[k] += 360;
+              break;
+            case "longer":
+              if (0 < diff && diff < 180)
+                startValues[k] += 360;
+              else if (-180 < diff && diff <= 0)
+                endValues[k] += 360;
+              break;
+            case "increasing":
+              if (diff < 0)
+                endValues[k] += 360;
+              break;
+            case "decreasing":
+              if (0 < diff)
+                startValues[k] += 360;
+              break;
+            default:
+              throw new UnsupportedMethodError(hueInterpolationMethod, "hue interpolation");
+          }
+        }
+        default:
+          return startValues[k] + _ratio * (endValues[k] - startValues[k]);
+      }
+    });
+    const interpolatedAlpha = start.a + _ratio * (end.a - start.a);
+    const undoPremultiply = (values) => values.map((v, k) => {
+      switch (props[k]) {
+        case "h":
+        case "cieh":
+        case "okh":
+          return v;
+        default:
+          return v / interpolatedAlpha;
+      }
+    });
+    interpolatedValues = undoPremultiply(interpolatedValues);
+    return new _Couleur([
+      ..._Couleur.convert(destinationSpace, "srgb", interpolatedValues),
+      interpolatedAlpha
+    ]);
+  }
+  interpolate(color, options = {}) {
+    return _Couleur.interpolate(this, color, options);
+  }
+  static interpolateInSteps(color1, color2, steps, options) {
+    color1 = _Couleur.makeInstance(color1);
+    color2 = _Couleur.makeInstance(color2);
+    steps = Math.max(0, Math.round(steps));
+    const ratios = Array.from(Array(steps).keys()).map((v) => (v + 1) / (steps + 1));
+    const interpolatedColors = ratios.map((ratio) => _Couleur.interpolate(color1, color2, __spreadProps(__spreadValues({}, options), { ratio })));
+    return [color1, ...interpolatedColors, color2];
+  }
+  interpolateInSteps(color, steps, options = {}) {
+    return _Couleur.interpolateInSteps(this, color, steps, options);
+  }
+  static mix(...args) {
+    var _a2, _b2;
+    let _color1, _pct1, _color2, _pct2, _options;
+    _color1 = _Couleur.makeInstance(args[0]);
+    try {
+      _color2 = _Couleur.makeInstance(args[1]);
+    } catch (error) {
+      _pct1 = _Couleur.parse(args[1], null);
+    }
+    try {
+      if (_color2)
+        throw "Second color already defined";
+      _color2 = _Couleur.makeInstance(args[2]);
+    } catch (error) {
+      try {
+        _pct2 = _Couleur.parse(args[2], null);
+      } catch (error2) {
+        _options = args[2];
+      }
+    }
+    try {
+      if (_pct2)
+        throw "Second percentage already defined";
+      _pct2 = _Couleur.parse(args[3], null);
+    } catch (error) {
+      if (!_options)
+        _options = args[3];
+    }
+    if (!_options)
+      _options = args[4];
+    if (!_pct1 && !_pct2) {
+      _pct1 = 0.5;
+      _pct2 = 0.5;
+    } else if (_pct1 && !_pct2) {
+      _pct2 = 1 - _pct1;
+    } else if (!_pct1 && _pct2) {
+      _pct1 = 1 - _pct2;
+    }
+    if (!_pct1 || !_pct2 || !_color1 || !_color2 || !_options) {
+      throw new Error("Some arguments are invalid");
+    }
+    let alphaMultiplier = 1;
+    const sum = _pct1 + _pct2;
+    if (sum === 0)
+      throw new Error("The percentages passed as arguments add up to zero; that is invalid");
+    else if (sum < 1) {
+      alphaMultiplier = sum;
+    }
+    _pct1 = _pct1 / sum;
+    _pct2 = _pct2 / sum;
+    const appliedOptions = {};
+    appliedOptions.interpolationSpace = (_a2 = _options.interpolationSpace) != null ? _a2 : "oklab";
+    appliedOptions.hueInterpolationMethod = (_b2 = _options.hueInterpolationMethod) != null ? _b2 : "shorter";
+    appliedOptions.ratio = _pct2;
+    const interpolatedColor = _Couleur.interpolate(_color1, _color2, appliedOptions);
+    return interpolatedColor.replace("a", alphaMultiplier * interpolatedColor.a);
+  }
+  mix(...args) {
+    return _Couleur.mix(this, ...args);
   }
   static blend(backgroundColor, overlayColor, alpha) {
     const background = _Couleur.makeInstance(backgroundColor);
@@ -2494,103 +2692,6 @@ var _Couleur = class {
   }
   same(color, options = {}) {
     return _Couleur.same(this, color, options);
-  }
-  static interpolate(color1, color2, steps, destinationSpaceID, { hueInterpolationMethod = "shorter", premultiplyAlpha = true } = {}) {
-    const start = _Couleur.makeInstance(color1);
-    const end = _Couleur.makeInstance(color2);
-    const _steps = Math.max(0, steps);
-    const destinationSpace = _Couleur.getSpace(destinationSpaceID);
-    const props = _Couleur.propertiesOf(destinationSpace.id);
-    let startValues = start.valuesTo(destinationSpace);
-    let endValues = end.valuesTo(destinationSpace);
-    const premultiply = (values, a) => values.map((v, k) => {
-      switch (props[k]) {
-        case "h":
-        case "cieh":
-        case "okh":
-          return v;
-        default:
-          return a * v;
-      }
-    });
-    if (premultiplyAlpha) {
-      startValues = premultiply(startValues, start.a);
-      endValues = premultiply(endValues, end.a);
-    }
-    const stepList = props.map((prop, k) => {
-      switch (prop) {
-        case "h":
-        case "cieh":
-        case "okh": {
-          const diff = endValues[k] - startValues[k];
-          switch (hueInterpolationMethod) {
-            case "shorter":
-              if (diff > 180)
-                startValues[k] += 360;
-              else if (diff < -180)
-                endValues[k] += 360;
-              break;
-            case "longer":
-              if (0 < diff && diff < 180)
-                startValues[k] += 360;
-              else if (-180 < diff && diff <= 0)
-                endValues[k] += 360;
-              break;
-            case "increasing":
-              if (diff < 0)
-                endValues[k] += 360;
-              break;
-            case "decreasing":
-              if (0 < diff)
-                startValues[k] += 360;
-              break;
-            default:
-              throw new UnsupportedMethodError(hueInterpolationMethod, "hue interpolation");
-          }
-        }
-        default:
-          return (endValues[k] - startValues[k]) / (_steps + 1);
-      }
-    });
-    const stepAlpha = (end.a - start.a) / (_steps + 1);
-    let intermediateColors = [startValues];
-    for (let i = 1; i <= _steps; i++) {
-      const previous = intermediateColors[i - 1];
-      let next = props.map((prop, k) => {
-        const v = previous[k] + stepList[k];
-        switch (prop) {
-          case "h":
-          case "cieh":
-          case "okh":
-            return angleToRange(v);
-          default:
-            return v;
-        }
-      });
-      intermediateColors.push(next);
-    }
-    intermediateColors.push(endValues);
-    const undoPremultiply = (values, stepIndex) => values.map((v, k) => {
-      const a = start.a + stepIndex * stepAlpha;
-      switch (props[k]) {
-        case "h":
-        case "cieh":
-        case "okh":
-          return v;
-        default:
-          return v / a;
-      }
-    });
-    if (premultiplyAlpha) {
-      intermediateColors = intermediateColors.map((values, k) => undoPremultiply(values, k));
-    }
-    return intermediateColors.map((values, k) => new _Couleur([
-      ..._Couleur.convert(destinationSpace, "srgb", values),
-      start.a + k * stepAlpha
-    ]));
-  }
-  interpolate(color, steps, destinationSpaceID, options = {}) {
-    return _Couleur.interpolate(this, color, steps, destinationSpaceID, options);
   }
   static propertiesOf(format) {
     var _a2;

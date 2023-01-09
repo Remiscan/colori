@@ -2,10 +2,6 @@ import { default as Colour, default as Couleur } from 'colori';
 
 
 
-const tolerance = .03;
-const distancePrecise = 1;
-const distanceClose = 5;
-
 function colorToObject(color) {
   return {
     r: color.r,
@@ -16,6 +12,9 @@ function colorToObject(color) {
 }
 
 export default class Test {
+  static tolerance = .03;
+  static okJND = .02;
+
   constructor(func = null, expectedResult = {}, order = 0) {
     this.function = func;
     this.expectedResult = expectedResult;
@@ -61,7 +60,7 @@ export default class Test {
       let res = false;
       try {
         // If the array contains colors / color strings, check if they're all the same
-        res = result.every((co, k) => Colour.same(co, this.expectedResult[k]));
+        res = result.every((co, k) => Colour.same(co, this.expectedResult[k], { method: 'deltaeok', tolerance: Test.okJND }));
       } catch (error) {
         // If not, just compare them
         res = result.every((e, k) => e === this.expectedResult[k]);
@@ -75,14 +74,14 @@ export default class Test {
     
     // If expected result is a number, check if it's close enough to the result
     else if (typeof this.expectedResult === 'number') {
-      if (Math.abs(result - this.expectedResult) > tolerance) return false;
+      if (Math.abs(result - this.expectedResult) > Test.tolerance) return false;
       else return true;
     }
 
     // Else, try to make colors from the result and expected result and check if they're the same
     else {
       let res = false;
-      try { res = Colour.same(result, this.expectedResult); }
+      try { res = Colour.same(result, this.expectedResult, { method: 'deltaeok', tolerance: Test.okJND }); }
       catch (error) { res = result === this.expectedResult; }
       return res;
     }
@@ -93,7 +92,7 @@ export default class Test {
   static sameColorObject(couleur1, couleur2) {
     const c1 = colorToObject(couleur1);
     const c2 = colorToObject(couleur2);
-    return Couleur.same(c1, c2);
+    return Couleur.same(c1, c2, { method: 'deltaeok', tolerance: Test.okJND });
   }
 
 
