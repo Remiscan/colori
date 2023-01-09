@@ -2,6 +2,17 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "type": "shell",
+      "dependsOn": [
+        "bundle colori.js",
+        "bundle colori.php"
+      ],
+      "label": "bundle colori.js and colori.php",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }, {
       "type": "deno",
       "command": "run",
       "args": [
@@ -9,8 +20,7 @@
       ],
       "label": "bundle colori.js",
       "group": {
-        "kind": "build",
-        "isDefault": true
+        "kind": "build"
       }
     }, {
       "type": "deno",
