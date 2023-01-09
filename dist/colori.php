@@ -2033,24 +2033,26 @@ namespace colori\OKHSLV {
       // If the requested expression is of the ${format}(...) type
       else {
         $props = self::propertiesOf($format);
-        $unparsed = [];
+        if (count($props) === 0) return self::makeString("color-$format", $values, precision: $precision);
+        $unparsedValues = [];
         foreach($props as $k => $p) {
-          $unparsed[] = self::unparse($values[$k], $p, precision: $precision);
+          $unparsedValues[] = self::unparse($values[$k], $p, precision: $precision);
         }
-        [$x, $y, $z] = $unparsed;
 
         switch ($format) {
           case 'rgb':
           case 'rgba':
           case 'hsl':
           case 'hsla':
+            $string = join(', ', $unparsedValues);
             if ((strlen($format) > 3 && substr($format, -1) === 'a') || $a < 1.0)
-              return "${format}(${x}, ${y}, ${z}, ${a})";
+              return "${format}(${string}, ${a})";
             else
-              return "${format}(${x}, ${y}, ${z})";
+              return "${format}(${string})";
           default:
-            if ($a < 1.0) return "${format}(${x} ${y} ${z} / ${a})";
-            else          return "${format}(${x} ${y} ${z})";
+            $string = join(' ', $unparsedValues);
+            if ($a < 1.0) return "${format}(${string} / ${a})";
+            else          return "${format}(${string})";
         }
       }
     }

@@ -556,7 +556,8 @@ export default class Couleur {
     // If the requested expression is of the ${format}(...) type
     else {
       const props = Couleur.propertiesOf(_format);
-      const [x, y, z] = props.map((p, k) => Couleur.unparse(values[k], p, { precision }));
+      if (props.length === 0) return Couleur.makeString(`color-${format}`, values, { precision });
+      const unparsedValues = props.map((p, k) => Couleur.unparse(values[k], p, { precision }));
   
       switch (_format.toLowerCase()) {
         case 'rgb':
@@ -564,13 +565,13 @@ export default class Couleur {
         case 'hsl':
         case 'hsla': {
           if ((_format.length > 3 && _format.slice(-1) === 'a') || a < 1)
-            return `${_format}(${x}, ${y}, ${z}, ${a})`;
+            return `${_format}(${unparsedValues.join(', ')}, ${a})`;
           else
-            return `${_format}(${x}, ${y}, ${z})`;
+            return `${_format}(${unparsedValues.join(', ')})`;
         }
         default: {
-          if (a < 1) return `${_format}(${x} ${y} ${z} / ${a})`;
-          else       return `${_format}(${x} ${y} ${z})`;
+          if (a < 1) return `${_format}(${unparsedValues.join(' ')} / ${a})`;
+          else       return `${_format}(${unparsedValues.join(' ')})`;
         }
       }
     }
