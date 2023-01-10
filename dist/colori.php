@@ -509,7 +509,7 @@ namespace colori\OKHSLV {
 
   function oklab_to_linear_srgb($L,$a,$b) 
   {
-      return colori\conversions\xyzd65_to_srgblinear(colori\conversions\oklab_to_xyzd65([$L, $a, $b]));
+      return \colori\conversions\xyzd65_to_srgblinear(\colori\conversions\oklab_to_xyzd65([$L, $a, $b]));
   }
 
   function toe($x)
@@ -597,7 +597,7 @@ namespace colori\OKHSLV {
   function find_cusp($a, $b)
   {
     // First, find the maximum saturation (saturation S = C/L)
-    $S_cusp = compute_max_saturation(a, b);
+    $S_cusp = compute_max_saturation($a, $b);
 
     // Convert to linear sRGB to find the first point where at least one of r,g or b >= 1:
     $rgb_at_max = oklab_to_linear_srgb(1, $S_cusp * $a, $S_cusp * $b);
@@ -805,11 +805,14 @@ namespace colori\OKHSLV {
 
   function oklab_to_okhsl($lab)
   {
+      $L = $lab[0];
       $C = sqrt($lab[1]*$lab[1] +$lab[2]*$lab[2]);
+
+      if ($C <= 0.0 + 10**-15) return [0.0, 0.0, toe($L)];
+
       $a_ = $lab[1]/$C;
       $b_ = $lab[2]/$C;
 
-      $L = $lab[0];
       $h = 0.5 + 0.5*atan2(-$lab[2], -$lab[1])/pi();
 
       $Cs = get_Cs($L, $a_, $b_);
@@ -889,11 +892,14 @@ namespace colori\OKHSLV {
 
   function oklab_to_okhsv($lab)
   {
+      $L = $lab[0];
       $C = sqrt($lab[1]*$lab[1] +$lab[2]*$lab[2]);
+
+      if ($C <= 0.0 + 10**-15) return [0.0, 0.0, toe($L)];
+
       $a_ = $lab[1]/$C;
       $b_ = $lab[2]/$C;
 
-      $L = $lab[0];
       $h = 0.5 + 0.5*atan2(-$lab[2], -$lab[1])/pi();
 
       $ST_max = get_ST_max($a_,$b_);
@@ -1044,12 +1050,7 @@ namespace colori\OKHSLV {
   /* OKHSL */
 
   function oklab_to_okhsl(array $lab): array {
-    try {
-      [$h, $s, $l] = \colori\OKHSLV\oklab_to_okhsl($lab);
-    } catch (\Throwable $e) {
-      [$l, $c, $h] = oklab_to_oklch($lab);
-      $s = 0; $l = 0;
-    }
+    [$h, $s, $l] = \colori\OKHSLV\oklab_to_okhsl($lab);
     return [360.0 * $h, $s, $l];
   }
 
@@ -1062,12 +1063,7 @@ namespace colori\OKHSLV {
   /* OKHSV */
 
   function oklab_to_okhsv(array $lab): array {
-    try {
-      [$h, $s, $v] = \colori\OKHSLV\oklab_to_okhsv(lab);
-    } catch (\Throwable $e) {
-      [$l, $c, $h] = oklab_to_oklch($lab);
-      $s = 0; $v = 0;
-    }
+    [$h, $s, $v] = \colori\OKHSLV\oklab_to_okhsv($lab);
     return [360.0 * $h, $s, $v];
   }
 

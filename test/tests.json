@@ -136,6 +136,9 @@
     }, {
       "function": "(new Colour('oklab(0% 0 0)')).toString('color-okhsl')",
       "expected": "color(okhsl 0 0 0)"
+    }, {
+      "function": "(new Colour('oklab(26% 0 0)')).toString('color-okhsl')",
+      "expected": "color(okhsl 0 0 0.16)"
     }
   ],
   "change, replace, scale": [

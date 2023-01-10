@@ -310,11 +310,14 @@ export function okhsl_to_oklab([h,s,l]: number[])
 
 export function oklab_to_okhsl(lab: number[])
 {
+    let L = lab[0];
     let C = Math.sqrt(lab[1]*lab[1] +lab[2]*lab[2]);
+
+    if (C <= 10**-15) return [0, 0, toe(L)];
+
     let a_ = lab[1]/C;
     let b_ = lab[2]/C;
 
-    let L = lab[0];
     let h = 0.5 + 0.5*Math.atan2(-lab[2], -lab[1])/Math.PI;
 
     let Cs = get_Cs(L, a_, b_)
@@ -393,11 +396,14 @@ export function okhsv_to_oklab([h,s,v]: number[])
 
 export function oklab_to_okhsv(lab: number[])
 {
+    let L = lab[0];
     let C = Math.sqrt(lab[1]*lab[1] +lab[2]*lab[2]);
+
+    if (C <= 10**-15) return [0, 0, toe(L)];
+
     let a_ = lab[1]/C;
     let b_ = lab[2]/C;
 
-    let L = lab[0];
     let h = 0.5 + 0.5*Math.atan2(-lab[2], -lab[1])/Math.PI;
 
     let ST_max = get_ST_max(a_,b_);

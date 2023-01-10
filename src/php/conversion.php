@@ -126,12 +126,7 @@
   /* OKHSL */
 
   function oklab_to_okhsl(array $lab): array {
-    try {
-      [$h, $s, $l] = \colori\OKHSLV\oklab_to_okhsl($lab);
-    } catch (\Throwable $e) {
-      [$l, $c, $h] = oklab_to_oklch($lab);
-      $s = 0; $l = 0;
-    }
+    [$h, $s, $l] = \colori\OKHSLV\oklab_to_okhsl($lab);
     return [360.0 * $h, $s, $l];
   }
 
@@ -145,12 +140,7 @@
   /* OKHSV */
 
   function oklab_to_okhsv(array $lab): array {
-    try {
-      [$h, $s, $v] = \colori\OKHSLV\oklab_to_okhsv(lab);
-    } catch (\Throwable $e) {
-      [$l, $c, $h] = oklab_to_oklch($lab);
-      $s = 0; $v = 0;
-    }
+    [$h, $s, $v] = \colori\OKHSLV\oklab_to_okhsv($lab);
     return [360.0 * $h, $s, $v];
   }
 

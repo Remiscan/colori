@@ -509,10 +509,12 @@ function okhsl_to_oklab([h, s, l]) {
   return [L, C * a_, C * b_];
 }
 function oklab_to_okhsl(lab) {
+  let L = lab[0];
   let C = Math.sqrt(lab[1] * lab[1] + lab[2] * lab[2]);
+  if (C <= __pow(10, -15))
+    return [0, 0, toe(L)];
   let a_ = lab[1] / C;
   let b_ = lab[2] / C;
-  let L = lab[0];
   let h = 0.5 + 0.5 * Math.atan2(-lab[2], -lab[1]) / Math.PI;
   let Cs = get_Cs(L, a_, b_);
   let C_0 = Cs[0];
@@ -562,10 +564,12 @@ function okhsv_to_oklab([h, s, v]) {
   return [L, C * a_, C * b_];
 }
 function oklab_to_okhsv(lab) {
+  let L = lab[0];
   let C = Math.sqrt(lab[1] * lab[1] + lab[2] * lab[2]);
+  if (C <= __pow(10, -15))
+    return [0, 0, toe(L)];
   let a_ = lab[1] / C;
   let b_ = lab[2] / C;
-  let L = lab[0];
   let h = 0.5 + 0.5 * Math.atan2(-lab[2], -lab[1]) / Math.PI;
   let ST_max = get_ST_max(a_, b_);
   let S_max = ST_max[0];
@@ -681,7 +685,7 @@ function oklrch_to_oklch(lch) {
   return oklrab_to_oklab(lch);
 }
 function oklab_to_okhsl2(lab) {
-  const [h, s, l] = oklab_to_okhsl(lab).map((v) => isNaN(v) ? 0 : v);
+  const [h, s, l] = oklab_to_okhsl(lab);
   return [360 * h, s, l];
 }
 function okhsl_to_oklab2(hsl) {
@@ -689,7 +693,7 @@ function okhsl_to_oklab2(hsl) {
   return okhsl_to_oklab([h / 360, s, l]);
 }
 function oklab_to_okhsv2(lab) {
-  const [h, s, v] = oklab_to_okhsv(lab).map((v2) => isNaN(v2) ? 0 : v2);
+  const [h, s, v] = oklab_to_okhsv(lab);
   return [360 * h, s, v];
 }
 function okhsv_to_oklab2(hsv) {

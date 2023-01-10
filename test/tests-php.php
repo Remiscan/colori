@@ -60,7 +60,7 @@ class Test {
     }
     catch (Throwable $error) {
       $this->time = microtime(true) - $time;
-      return ['Error', $error->getMessage()];
+      return ['Error', $error->getMessage(), $error->getTrace()];
     }
   }
 
