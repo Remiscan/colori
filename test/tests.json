@@ -263,6 +263,10 @@
       "functionphp": "Couleur::mix(color1: 'purple', pct1: '50%', color2: 'plum', pct2: '50%', interpolationSpace: 'lch')",
       "expected": "rgb(68.51% 36.01% 68.29%)"
     }, {
+      "function": "Colour.mix('purple', '50%', 'plum', '50%')",
+      "functionphp": "Couleur::mix(color1: 'purple', pct1: '50%', color2: 'plum', pct2: '50%')",
+      "expected": "rgb(68.70% 36.07% 68.28%)"
+    }, {
       "function": "Colour.mix('purple', .3, 'plum', .3, { interpolationSpace: 'lch' })",
       "functionphp": "Couleur::mix(color1: 'purple', pct1: .3, color2: 'plum', pct2: .3, interpolationSpace: 'lch')",
       "expected": "rgb(68.51% 36.01% 68.29% / 0.6)"

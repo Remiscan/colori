@@ -2326,7 +2326,7 @@ var _Couleur = class {
     return _Couleur.interpolateInSteps(this, color, steps, options);
   }
   static mix(...args) {
-    var _a2, _b2;
+    var _a2, _b2, _c;
     let _color1, _pct1, _color2, _pct2, _options;
     _color1 = _Couleur.makeInstance(args[0]);
     try {
@@ -2354,7 +2354,7 @@ var _Couleur = class {
         _options = args[3];
     }
     if (!_options)
-      _options = args[4];
+      _options = (_a2 = args[4]) != null ? _a2 : {};
     if (!_pct1 && !_pct2) {
       _pct1 = 0.5;
       _pct2 = 0.5;
@@ -2363,7 +2363,7 @@ var _Couleur = class {
     } else if (!_pct1 && _pct2) {
       _pct1 = 1 - _pct2;
     }
-    if (!_pct1 || !_pct2 || !_color1 || !_color2 || !_options) {
+    if (!_pct1 || !_pct2 || !_color1 || !_color2) {
       throw new Error("Some arguments are invalid");
     }
     let alphaMultiplier = 1;
@@ -2376,8 +2376,8 @@ var _Couleur = class {
     _pct1 = _pct1 / sum;
     _pct2 = _pct2 / sum;
     const appliedOptions = {};
-    appliedOptions.interpolationSpace = (_a2 = _options.interpolationSpace) != null ? _a2 : "oklab";
-    appliedOptions.hueInterpolationMethod = (_b2 = _options.hueInterpolationMethod) != null ? _b2 : "shorter";
+    appliedOptions.interpolationSpace = (_b2 = _options.interpolationSpace) != null ? _b2 : "oklab";
+    appliedOptions.hueInterpolationMethod = (_c = _options.hueInterpolationMethod) != null ? _c : "shorter";
     appliedOptions.ratio = _pct2;
     const interpolatedColor = _Couleur.interpolate(_color1, _color2, appliedOptions);
     return interpolatedColor.replace("a", alphaMultiplier * interpolatedColor.a);

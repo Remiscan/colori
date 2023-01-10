@@ -1262,10 +1262,10 @@ export default class Couleur {
    * @param pct2 The percentage of the second color to mix in.
    * @param options The interpolation options. @see mixOptions
    */
-  public static mix(color1: color, pct1: unparsedPercentage, color2: color, pct2: unparsedPercentage, options: mixOptions): Couleur;
-  public static mix(color1: color, pct1: unparsedPercentage, color2: color, options: mixOptions): Couleur;
-  public static mix(color1: color, color2: color, pct2: unparsedPercentage, options: mixOptions): Couleur;
-  public static mix(color1: color, color2: color, options: mixOptions): Couleur;
+  public static mix(color1: color, pct1: unparsedPercentage, color2: color, pct2: unparsedPercentage, options?: mixOptions): Couleur;
+  public static mix(color1: color, pct1: unparsedPercentage, color2: color, options?: mixOptions): Couleur;
+  public static mix(color1: color, color2: color, pct2: unparsedPercentage, options?: mixOptions): Couleur;
+  public static mix(color1: color, color2: color, options?: mixOptions): Couleur;
   public static mix(...args: any[]): Couleur {
     let _color1, _pct1, _color2, _pct2, _options;
 
@@ -1300,7 +1300,7 @@ export default class Couleur {
     }
 
     // Fifth argument can be the options object
-    if (!_options) _options = args[4];
+    if (!_options) _options = args[4] ?? {};
 
     // Normalize percentages (part 1/2)
     if (!_pct1 && !_pct2) {
@@ -1312,7 +1312,7 @@ export default class Couleur {
       _pct1 = 1 - _pct2;
     }
 
-    if (!_pct1 || !_pct2 || !_color1 || !_color2 || !_options) {
+    if (!_pct1 || !_pct2 || !_color1 || !_color2) {
       throw new Error('Some arguments are invalid');
     }
 
