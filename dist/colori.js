@@ -681,7 +681,7 @@ function oklrch_to_oklch(lch) {
   return oklrab_to_oklab(lch);
 }
 function oklab_to_okhsl2(lab) {
-  const [h, s, l] = oklab_to_okhsl(lab);
+  const [h, s, l] = oklab_to_okhsl(lab).map((v) => isNaN(v) ? 0 : v);
   return [360 * h, s, l];
 }
 function okhsl_to_oklab2(hsl) {
@@ -689,7 +689,7 @@ function okhsl_to_oklab2(hsl) {
   return okhsl_to_oklab([h / 360, s, l]);
 }
 function oklab_to_okhsv2(lab) {
-  const [h, s, v] = oklab_to_okhsv(lab);
+  const [h, s, v] = oklab_to_okhsv(lab).map((v2) => isNaN(v2) ? 0 : v2);
   return [360 * h, s, v];
 }
 function okhsv_to_oklab2(hsv) {

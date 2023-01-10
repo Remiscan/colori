@@ -133,6 +133,9 @@
     }, {
       "function": "(new Colour('oklch(100% 0.062 206)')).toGamut('srgb').rgb",
       "expected": "rgb(255, 255, 255)"
+    }, {
+      "function": "(new Colour('oklab(0% 0 0)')).toString('color-okhsl')",
+      "expected": "color(okhsl 0 0 0)"
     }
   ],
   "change, replace, scale": [

@@ -130,7 +130,7 @@ export function oklrch_to_oklch(lch: number[]): number[] {
 /* OKHSL */
 
 export function oklab_to_okhsl(lab: number[]): number[] {
-  const [h, s, l] = OKHSLV.oklab_to_okhsl(lab);
+  const [h, s, l] = OKHSLV.oklab_to_okhsl(lab).map(v => isNaN(v) ? 0 : v);
   return [360 * h, s, l];
 }
 
@@ -144,7 +144,7 @@ export function okhsl_to_oklab(hsl: number[]): number[] {
 /* OKHSV */
 
 export function oklab_to_okhsv(lab: number[]): number[] {
-  const [h, s, v] = OKHSLV.oklab_to_okhsv(lab);
+  const [h, s, v] = OKHSLV.oklab_to_okhsv(lab).map(v => isNaN(v) ? 0 : v);
   return [360 * h, s, v];
 }
 

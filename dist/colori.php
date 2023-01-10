@@ -1044,7 +1044,12 @@ namespace colori\OKHSLV {
   /* OKHSL */
 
   function oklab_to_okhsl(array $lab): array {
-    [$h, $s, $l] = \colori\OKHSLV\oklab_to_okhsl($lab);
+    try {
+      [$h, $s, $l] = \colori\OKHSLV\oklab_to_okhsl($lab);
+    } catch (\Throwable $e) {
+      [$l, $c, $h] = oklab_to_oklch($lab);
+      $s = 0; $l = 0;
+    }
     return [360.0 * $h, $s, $l];
   }
 
@@ -1057,7 +1062,12 @@ namespace colori\OKHSLV {
   /* OKHSV */
 
   function oklab_to_okhsv(array $lab): array {
-    [$h, $s, $v] = \colori\OKHSLV\oklab_to_okhsv(lab);
+    try {
+      [$h, $s, $v] = \colori\OKHSLV\oklab_to_okhsv(lab);
+    } catch (\Throwable $e) {
+      [$l, $c, $h] = oklab_to_oklch($lab);
+      $s = 0; $v = 0;
+    }
     return [360.0 * $h, $s, $v];
   }
 
