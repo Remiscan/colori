@@ -402,7 +402,7 @@
           return "color($id $string)";
       }
 
-      // If the requested expression is of the ${format}(...) type
+      // If the requested expression is of the {$format}(...) type
       else {
         $props = self::propertiesOf($format);
         if (count($props) === 0) return self::makeString("color-$format", $values, precision: $precision);
@@ -418,13 +418,13 @@
           case 'hsla':
             $string = join(', ', $unparsedValues);
             if ((strlen($format) > 3 && substr($format, -1) === 'a') || $a < 1.0)
-              return "${format}(${string}, ${a})";
+              return "{$format}({$string}, {$a})";
             else
-              return "${format}(${string})";
+              return "{$format}({$string})";
           default:
             $string = join(' ', $unparsedValues);
-            if ($a < 1.0) return "${format}(${string} / ${a})";
-            else          return "${format}(${string})";
+            if ($a < 1.0) return "{$format}({$string} / {$a})";
+            else          return "{$format}({$string})";
         }
       }
     }
@@ -704,7 +704,7 @@
       while (count($path) > 1) {
         $start = array_shift($path);
         $end = $path[0];
-        $functionName = str_replace('-', '', "\\colori\\conversions\\${start}_to_${end}");
+        $functionName = str_replace('-', '', "\\colori\\conversions\\{$start}_to_{$end}");
         $result = $functionName($result);
       }
 
