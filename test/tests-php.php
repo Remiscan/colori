@@ -16,6 +16,13 @@ function colorToObject($color) {
 class Test {
   const TOLERANCE = .03;
   const okJND = .02;
+  public $function;
+  public $expectedResult;
+  public $actualResult;
+  public $nophp;
+  public $order;
+  public $tested;
+  public $time;
 
   function __construct($func = null, $expected = null, $nophp = false, $order = 0) {
     // Convert JavaScript test to PHP test
