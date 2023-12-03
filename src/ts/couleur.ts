@@ -364,14 +364,9 @@ export default class Couleur {
         else throw new InvalidColorPropValueError(prop, value);
       }
 
-      // Percentage values:
-      // from any %
-      // clamped to [0, 100]%
+      // CIE and OK luminosity values:
+      // from any number or %
       // to [0, 1]
-      case 's':
-      case 'l':
-      case 'w':
-      case 'bk':
       case 'ciel':
       case 'okl': {
         // If n is a percentage
@@ -379,33 +374,92 @@ export default class Couleur {
           if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
           else        return nval / 100;
         }
+        // If n is a number
+        else if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
+          if (clamp)  return Math.max(0, Math.min(nval, 1));
+          else        return nval;
+        }
         else throw new InvalidColorPropValueError(prop, value);
       }
 
-      // CIE axes values
-      // and OKLAB axes values
-      // and OKLCH chroma value:
-      // any number
+      // CIE A and B axis values:
+      // from any number or %
+      // to any number (so that -100% becomes -125 and 100% becomes 125)
       case 'ciea':
-      case 'cieb':
-      case 'oka':
-      case 'okb':
-      case 'okc': {
+      case 'cieb': {
+        // If n is a percentage
+        if (new RegExp('^' + unitRegExps.percentage + '$').test(val)) {
+          return 125 * nval / 100;
+        }
         // If n is a number
-        if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
+        else if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
           return nval;
         }
         else throw new InvalidColorPropValueError(prop, value);
       }
 
       // CIE chroma values:
-      // from any number
-      // clamped to [0, +Inf[
+      // from any number or %
+      // to any number (so that 0% becomes 0 and 100% becomes 150)
       case 'ciec': {
+        // If n is a percentage
+        if (new RegExp('^' + unitRegExps.percentage + '$').test(val)) {
+          if (clamp)  return Math.max(0, 150 * nval / 100);
+          else        return 150 * nval / 100;
+        }
         // If n is a number
-        if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
+        else if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
           if (clamp)  return Math.max(0, nval);
           else        return nval;
+        }
+        else throw new InvalidColorPropValueError(prop, value);
+      }
+
+      // OK A and B axis values:
+      // from any number or %
+      // to any number (so that -100% becomes -0.4 and 100% becomes 0.4)
+      case 'oka':
+      case 'okb': {
+        // If n is a percentage
+        if (new RegExp('^' + unitRegExps.percentage + '$').test(val)) {
+          return 0.4 * nval / 100;
+        }
+        // If n is a number
+        else if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
+          return nval;
+        }
+        else throw new InvalidColorPropValueError(prop, value);
+      }
+
+      // OK chroma values:
+      // from any number or %
+      // to any number (so that 0% becomes 0 and 100% becomes 0.4)
+      case 'okc': {
+        // If n is a percentage
+        if (new RegExp('^' + unitRegExps.percentage + '$').test(val)) {
+          if (clamp)  return Math.max(0, 0.4 * nval / 100);
+          else        return 0.4 * nval / 100;
+        }
+        // If n is a number
+        else if (new RegExp('^' + unitRegExps.number + '$').test(val)) {
+          if (clamp)  return Math.max(0, nval);
+          else        return nval;
+        }
+        else throw new InvalidColorPropValueError(prop, value);
+      }
+
+      // Percentage values:
+      // from any %
+      // clamped to [0, 100]%
+      // to [0, 1]
+      case 's':
+      case 'l':
+      case 'w':
+      case 'bk': {
+        // If n is a percentage
+        if (new RegExp('^' + unitRegExps.percentage + '$').test(val)) {
+          if (clamp)  return Math.max(0, Math.min(nval / 100, 1));
+          else        return nval / 100;
         }
         else throw new InvalidColorPropValueError(prop, value);
       }
@@ -449,10 +503,15 @@ export default class Couleur {
       case 'ciel':
       case 'okl':
         return precision === null ? `${100 * value}%` : `${Math.round(10**precision * 100 * value) / (10**precision)}%`;
+      case 'ciea':
+      case 'cieb':
+        return precision === null ? `${100 * value / 125}%` : `${Math.round(10**precision * 100 * value / 125) / (10**precision)}%`;
+      case 'ciec':
+        return precision === null ? `${100 * value / 150}%` : `${Math.round(10**precision * 100 * value / 150) / (10**precision)}%`;
       case 'oka':
       case 'okb':
       case 'okc':
-        return precision === null ? `${value}` : `${Math.round(10**Math.max(precision, 4) * value) / (10**Math.max(precision, 4))}`;
+        return precision === null ? `${100 * value / .4}%` : `${Math.round(10**precision * 100 * value / .4) / (10**precision)}%`;
       case 'a':
         return precision === null ? `${value}` : `${Math.round(10**Math.max(precision, 2) * value) / (10**Math.max(precision, 2))}`;
       default:

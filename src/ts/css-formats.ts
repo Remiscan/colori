@@ -71,33 +71,33 @@ export const allFormats: CSSFormat[] = [
     id: 'lab',
     syntaxes: [
       // lab(300% 25 40)
-      new RegExp(`^lab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number})\\)$`),
+      new RegExp(`^lab\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage})\\)$`),
       // lab(300% 25 40 / .5)
-      new RegExp(`^lab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^lab\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   }, {
     id: 'lch',
     syntaxes: [
       // lch(300% 25 <angle>)
-      new RegExp(`^lch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle})\\)$`),
+      new RegExp(`^lch\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.angle})\\)$`),
       // lch(300% 25 <angle> / .5)
-      new RegExp(`^lch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^lch\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.angle}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   }, {
     id: 'oklab',
     syntaxes: [
       // oklab(50% -25 40)
-      new RegExp(`^oklab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number})\\)$`),
+      new RegExp(`^oklab\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage})\\)$`),
       // oklab(50% -25 40 / .5)
-      new RegExp(`^oklab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^oklab\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   }, {
     id: 'oklch',
     syntaxes: [
       // oklch(50% 25 <angle>)
-      new RegExp(`^oklch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle})\\)$`),
+      new RegExp(`^oklch\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.angle})\\)$`),
       // oklch(50% 25 <angle> / .5)
-      new RegExp(`^oklch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^oklch\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.angle}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   }, {
     id: 'color',

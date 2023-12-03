@@ -1598,33 +1598,33 @@ namespace colori\OKHSLV {
           'id' => 'lab',
           'syntaxes' => array(
             // lab(300% 25 40)
-            '/^lab\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('number').')\\)$/',
+            '/^lab\\(('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').')\\)$/',
             // lab(300% 25 40 / .5)
-            '/^lab\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('number').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
+            '/^lab\\(('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
           )
         ), array(
           'id' => 'lch',
           'syntaxes' => array(
             // lch(300% 25 <angle>)
-            '/^lch\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('angle').')\\)$/',
+            '/^lch\\(('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').') ('.self::RegExp('angle').')\\)$/',
             // lch(300% 25 <angle> / .5)
-            '/^lch\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('angle').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
+            '/^lch\\(('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').') ('.self::RegExp('angle').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
           )
         ), array(
           'id' => 'oklab',
           'syntaxes' => array(
             // oklab(50% -25 40)
-            '/^oklab\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('number').')\\)$/',
+            '/^oklab\\(('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').')\\)$/',
             // oklab(50% -25 40 / .5)
-            '/^oklab\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('number').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
+            '/^oklab\\(('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
           )
         ), array(
           'id' => 'oklch',
           'syntaxes' => array(
             // oklch(50% 25 <angle>)
-            '/^oklch\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('angle').')\\)$/',
+            '/^oklch\\(('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').') ('.self::RegExp('angle').')\\)$/',
             // oklch(50% 25 <angle> / .5)
-            '/^oklch\\(('.self::RegExp('percentage').') ('.self::RegExp('number').') ('.self::RegExp('angle').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
+            '/^oklch\\(('.self::RegExp('numberOrPercentage').') ('.self::RegExp('numberOrPercentage').') ('.self::RegExp('angle').') ?\\/ ?('.self::RegExp('numberOrPercentage').')\\)$/'
           )
         ), array(
           'id' => 'color',
@@ -1860,6 +1860,85 @@ namespace colori\OKHSLV {
             }
             else throw new \Exception('invalid');
 
+          // CIE and OK luminosity values:
+          // from any number or %
+          // to [0, 1]
+          case 'ciel':
+          case 'okl':
+            // If n is a percentage
+            if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
+              if ($clamp) return max(0, min(floatval($value) / 100, 1));
+              else        return floatval($value) / 100;
+            }
+            // If n is a number
+            elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              if ($clamp) return max(.0, min($value, 1.0));
+              else        return floatval($value);
+            }
+            else throw new \Exception('invalid');
+
+          // CIE A and B axis values:
+          // from any number or %
+          // to any number (so that -100% becomes -125 and 100% becomes 125)
+          case 'ciea':
+          case 'cieb':
+            // If n is a percentage
+            if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
+              return 125.0 * floatval($value) / 100.0;
+            }
+            // If n is a number
+            elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              return floatval($value);
+            }
+            else throw new \Exception('invalid');
+
+          // CIE chroma values:
+          // from any number or %
+          // to any number (so that 0% becomes 0 and 100% becomes 150)
+          case 'ciec':
+            // If n is a percentage
+            if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
+              if ($clamp) return max(0, 150.0 * floatval($value) / 100.0);
+              else        return 150.0 * floatval($value) / 100.0;
+            }
+            // If n is a number
+            elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              if ($clamp) return max(0, floatval($value));
+              else        return floatval($value);
+            }
+            else throw new \Exception('invalid');
+
+          // OK A and B axis values:
+          // from any number or %
+          // to any number (so that -100% becomes -0.4 and 100% becomes 0.4)
+          case 'oka':
+          case 'okb':
+            // If n is a percentage
+            if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
+              return .4 * floatval($value) / 100.0;
+            }
+            // If n is a number
+            elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              return floatval($value);
+            }
+            else throw new \Exception('invalid');
+
+          // OK chroma values:
+          // from any number or %
+          // to any number (so that 0% becomes 0 and 100% becomes 0.4)
+          case 'okc':
+            // If n is a percentage
+            if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
+              if ($clamp) return max(0, .4 * floatval($value) / 100.0);
+              else        return .4 * floatval($value) / 100.0;
+            }
+            // If n is a number
+            elseif (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
+              if ($clamp) return max(0, floatval($value));
+              else        return floatval($value);
+            }
+            else throw new \Exception('invalid');
+
           // Percentage values:
           // from any %
           // clamped to [0, 100]%
@@ -1868,27 +1947,10 @@ namespace colori\OKHSLV {
           case 'l':
           case 'w':
           case 'bk':
-          case 'ciel':
-          case 'okl':
             // If n is a percentage
             if (preg_match('/^' . CSSFormats::RegExp('percentage') . '$/', $value)) {
               if ($clamp) return max(0, min(floatval($value) / 100, 1));
               else        return floatval($value) / 100;
-            }
-            else throw new \Exception('invalid');
-
-          // CIE axes values
-          // and OKLAB axes values
-          // and OKLCH chroma value:
-          // any number
-          case 'ciea':
-          case 'cieb':
-          case 'oka':
-          case 'okb':
-          case 'okc':
-            // If n is a number
-            if (preg_match('/^' . CSSFormats::RegExp('number') . '$/', $value)) {
-              return floatval($value);
             }
             else throw new \Exception('invalid');
 
@@ -1942,10 +2004,17 @@ namespace colori\OKHSLV {
         case 'okl':
           $unparsed = $precision === null ? (100 * $value).'%' : (round(10**$precision * 100 * $value) / (10**$precision)).'%';
           break;
+        case 'ciea':
+        case 'cieb':
+          $unparsed = $precision === null ? (100 * $value / 125).'%' : (round(10**$precision * 100 * $value / 125) / (10**$precision)).'%';
+          break;
+        case 'ciec':
+          $unparsed = $precision === null ? (100 * $value / 150).'%' : (round(10**$precision * 100 * $value / 150) / (10**$precision)).'%';
+          break;
         case 'oka':
         case 'okb':
         case 'okc':
-          $unparsed = $precision === null ? $value : round(10**max($precision, 4) * $value) / (10**max($precision, 4));
+          $unparsed = $precision === null ? (100 * $value / .4).'%' : (round(10**$precision * 100 * $value / .4) / (10**$precision)).'%';
           break;
         case 'a':
           $unparsed = $precision === null ? $value : round(10**max($precision, 2) * $value) / (10**max($precision, 2));

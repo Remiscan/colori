@@ -968,29 +968,29 @@ var allFormats = [
   {
     id: "lab",
     syntaxes: [
-      new RegExp(`^lab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number})\\)$`),
-      new RegExp(`^lab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^lab\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage})\\)$`),
+      new RegExp(`^lab\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "lch",
     syntaxes: [
-      new RegExp(`^lch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle})\\)$`),
-      new RegExp(`^lch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^lch\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.angle})\\)$`),
+      new RegExp(`^lch\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.angle}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "oklab",
     syntaxes: [
-      new RegExp(`^oklab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number})\\)$`),
-      new RegExp(`^oklab\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.number}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^oklab\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage})\\)$`),
+      new RegExp(`^oklab\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
     id: "oklch",
     syntaxes: [
-      new RegExp(`^oklch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle})\\)$`),
-      new RegExp(`^oklch\\((${unitRegExps.percentage}) (${unitRegExps.number}) (${unitRegExps.angle}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
+      new RegExp(`^oklch\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.angle})\\)$`),
+      new RegExp(`^oklch\\((${unitRegExps.numberOrPercentage}) (${unitRegExps.numberOrPercentage}) (${unitRegExps.angle}) ?\\/ ?(${unitRegExps.numberOrPercentage})\\)$`)
     ]
   },
   {
@@ -1586,10 +1586,6 @@ var _Couleur = class {
         } else
           throw new InvalidColorPropValueError(prop, value);
       }
-      case "s":
-      case "l":
-      case "w":
-      case "bk":
       case "ciel":
       case "okl": {
         if (new RegExp("^" + unitRegExps.percentage + "$").test(val)) {
@@ -1597,25 +1593,69 @@ var _Couleur = class {
             return Math.max(0, Math.min(nval / 100, 1));
           else
             return nval / 100;
+        } else if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, Math.min(nval, 1));
+          else
+            return nval;
         } else
           throw new InvalidColorPropValueError(prop, value);
       }
       case "ciea":
-      case "cieb":
-      case "oka":
-      case "okb":
-      case "okc": {
-        if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
+      case "cieb": {
+        if (new RegExp("^" + unitRegExps.percentage + "$").test(val)) {
+          return 125 * nval / 100;
+        } else if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
           return nval;
         } else
           throw new InvalidColorPropValueError(prop, value);
       }
       case "ciec": {
-        if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
+        if (new RegExp("^" + unitRegExps.percentage + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, 150 * nval / 100);
+          else
+            return 150 * nval / 100;
+        } else if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
           if (clamp)
             return Math.max(0, nval);
           else
             return nval;
+        } else
+          throw new InvalidColorPropValueError(prop, value);
+      }
+      case "oka":
+      case "okb": {
+        if (new RegExp("^" + unitRegExps.percentage + "$").test(val)) {
+          return 0.4 * nval / 100;
+        } else if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
+          return nval;
+        } else
+          throw new InvalidColorPropValueError(prop, value);
+      }
+      case "okc": {
+        if (new RegExp("^" + unitRegExps.percentage + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, 0.4 * nval / 100);
+          else
+            return 0.4 * nval / 100;
+        } else if (new RegExp("^" + unitRegExps.number + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, nval);
+          else
+            return nval;
+        } else
+          throw new InvalidColorPropValueError(prop, value);
+      }
+      case "s":
+      case "l":
+      case "w":
+      case "bk": {
+        if (new RegExp("^" + unitRegExps.percentage + "$").test(val)) {
+          if (clamp)
+            return Math.max(0, Math.min(nval / 100, 1));
+          else
+            return nval / 100;
         } else
           throw new InvalidColorPropValueError(prop, value);
       }
@@ -1642,10 +1682,15 @@ var _Couleur = class {
       case "ciel":
       case "okl":
         return precision === null ? `${100 * value}%` : `${Math.round(__pow(10, precision) * 100 * value) / __pow(10, precision)}%`;
+      case "ciea":
+      case "cieb":
+        return precision === null ? `${100 * value / 125}%` : `${Math.round(__pow(10, precision) * 100 * value / 125) / __pow(10, precision)}%`;
+      case "ciec":
+        return precision === null ? `${100 * value / 150}%` : `${Math.round(__pow(10, precision) * 100 * value / 150) / __pow(10, precision)}%`;
       case "oka":
       case "okb":
       case "okc":
-        return precision === null ? `${value}` : `${Math.round(__pow(10, Math.max(precision, 4)) * value) / __pow(10, Math.max(precision, 4))}`;
+        return precision === null ? `${100 * value / 0.4}%` : `${Math.round(__pow(10, precision) * 100 * value / 0.4) / __pow(10, precision)}%`;
       case "a":
         return precision === null ? `${value}` : `${Math.round(__pow(10, Math.max(precision, 2)) * value) / __pow(10, Math.max(precision, 2))}`;
       default:

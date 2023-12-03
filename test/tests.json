@@ -31,6 +31,24 @@
       "function": "new Colour('lch(92% 46 168)')",
       "expected": {"r": 0.51239, "g": 1, "b": 0.8316, "a": 1 }
     }, {
+      "function": "new Colour('lab(92% -36% 7.2%)')",
+      "expected": {"r": 0.5102, "g": 1, "b": 0.83587, "a": 1 }
+    }, {
+      "function": "new Colour('lch(92% 30.67% 168)')",
+      "expected": {"r": 0.51239, "g": 1, "b": 0.8316, "a": 1 }
+    }, {
+      "function": "new Colour('oklab(86.77% 0.073 0.0091)')",
+      "expected": {"r": 1, "g": 0.75294, "b": 0.79608, "a": 1 }
+    }, {
+      "function": "new Colour('oklch(86.77% 0.0736 7.07)')",
+      "expected": {"r": 1, "g": 0.75294, "b": 0.79608, "a": 1 }
+    }, {
+      "function": "new Colour('oklab(86.77% 18.25% 22.75%)')",
+      "expected": {"r": 1, "g": 0.75294, "b": 0.79608, "a": 1 }
+    }, {
+      "function": "new Colour('oklch(86.77% 18.4% 7.07)')",
+      "expected": {"r": 1, "g": 0.75294, "b": 0.79608, "a": 1 }
+    }, {
       "function": "new Colour([0.2256, 0.7144, 0.29079])",
       "expected": {"r": 0.2256, "g": 0.7144, "b": 0.29079, "a": 1 }
     }, {
