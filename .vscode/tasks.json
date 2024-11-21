@@ -13,11 +13,8 @@
         "isDefault": true
       }
     }, {
-      "type": "deno",
-      "command": "run",
-      "args": [
-        "--allow-run", "--allow-read", "--allow-write=./dist", "--allow-net=deno.land", "--allow-env", "build/js/build.js"
-      ],
+      "type": "shell",
+      "command": "deno run --allow-run --allow-read --allow-write=./dist --allow-net=deno.land --allow-env build/js/build.js",
       "label": "bundle colori.js",
       "group": {
         "kind": "build"
