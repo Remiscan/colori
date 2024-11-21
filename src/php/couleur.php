@@ -509,11 +509,12 @@
     /** The approximate name of the color. */
     public function name(): ?string {
       if ($this->a() === 1.0) {
-        [$r, $g, $b] = $this->values();
-        $tolerance = .02;
+        $rgb1 = $this->values();
+        $tolerance = .0004;
         foreach (self::NAMED_COLORS as $name => $hex) {
-          [$r2, $g2, $b2] = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
-          if (abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b) < $tolerance) return $name;
+          $rgb2 = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
+          // Euclidean distance isn't great but at least it's performant...
+          if (distances\euclidean($rgb1, $rgb2) < $tolerance) return $name;
         }
         return null;
       }
@@ -535,12 +536,13 @@
     /** The name of the closest named color. */
     public function closestName(): string {
       if ($this->a() < 0.5) return 'transparent';
-      [$r, $g, $b] = $this->values();
+      $rgb1 = $this->values();
       $closest = '';
       $lastDistance = INF;
       foreach (self::NAMED_COLORS as $name => $hex) {
-        [$r2, $g2, $b2] = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
-        $distance = abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b);
+        $rgb2 = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
+        // Euclidean distance isn't great but at least it's performant...
+        $distance = distances\euclidean($rgb1, $rgb2);
         if ($distance < $lastDistance) {
           $lastDistance = $distance;
           $closest = $name;

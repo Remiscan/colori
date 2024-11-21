@@ -1,200 +1,5 @@
 <?php
- namespace colori {
-
-
-  const COLOR_SPACES = array(
-    array(
-      'id' =>'srgb',
-      'aliases' => ['rgb', 'rgba'],
-      'properties' => ['r', 'g', 'b'],
-      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' => ['srgb-linear', 'hsl'],
-      'black' => [ 0.0, 0.0, 0.0 ],
-      'white' => [ 1.0, 1.0, 1.0 ]
-    ), array(
-      'id' => 'srgb-linear',
-      'aliases' => [],
-      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' => ['srgb', 'xyz-d65'],
-      'black' => [ 0.0, 0.0, 0.0 ],
-      'white' => [ 1.0, 1.0, 1.0 ]
-    ), array(
-      'id' => 'hsl',
-      'aliases' => ['hsla'],
-      'properties' => ['h', 's', 'l'],
-      'gamutSpace' => 'srgb',
-      'links' => ['srgb', 'hwb']
-    ), array(
-      'id' => 'hwb',
-      'aliases' => [],
-      'properties' => ['h', 'w', 'bk'],
-      'gamutSpace' => 'srgb',
-      'links' => ['hsl']
-    ), array(
-      'id' => 'lab',
-      'aliases' => [],
-      'properties' => ['ciel', 'ciea', 'cieb'],
-      'gamut' => [ [0.0, +INF], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['xyz-d50', 'lch'],
-      'black' => [ 0.0, 0.0, 0.0 ]
-    ), array(
-      'id' => 'lch',
-      'aliases' => [],
-      'properties' => ['ciel', 'ciec', 'cieh'],
-      'gamut' => [ [0.0, +INF], [0.0, +INF], [-INF, +INF] ],
-      'links' => ['lab'],
-      'black' => [ 0.0, 0.0, 0.0 ]
-    ), array(
-      'id' => 'xyz-d50',
-      'aliases' => [],
-      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['lab', 'xyz-d65', 'prophoto-rgb-linear']
-    ), array(
-      'id' => 'xyz-d65',
-      'aliases' => ['xyz'],
-      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['xyz-d50', 'srgb-linear', 'display-p3-linear', 'a98-rgb-linear', 'rec2020-linear', 'oklab']
-    ), array(
-      'id' => 'display-p3',
-      'aliases' => [],
-      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' => ['display-p3-linear'],
-      'black' => [ 0.0, 0.0, 0.0 ],
-      'white' => [ 1.0, 1.0, 1.0 ]
-    ), array(
-      'id' => 'display-p3-linear',
-      'aliases' => [],
-      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' => ['display-p3', 'xyz-d65'],
-      'black' => [ 0.0, 0.0, 0.0 ],
-      'white' => [ 1.0, 1.0, 1.0 ]
-    ), array(
-      'id' => 'a98-rgb',
-      'aliases' => [],
-      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' => ['a98-rgb-linear'],
-      'black' => [ 0.0, 0.0, 0.0 ],
-      'white' => [ 1.0, 1.0, 1.0 ]
-    ), array(
-      'id' => 'a98-rgb-linear',
-      'aliases' => [],
-      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' => ['a98-rgb', 'xyz-d65'],
-      'black' => [ 0.0, 0.0, 0.0 ],
-      'white' => [ 1.0, 1.0, 1.0 ]
-    ), array(
-      'id' => 'prophoto-rgb',
-      'aliases' => [],
-      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' => ['prophoto-rgb-linear'],
-      'black' => [ 0.0, 0.0, 0.0 ],
-      'white' => [ 1.0, 1.0, 1.0 ]
-    ), array(
-      'id' => 'prophoto-rgb-linear',
-      'aliases' => [],
-      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' => ['prophoto-rgb', 'xyz-d50'],
-      'black' => [ 0.0, 0.0, 0.0 ],
-      'white' => [ 1.0, 1.0, 1.0 ]
-    ), array(
-      'id' => 'rec2020',
-      'aliases' => [],
-      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' => ['rec2020-linear'],
-      'black' => [ 0.0, 0.0, 0.0 ],
-      'white' => [ 1.0, 1.0, 1.0 ]
-    ), array(
-      'id' => 'rec2020-linear',
-      'aliases' => [],
-      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
-      'links' => ['rec2020', 'xyz-d65'],
-      'black' => [ 0.0, 0.0, 0.0 ],
-      'white' => [ 1.0, 1.0, 1.0 ]
-    ), array(
-      'id' => 'oklab',
-      'aliases' => [],
-      'properties' => ['okl', 'oka', 'okb'],
-      'gamut' => [ [0.0, +INF], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['xyz-d65', 'oklch', 'okhsl', 'okhsv', 'oklrab'],
-      'blakc' => [ 0.0, 0.0, 0.0 ]
-    ), array(
-      'id' => 'oklch',
-      'aliases' => [],
-      'properties' => ['okl', 'okc', 'okh'],
-      'gamut' => [ [0.0, +INF], [0.0, +INF], [-INF, +INF] ],
-      'links' => ['oklab', 'oklrch'],
-      'black' => [ 0.0, 0.0, 0.0 ]
-    ), array(
-      'id' => 'oklrab',
-      'aliases' => [],
-      'properties' => ['oklr', 'oka', 'okb'],
-      'gamut' => [ [0.0, +INF], [-INF, +INF], [-INF, +INF] ],
-      'links' => ['oklab'],
-      'blakc' => [ 0.0, 0.0, 0.0 ]
-    ), array(
-      'id' => 'oklrch',
-      'aliases' => [],
-      'properties' => ['oklr', 'okc', 'okh'],
-      'gamut' => [ [0.0, +INF], [0.0, +INF], [-INF, +INF] ],
-      'links' => ['oklch'],
-      'black' => [ 0.0, 0.0, 0.0 ]
-    ), array(
-      'id' => 'okhsl',
-      'aliases' => [],
-      'properties' => ['okh', 'oksl', 'oklr'],
-      'gamutSpace' => 'srgb',
-      'links' => ['oklab']
-    ), array(
-      'id' => 'okhsv',
-      'aliases' => [],
-      'properties' => ['okh', 'oksv', 'okv'],
-      'gamutSpace' => 'srgb',
-      'links' => ['oklab']
-    )
-  );
-
-
-} namespace colori\utils {
-
-
-  function pad(string $s): string {
-    return (strlen($s) < 2) ? '0' . $s : $s;
-  }
-
-  function angleToRange(float $angle): float {
-    while ($angle < 0)   $angle += 360;
-    while ($angle >= 360) $angle -= 360;
-    return (float) $angle;
-  }
-
-  function pRound(float $number, int $precision = 5): float {
-    $x = (float) $number;
-    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -$x) + 1) : 1;
-    $precision = (int) ($precision - $intDigits);
-    return (float) round($x, $precision);
-  }
-
-  function invRoot(float $number, int $exponent): float {
-    $sign = $number < 0 ? -1 : 1;
-    if ($sign === -1 && $exponent % 2 === 0) return NAN;
-    return $sign * pow(abs($number), 1 / $exponent);
-  }
-
-  function toHex(array $rgba): array {
-    return array_map(fn($v) => pad(dechex(round($v * 255))), $rgba);
-  }
-
-  function fromHex(array $hexa): array {
-    foreach ($hexa as $k => $v) {
-      $v = (strlen($v) === 1) ? $v.$v : $v;
-      $v = intval(hexdec($v)) / 255;
-      $hexa[$k] = $v;
-    }
-    return $hexa;
-  }
-
-
-} namespace colori\conversions {
+ namespace colori\conversions {
 
 
   /************************************************************************************************
@@ -932,7 +737,110 @@ namespace colori\OKHSLV {
 
 
 }
- namespace colori\conversions {
+ namespace colori\contrasts {
+
+
+  /******************************************************************
+   * Derived from https://github.com/Myndex/apca-w3                 *
+   * under W3C license (Copyright © 2019-2021 by Andrew Somers)     *
+   ******************************************************************/
+
+
+  function APCAcontrast(array $rgbText, array $rgbBack): float {
+    // Compute luminances (slightly different from luminances used in WCAG2 contrast)
+    $coeffs = [0.2126729, 0.7151522, 0.0721750];
+    $gamma = 2.4;
+    $luminance = function($rgb) use ($coeffs, $gamma) {
+      $L = 0;
+      foreach ($rgb as $k => $v) {
+        $L += $v**$gamma * $coeffs[$k];
+      }
+      return $L;
+    };
+    $Ytext = $luminance($rgbText);
+    $Yback = $luminance($rgbBack);
+
+    // APCA 0.1.1   G - 4g - W3 Constants
+    $normBG = 0.56;
+    $normTXT = 0.57;
+    $revTXT = 0.62;
+    $revBG = 0.65;
+    $blkThrs = 0.022;
+    $blkClmp = 1.414;
+    $scaleBoW = 1.14;
+    $scaleWoB = 1.14;
+    $loBoWoffset = 0.027;
+    $loWoBoffset = 0.027;
+    $loClip = 0.1;
+    $deltaYmin = 0.0005;
+    
+    // Clamp luminances
+    $clamp = fn($Y) => $Y > $blkThrs ? $Y : $Y + ($blkThrs - $Y) ** $blkClmp;
+    $Ytext = $clamp($Ytext);
+    $Yback = $clamp($Yback);
+
+    // Compute contrast
+    if (abs($Ytext - $Yback) < $deltaYmin) return .0;
+    $SAPC = .0;
+    $output = .0;
+
+    // - for dark text on light background
+    if ($Yback > $Ytext) {
+      $SAPC = ($Yback ** $normBG - $Ytext ** $normTXT) * $scaleBoW;
+      $output = ($SAPC < $loClip) ? .0 : $SAPC - $loBoWoffset;
+    }
+
+    // - for light text on dark background
+    else {
+      $SAPC = ($Yback ** $revBG - $Ytext ** $revTXT) * $scaleWoB;
+      $output = ($SAPC > -$loClip) ? .0 : $SAPC + $loWoBoffset;
+    }
+
+    return $output * 100.0;
+  }
+  
+
+} namespace colori\utils {
+
+
+  function pad(string $s): string {
+    return (strlen($s) < 2) ? '0' . $s : $s;
+  }
+
+  function angleToRange(float $angle): float {
+    while ($angle < 0)   $angle += 360;
+    while ($angle >= 360) $angle -= 360;
+    return (float) $angle;
+  }
+
+  function pRound(float $number, int $precision = 5): float {
+    $x = (float) $number;
+    $intDigits = ($x !== 0) ? floor(log10($x > 0 ? $x : -$x) + 1) : 1;
+    $precision = (int) ($precision - $intDigits);
+    return (float) round($x, $precision);
+  }
+
+  function invRoot(float $number, int $exponent): float {
+    $sign = $number < 0 ? -1 : 1;
+    if ($sign === -1 && $exponent % 2 === 0) return NAN;
+    return $sign * pow(abs($number), 1 / $exponent);
+  }
+
+  function toHex(array $rgba): array {
+    return array_map(fn($v) => pad(dechex(round($v * 255))), $rgba);
+  }
+
+  function fromHex(array $hexa): array {
+    foreach ($hexa as $k => $v) {
+      $v = (strlen($v) === 1) ? $v.$v : $v;
+      $v = intval(hexdec($v)) / 255;
+      $hexa[$k] = $v;
+    }
+    return $hexa;
+  }
+
+
+} namespace colori\conversions {
 
 
   /* hsl */
@@ -1076,69 +984,6 @@ namespace colori\OKHSLV {
 } namespace colori\contrasts {
 
 
-  /******************************************************************
-   * Derived from https://github.com/Myndex/apca-w3                 *
-   * under W3C license (Copyright © 2019-2021 by Andrew Somers)     *
-   ******************************************************************/
-
-
-  function APCAcontrast(array $rgbText, array $rgbBack): float {
-    // Compute luminances (slightly different from luminances used in WCAG2 contrast)
-    $coeffs = [0.2126729, 0.7151522, 0.0721750];
-    $gamma = 2.4;
-    $luminance = function($rgb) use ($coeffs, $gamma) {
-      $L = 0;
-      foreach ($rgb as $k => $v) {
-        $L += $v**$gamma * $coeffs[$k];
-      }
-      return $L;
-    };
-    $Ytext = $luminance($rgbText);
-    $Yback = $luminance($rgbBack);
-
-    // APCA 0.1.1   G - 4g - W3 Constants
-    $normBG = 0.56;
-    $normTXT = 0.57;
-    $revTXT = 0.62;
-    $revBG = 0.65;
-    $blkThrs = 0.022;
-    $blkClmp = 1.414;
-    $scaleBoW = 1.14;
-    $scaleWoB = 1.14;
-    $loBoWoffset = 0.027;
-    $loWoBoffset = 0.027;
-    $loClip = 0.1;
-    $deltaYmin = 0.0005;
-    
-    // Clamp luminances
-    $clamp = fn($Y) => $Y > $blkThrs ? $Y : $Y + ($blkThrs - $Y) ** $blkClmp;
-    $Ytext = $clamp($Ytext);
-    $Yback = $clamp($Yback);
-
-    // Compute contrast
-    if (abs($Ytext - $Yback) < $deltaYmin) return .0;
-    $SAPC = .0;
-    $output = .0;
-
-    // - for dark text on light background
-    if ($Yback > $Ytext) {
-      $SAPC = ($Yback ** $normBG - $Ytext ** $normTXT) * $scaleBoW;
-      $output = ($SAPC < $loClip) ? .0 : $SAPC - $loBoWoffset;
-    }
-
-    // - for light text on dark background
-    else {
-      $SAPC = ($Yback ** $revBG - $Ytext ** $revTXT) * $scaleWoB;
-      $output = ($SAPC > -$loClip) ? .0 : $SAPC + $loWoBoffset;
-    }
-
-    return $output * 100.0;
-  }
-  
-
-} namespace colori\contrasts {
-
-
   function luminance(array $rgb): float {
     $rgb = \colori\conversions\srgb_to_srgblinear($rgb);
     return 0.2126 * $rgb[0] + 0.7152 * $rgb[1] + 0.0722 * $rgb[2];
@@ -1154,215 +999,6 @@ namespace colori\OKHSLV {
 
   function APCA(array $rgbText, array $rgbBack): float {
     return APCAcontrast($rgbText, $rgbBack);
-  }
-
-
-} namespace colori {
-
-
-  class GraphNode {
-    public readonly string|int $id;
-    public readonly array $links;
-    public readonly mixed $data;
-    private bool|string $visited = false;
-    private ?GraphNode $predecessor = null;
-
-    public function __construct(array $array) {
-      $this->id = $array['id'];
-      $this->links = $array['links'];
-      $this->data = $array['data'] ?? null;
-    }
-
-    public function getVisitedState() { return $this->visited; }
-    public function getPredecessor() { return $this->predecessor; }
-
-    public function visit(bool|string $mark = true): void {
-      $this->visited = $mark;
-    }
-    public function unvisit(): void {
-      $this->visited = false;
-    }
-
-    public function follow(GraphNode $node): void {
-      $this->predecessor = $node;
-    }
-    public function unfollow(): void {
-      $this->predecessor = null;
-    }
-  }
-
-
-  class Graph {
-    public readonly array $nodes;
-
-    public function __construct(array $array) {
-      $this->nodes = array_map(fn($e) => new GraphNode($e), $array);
-    }
-
-    public static function array_find(callable $callback, array $array): mixed {
-      foreach($array as $k => $v) {
-        if ($callback($v, $k)) return $v;
-      }
-      return null;
-    }
-
-    protected function getNode(string|int $id): GraphNode {
-      $node = self::array_find(fn($node) => $node->id === $id, $this->nodes);
-      if ($node === null) throw new \Exception("Node ". json_encode($id) ." does not exist");
-      return $node;
-    }
-
-    protected function cleanUp(): void {
-      foreach($this->nodes as $node) {
-        $node->unvisit();
-        $node->unfollow();
-      }
-    }
-
-    public function shortestPath(string|int $startID, string|int $endID): array {
-      if ($startID === $endID) return $this->shortestPath = [];
-
-      try {
-        $start = $this->getNode($startID);
-        $end = $this->getNode($endID);
-
-        $queue = [$start];
-        $start->visit();
-
-        // Let's build a breadth-first tree until we find the destination.
-        $found = false;
-        while (count($queue) > 0) {
-          $current = array_shift($queue);
-          if ($current->id === $end->id) {
-            $found = true;
-            break;
-          }
-
-          foreach ($current->links as $neighbourID) {
-            $neighbour = $this->getNode($neighbourID);
-            if ($neighbour->getVisitedState() === false) {
-              $neighbour->visit();
-              $neighbour->follow($current);
-              $queue[] = $neighbour;
-            }
-          }
-        }
-
-        if (!$found) throw new \Exception("No path found from ". json_encode($startID) ." to ". json_encode($endID));
-
-        // Let's backtrack through the tree to find the path.
-        $path = [$end];
-        $current = $end;
-        $predecessor = $current->getPredecessor();
-        while ($predecessor != null) {
-          $path[] = $predecessor;
-          $current = $predecessor;
-          $predecessor = $current->getPredecessor();
-        }
-
-        $this->cleanUp();
-        return array_reverse($path);
-      } catch (\Throwable $error) {
-        $this->cleanUp();
-        throw $error;
-      }
-    }
-
-    public function topologicalOrder(): array {
-      // Source of the math: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
-      $orderedList = [];
-      $unvisitedNodes = $this->nodes;
-
-      $visit = function(GraphNode $node) use (&$visit, &$orderedList, &$unvisitedNodes): void {
-        if ($node->getVisitedState() === true) return;
-        if ($node->getVisitedState() === 'temp') throw new \Exception("The graph is not a directed acyclic graph");
-
-        $node->visit('temp'); // Mark visit as temporary to detect if we loop back to this node
-        foreach ($node->links as $link) { $visit($this->getNode($link)); }
-        $node->visit(true);
-
-        $orderedList[] = $node;
-      };
-
-      try {
-        while (count($unvisitedNodes) > 0) {
-          $current = array_shift($unvisitedNodes);
-          $visit($current);
-        }
-
-        $this->cleanUp();
-        return array_reverse($orderedList);
-      } catch (\Throwable $error) {
-        $this->cleanUp();
-        throw $error;
-      }
-    }
-  }
-
-
-} namespace colori\distances {
-
-
-  function euclidean(array $vals1, array $vals2): float {
-    $distance = 0;
-    foreach ($vals1 as $k => $v) {
-      $distance += ($v - $vals2[$k]) ** 2;
-    }
-    return $distance;
-  }
-
-
-  function CIEDE2000(array $lab1, array $lab2): float {
-    // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
-    [$l1, $a1, $b1] = $lab1;
-    [$l2, $a2, $b2] = $lab2;
-
-    $L1 = 100 * $l1; $L2 = 100 * $l2;
-    $C1 = sqrt($a1 ** 2 + $b1 ** 2);
-    $C2 = sqrt($a2 ** 2 + $b2 ** 2);
-
-    $mC = ($C1 + $C2) / 2;
-    $G = 0.5 * (1 - sqrt($mC ** 7 / ($mC ** 7 + 25 ** 7)));
-    $aa1 = (1 + $G) * $a1;
-    $aa2 = (1 + $G) * $a2;
-    $CC1 = sqrt($aa1 ** 2 + $b1 ** 2);
-    $CC2 = sqrt($aa2 ** 2 + $b2 ** 2);
-    $hh1 = $CC1 === 0 ? 0 : atan2($b1, $aa1) * 180 / pi();
-    $hh2 = $CC2 === 0 ? 0 : atan2($b2, $aa2) * 180 / pi();
-    while ($hh1 < 0) $hh1 += 360; while ($hh1 > 360) $hh1 -= 360;
-    while ($hh2 < 0) $hh2 += 360; while ($hh2 > 360) $hh2 -= 360;
-
-    $dL = $L2 - $L1;
-    $dC = $CC2 - $CC1;
-    $dhh = ($CC1 * $CC2 === 0) ? 0
-          : ((abs($hh2 - $hh1) <= 180) ? $hh2 - $hh1
-          : (($hh2 - $hh1 > 180) ? $hh2 - $hh1 - 360
-          : $hh2 - $hh1 + 360));
-    $dH = 2 * sqrt($CC1 * $CC2) * sin((pi() / 180) * ($dhh / 2));
-
-    $mL = ($L1 + $L2) / 2;
-    $mCC = ($CC1 + $CC2) / 2;
-    $mhh = ($CC1 * $CC2 === 0) ? $hh1 + $hh2
-          : ((abs($hh2 - $hh1) <= 180) ? ($hh1 + $hh2) / 2
-          : (($hh1 + $hh2 >= 360) ? ($hh1 + $hh2 - 360) / 2
-          : ($hh1 + $hh2 + 360) / 2));
-    $T = 1 - 0.17 * cos((pi() / 180) * ($mhh - 30))
-        + 0.24 * cos((pi() / 180) * (2 * $mhh))
-        + 0.32 * cos((pi() / 180) * (3 * $mhh + 6))
-        - 0.20 * cos((pi() / 180) * (4 * $mhh - 63));
-    $dTH = 30 * exp(-1 * (($mhh - 275) / 25) ** 2);
-    $RC = 2 * sqrt($mCC ** 7 / ($mCC ** 7 + 25 ** 7));
-    $SL = 1 + (0.015 * ($mL - 50) ** 2) / sqrt(20 + ($mL - 50) ** 2);
-    $SC = 1 + 0.045 * $mCC;
-    $SH = 1 + 0.015 * $mCC * $T;
-    $RT = -1 * sin((pi() / 180) * (2 * $dTH)) * $RC;
-
-    return sqrt(
-      ($dL / $SL) ** 2
-      + ($dC / $SC) ** 2
-      + ($dH / $SH) ** 2
-      + $RT * ($dC / $SC) * ($dH / $SH)
-    );
   }
 
 
@@ -1644,6 +1280,370 @@ namespace colori\OKHSLV {
       );
     }
   }
+
+
+} namespace colori {
+
+
+  class GraphNode {
+    public readonly string|int $id;
+    public readonly array $links;
+    public readonly mixed $data;
+    private bool|string $visited = false;
+    private ?GraphNode $predecessor = null;
+
+    public function __construct(array $array) {
+      $this->id = $array['id'];
+      $this->links = $array['links'];
+      $this->data = $array['data'] ?? null;
+    }
+
+    public function getVisitedState() { return $this->visited; }
+    public function getPredecessor() { return $this->predecessor; }
+
+    public function visit(bool|string $mark = true): void {
+      $this->visited = $mark;
+    }
+    public function unvisit(): void {
+      $this->visited = false;
+    }
+
+    public function follow(GraphNode $node): void {
+      $this->predecessor = $node;
+    }
+    public function unfollow(): void {
+      $this->predecessor = null;
+    }
+  }
+
+
+  class Graph {
+    public readonly array $nodes;
+
+    public function __construct(array $array) {
+      $this->nodes = array_map(fn($e) => new GraphNode($e), $array);
+    }
+
+    public static function array_find(callable $callback, array $array): mixed {
+      foreach($array as $k => $v) {
+        if ($callback($v, $k)) return $v;
+      }
+      return null;
+    }
+
+    protected function getNode(string|int $id): GraphNode {
+      $node = self::array_find(fn($node) => $node->id === $id, $this->nodes);
+      if ($node === null) throw new \Exception("Node ". json_encode($id) ." does not exist");
+      return $node;
+    }
+
+    protected function cleanUp(): void {
+      foreach($this->nodes as $node) {
+        $node->unvisit();
+        $node->unfollow();
+      }
+    }
+
+    public function shortestPath(string|int $startID, string|int $endID): array {
+      if ($startID === $endID) return $this->shortestPath = [];
+
+      try {
+        $start = $this->getNode($startID);
+        $end = $this->getNode($endID);
+
+        $queue = [$start];
+        $start->visit();
+
+        // Let's build a breadth-first tree until we find the destination.
+        $found = false;
+        while (count($queue) > 0) {
+          $current = array_shift($queue);
+          if ($current->id === $end->id) {
+            $found = true;
+            break;
+          }
+
+          foreach ($current->links as $neighbourID) {
+            $neighbour = $this->getNode($neighbourID);
+            if ($neighbour->getVisitedState() === false) {
+              $neighbour->visit();
+              $neighbour->follow($current);
+              $queue[] = $neighbour;
+            }
+          }
+        }
+
+        if (!$found) throw new \Exception("No path found from ". json_encode($startID) ." to ". json_encode($endID));
+
+        // Let's backtrack through the tree to find the path.
+        $path = [$end];
+        $current = $end;
+        $predecessor = $current->getPredecessor();
+        while ($predecessor != null) {
+          $path[] = $predecessor;
+          $current = $predecessor;
+          $predecessor = $current->getPredecessor();
+        }
+
+        $this->cleanUp();
+        return array_reverse($path);
+      } catch (\Throwable $error) {
+        $this->cleanUp();
+        throw $error;
+      }
+    }
+
+    public function topologicalOrder(): array {
+      // Source of the math: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+      $orderedList = [];
+      $unvisitedNodes = $this->nodes;
+
+      $visit = function(GraphNode $node) use (&$visit, &$orderedList, &$unvisitedNodes): void {
+        if ($node->getVisitedState() === true) return;
+        if ($node->getVisitedState() === 'temp') throw new \Exception("The graph is not a directed acyclic graph");
+
+        $node->visit('temp'); // Mark visit as temporary to detect if we loop back to this node
+        foreach ($node->links as $link) { $visit($this->getNode($link)); }
+        $node->visit(true);
+
+        $orderedList[] = $node;
+      };
+
+      try {
+        while (count($unvisitedNodes) > 0) {
+          $current = array_shift($unvisitedNodes);
+          $visit($current);
+        }
+
+        $this->cleanUp();
+        return array_reverse($orderedList);
+      } catch (\Throwable $error) {
+        $this->cleanUp();
+        throw $error;
+      }
+    }
+  }
+
+
+} namespace colori\distances {
+
+
+  function euclidean(array $vals1, array $vals2): float {
+    $distance = 0;
+    foreach ($vals1 as $k => $v) {
+      $distance += ($v - $vals2[$k]) ** 2;
+    }
+    return $distance;
+  }
+
+
+  function CIEDE2000(array $lab1, array $lab2): float {
+    // Source of the math: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf
+    [$l1, $a1, $b1] = $lab1;
+    [$l2, $a2, $b2] = $lab2;
+
+    $L1 = 100 * $l1; $L2 = 100 * $l2;
+    $C1 = sqrt($a1 ** 2 + $b1 ** 2);
+    $C2 = sqrt($a2 ** 2 + $b2 ** 2);
+
+    $mC = ($C1 + $C2) / 2;
+    $G = 0.5 * (1 - sqrt($mC ** 7 / ($mC ** 7 + 25 ** 7)));
+    $aa1 = (1 + $G) * $a1;
+    $aa2 = (1 + $G) * $a2;
+    $CC1 = sqrt($aa1 ** 2 + $b1 ** 2);
+    $CC2 = sqrt($aa2 ** 2 + $b2 ** 2);
+    $hh1 = $CC1 === 0 ? 0 : atan2($b1, $aa1) * 180 / pi();
+    $hh2 = $CC2 === 0 ? 0 : atan2($b2, $aa2) * 180 / pi();
+    while ($hh1 < 0) $hh1 += 360; while ($hh1 > 360) $hh1 -= 360;
+    while ($hh2 < 0) $hh2 += 360; while ($hh2 > 360) $hh2 -= 360;
+
+    $dL = $L2 - $L1;
+    $dC = $CC2 - $CC1;
+    $dhh = ($CC1 * $CC2 === 0) ? 0
+          : ((abs($hh2 - $hh1) <= 180) ? $hh2 - $hh1
+          : (($hh2 - $hh1 > 180) ? $hh2 - $hh1 - 360
+          : $hh2 - $hh1 + 360));
+    $dH = 2 * sqrt($CC1 * $CC2) * sin((pi() / 180) * ($dhh / 2));
+
+    $mL = ($L1 + $L2) / 2;
+    $mCC = ($CC1 + $CC2) / 2;
+    $mhh = ($CC1 * $CC2 === 0) ? $hh1 + $hh2
+          : ((abs($hh2 - $hh1) <= 180) ? ($hh1 + $hh2) / 2
+          : (($hh1 + $hh2 >= 360) ? ($hh1 + $hh2 - 360) / 2
+          : ($hh1 + $hh2 + 360) / 2));
+    $T = 1 - 0.17 * cos((pi() / 180) * ($mhh - 30))
+        + 0.24 * cos((pi() / 180) * (2 * $mhh))
+        + 0.32 * cos((pi() / 180) * (3 * $mhh + 6))
+        - 0.20 * cos((pi() / 180) * (4 * $mhh - 63));
+    $dTH = 30 * exp(-1 * (($mhh - 275) / 25) ** 2);
+    $RC = 2 * sqrt($mCC ** 7 / ($mCC ** 7 + 25 ** 7));
+    $SL = 1 + (0.015 * ($mL - 50) ** 2) / sqrt(20 + ($mL - 50) ** 2);
+    $SC = 1 + 0.045 * $mCC;
+    $SH = 1 + 0.015 * $mCC * $T;
+    $RT = -1 * sin((pi() / 180) * (2 * $dTH)) * $RC;
+
+    return sqrt(
+      ($dL / $SL) ** 2
+      + ($dC / $SC) ** 2
+      + ($dH / $SH) ** 2
+      + $RT * ($dC / $SC) * ($dH / $SH)
+    );
+  }
+
+
+} namespace colori {
+
+
+  const COLOR_SPACES = array(
+    array(
+      'id' =>'srgb',
+      'aliases' => ['rgb', 'rgba'],
+      'properties' => ['r', 'g', 'b'],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['srgb-linear', 'hsl'],
+      'black' => [ 0.0, 0.0, 0.0 ],
+      'white' => [ 1.0, 1.0, 1.0 ]
+    ), array(
+      'id' => 'srgb-linear',
+      'aliases' => [],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['srgb', 'xyz-d65'],
+      'black' => [ 0.0, 0.0, 0.0 ],
+      'white' => [ 1.0, 1.0, 1.0 ]
+    ), array(
+      'id' => 'hsl',
+      'aliases' => ['hsla'],
+      'properties' => ['h', 's', 'l'],
+      'gamutSpace' => 'srgb',
+      'links' => ['srgb', 'hwb']
+    ), array(
+      'id' => 'hwb',
+      'aliases' => [],
+      'properties' => ['h', 'w', 'bk'],
+      'gamutSpace' => 'srgb',
+      'links' => ['hsl']
+    ), array(
+      'id' => 'lab',
+      'aliases' => [],
+      'properties' => ['ciel', 'ciea', 'cieb'],
+      'gamut' => [ [0.0, +INF], [-INF, +INF], [-INF, +INF] ],
+      'links' => ['xyz-d50', 'lch'],
+      'black' => [ 0.0, 0.0, 0.0 ]
+    ), array(
+      'id' => 'lch',
+      'aliases' => [],
+      'properties' => ['ciel', 'ciec', 'cieh'],
+      'gamut' => [ [0.0, +INF], [0.0, +INF], [-INF, +INF] ],
+      'links' => ['lab'],
+      'black' => [ 0.0, 0.0, 0.0 ]
+    ), array(
+      'id' => 'xyz-d50',
+      'aliases' => [],
+      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
+      'links' => ['lab', 'xyz-d65', 'prophoto-rgb-linear']
+    ), array(
+      'id' => 'xyz-d65',
+      'aliases' => ['xyz'],
+      'gamut' => [ [-INF, +INF], [-INF, +INF], [-INF, +INF] ],
+      'links' => ['xyz-d50', 'srgb-linear', 'display-p3-linear', 'a98-rgb-linear', 'rec2020-linear', 'oklab']
+    ), array(
+      'id' => 'display-p3',
+      'aliases' => [],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['display-p3-linear'],
+      'black' => [ 0.0, 0.0, 0.0 ],
+      'white' => [ 1.0, 1.0, 1.0 ]
+    ), array(
+      'id' => 'display-p3-linear',
+      'aliases' => [],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['display-p3', 'xyz-d65'],
+      'black' => [ 0.0, 0.0, 0.0 ],
+      'white' => [ 1.0, 1.0, 1.0 ]
+    ), array(
+      'id' => 'a98-rgb',
+      'aliases' => [],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['a98-rgb-linear'],
+      'black' => [ 0.0, 0.0, 0.0 ],
+      'white' => [ 1.0, 1.0, 1.0 ]
+    ), array(
+      'id' => 'a98-rgb-linear',
+      'aliases' => [],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['a98-rgb', 'xyz-d65'],
+      'black' => [ 0.0, 0.0, 0.0 ],
+      'white' => [ 1.0, 1.0, 1.0 ]
+    ), array(
+      'id' => 'prophoto-rgb',
+      'aliases' => [],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['prophoto-rgb-linear'],
+      'black' => [ 0.0, 0.0, 0.0 ],
+      'white' => [ 1.0, 1.0, 1.0 ]
+    ), array(
+      'id' => 'prophoto-rgb-linear',
+      'aliases' => [],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['prophoto-rgb', 'xyz-d50'],
+      'black' => [ 0.0, 0.0, 0.0 ],
+      'white' => [ 1.0, 1.0, 1.0 ]
+    ), array(
+      'id' => 'rec2020',
+      'aliases' => [],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['rec2020-linear'],
+      'black' => [ 0.0, 0.0, 0.0 ],
+      'white' => [ 1.0, 1.0, 1.0 ]
+    ), array(
+      'id' => 'rec2020-linear',
+      'aliases' => [],
+      'gamut' => [ [0.0, 1.0], [0.0, 1.0], [0.0, 1.0] ],
+      'links' => ['rec2020', 'xyz-d65'],
+      'black' => [ 0.0, 0.0, 0.0 ],
+      'white' => [ 1.0, 1.0, 1.0 ]
+    ), array(
+      'id' => 'oklab',
+      'aliases' => [],
+      'properties' => ['okl', 'oka', 'okb'],
+      'gamut' => [ [0.0, +INF], [-INF, +INF], [-INF, +INF] ],
+      'links' => ['xyz-d65', 'oklch', 'okhsl', 'okhsv', 'oklrab'],
+      'blakc' => [ 0.0, 0.0, 0.0 ]
+    ), array(
+      'id' => 'oklch',
+      'aliases' => [],
+      'properties' => ['okl', 'okc', 'okh'],
+      'gamut' => [ [0.0, +INF], [0.0, +INF], [-INF, +INF] ],
+      'links' => ['oklab', 'oklrch'],
+      'black' => [ 0.0, 0.0, 0.0 ]
+    ), array(
+      'id' => 'oklrab',
+      'aliases' => [],
+      'properties' => ['oklr', 'oka', 'okb'],
+      'gamut' => [ [0.0, +INF], [-INF, +INF], [-INF, +INF] ],
+      'links' => ['oklab'],
+      'blakc' => [ 0.0, 0.0, 0.0 ]
+    ), array(
+      'id' => 'oklrch',
+      'aliases' => [],
+      'properties' => ['oklr', 'okc', 'okh'],
+      'gamut' => [ [0.0, +INF], [0.0, +INF], [-INF, +INF] ],
+      'links' => ['oklch'],
+      'black' => [ 0.0, 0.0, 0.0 ]
+    ), array(
+      'id' => 'okhsl',
+      'aliases' => [],
+      'properties' => ['okh', 'oksl', 'oklr'],
+      'gamutSpace' => 'srgb',
+      'links' => ['oklab']
+    ), array(
+      'id' => 'okhsv',
+      'aliases' => [],
+      'properties' => ['okh', 'oksv', 'okv'],
+      'gamutSpace' => 'srgb',
+      'links' => ['oklab']
+    )
+  );
 
 
 } namespace colori {
@@ -2145,11 +2145,12 @@ namespace colori\OKHSLV {
     /** The approximate name of the color. */
     public function name(): ?string {
       if ($this->a() === 1.0) {
-        [$r, $g, $b] = $this->values();
-        $tolerance = .02;
+        $rgb1 = $this->values();
+        $tolerance = .0004;
         foreach (self::NAMED_COLORS as $name => $hex) {
-          [$r2, $g2, $b2] = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
-          if (abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b) < $tolerance) return $name;
+          $rgb2 = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
+          // Euclidean distance isn't great but at least it's performant...
+          if (distances\euclidean($rgb1, $rgb2) < $tolerance) return $name;
         }
         return null;
       }
@@ -2171,12 +2172,13 @@ namespace colori\OKHSLV {
     /** The name of the closest named color. */
     public function closestName(): string {
       if ($this->a() < 0.5) return 'transparent';
-      [$r, $g, $b] = $this->values();
+      $rgb1 = $this->values();
       $closest = '';
       $lastDistance = INF;
       foreach (self::NAMED_COLORS as $name => $hex) {
-        [$r2, $g2, $b2] = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
-        $distance = abs($r2 - $r) + abs($g2 - $g) + abs($b2 - $b);
+        $rgb2 = utils\fromHex([$hex[0].$hex[1], $hex[2].$hex[3], $hex[4].$hex[5]]);
+        // Euclidean distance isn't great but at least it's performant...
+        $distance = distances\euclidean($rgb1, $rgb2);
         if ($distance < $lastDistance) {
           $lastDistance = $distance;
           $closest = $name;
@@ -2670,7 +2672,7 @@ namespace colori\OKHSLV {
                 break;
 
               default:
-                throw new \Exception("$method is not a supported method for hue interpolation");
+                throw new \Exception("$hueInterpolationMethod is not a supported method for hue interpolation");
             } // don't break: the value is computed in the default case
 
           default:
@@ -2738,7 +2740,7 @@ namespace colori\OKHSLV {
       // Normalize percentages (part 2/2)
       $alphaMultiplier = 1.0;
       $sum = $pct1 + $pct2;
-      if ($sum === 0.0) throw new Error('The percentages passed as arguments add up to zero; that is invalid');
+      if ($sum === 0.0) throw new \Exception('The percentages passed as arguments add up to zero; that is invalid');
       else if ($sum < 1.0) {
         $alphaMultiplier = $sum;
       }
@@ -3078,8 +3080,8 @@ namespace colori\OKHSLV {
           $opaqueDist = distances\euclidean($oklab1, $oklab2);
           break;
         case 'euclidean':
-          $rgb1 = $colors1->values();
-          $rgb2 = $colors2->values();
+          $rgb1 = $color1->values();
+          $rgb2 = $color2->values();
           $opaqueDist = distances\euclidean($rgb1, $rgb2);
           break;
         default:
