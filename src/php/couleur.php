@@ -1037,7 +1037,7 @@
                 break;
 
               default:
-                throw new \Exception("$method is not a supported method for hue interpolation");
+                throw new \Exception("$hueInterpolationMethod is not a supported method for hue interpolation");
             } // don't break: the value is computed in the default case
 
           default:
@@ -1105,7 +1105,7 @@
       // Normalize percentages (part 2/2)
       $alphaMultiplier = 1.0;
       $sum = $pct1 + $pct2;
-      if ($sum === 0.0) throw new Error('The percentages passed as arguments add up to zero; that is invalid');
+      if ($sum === 0.0) throw new \Exception('The percentages passed as arguments add up to zero; that is invalid');
       else if ($sum < 1.0) {
         $alphaMultiplier = $sum;
       }
@@ -1445,8 +1445,8 @@
           $opaqueDist = distances\euclidean($oklab1, $oklab2);
           break;
         case 'euclidean':
-          $rgb1 = $colors1->values();
-          $rgb2 = $colors2->values();
+          $rgb1 = $color1->values();
+          $rgb2 = $color2->values();
           $opaqueDist = distances\euclidean($rgb1, $rgb2);
           break;
         default:
